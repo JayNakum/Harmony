@@ -1,0 +1,19 @@
+target_dir = "%{wks.location}/bin/%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}/%{prj.name}"
+obj_dir = "%{wks.location}/bin/obj/%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}/%{prj.name}"
+
+prj_src = {}
+prj_src["Engine"] = "%{wks.location}/../source/Engine"
+prj_src["Interface"] = "%{wks.location}/../source/Interface"
+prj_src["Harmony"] = "%{wks.location}/../source/Harmony"
+prj_src["Window"] = "%{wks.location}/../source/Window"
+prj_src["Logger"] = "%{wks.location}/../source/Logger"
+prj_src["Graphics"] = "%{wks.location}/../source/Graphics"
+
+DIRECTX_SDK = os.getenv("DXSDK_DIR")
+
+include_dirs = {}
+include_dirs["DirectX"] = "%{DIRECTX_SDK}/Include"
+include_dirs["Sokol"] = "%{wks.location}/../vendors/sokol"
+
+lib_dirs = {}
+lib_dirs["DirectX"] = "%{DIRECTX_SDK}/Lib/x64"
