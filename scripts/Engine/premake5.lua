@@ -17,7 +17,9 @@ project "Engine"
 	{
     "%{prj_src.Engine}",
     "%{prj_src.Harmony}",
-    "%{prj_src.Interface}"
+    "%{prj_src.Interface}",
+
+    "%{include_dirs.Sokol}"
 	}
   
   links

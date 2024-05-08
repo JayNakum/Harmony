@@ -2,87 +2,50 @@
 
 #include "Harmony.h"
 
-int main()
+#include <sokol_app.h>
+
+#include <functional>
+
+namespace sokol
 {
-    auto renderer = harmony::createSGRenderer();
-    renderer->initialize();
+	static void init()
+	{
+		harmony::getRenderer()->initialize();
+	}
 
-    const float vertices[] = {
-        // positions            colors
-         0.0f, 0.5f, 0.5f,      1.0f, 0.0f, 0.0f, 1.0f,
-         0.5f, -0.5f, 0.5f,     0.0f, 1.0f, 0.0f, 1.0f,
-        -0.5f, -0.5f, 0.5f,     0.0f, 0.0f, 1.0f, 1.0f
-    };
+	static void frame()
+	{
+		harmony::getRenderer()->render();
+	}
 
-    harmony::Buffer::Description vbDesc;
-    vbDesc.data = vertices;
-    vbDesc.size = sizeof(vertices);
-    vbDesc.type = harmony::Buffer::Type::eVERTEX_BUFFER;
-    vbDesc.label = "TriangleVertexBuffer";
-    harmony::Buffer* buffer = harmony::createSGBuffer(vbDesc);
-    buffer->initialize();
+	static void cleanup()
+	{
+		delete harmony::getRenderer();
+		delete harmony::getWindow();
+	}
+}
 
-    harmony::Drawable::Description drawDesc;
-    drawDesc.baseElement = 0;
-    drawDesc.numElements = 3;
+sapp_desc sokol_main(int argc, char* argv[])
+{
+	{
+		harmony::Window::Description windowDescription;
+		windowDescription.width = 600;
+		windowDescription.height = 400;
+		windowDescription.isFullScreen = false;
+		harmony::createWindow(windowDescription);
+	}
 
-    auto drawable = harmony::createSGDrawable();
-    drawable->addBuffer(buffer);
-    drawable->initialize();
-    drawable->setDescription(drawDesc);
+	sapp_desc appDesc = { 0 };
+	{
+		const auto& windowDesc = harmony::getWindow()->getDescription();
+		appDesc.window_title = windowDesc.title;
+		appDesc.width = windowDesc.width;
+		appDesc.height = windowDesc.height;
+		appDesc.fullscreen = windowDesc.isFullScreen;
 
-    harmony::Shader::Description shdDesc;
-    shdDesc.attrs[0].name = "POS";
-    shdDesc.attrs[1].name = "COLOR";
-    shdDesc.attrCount = 2;
-
-    shdDesc.vs.source = 
-        "struct vs_in {\n"
-        "  float4 pos: POS;\n"
-        "  float4 color: COLOR;\n"
-        "};\n"
-        "struct vs_out {\n"
-        "  float4 color: COLOR0;\n"
-        "  float4 pos: SV_Position;\n"
-        "};\n"
-        "vs_out main(vs_in inp) {\n"
-        "  vs_out outp;\n"
-        "  outp.pos = inp.pos;\n"
-        "  outp.color = inp.color;\n"
-        "  return outp;\n"
-        "}\n";
-
-    shdDesc.fs.source =
-        "float4 main(float4 color: COLOR0): SV_Target0 {\n"
-        "  return color;\n"
-        "}\n";
-    auto shader = harmony::createSGShader(shdDesc);
-    shader->initialize();
-
-
-    harmony::Pipeline::Description pipDesc;
-    pipDesc.shader = shader;
-    pipDesc.layout.attributes[0].format = harmony::Pipeline::VertexFormat::eFLOAT3;
-    pipDesc.layout.attributes[1].format = harmony::Pipeline::VertexFormat::eFLOAT4;
-    pipDesc.layout.attributesCount = 2;
-    auto pip = harmony::createSGPipeline(pipDesc);
-    pip->initialize();
-
-    harmony::RenderPass::Description passDesc;
-    passDesc.action.colors[0].clearValue[0] = 1.0f;
-    passDesc.action.colors[0].clearValue[1] = 1.0f;
-    passDesc.action.colors[0].clearValue[2] = 1.0f;
-    passDesc.action.colors[0].clearValue[3] = 1.0f;
-    auto pass = harmony::createSGRenderPass(passDesc);
-    pass->initialize();
-
-
-    renderer->frame = [&]() {
-        pass->begin();
-        pip->bind();
-        drawable->bind();
-        drawable->draw();
-        pass->end();
-        };
-    renderer->render();
+		appDesc.init_cb = sokol::init;
+		appDesc.frame_cb = sokol::frame;
+		appDesc.cleanup_cb = sokol::cleanup;
+	}
+	return appDesc;
 }

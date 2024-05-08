@@ -13,7 +13,17 @@ DIRECTX_SDK = os.getenv("DXSDK_DIR")
 
 include_dirs = {}
 include_dirs["DirectX"] = "%{DIRECTX_SDK}/Include"
+-- include_dirs["Glad"] = "%{wks.location}/../vendors/glad"
 include_dirs["Sokol"] = "%{wks.location}/../vendors/sokol"
 
 lib_dirs = {}
-lib_dirs["DirectX"] = "%{DIRECTX_SDK}/Lib/x64"
+lib_dirs["DirectX"] = "%{DIRECTX_SDK}/Lib"
+
+-- function addLibrariesInFolder(folder)
+--   local files = os.matchfiles(folder .. "/*.lib")
+--   for _, file in ipairs(files) do
+--       local libname = path.getbasename(file)
+--       libdirs { path.getdirectory(file) }
+--       links { libname }
+--   end
+-- end

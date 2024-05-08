@@ -10,6 +10,7 @@ namespace harmony
 			const char*		title			= "Harmony";
 			unsigned int	width			= 0;
 			unsigned int	height			= 0;
+			unsigned int	sampleCount		= 0;
 			bool			isFullScreen	= false;
 		};
 		virtual ~Window() = default;

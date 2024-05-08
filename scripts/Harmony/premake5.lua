@@ -19,7 +19,9 @@ project "Harmony"
     "%{prj_src.Interface}",
     "%{prj_src.Window}",
     "%{prj_src.Logger}",
-    "%{prj_src.Graphics}"
+    "%{prj_src.Graphics}",
+
+    "%{include_dirs.Sokol}"
 	}
   
   links
