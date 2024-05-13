@@ -30,8 +30,6 @@ namespace harmony
 
         struct VertexAttribute
         {
-            int bufferIndex;
-            int offset;
             VertexFormat format;
         };
 
@@ -65,7 +63,7 @@ namespace harmony
 
         struct Description
         {
-            const char* label;
+            const char* label           = "default pipeline";
             Shader* shaderProgram;
             VertexLayout layout;
             PrimitiveType primitiveType = PrimitiveType::eTRIANGLES;

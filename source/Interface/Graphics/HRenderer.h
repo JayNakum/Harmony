@@ -8,8 +8,7 @@ namespace harmony
     {
     public:
         virtual void initialize() = 0;
-        std::function<void()> frame;
-        virtual void render() = 0;
+        
         virtual void deinitialize() = 0;
     };
 }

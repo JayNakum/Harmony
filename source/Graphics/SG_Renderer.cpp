@@ -4,6 +4,7 @@
 #include "Harmony.h"
 
 #include <sokol_glue.h>
+#include <sokol_log.h>
 
 namespace sokol
 {
@@ -14,14 +15,10 @@ namespace sokol
 
 	void Renderer::initialize()
 	{
-		sg_desc desc = { 0 };
-		desc.environment = sglue_environment();
-		sg_setup(desc);
-	}
-
-	void Renderer::render()
-	{
-		// frame();
+		sg_desc createDesc = { 0 };
+		createDesc.environment = sglue_environment();
+		createDesc.logger.func = slog_func;
+		sg_setup(createDesc);
 	}
 
 	void Renderer::deinitialize()
@@ -30,18 +27,8 @@ namespace sokol
 
 namespace sokol
 {
-	const std::unordered_map<harmony::Buffer::Type, sg_buffer_type> Buffer::sTYPE = {
-			{ harmony::Buffer::Type::eVERTEX_BUFFER, sg_buffer_type::SG_BUFFERTYPE_VERTEXBUFFER },
-			{ harmony::Buffer::Type::eINDEX_BUFFER, sg_buffer_type::SG_BUFFERTYPE_INDEXBUFFER }
-	};
-	const std::unordered_map<harmony::Buffer::Usage, sg_usage> Buffer::sUSAGE = {
-			{ harmony::Buffer::Usage::eIMMUTABLE, sg_usage::SG_USAGE_IMMUTABLE },
-			{ harmony::Buffer::Usage::eDYNAMIC, sg_usage::SG_USAGE_DYNAMIC },
-			{ harmony::Buffer::Usage::eSTREAM, sg_usage::SG_USAGE_STREAM }
-	};
-
 	Buffer::Buffer(const harmony::Buffer::Description& description)
-		: mDescription(description), mBuffer() {}
+		: mDescription(description), mBuffer{ 0 } {}
 
 	Buffer::~Buffer()
 	{
@@ -61,18 +48,272 @@ namespace sokol
 	
 	void Buffer::initialize()
 	{
-		sg_buffer_desc desc = { 0 };
-		desc.label = mDescription.label;
-		desc.data.ptr = mDescription.data;
-		desc.size = mDescription.size;
-		desc.type = Buffer::sTYPE.at(mDescription.type);
-		desc.usage = Buffer::sUSAGE.at(mDescription.usage);
+		sg_buffer_desc createDesc = { 0 };
+		createDesc.label = mDescription.label;
+		createDesc.data.ptr = mDescription.data;
+		createDesc.size = mDescription.size;
+		createDesc.type = Buffer::sTYPE.at(mDescription.type);
+		createDesc.usage = Buffer::sUSAGE.at(mDescription.usage);
 
-		mBuffer = sg_make_buffer(desc);
+		mBuffer = sg_make_buffer(createDesc);
 	}
 
 	void Buffer::deinitialize()
 	{
 		sg_dealloc_buffer(mBuffer);
+	}
+	
+	const std::unordered_map<harmony::Buffer::Type, sg_buffer_type> Buffer::sTYPE = {
+			{ harmony::Buffer::Type::eVERTEX_BUFFER, sg_buffer_type::SG_BUFFERTYPE_VERTEXBUFFER },
+			{ harmony::Buffer::Type::eINDEX_BUFFER, sg_buffer_type::SG_BUFFERTYPE_INDEXBUFFER }
+	};
+	const std::unordered_map<harmony::Buffer::Usage, sg_usage> Buffer::sUSAGE = {
+			{ harmony::Buffer::Usage::eIMMUTABLE, sg_usage::SG_USAGE_IMMUTABLE },
+			{ harmony::Buffer::Usage::eDYNAMIC, sg_usage::SG_USAGE_DYNAMIC },
+			{ harmony::Buffer::Usage::eSTREAM, sg_usage::SG_USAGE_STREAM }
+	};
+}
+
+namespace sokol
+{
+	sokol::Drawable::Drawable(const harmony::Drawable::Description& description)
+		: mDescription(description), mBind{ 0 } {}
+
+
+	const harmony::Drawable::Description& sokol::Drawable::getDescription() const
+	{
+		return mDescription;
+	}
+
+	void Drawable::initialize()
+	{
+		mBind.vertex_buffers[0] = *((sg_buffer*)mDescription.vertexBuffer->getID());
+		if (mDescription.indexBuffer)
+			mBind.index_buffer = *((sg_buffer*)mDescription.indexBuffer->getID());
+	}
+	
+	void Drawable::bind() const
+	{
+		sg_apply_bindings(&mBind);
+	}
+	
+	void Drawable::draw(int baseElement, int numElements, int numInstances) const
+	{
+		sg_draw(baseElement, numElements, numInstances);
+	}
+
+	void Drawable::unbind() const
+	{
+		sg_bindings unbind = { 0 };
+		sg_apply_bindings(unbind);
+	}
+
+	void Drawable::deinitialize()
+	{
+		unbind();
+		
+		mDescription.vertexBuffer->deinitialize();
+		if (mDescription.indexBuffer)
+			mDescription.indexBuffer->deinitialize();
+	}
+
+	Drawable::~Drawable()
+	{
+		delete mDescription.vertexBuffer;
+		delete mDescription.indexBuffer;
+		mBind = { 0 };
+	}
+}
+
+namespace sokol
+{
+	sokol::Shader::Shader(const harmony::Shader::Description& description)
+		: mDescription(description), mShader{0} {}
+
+	const void* sokol::Shader::getID() const
+	{
+		return &mShader;
+	}
+
+	const harmony::Shader::Description& Shader::getDescription() const
+	{
+		return mDescription;
+	}
+
+	void Shader::initialize()
+	{
+		sg_shader_desc createDesc = { 0 };
+
+		createDesc.label = mDescription.label;
+
+		for (unsigned int i = 0; i < mDescription.attributesCount; ++i)
+		{
+			createDesc.attrs[i].sem_name = mDescription.attrs[i].name;
+		}
+
+		/*createDesc.attrs[0].sem_name = "POS";
+		createDesc.attrs[1].sem_name = "COLOR";*/
+
+		createDesc.vs.source = mDescription.vs.source;
+		createDesc.fs.source = mDescription.fs.source;
+
+		mShader = sg_make_shader(createDesc);
+	}
+
+	void Shader::deinitialize()
+	{
+		sg_dealloc_shader(mShader);
+	}
+
+	Shader::~Shader()
+	{
+		sg_destroy_shader(mShader);
+	}
+}
+
+namespace sokol
+{
+	Pipeline::Pipeline(const harmony::Pipeline::Description& description)
+		: mDescription(description), mPipeline{0} {}
+
+	const void* Pipeline::getID() const
+	{
+		return &mPipeline;
+	}
+
+	const harmony::Pipeline::Description& Pipeline::getDescription() const
+	{
+		return mDescription;
+	}
+
+	void Pipeline::initialize()
+	{
+		sg_pipeline_desc createDesc = { 0 };
+		createDesc.label = mDescription.label;
+		
+		/*for (unsigned int i = 0; i < mDescription.layout.attributesCount; ++i)
+		{
+			createDesc.layout.attrs[i].format = mVERTEX_FORMAT.at(mDescription.layout.attributes[i].format);
+		}*/
+		createDesc.layout.attrs[0].format = SG_VERTEXFORMAT_FLOAT3;
+		createDesc.layout.attrs[1].format = SG_VERTEXFORMAT_FLOAT4;
+		createDesc.shader = *((sg_shader*)mDescription.shaderProgram->getID());
+
+		/*createDesc.primitive_type = mPRIMITIVE_TYPE.at(mDescription.primitiveType);
+		createDesc.cull_mode = mCULL_MODE.at(mDescription.cullMode);
+		createDesc.face_winding = mFACE_WINDING.at(mDescription.faceWinding);*/
+
+		mPipeline = sg_make_pipeline(createDesc);
+	}
+
+	void Pipeline::bind() const
+	{
+		sg_apply_pipeline(mPipeline);
+	}
+
+	void Pipeline::unbind() const
+	{
+		sg_pipeline unbind = { 0 };
+		sg_apply_pipeline(unbind);
+	}
+
+	void Pipeline::deinitialize()
+	{
+		sg_dealloc_pipeline(mPipeline);
+		mDescription.shaderProgram->deinitialize();
+	}
+
+	Pipeline::~Pipeline()
+	{
+		sg_destroy_pipeline(mPipeline);
+		delete mDescription.shaderProgram;
+		mDescription = { 0 };
+	}
+
+	const std::unordered_map<harmony::Pipeline::VertexFormat, sg_vertex_format> Pipeline::mVERTEX_FORMAT = {
+		{ harmony::Pipeline::VertexFormat::eFLOAT, sg_vertex_format::SG_VERTEXFORMAT_FLOAT },
+		{ harmony::Pipeline::VertexFormat::eFLOAT2, sg_vertex_format::SG_VERTEXFORMAT_FLOAT2 },
+		{ harmony::Pipeline::VertexFormat::eFLOAT3, sg_vertex_format::SG_VERTEXFORMAT_FLOAT3 },
+		{ harmony::Pipeline::VertexFormat::eFLOAT4, sg_vertex_format::SG_VERTEXFORMAT_FLOAT4 },
+		{ harmony::Pipeline::VertexFormat::eBYTE4, sg_vertex_format::SG_VERTEXFORMAT_BYTE4 },
+		{ harmony::Pipeline::VertexFormat::eBYTE4N, sg_vertex_format::SG_VERTEXFORMAT_BYTE4N },
+		{ harmony::Pipeline::VertexFormat::eUBYTE4, sg_vertex_format::SG_VERTEXFORMAT_UBYTE4 },
+		{ harmony::Pipeline::VertexFormat::eUBYTE4N, sg_vertex_format::SG_VERTEXFORMAT_UBYTE4N },
+		{ harmony::Pipeline::VertexFormat::eSHORT2, sg_vertex_format::SG_VERTEXFORMAT_SHORT2 },
+		{ harmony::Pipeline::VertexFormat::eSHORT2N, sg_vertex_format::SG_VERTEXFORMAT_SHORT2N },
+		{ harmony::Pipeline::VertexFormat::eUSHORT2N, sg_vertex_format::SG_VERTEXFORMAT_USHORT2N },
+		{ harmony::Pipeline::VertexFormat::eSHORT4, sg_vertex_format::SG_VERTEXFORMAT_SHORT4 },
+		{ harmony::Pipeline::VertexFormat::eSHORT4N, sg_vertex_format::SG_VERTEXFORMAT_SHORT4N },
+		{ harmony::Pipeline::VertexFormat::eUSHORT4N, sg_vertex_format::SG_VERTEXFORMAT_USHORT4N },
+		{ harmony::Pipeline::VertexFormat::eUINT10_N2, sg_vertex_format::SG_VERTEXFORMAT_UINT10_N2 },
+		{ harmony::Pipeline::VertexFormat::eHALF2, sg_vertex_format::SG_VERTEXFORMAT_HALF2 },
+		{ harmony::Pipeline::VertexFormat::eHALF4, sg_vertex_format::SG_VERTEXFORMAT_HALF4 }
+	};
+	const std::unordered_map<harmony::Pipeline::PrimitiveType, sg_primitive_type> Pipeline::mPRIMITIVE_TYPE = {
+		{ harmony::Pipeline::PrimitiveType::ePOINTS, sg_primitive_type::SG_PRIMITIVETYPE_POINTS },
+		{ harmony::Pipeline::PrimitiveType::eLINES, sg_primitive_type::SG_PRIMITIVETYPE_LINES },
+		{ harmony::Pipeline::PrimitiveType::eLINE_STRIP, sg_primitive_type::SG_PRIMITIVETYPE_LINE_STRIP },
+		{ harmony::Pipeline::PrimitiveType::eTRIANGLES, sg_primitive_type::SG_PRIMITIVETYPE_TRIANGLES },
+		{ harmony::Pipeline::PrimitiveType::eTRIANGLE_STRIP, sg_primitive_type::SG_PRIMITIVETYPE_TRIANGLE_STRIP }
+	};
+	const std::unordered_map<harmony::Pipeline::CullMode, sg_cull_mode> Pipeline::mCULL_MODE = {
+		{ harmony::Pipeline::CullMode::eNONE, sg_cull_mode::SG_CULLMODE_NONE },
+		{ harmony::Pipeline::CullMode::eFRONT, sg_cull_mode::SG_CULLMODE_FRONT },
+		{ harmony::Pipeline::CullMode::eBACK, sg_cull_mode::SG_CULLMODE_BACK }
+	};
+	const std::unordered_map<harmony::Pipeline::FaceWinding, sg_face_winding> Pipeline::mFACE_WINDING = {
+		{ harmony::Pipeline::FaceWinding::eCOUNTER_CLOCKWISE, sg_face_winding::SG_FACEWINDING_CCW },
+		{ harmony::Pipeline::FaceWinding::eCLOCKWISE, sg_face_winding::SG_FACEWINDING_CW }
+	};
+}
+
+namespace sokol
+{
+	RenderPass::RenderPass(const harmony::RenderPass::Description& description)
+		: mDescription(description), mPass{0} {}
+
+	const void* RenderPass::getID() const
+	{
+		return &mPass;
+	}
+
+	const harmony::RenderPass::Description& RenderPass::getDescription() const
+	{
+		return mDescription;
+	}
+
+	void RenderPass::initialize()
+	{
+		mPass.label = mDescription.label;
+
+		mPass.action.colors->load_action = SG_LOADACTION_CLEAR;
+		mPass.action.colors[0].clear_value = { 
+			mDescription.action.colors.value[0],
+			mDescription.action.colors.value[1],
+			mDescription.action.colors.value[2],
+			mDescription.action.colors.value[3]
+		};
+
+		mPass.swapchain = sglue_swapchain();
+	}
+
+	void RenderPass::begin() const
+	{
+		sg_begin_pass(mPass);
+	}
+
+	void RenderPass::end() const
+	{
+		sg_end_pass();
+		sg_commit();
+	}
+
+	void RenderPass::deinitialize() {}
+
+	RenderPass::~RenderPass()
+	{
+
+		mPass = { 0 };
+		mDescription = { 0 };
 	}
 }

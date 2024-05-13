@@ -46,4 +46,25 @@ namespace harmony
 		}
 		return gRenderer;
 	}
+
+	harmony::Buffer* createBuffer(const harmony::Buffer::Description& description)
+	{
+		return new sokol::Buffer(description);
+	}
+	harmony::Drawable* createDrawable(const harmony::Drawable::Description& description)
+	{
+		return new sokol::Drawable(description);
+	}
+	harmony::Shader* createShader(const harmony::Shader::Description& description)
+	{
+		return new sokol::Shader(description);
+	}
+	harmony::Pipeline* createPipeline(const harmony::Pipeline::Description& description)
+	{
+		return new sokol::Pipeline(description);
+	}
+	harmony::RenderPass* createRenderPass(const harmony::RenderPass::Description& description)
+	{
+		return new sokol::RenderPass(description);
+	}
 }

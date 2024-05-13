@@ -5,6 +5,12 @@ namespace harmony
     class Shader
     {
     public:
+        struct AttributeDescription
+        {
+            const char* name;
+            int index;
+        };
+
         struct StageDescription
         {
             const char* source      = nullptr;
@@ -13,7 +19,9 @@ namespace harmony
 
         struct Description
         {
-            const char* label;
+            const char* label = "default shader program";
+            AttributeDescription attrs[16];
+            unsigned int attributesCount;
             StageDescription vs;
             StageDescription fs;
         };

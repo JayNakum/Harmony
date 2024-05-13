@@ -24,7 +24,7 @@ namespace harmony
 
         struct Description
         {
-            const char* label;
+            const char* label = "default render pass";
             Action action;
             Swapchain swapchain;
         };

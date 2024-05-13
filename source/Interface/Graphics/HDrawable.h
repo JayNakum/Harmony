@@ -9,15 +9,15 @@ namespace harmony
     public:
         struct Description
         {
-            Buffer*& vertexBuffer;
-            Buffer*& indexBuffer;
+            const char* label = "default drawable";
+            harmony::Buffer* vertexBuffer = nullptr;
+            harmony::Buffer* indexBuffer = nullptr;
         };
 
         virtual ~Drawable() = default;
 
     public:
         virtual const Description& getDescription() const = 0;
-        virtual void setDescription(const Description& description) = 0;
 
         virtual void initialize() = 0;
         virtual void bind() const = 0;
