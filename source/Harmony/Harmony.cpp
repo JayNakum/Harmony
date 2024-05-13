@@ -1,0 +1,70 @@
+#include "Harmony.h"
+
+#include <iostream>
+
+#include "SG_Window.h"
+#include "SG_Renderer.h"
+
+#include "Logger.h"
+
+static harmony::Window* gMainWindow = nullptr;
+static harmony::Renderer* gRenderer = nullptr;
+
+namespace harmony
+{
+	void createWindow(const harmony::Window::Description& windowDescription)
+	{
+		delete gMainWindow;
+		gMainWindow = new sokol::Window(windowDescription);
+	}
+
+	harmony::Logger* createLogger(const harmony::Logger::Description& loggerDescription)
+	{
+		return new ::Logger(loggerDescription);
+	}
+
+	harmony::Window* getWindow()
+	{
+		if (gMainWindow == nullptr)
+		{
+			harmony::Window::Description defaultDescription;
+			createWindow(defaultDescription);
+		}
+		return gMainWindow;
+	}
+
+	void createRenderer()
+	{
+		delete gRenderer;
+		gRenderer = new sokol::Renderer();
+	}
+	harmony::Renderer* getRenderer()
+	{
+		if (gRenderer == nullptr)
+		{
+			createRenderer();
+		}
+		return gRenderer;
+	}
+
+	harmony::Buffer* createBuffer(const harmony::Buffer::Description& description)
+	{
+		return new sokol::Buffer(description);
+	}
+	harmony::Drawable* createDrawable(const harmony::Drawable::Description& description)
+	{
+		return new sokol::Drawable(description);
+	}
+	harmony::Shader* createShader(const harmony::Shader::Description& description)
+	{
+		return new sokol::Shader(description);
+	}
+	harmony::Pipeline* createPipeline(const harmony::Pipeline::Description& description)
+	{
+		return new sokol::Pipeline(description);
+	}
+	harmony::RenderPass* createRenderPass(const harmony::RenderPass::Description& description)
+	{
+		return new sokol::RenderPass(description);
+	}
+}
