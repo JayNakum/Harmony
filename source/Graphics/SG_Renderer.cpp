@@ -151,9 +151,6 @@ namespace sokol
 			createDesc.attrs[i].sem_name = mDescription.attrs[i].name;
 		}
 
-		/*createDesc.attrs[0].sem_name = "POS";
-		createDesc.attrs[1].sem_name = "COLOR";*/
-
 		createDesc.vs.source = mDescription.vs.source;
 		createDesc.fs.source = mDescription.fs.source;
 
@@ -194,9 +191,16 @@ namespace sokol
 		/*for (unsigned int i = 0; i < mDescription.layout.attributesCount; ++i)
 		{
 			createDesc.layout.attrs[i].format = mVERTEX_FORMAT.at(mDescription.layout.attributes[i].format);
+			createDesc.layout.attrs[i].format = mVERTEX_FORMAT.at(mDescription.layout.attributes[i].format);
 		}*/
+
 		createDesc.layout.attrs[0].format = SG_VERTEXFORMAT_FLOAT3;
+		createDesc.layout.attrs[0].offset = 0;
 		createDesc.layout.attrs[1].format = SG_VERTEXFORMAT_FLOAT4;
+		createDesc.layout.attrs[1].offset = 12;
+
+		createDesc.index_type = mINDEX_TYPE.at(mDescription.indexType);
+
 		createDesc.shader = *((sg_shader*)mDescription.shaderProgram->getID());
 
 		/*createDesc.primitive_type = mPRIMITIVE_TYPE.at(mDescription.primitiveType);
@@ -265,6 +269,12 @@ namespace sokol
 		{ harmony::Pipeline::FaceWinding::eCOUNTER_CLOCKWISE, sg_face_winding::SG_FACEWINDING_CCW },
 		{ harmony::Pipeline::FaceWinding::eCLOCKWISE, sg_face_winding::SG_FACEWINDING_CW }
 	};
+	const std::unordered_map<harmony::Pipeline::IndexType, sg_index_type> Pipeline::mINDEX_TYPE = {
+		{ harmony::Pipeline::IndexType::eNO_INDEX_BUFFER, sg_index_type::SG_INDEXTYPE_NONE },
+		{ harmony::Pipeline::IndexType::eUINT16, sg_index_type::SG_INDEXTYPE_UINT16 },
+		{ harmony::Pipeline::IndexType::eUINT32, sg_index_type::SG_INDEXTYPE_UINT32 }
+	};
+
 }
 
 namespace sokol
@@ -294,11 +304,11 @@ namespace sokol
 			mDescription.action.colors.value[3]
 		};
 
-		mPass.swapchain = sglue_swapchain();
 	}
 
-	void RenderPass::begin() const
+	void RenderPass::begin()
 	{
+		mPass.swapchain = sglue_swapchain();
 		sg_begin_pass(mPass);
 	}
 

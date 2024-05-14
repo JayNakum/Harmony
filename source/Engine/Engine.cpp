@@ -12,31 +12,48 @@ public:
 		auto renderer = harmony::getRenderer();
 		renderer->initialize();
 
-		harmony::Buffer::Description bufferDescription;
+		harmony::Buffer::Description vBufferDescription;
 		{
 			const float vertices[] = {
-				 0.0f, 0.5f, 0.5f,      1.0f, 0.0f, 0.0f, 1.0f,
-				 0.5f, -0.5f, 0.5f,     0.0f, 1.0f, 0.0f, 1.0f,
-				-0.5f, -0.5f, 0.5f,     0.0f, 0.0f, 1.0f, 1.0f
+				-0.5f,  0.5f, 0.5f,     1.0f, 0.0f, 0.0f, 1.0f,
+				 0.5f,  0.5f, 0.5f,     0.0f, 1.0f, 0.0f, 1.0f,
+				 0.5f, -0.5f, 0.5f,     0.0f, 0.0f, 1.0f, 1.0f,
+				-0.5f, -0.5f, 0.5f,     1.0f, 1.0f, 0.0f, 1.0f
 			};
-			bufferDescription.label = "Triangle Vertex Buffer";
-			bufferDescription.type = harmony::Buffer::Type::eVERTEX_BUFFER;
-			bufferDescription.data = vertices;
-			bufferDescription.size = sizeof(vertices);
+			vBufferDescription.label = "Quad Vertex Buffer";
+			vBufferDescription.type = harmony::Buffer::Type::eVERTEX_BUFFER;
+			vBufferDescription.data = vertices;
+			vBufferDescription.size = sizeof(vertices);
 		}
-		auto vertexBuffer = harmony::createBuffer(bufferDescription);
+		auto vertexBuffer = harmony::createBuffer(vBufferDescription);
 		vertexBuffer->initialize(); // this gets passed to drawable which means that drawable has it's ownership and drawable will ensure that this gets deinitialized and deleted
+
+		harmony::Buffer::Description iBufferDescription;
+		{
+			const uint16_t indices[] = {
+				0, 1, 2,
+				0, 2, 3
+			};
+			iBufferDescription.label = "Quad Index Buffer";
+			iBufferDescription.type = harmony::Buffer::Type::eINDEX_BUFFER;
+			
+			iBufferDescription.data = indices;
+			iBufferDescription.size = sizeof(indices);
+		}
+		auto indexBuffer = harmony::createBuffer(iBufferDescription);
+		indexBuffer->initialize(); // this gets passed to drawable which means that drawable has it's ownership and drawable will ensure that this gets deinitialized and deleted
 
 		harmony::Drawable::Description drawableDescription;
 		{
-			drawableDescription.label = "Triangle Drawable";
+			drawableDescription.label = "Quad Drawable";
 			drawableDescription.vertexBuffer = vertexBuffer;
+			drawableDescription.indexBuffer = indexBuffer;
 		}
 		triangle = harmony::createDrawable(drawableDescription);
 
 		harmony::Shader::Description shaderDescription;
 		{
-			shaderDescription.label = "Triangle Shader Program";
+			shaderDescription.label = "Quad Shader Program";
 			shaderDescription.attributesCount = 2;
 			shaderDescription.attrs[0].name = "POS";
 			shaderDescription.attrs[1].name = "COLOR";
@@ -65,17 +82,18 @@ public:
 
 		harmony::Pipeline::Description pipelineDescription;
 		{
-			pipelineDescription.label = "Triangle Pipeline";
+			pipelineDescription.label = "Quad Pipeline";
 			pipelineDescription.layout.attributesCount = 2;
 			pipelineDescription.layout.attributes[0].format = harmony::Pipeline::VertexFormat::eFLOAT3;
 			pipelineDescription.layout.attributes[1].format = harmony::Pipeline::VertexFormat::eFLOAT4;
 			pipelineDescription.shaderProgram = shaderProgram;
+			pipelineDescription.indexType = harmony::Pipeline::IndexType::eUINT16;
 		}
 		pipeline = harmony::createPipeline(pipelineDescription);
 
 		harmony::RenderPass::Description passDescription;
 		{
-			passDescription.label = "Triangle Render Pass";
+			passDescription.label = "Quad Render Pass";
 			passDescription.action.colors.value[0] = 1.0f;
 			passDescription.action.colors.value[1] = 1.0f;
 			passDescription.action.colors.value[2] = 1.0f;
@@ -95,7 +113,7 @@ public:
 		pass->begin();
 		pipeline->bind();
 		triangle->bind();
-		triangle->draw(0, 3, 1);
+		triangle->draw(0, 6, 1);
 		pass->end();
 	}
 

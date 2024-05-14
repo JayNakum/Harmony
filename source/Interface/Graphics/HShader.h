@@ -30,7 +30,6 @@ namespace harmony
     public:
         virtual const void* getID() const = 0;
         virtual const Description& getDescription() const = 0;
-
         virtual void initialize() = 0;
         virtual void deinitialize() = 0;
     };

@@ -36,7 +36,7 @@ namespace harmony
         virtual const Description& getDescription() const = 0;
 
         virtual void initialize() = 0;
-        virtual void begin() const = 0;
+        virtual void begin() = 0;
         virtual void end() const = 0;
         virtual void deinitialize() = 0;
     };

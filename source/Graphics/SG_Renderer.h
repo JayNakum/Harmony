@@ -117,6 +117,7 @@ namespace sokol
         static const std::unordered_map<harmony::Pipeline::PrimitiveType, sg_primitive_type> mPRIMITIVE_TYPE;
         static const std::unordered_map<harmony::Pipeline::CullMode, sg_cull_mode> mCULL_MODE;
         static const std::unordered_map<harmony::Pipeline::FaceWinding, sg_face_winding> mFACE_WINDING;
+        static const std::unordered_map<harmony::Pipeline::IndexType, sg_index_type> mINDEX_TYPE;
     };
 }
 
@@ -132,7 +133,7 @@ namespace sokol
         const void* getID() const override;
         const harmony::RenderPass::Description& getDescription() const override;
         void initialize() override;
-        void begin() const override;
+        void begin() override;
         void end() const override;
         void deinitialize() override;
 

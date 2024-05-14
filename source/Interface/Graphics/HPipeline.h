@@ -61,14 +61,22 @@ namespace harmony
             eCLOCKWISE
         };
 
+        enum IndexType
+        {
+            eNO_INDEX_BUFFER,
+            eUINT16,
+            eUINT32
+        };
+
         struct Description
         {
             const char* label           = "default pipeline";
             Shader* shaderProgram;
             VertexLayout layout;
             PrimitiveType primitiveType = PrimitiveType::eTRIANGLES;
-            CullMode cullMode           = CullMode::eNONE;
+            CullMode cullMode           = CullMode::eBACK;
             FaceWinding faceWinding     = FaceWinding::eCLOCKWISE;
+            IndexType indexType         = IndexType::eNO_INDEX_BUFFER;
         };
 
         virtual ~Pipeline() = default;
