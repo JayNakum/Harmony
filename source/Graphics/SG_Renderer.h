@@ -84,11 +84,16 @@ namespace sokol
         const void* getID() const override;
         const harmony::Shader::Description& getDescription() const override;
         void initialize() override;
+        void applyConstants(const StageType type, unsigned int constantBlockIndex, const void* data, size_t size) const override;
         void deinitialize() override;
 
     private:
         harmony::Shader::Description mDescription;
         sg_shader mShader;
+
+    private:
+        static const std::unordered_map<harmony::Shader::ConstantType, sg_uniform_type> sCONSTANT_TYPE;
+        static const std::unordered_map<harmony::Shader::StageType, sg_shader_stage> sSTAGE_TYPE;
     };
 }
 
@@ -113,11 +118,11 @@ namespace sokol
         sg_pipeline mPipeline;
 
     private:
-        static const std::unordered_map<harmony::Pipeline::VertexFormat, sg_vertex_format> mVERTEX_FORMAT;
-        static const std::unordered_map<harmony::Pipeline::PrimitiveType, sg_primitive_type> mPRIMITIVE_TYPE;
-        static const std::unordered_map<harmony::Pipeline::CullMode, sg_cull_mode> mCULL_MODE;
-        static const std::unordered_map<harmony::Pipeline::FaceWinding, sg_face_winding> mFACE_WINDING;
-        static const std::unordered_map<harmony::Pipeline::IndexType, sg_index_type> mINDEX_TYPE;
+        static const std::unordered_map<harmony::Pipeline::VertexFormat, sg_vertex_format> sVERTEX_FORMAT;
+        static const std::unordered_map<harmony::Pipeline::PrimitiveType, sg_primitive_type> sPRIMITIVE_TYPE;
+        static const std::unordered_map<harmony::Pipeline::CullMode, sg_cull_mode> sCULL_MODE;
+        static const std::unordered_map<harmony::Pipeline::FaceWinding, sg_face_winding> sFACE_WINDING;
+        static const std::unordered_map<harmony::Pipeline::IndexType, sg_index_type> sINDEX_TYPE;
     };
 }
 

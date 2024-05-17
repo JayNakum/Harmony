@@ -4,6 +4,12 @@
 
 #include <sokol_app.h>
 
+#define M_PI 3.14159265358979323846
+
+#include <glm.hpp>
+#include <gtc/matrix_transform.hpp>
+#include <gtc/type_ptr.hpp>
+
 class Engine
 {
 public:
@@ -14,11 +20,37 @@ public:
 
 		harmony::Buffer::Description vBufferDescription;
 		{
-			const float vertices[] = {
-				-0.5f,  0.5f, 0.5f,     1.0f, 0.0f, 0.0f, 1.0f,
-				 0.5f,  0.5f, 0.5f,     0.0f, 1.0f, 0.0f, 1.0f,
-				 0.5f, -0.5f, 0.5f,     0.0f, 0.0f, 1.0f, 1.0f,
-				-0.5f, -0.5f, 0.5f,     1.0f, 1.0f, 0.0f, 1.0f
+			float vertices[] = {
+				// positions        colors
+				-1.0, -1.0, -1.0,   1.0, 0.0, 0.0, 1.0,
+				 1.0, -1.0, -1.0,   1.0, 0.0, 0.0, 1.0,
+				 1.0,  1.0, -1.0,   1.0, 0.0, 0.0, 1.0,
+				-1.0,  1.0, -1.0,   1.0, 0.0, 0.0, 1.0,
+
+				-1.0, -1.0,  1.0,   0.0, 1.0, 0.0, 1.0,
+				 1.0, -1.0,  1.0,   0.0, 1.0, 0.0, 1.0,
+				 1.0,  1.0,  1.0,   0.0, 1.0, 0.0, 1.0,
+				-1.0,  1.0,  1.0,   0.0, 1.0, 0.0, 1.0,
+
+				-1.0, -1.0, -1.0,   0.0, 0.0, 1.0, 1.0,
+				-1.0,  1.0, -1.0,   0.0, 0.0, 1.0, 1.0,
+				-1.0,  1.0,  1.0,   0.0, 0.0, 1.0, 1.0,
+				-1.0, -1.0,  1.0,   0.0, 0.0, 1.0, 1.0,
+
+				1.0, -1.0, -1.0,   1.0, 0.5, 0.0, 1.0,
+				1.0,  1.0, -1.0,   1.0, 0.5, 0.0, 1.0,
+				1.0,  1.0,  1.0,   1.0, 0.5, 0.0, 1.0,
+				1.0, -1.0,  1.0,   1.0, 0.5, 0.0, 1.0,
+
+				-1.0, -1.0, -1.0,   0.0, 0.5, 1.0, 1.0,
+				-1.0, -1.0,  1.0,   0.0, 0.5, 1.0, 1.0,
+				 1.0, -1.0,  1.0,   0.0, 0.5, 1.0, 1.0,
+				 1.0, -1.0, -1.0,   0.0, 0.5, 1.0, 1.0,
+
+				-1.0,  1.0, -1.0,   1.0, 0.0, 0.5, 1.0,
+				-1.0,  1.0,  1.0,   1.0, 0.0, 0.5, 1.0,
+				 1.0,  1.0,  1.0,   1.0, 0.0, 0.5, 1.0,
+				 1.0,  1.0, -1.0,   1.0, 0.0, 0.5, 1.0
 			};
 			vBufferDescription.label = "Quad Vertex Buffer";
 			vBufferDescription.type = harmony::Buffer::Type::eVERTEX_BUFFER;
@@ -30,9 +62,13 @@ public:
 
 		harmony::Buffer::Description iBufferDescription;
 		{
-			const uint16_t indices[] = {
-				0, 1, 2,
-				0, 2, 3
+			uint16_t indices[] = {
+				0, 1, 2,  0, 2, 3,
+				6, 5, 4,  7, 6, 4,
+				8, 9, 10,  8, 10, 11,
+				14, 13, 12,  15, 14, 12,
+				16, 17, 18,  16, 18, 19,
+				22, 21, 20, 23, 22, 20
 			};
 			iBufferDescription.label = "Quad Index Buffer";
 			iBufferDescription.type = harmony::Buffer::Type::eINDEX_BUFFER;
@@ -55,12 +91,19 @@ public:
 		{
 			shaderDescription.label = "Quad Shader Program";
 			shaderDescription.attributesCount = 2;
-			shaderDescription.attrs[0].name = "POS";
+			shaderDescription.attrs[0].name = "POSITION";
 			shaderDescription.attrs[1].name = "COLOR";
+			shaderDescription.attrs[1].index = 1;
+			
+			shaderDescription.vs.constantBlocksCount = 1;
+			shaderDescription.vs.constantBlocks[0].size = sizeof(glm::mat4);
 			shaderDescription.vs.source =
+				"cbuffer params: register(b0) {\n"
+				"  float4x4 mvp;\n"
+				"};\n"
 				"struct vs_in {\n"
-				"  float4 pos: POS;\n"
-				"  float4 color: COLOR;\n"
+				"  float4 pos: POSITION;\n"
+				"  float4 color: COLOR1;\n"
 				"};\n"
 				"struct vs_out {\n"
 				"  float4 color: COLOR0;\n"
@@ -68,17 +111,18 @@ public:
 				"};\n"
 				"vs_out main(vs_in inp) {\n"
 				"  vs_out outp;\n"
-				"  outp.pos = inp.pos;\n"
+				"  outp.pos = mul(mvp, inp.pos);\n"
 				"  outp.color = inp.color;\n"
 				"  return outp;\n"
-				"}\n";
+				"};\n";
+			
 			shaderDescription.fs.source =
 				"float4 main(float4 color: COLOR0): SV_Target0 {\n"
 				"  return color;\n"
 				"}\n";
 		}
-		auto shaderProgram = harmony::createShader(shaderDescription);
-		shaderProgram->initialize(); // this gets passed to pipeline which means that pipeline has it's ownership and pipeline will ensure that this gets deinitialized and deleted
+		shaderProgram1 = harmony::createShader(shaderDescription);
+		shaderProgram1->initialize(); // this gets passed to pipeline which means that pipeline has it's ownership and pipeline will ensure that this gets deinitialized and deleted
 
 		harmony::Pipeline::Description pipelineDescription;
 		{
@@ -86,8 +130,9 @@ public:
 			pipelineDescription.layout.attributesCount = 2;
 			pipelineDescription.layout.attributes[0].format = harmony::Pipeline::VertexFormat::eFLOAT3;
 			pipelineDescription.layout.attributes[1].format = harmony::Pipeline::VertexFormat::eFLOAT4;
-			pipelineDescription.shaderProgram = shaderProgram;
+			pipelineDescription.shaderProgram = shaderProgram1;
 			pipelineDescription.indexType = harmony::Pipeline::IndexType::eUINT16;
+
 		}
 		pipeline = harmony::createPipeline(pipelineDescription);
 
@@ -110,10 +155,20 @@ public:
 
 	void frame()
 	{
+		rx -= 1.0f;
+
+		glm::mat4 model(1);
+		model[0][0] = 1.3f;
+		model[1][1] = 1.3f;
+		model[2][2] = 1.3f;
+		model *= glm::rotate(model, glm::radians(rx), glm::vec3(0.0f, 1.0f, 0.0f));
+		glm::mat4 mvp = proj_view * model;
+
 		pass->begin();
 		pipeline->bind();
 		triangle->bind();
-		triangle->draw(0, 6, 1);
+		shaderProgram1->applyConstants(harmony::Shader::StageType::eVERTEX_SHADER, 0, &mvp, sizeof(mvp));
+		triangle->draw(0, 36, 1);
 		pass->end();
 	}
 
@@ -132,8 +187,13 @@ public:
 	}
 
 private:
+	float rx = 0.0f;
+	glm::mat4 proj_view = (glm::perspective(90.0f, 1024.0f / 576.0f, 0.01f, 10.0f)) * 
+		(glm::lookAt(glm::vec3(2.0f, 2.0f, 5.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
+	
 	harmony::Drawable* triangle = nullptr;
 	harmony::Pipeline* pipeline = nullptr;
+	harmony::Shader* shaderProgram1 = nullptr;
 	harmony::RenderPass* pass = nullptr;
 }engine;
 
@@ -175,7 +235,7 @@ sapp_desc sokol_main(int argc, char* argv[])
 		appDesc.width = windowDesc.width;
 		appDesc.height = windowDesc.height;
 		appDesc.fullscreen = windowDesc.isFullScreen;
-
+		appDesc.high_dpi = true;
 		appDesc.init_cb = sokol::init;
 		appDesc.frame_cb = sokol::frame;
 		appDesc.cleanup_cb = sokol::cleanup;

@@ -15,6 +15,7 @@ include_dirs = {}
 include_dirs["DirectX"] = "%{DIRECTX_SDK}/Include"
 -- include_dirs["Glad"] = "%{wks.location}/../vendors/glad"
 include_dirs["Sokol"] = "%{wks.location}/../vendors/sokol"
+include_dirs["GLM"] = "%{wks.location}/../vendors/glm/glm"
 
 lib_dirs = {}
 lib_dirs["DirectX"] = "%{DIRECTX_SDK}/Lib"

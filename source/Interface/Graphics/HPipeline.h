@@ -74,9 +74,11 @@ namespace harmony
             Shader* shaderProgram;
             VertexLayout layout;
             PrimitiveType primitiveType = PrimitiveType::eTRIANGLES;
-            CullMode cullMode           = CullMode::eBACK;
+            CullMode cullMode           = CullMode::eNONE;
             FaceWinding faceWinding     = FaceWinding::eCLOCKWISE;
             IndexType indexType         = IndexType::eNO_INDEX_BUFFER;
+
+            bool depthEnabled = true;
         };
 
         virtual ~Pipeline() = default;
