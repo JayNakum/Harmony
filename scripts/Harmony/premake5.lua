@@ -20,8 +20,10 @@ project "Harmony"
     "%{prj_src.Window}",
     "%{prj_src.Logger}",
     "%{prj_src.Graphics}",
+    "%{prj_src.Scene}",
 
-    "%{include_dirs.Sokol}"
+    "%{include_dirs.Sokol}",
+    "%{include_dirs.ENTT}"
 	}
   
   links
@@ -29,7 +31,8 @@ project "Harmony"
     -- Links to every project except application
     "Window",
     "Logger",
-    "Graphics"
+    "Graphics",
+    "Scene"
   }
 
   filter "configurations:Debug"

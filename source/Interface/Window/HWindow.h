@@ -24,6 +24,7 @@ namespace harmony
 
 		virtual void initialize() = 0;
 		virtual void deinitialize() = 0;
+		virtual void resize(unsigned int width, unsigned int height) = 0;
 		virtual void update() = 0;
 	};
 }

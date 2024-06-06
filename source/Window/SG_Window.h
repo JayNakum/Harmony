@@ -20,6 +20,7 @@ namespace sokol
 		void initialize() override;
 		void deinitialize() override;
 		void update() override;
+		void resize(unsigned int width, unsigned int height) override;
 
 	private:
 		harmony::Window::Description mDescription;

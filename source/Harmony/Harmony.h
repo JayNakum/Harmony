@@ -9,6 +9,8 @@
 #include "Graphics/HRenderPass.h"
 #include "Graphics/HRenderer.h"
 
+#include "Scene/HScene.h"
+
 #include "HLogger.h"
 
 namespace harmony

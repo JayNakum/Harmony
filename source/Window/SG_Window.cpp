@@ -22,16 +22,20 @@ namespace sokol
 
 	bool Window::isRunning() const
 	{
-		return false;
+		return true;
 	}
 
 	void Window::initialize() {}
 
-	void Window::deinitialize()
-	{}
+	void Window::deinitialize() {}
 
-	void Window::update()
-	{}
+	void Window::update() {}
+
+	void Window::resize(unsigned int width, unsigned int height)
+	{
+		mDescription.width = width;
+		mDescription.height = height;
+	}
 
 
 }
