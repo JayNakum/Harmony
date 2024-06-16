@@ -35,74 +35,65 @@ public:
 
 		// Scene creation
 		{
-			harmony::Buffer::Description vBufferDescription;
+			harmony::Scene::Description sceneDescription;
+			sceneDescription.label = "Test Scene";
+			scene = harmony::createScene(sceneDescription);
 			{
-				const float vertices[] = {
-					// positions        colors
-					-1.0, -1.0, -1.0,   1.0, 0.0, 0.0, 1.0,
-					 1.0, -1.0, -1.0,   1.0, 0.0, 0.0, 1.0,
-					 1.0,  1.0, -1.0,   1.0, 0.0, 0.0, 1.0,
-					-1.0,  1.0, -1.0,   1.0, 0.0, 0.0, 1.0,
+				harmony::component::Visual visual;
+				{
+					const float vertices[] = {
+						// positions        colors
+						-1.0, -1.0, -1.0,   1.0, 0.0, 0.0, 1.0,
+						 1.0, -1.0, -1.0,   1.0, 0.0, 0.0, 1.0,
+						 1.0,  1.0, -1.0,   1.0, 0.0, 0.0, 1.0,
+						-1.0,  1.0, -1.0,   1.0, 0.0, 0.0, 1.0,
 
-					-1.0, -1.0,  1.0,   0.0, 1.0, 0.0, 1.0,
-					 1.0, -1.0,  1.0,   0.0, 1.0, 0.0, 1.0,
-					 1.0,  1.0,  1.0,   0.0, 1.0, 0.0, 1.0,
-					-1.0,  1.0,  1.0,   0.0, 1.0, 0.0, 1.0,
+						-1.0, -1.0,  1.0,   0.0, 1.0, 0.0, 1.0,
+						 1.0, -1.0,  1.0,   0.0, 1.0, 0.0, 1.0,
+						 1.0,  1.0,  1.0,   0.0, 1.0, 0.0, 1.0,
+						-1.0,  1.0,  1.0,   0.0, 1.0, 0.0, 1.0,
 
-					-1.0, -1.0, -1.0,   0.0, 0.0, 1.0, 1.0,
-					-1.0,  1.0, -1.0,   0.0, 0.0, 1.0, 1.0,
-					-1.0,  1.0,  1.0,   0.0, 0.0, 1.0, 1.0,
-					-1.0, -1.0,  1.0,   0.0, 0.0, 1.0, 1.0,
+						-1.0, -1.0, -1.0,   0.0, 0.0, 1.0, 1.0,
+						-1.0,  1.0, -1.0,   0.0, 0.0, 1.0, 1.0,
+						-1.0,  1.0,  1.0,   0.0, 0.0, 1.0, 1.0,
+						-1.0, -1.0,  1.0,   0.0, 0.0, 1.0, 1.0,
 
-					1.0, -1.0, -1.0,   1.0, 0.5, 0.0, 1.0,
-					1.0,  1.0, -1.0,   1.0, 0.5, 0.0, 1.0,
-					1.0,  1.0,  1.0,   1.0, 0.5, 0.0, 1.0,
-					1.0, -1.0,  1.0,   1.0, 0.5, 0.0, 1.0,
+						1.0, -1.0, -1.0,   1.0, 0.5, 0.0, 1.0,
+						1.0,  1.0, -1.0,   1.0, 0.5, 0.0, 1.0,
+						1.0,  1.0,  1.0,   1.0, 0.5, 0.0, 1.0,
+						1.0, -1.0,  1.0,   1.0, 0.5, 0.0, 1.0,
 
-					-1.0, -1.0, -1.0,   0.0, 0.5, 1.0, 1.0,
-					-1.0, -1.0,  1.0,   0.0, 0.5, 1.0, 1.0,
-					 1.0, -1.0,  1.0,   0.0, 0.5, 1.0, 1.0,
-					 1.0, -1.0, -1.0,   0.0, 0.5, 1.0, 1.0,
+						-1.0, -1.0, -1.0,   0.0, 0.5, 1.0, 1.0,
+						-1.0, -1.0,  1.0,   0.0, 0.5, 1.0, 1.0,
+						 1.0, -1.0,  1.0,   0.0, 0.5, 1.0, 1.0,
+						 1.0, -1.0, -1.0,   0.0, 0.5, 1.0, 1.0,
 
-					-1.0,  1.0, -1.0,   1.0, 0.0, 0.5, 1.0,
-					-1.0,  1.0,  1.0,   1.0, 0.0, 0.5, 1.0,
-					 1.0,  1.0,  1.0,   1.0, 0.0, 0.5, 1.0,
-					 1.0, 1.0, -1.0, 1.0, 0.0, 0.5, 1.0
-				};
-				vBufferDescription.label = "Test Vertex Buffer";
-				vBufferDescription.type = harmony::Buffer::Type::eVERTEX_BUFFER;
-				vBufferDescription.data = vertices;
-				vBufferDescription.size = sizeof(vertices);
+						-1.0,  1.0, -1.0,   1.0, 0.0, 0.5, 1.0,
+						-1.0,  1.0,  1.0,   1.0, 0.0, 0.5, 1.0,
+						 1.0,  1.0,  1.0,   1.0, 0.0, 0.5, 1.0,
+						 1.0, 1.0, -1.0, 1.0, 0.0, 0.5, 1.0
+					};
+					visual.mesh.vertices = vertices;
+					visual.mesh.verticesSize = sizeof(vertices);
+
+					const uint16_t indices[] = {
+						0, 1, 2,  0, 2, 3,
+						6, 5, 4,  7, 6, 4,
+						8, 9, 10,  8, 10, 11,
+						14, 13, 12,  15, 14, 12,
+						16, 17, 18,  16, 18, 19,
+						22, 21, 20, 23, 22, 20
+					};
+					visual.mesh.indices = indices;
+					visual.mesh.indicesSize = sizeof(indices);
+				}
+				harmony::Entity::Description entityDescription;
+				{
+					entityDescription.label = "Test Entity";
+					entityDescription.visual = visual;
+				}
+				auto entity = scene->createEntity(entityDescription);
 			}
-			auto vertexBuffer = harmony::createBuffer(vBufferDescription);
-			vertexBuffer->initialize();
-
-			harmony::Buffer::Description iBufferDescription;
-			{
-				const uint16_t indices[] = {
-					0, 1, 2,  0, 2, 3,
-					6, 5, 4,  7, 6, 4,
-					8, 9, 10,  8, 10, 11,
-					14, 13, 12,  15, 14, 12,
-					16, 17, 18,  16, 18, 19,
-					22, 21, 20, 23, 22, 20
-				};
-				iBufferDescription.label = "Test Index Buffer";
-				iBufferDescription.type = harmony::Buffer::Type::eINDEX_BUFFER;
-
-				iBufferDescription.data = indices;
-				iBufferDescription.size = sizeof(indices);
-			}
-			auto indexBuffer = harmony::createBuffer(iBufferDescription);
-			indexBuffer->initialize();
-
-			harmony::Drawable::Description drawableDescription;
-			{
-				drawableDescription.label = "Test Drawable";
-				drawableDescription.vertexBuffer = vertexBuffer;
-				drawableDescription.indexBuffer = indexBuffer;
-			}
-			drawable = harmony::createDrawable(drawableDescription);
 
 			harmony::Shader::Description shaderDescription;
 			{
@@ -140,8 +131,6 @@ public:
 			}
 
 			auto shaderProgram1 = harmony::createShader(shaderDescription);
-			shaderProgram1->initialize();
-
 			harmony::Pipeline::Description pipelineDescription;
 			{
 				pipelineDescription.label = "Test Pipeline";
@@ -168,7 +157,7 @@ public:
 
 		// Init sequence
 		{
-			drawable->initialize();
+			scene->initialize();
 			pipeline->initialize();
 			pass->initialize();
 		}
@@ -186,21 +175,25 @@ public:
 		model *= glm::rotate(model, glm::radians(rx), glm::vec3(0.0f, 1.0f, 0.0f));
 		glm::mat4 mvp = proj * view * model;
 
+		auto drawable = (*(scene->getVisualEntities().begin()))->getDrawable();
+
 		pass->begin();
 		pipeline->bind();
-		drawable->bind();
 		pipeline->applyConstants(0, &mvp, sizeof(mvp));
+		
+		drawable->bind();
 		drawable->draw(0, 36, 1);
+
 		pass->end();
 	}
 
 	void cleanup()
 	{
-		drawable->deinitialize();
+		scene->deinitialize();
 		pipeline->deinitialize();
 		pass->deinitialize();
 
-		delete drawable;
+		delete scene;
 		delete pipeline;
 		delete pass;
 
@@ -215,7 +208,9 @@ private:
 	
 	harmony::Window* window			= nullptr;
 	harmony::Renderer* renderer		= nullptr;
-	harmony::Drawable* drawable		= nullptr;
+
+	harmony::Scene* scene			= nullptr;
+
 	harmony::Pipeline* pipeline		= nullptr;
 	harmony::RenderPass* pass		= nullptr;
 }engine;

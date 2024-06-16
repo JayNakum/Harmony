@@ -1,5 +1,7 @@
 #pragma once
 
+#include "HComponents.h"
+
 #include <optional>
 #include <list>
 
@@ -11,40 +13,27 @@ namespace harmony
 
 namespace harmony
 {
-	namespace component
-	{
-		class Visual
-		{
-		public:
-			struct Mesh
-			{
-				const float* vertices = nullptr;
-				size_t verticesSize = 0;
-
-				const uint16_t* indices = nullptr;
-				size_t indicesSize = 0;
-			};
-
-			Mesh mesh;
-		};
-	}
-
 	class Entity
 	{
 	public:
+		friend class Scene;
 		struct Description
 		{
-			const char* label = "default entity";
+			const char* label = "default empty entity";
+			
+			std::optional<component::Transform> transform;
 			std::optional<component::Visual> visual;
 		};
 
 		virtual ~Entity() = default;
-
-	public:
-		virtual void initialize() = 0;
-		virtual void deinitialize() = 0;
 		virtual const void* getID() const = 0;
 		virtual const Description& getDescription() const = 0;
+
+		virtual const Drawable* getDrawable() const = 0;
+		
+	private:
+		virtual void initialize() = 0;
+		virtual void deinitialize() = 0;
 	};
 
 	class Scene
@@ -54,20 +43,21 @@ namespace harmony
 
 		struct Description
 		{
-			const char* label = "default scene";
+			const char* label = "default empty scene";
 		};
 
 	public:
-		virtual void initialize() = 0;
-		virtual void deinitialize() = 0;
-
 		virtual const Description& getDescription() const = 0;
 
 		virtual Entity* createEntity(const Entity::Description& description) = 0;
+		// virtual void addVisualComponent(const void* entityID, const harmony::component::Visual& component) = 0;
 
-		virtual std::list<const Drawable*> getDrawables()
+		virtual void initialize() = 0;
+		virtual void deinitialize() = 0;
+
+		virtual std::list<Entity*> getVisualEntities() const
 		{
-			return std::list<const Drawable*>();
+			return std::list<Entity*>();
 		}
 	};
 }

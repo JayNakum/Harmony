@@ -77,9 +77,14 @@ namespace sokol
 
 	void Drawable::initialize()
 	{
+		mDescription.vertexBuffer->initialize();
 		mBind.vertex_buffers[0] = *((sg_buffer*)mDescription.vertexBuffer->getID());
+		
 		if (mDescription.indexBuffer)
+		{
+			mDescription.indexBuffer->initialize();
 			mBind.index_buffer = *((sg_buffer*)mDescription.indexBuffer->getID());
+		}
 	}
 	
 	void Drawable::bind() const
@@ -101,7 +106,7 @@ namespace sokol
 	void Drawable::deinitialize()
 	{
 		unbind();
-		
+
 		mDescription.vertexBuffer->deinitialize();
 		if (mDescription.indexBuffer)
 			mDescription.indexBuffer->deinitialize();
@@ -198,6 +203,7 @@ namespace sokol
 
 		createDesc.index_type = sINDEX_TYPE.at(mDescription.indexType);
 
+		mDescription.shaderProgram->initialize();
 		createDesc.shader = *((sg_shader*)mDescription.shaderProgram->getID());
 
 		createDesc.primitive_type = sPRIMITIVE_TYPE.at(mDescription.primitiveType);
@@ -218,7 +224,6 @@ namespace sokol
 		sg_apply_pipeline(mPipeline);
 	}
 
-
 	void Pipeline::applyConstants(unsigned int constantBlockIndex, const void* data, size_t size, const harmony::Pipeline::ShaderStageType type) const
 	{
 		sg_apply_uniforms(sSTAGE_TYPE.at(type), (int)constantBlockIndex, { data, size });
@@ -232,8 +237,8 @@ namespace sokol
 
 	void Pipeline::deinitialize()
 	{
-		sg_dealloc_pipeline(mPipeline);
 		mDescription.shaderProgram->deinitialize();
+		sg_dealloc_pipeline(mPipeline);
 	}
 
 	Pipeline::~Pipeline()

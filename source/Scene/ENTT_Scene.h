@@ -4,25 +4,31 @@
 
 #include <entt.hpp>
 
+#include <unordered_map>
+
 namespace ENTT
 {
 	class Entity : public harmony::Entity
 	{
+	private:
+		friend class Scene;
+		Entity(const harmony::Entity::Description& description, const entt::entity& entity);
 	public:
-		Entity(const harmony::Entity::Description& description, entt::registry& registry);
 		~Entity();
-
-	public:
-		void initialize() override;
-		void deinitialize() override;
 
 		const void* getID() const override;
 		const harmony::Entity::Description& getDescription() const override;
-		
+		const harmony::Drawable* getDrawable() const override;
+
+	private:
+		void initialize() override;
+		void deinitialize() override;
+
 	private:
 		harmony::Entity::Description mDescription;
 		entt::entity mEntity;
-		entt::registry& mRegistry;
+
+		harmony::Drawable* mDrawable;
 	};
 
 	class Scene : public harmony::Scene
@@ -32,15 +38,20 @@ namespace ENTT
 		~Scene();
 
 	public:
-		void initialize() override;
-		void deinitialize() override;
-
 		const harmony::Scene::Description& getDescription() const override;
 
 		harmony::Entity* createEntity(const harmony::Entity::Description& description) override;
+		void addVisualComponent(const void* entityID, const harmony::component::Visual& component);
+
+		void initialize() override;
+		void deinitialize() override;
+
+		std::list<harmony::Entity*> getVisualEntities() const override;
 
 	private:
 		harmony::Scene::Description mDescription;
 		entt::registry mRegistry;
+
+		std::unordered_map<entt::entity, Entity*> mEntities;
 	};
 }

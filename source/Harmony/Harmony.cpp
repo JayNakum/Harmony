@@ -5,6 +5,8 @@
 #include "SG_Window.h"
 #include "SG_Renderer.h"
 
+#include "ENTT_Scene.h"
+
 #include "Logger.h"
 
 static harmony::Window* gMainWindow = nullptr;
@@ -45,6 +47,11 @@ namespace harmony
 			createRenderer();
 		}
 		return gRenderer;
+	}
+
+	harmony::Scene* createScene(const harmony::Scene::Description& description)
+	{
+		return new ENTT::Scene(description);
 	}
 
 	harmony::Buffer* createBuffer(const harmony::Buffer::Description& description)

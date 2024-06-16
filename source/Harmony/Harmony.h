@@ -23,6 +23,8 @@ namespace harmony
 	void createRenderer();
 	harmony::Renderer* getRenderer();
 
+	harmony::Scene* createScene(const harmony::Scene::Description& description);
+
 	harmony::Buffer* createBuffer(const harmony::Buffer::Description& description);
 	harmony::Drawable* createDrawable(const harmony::Drawable::Description& description);
 

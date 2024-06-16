@@ -7,10 +7,11 @@ workspace "Staff"
   configurations {"Debug", "Release"}
   flags {"MultiProcessorCompile"}
 
-include "Engine"
-include "Harmony"
-include "Interface"
-group "Interfaces"
+group "Core"
+  include "Engine"
+  include "Harmony"
+  include "Interface"
+group "Notes"
   include "Window"
   include "Logger"
   include "Graphics"
