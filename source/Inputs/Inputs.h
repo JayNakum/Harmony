@@ -11,7 +11,6 @@ private:
 
 public:
 	Inputs(const harmony::Inputs::Description& description);
-	~Inputs();
 	
 	const harmony::Inputs::Description& getDescription() const;
 
@@ -21,7 +20,7 @@ public:
 	void deinitialize();
 
 	void keyCallback(const Key key, const Event e);
-	void mouseCallback(const float x, const float y);
+	void mouseCallback(const float x, const float y, const float dx = 0.0f, const float dy = 0.0f);
 
 	bool actionOccured(const Action action, const Event e) const;
 
@@ -31,6 +30,7 @@ private:
 
 	float mPreviousMousePosition[2];
 	float mCurrentMousePosition[2];
+	float mCurrentMouseDelta[2];
 
 	const harmony::Inputs::Description mDescription;
 };
