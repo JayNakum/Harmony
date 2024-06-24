@@ -194,7 +194,7 @@ namespace harmony
         virtual void deinitialize() = 0;
 
         virtual void keyCallback(const Key key, const Event e) = 0;
-        virtual void mouseCallback(const float x, const float y) = 0;
+        virtual void mouseCallback(const float x, const float y, const float dx = 0.0f, const float dy = 0.0f) = 0;
 
         virtual bool actionOccured(const Action action, const Event e) const = 0;
     };

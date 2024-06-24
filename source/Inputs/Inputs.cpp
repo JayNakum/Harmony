@@ -3,7 +3,7 @@
 const std::unordered_map<harmony::Inputs::Action, harmony::Inputs::Key> Inputs::sInputBindings = {
 	{ harmony::Inputs::Action::eINVALID_ACTION, harmony::Inputs::Key::eINVALID_KEY },
 	{ harmony::Inputs::Action::eMOVE_RIGHT, harmony::Inputs::Key::eKEY_ARROW_RIGHT },
-	{ harmony::Inputs::Action::eMOVE_LEFT, harmony::Inputs::Key::eKEY_ARROW_LEFT },
+	{ harmony::Inputs::Action::eMOVE_LEFT, harmony::Inputs::Key::eKEY_A },
 	{ harmony::Inputs::Action::eMOVE_BACKWARD, harmony::Inputs::Key::eKEY_ARROW_DOWN },
 	{ harmony::Inputs::Action::eMOVE_FORWARD, harmony::Inputs::Key::eKEY_ARROW_UP },
 
@@ -19,10 +19,8 @@ const std::unordered_map<harmony::Inputs::Action, harmony::Inputs::Key> Inputs::
 
 Inputs::Inputs(const harmony::Inputs::Description& description)
 	: mPreviousKeyState{false}, mCurrentKeyState{false}, 
-	mPreviousMousePosition{0.0}, mCurrentMousePosition{0.0}
+	mPreviousMousePosition{0.0}, mCurrentMousePosition{0.0}, mCurrentMouseDelta{0.0}
 {}
-
-// Inputs::~Inputs() {}
 
 const harmony::Inputs::Description& Inputs::getDescription() const
 {
@@ -110,10 +108,13 @@ void Inputs::keyCallback(const Key key, const Event e)
 		mCurrentKeyState[key] = false;
 }
 
-void Inputs::mouseCallback(const float x, const float y)
+void Inputs::mouseCallback(const float x, const float y, const float dx, const float dy)
 {
 	mCurrentMousePosition[0] = x;
 	mCurrentMousePosition[1] = y;
+
+	mCurrentMouseDelta[0] = dx;
+	mCurrentMouseDelta[1] = dy;
 }
 
 bool Inputs::actionOccured(const Action action, const Event e) const
