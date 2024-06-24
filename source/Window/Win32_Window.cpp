@@ -1,5 +1,7 @@
 #include "Win32_Window.h"
 
+#include "Harmony.h"
+
 #include "Helpers/HLog.h"
 
 #include <string>
@@ -264,20 +266,20 @@ namespace win32
 
 
 	Window::Window(const harmony::Window::Description& description)
-		: mDescription(description), mIsRunning(true), mHandle(NULL), mMsgs()
+		: mDescription(description), mInputSystem(nullptr), mIsRunning(true), mHandle(NULL), mMsgs()
 	{
 		if (mDescription.width == 0)
 			mDescription.width = GetSystemMetrics(SM_CXMAXIMIZED);
 		if (mDescription.height == 0)
 			mDescription.height = GetSystemMetrics(SM_CYMAXIMIZED);
-		HLOG_INFO("Created.");
+		HLOG_INFO("Created %s(%d, %d)", mDescription.title, mDescription.width, mDescription.height);
 	}
 
 	Window::~Window()
 	{
-		mDescription = { 0 };
 		mHandle = NULL;
-		HLOG_INFO("Deleted.");
+		HLOG_INFO("Destroyed %s(%d, %d)", mDescription.title, mDescription.width, mDescription.height);
+		mDescription = { 0 };
 	}
 
 	const harmony::Window::Description& Window::getDescription() const
@@ -317,14 +319,18 @@ namespace win32
 							   x, y, mDescription.width, mDescription.height,
 							   nullptr, nullptr, WindowClass::getInstance(), this);
 
-		HASSERT(mHandle == NULL, "Unable to create a window.");
+		HASSERT(mHandle != NULL, "Unable to create a window.");
 
 		ShowWindow(mHandle, SW_SHOW);
 
 		PeekMessage(&mMsgs, NULL, 0, 0, PM_NOREMOVE);
 
-		HLOG_DEBUG("Initialized.");
+		mInputSystem = harmony::getInputSystem();
+
+		HLOG_DEBUG("Initialized %s(%d, %d)", mDescription.title, mDescription.width, mDescription.height);
 	}
+
+	void Window::resize(unsigned int width, unsigned int height) {}
 
 	void Window::update()
 	{
@@ -343,7 +349,7 @@ namespace win32
 	void Window::deinitialize()
 	{
 		DestroyWindow(mHandle);
-		HLOG_DEBUG("Deinitialized.");
+		HLOG_DEBUG("Deinitialized %s(%d, %d)", mDescription.title, mDescription.width, mDescription.height);
 	}
 
 
@@ -378,6 +384,80 @@ namespace win32
 		{
 			PostQuitMessage(0);
 			return 0;
+		}
+		case WM_KEYDOWN:
+		{
+			if (wParam == VK_ESCAPE)
+			{
+				mInputSystem->keyCallback(harmony::Inputs::Key::eKEY_ESCAPE, harmony::Inputs::Event::ePRESSED);
+			}
+			if (wParam == VK_UP)
+			{
+				mInputSystem->keyCallback(harmony::Inputs::Key::eKEY_ARROW_UP, harmony::Inputs::Event::ePRESSED);
+			}
+			if (wParam == VK_DOWN)
+			{
+				mInputSystem->keyCallback(harmony::Inputs::Key::eKEY_ARROW_DOWN, harmony::Inputs::Event::ePRESSED);
+			}
+			if (wParam == VK_LEFT)
+			{
+				mInputSystem->keyCallback(harmony::Inputs::Key::eKEY_ARROW_LEFT, harmony::Inputs::Event::ePRESSED);
+			}
+			if (wParam == VK_RIGHT)
+			{
+				mInputSystem->keyCallback(harmony::Inputs::Key::eKEY_ARROW_RIGHT, harmony::Inputs::Event::ePRESSED);
+			}
+			if (wParam == VK_SPACE)
+			{
+				mInputSystem->keyCallback(harmony::Inputs::Key::eKEY_SPACE, harmony::Inputs::Event::ePRESSED);
+			}
+			if (wParam == VK_RSHIFT)
+			{
+				mInputSystem->keyCallback(harmony::Inputs::Key::eKEY_RIGHT_SHIFT, harmony::Inputs::Event::ePRESSED);
+			}
+			if (wParam == VK_RCONTROL)
+			{
+				mInputSystem->keyCallback(harmony::Inputs::Key::eKEY_RIGHT_CONTROL, harmony::Inputs::Event::ePRESSED);
+			}
+			break;
+		}
+		case WM_KEYUP:
+		{
+			if (wParam == VK_ESCAPE)
+			{
+				mInputSystem->keyCallback(harmony::Inputs::Key::eKEY_ESCAPE, harmony::Inputs::Event::eRELEASED);
+				PostQuitMessage(0); // TODO: Remove this later
+				return 0;
+			}
+			if (wParam == VK_UP)
+			{
+				mInputSystem->keyCallback(harmony::Inputs::Key::eKEY_ARROW_UP, harmony::Inputs::Event::eRELEASED);
+			}
+			if (wParam == VK_DOWN)
+			{
+				mInputSystem->keyCallback(harmony::Inputs::Key::eKEY_ARROW_DOWN, harmony::Inputs::Event::eRELEASED);
+			}
+			if (wParam == VK_LEFT)
+			{
+				mInputSystem->keyCallback(harmony::Inputs::Key::eKEY_ARROW_LEFT, harmony::Inputs::Event::eRELEASED);
+			}
+			if (wParam == VK_RIGHT)
+			{
+				mInputSystem->keyCallback(harmony::Inputs::Key::eKEY_ARROW_RIGHT, harmony::Inputs::Event::eRELEASED);
+			}
+			if (wParam == VK_SPACE)
+			{
+				mInputSystem->keyCallback(harmony::Inputs::Key::eKEY_SPACE, harmony::Inputs::Event::eRELEASED);
+			}
+			if (wParam == VK_RSHIFT)
+			{
+				mInputSystem->keyCallback(harmony::Inputs::Key::eKEY_RIGHT_SHIFT, harmony::Inputs::Event::eRELEASED);
+			}
+			if (wParam == VK_RCONTROL)
+			{
+				mInputSystem->keyCallback(harmony::Inputs::Key::eKEY_RIGHT_CONTROL, harmony::Inputs::Event::eRELEASED);
+			}
+			break;
 		}
 		}
 		return DefWindowProc(hWnd, msg, wParam, lParam);

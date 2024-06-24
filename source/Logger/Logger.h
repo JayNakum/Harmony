@@ -17,7 +17,7 @@ public:
 
 	void log(const char* message, const LogType& type = LogType::eDEBUG, const std::source_location& _src = std::source_location::current()) const override;
 	void softAssert(bool condition, const char* message, const std::source_location& _src = std::source_location::current()) const override;
-	// void assert(bool condition, const char* message, const std::source_location& _src = std::source_location::current()) const override;
+	void hardAssert(bool condition, const char* message, const std::source_location& _src = std::source_location::current()) const override;
 
 private:
 	void consoleLog(const char* color, const char* message, const std::source_location& _src) const;

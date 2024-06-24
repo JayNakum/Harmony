@@ -43,6 +43,6 @@ namespace harmony
 
 		virtual void log(const char* message, const LogType& type = LogType::eDEBUG, const std::source_location& _src = std::source_location::current()) const = 0;
 		virtual void softAssert(bool condition, const char* message, const std::source_location& _src = std::source_location::current()) const = 0;
-		// virtual void assert(bool condition, const char* message, const std::source_location& _src = std::source_location::current()) const = 0;
+		virtual void hardAssert(bool condition, const char* message, const std::source_location& _src = std::source_location::current()) const = 0;
 	};
 }
