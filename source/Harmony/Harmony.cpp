@@ -3,6 +3,7 @@
 #include <iostream>
 
 #include "SG_Window.h"
+#include "Inputs.h"
 #include "SG_Renderer.h"
 
 #include "ENTT_Scene.h"
@@ -10,6 +11,7 @@
 #include "Logger.h"
 
 static harmony::Window* gMainWindow = nullptr;
+static harmony::Inputs* gInputSystem = nullptr;
 static harmony::Renderer* gRenderer = nullptr;
 
 namespace harmony
@@ -33,6 +35,22 @@ namespace harmony
 			createWindow(defaultDescription);
 		}
 		return gMainWindow;
+	}
+
+	void createInputSystem()
+	{
+		delete gInputSystem;
+		harmony::Inputs::Description defaultDescription;
+		gInputSystem = new ::Inputs(defaultDescription);
+	}
+
+	harmony::Inputs* getInputSystem()
+	{
+		if (gInputSystem == nullptr)
+		{
+			createInputSystem();
+		}
+		return gInputSystem;
 	}
 
 	void createRenderer()

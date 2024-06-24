@@ -18,6 +18,7 @@ project "Harmony"
     "%{prj_src.Harmony}",
     "%{prj_src.Interface}",
     "%{prj_src.Window}",
+    "%{prj_src.Inputs}",
     "%{prj_src.Logger}",
     "%{prj_src.Graphics}",
     "%{prj_src.Scene}",
@@ -30,6 +31,7 @@ project "Harmony"
   {
     -- Links to every project except application
     "Window",
+    "Inputs",
     "Logger",
     "Graphics",
     "Scene"

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Window/HWindow.h"
+#include "Inputs/HInputs.h"
 
 #include "Graphics/HBuffer.h"
 #include "Graphics/HDrawable.h"
@@ -19,6 +20,9 @@ namespace harmony
 
 	void createWindow(const harmony::Window::Description& description);
 	harmony::Window* getWindow();
+
+	void createInputSystem();
+	harmony::Inputs* getInputSystem();
 
 	void createRenderer();
 	harmony::Renderer* getRenderer();
