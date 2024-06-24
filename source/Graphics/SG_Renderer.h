@@ -20,7 +20,6 @@ namespace sokol
         ~Renderer();
 
         void initialize() override;
-        
         void deinitialize() override;
     };
 }
@@ -89,6 +88,9 @@ namespace sokol
     private:
         harmony::Shader::Description mDescription;
         sg_shader mShader;
+
+    private:
+        static const std::unordered_map<harmony::Shader::ConstantType, sg_uniform_type> sCONSTANT_TYPE;
     };
 }
 
@@ -105,6 +107,7 @@ namespace sokol
         const harmony::Pipeline::Description& getDescription() const override;
         void initialize() override;
         void bind() const override;
+        void applyConstants(unsigned int constantBlockIndex, const void* data, size_t size, const harmony::Pipeline::ShaderStageType type = harmony::Pipeline::ShaderStageType::eVERTEX_SHADER) const override;
         void unbind() const override;
         void deinitialize() override;
 
@@ -113,10 +116,12 @@ namespace sokol
         sg_pipeline mPipeline;
 
     private:
-        static const std::unordered_map<harmony::Pipeline::VertexFormat, sg_vertex_format> mVERTEX_FORMAT;
-        static const std::unordered_map<harmony::Pipeline::PrimitiveType, sg_primitive_type> mPRIMITIVE_TYPE;
-        static const std::unordered_map<harmony::Pipeline::CullMode, sg_cull_mode> mCULL_MODE;
-        static const std::unordered_map<harmony::Pipeline::FaceWinding, sg_face_winding> mFACE_WINDING;
+        static const std::unordered_map<harmony::Pipeline::VertexFormat, sg_vertex_format> sVERTEX_FORMAT;
+        static const std::unordered_map<harmony::Pipeline::PrimitiveType, sg_primitive_type> sPRIMITIVE_TYPE;
+        static const std::unordered_map<harmony::Pipeline::CullMode, sg_cull_mode> sCULL_MODE;
+        static const std::unordered_map<harmony::Pipeline::FaceWinding, sg_face_winding> sFACE_WINDING;
+        static const std::unordered_map<harmony::Pipeline::IndexType, sg_index_type> sINDEX_TYPE;
+        static const std::unordered_map<harmony::Pipeline::ShaderStageType, sg_shader_stage> sSTAGE_TYPE;
     };
 }
 
@@ -132,7 +137,7 @@ namespace sokol
         const void* getID() const override;
         const harmony::RenderPass::Description& getDescription() const override;
         void initialize() override;
-        void begin() const override;
+        void begin() override;
         void end() const override;
         void deinitialize() override;
 

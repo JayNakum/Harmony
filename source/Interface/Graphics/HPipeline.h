@@ -7,6 +7,12 @@ namespace harmony
     class Pipeline
     {
     public:
+        enum ShaderStageType
+        {
+            eVERTEX_SHADER,
+            eFRAGMENT_SHADER,
+        };
+
         enum VertexFormat
         {
             eFLOAT,
@@ -61,6 +67,13 @@ namespace harmony
             eCLOCKWISE
         };
 
+        enum IndexType
+        {
+            eNO_INDEX_BUFFER,
+            eUINT16,
+            eUINT32
+        };
+
         struct Description
         {
             const char* label           = "default pipeline";
@@ -69,6 +82,9 @@ namespace harmony
             PrimitiveType primitiveType = PrimitiveType::eTRIANGLES;
             CullMode cullMode           = CullMode::eNONE;
             FaceWinding faceWinding     = FaceWinding::eCLOCKWISE;
+            IndexType indexType         = IndexType::eNO_INDEX_BUFFER;
+
+            bool depthBufferEnabled     = false;
         };
 
         virtual ~Pipeline() = default;
@@ -79,6 +95,7 @@ namespace harmony
 
         virtual void initialize() = 0;
         virtual void bind() const = 0;
+        virtual void applyConstants(unsigned int constantBlockIndex, const void* data, size_t size, const ShaderStageType type = ShaderStageType::eVERTEX_SHADER) const = 0;
         virtual void unbind() const = 0;
         virtual void deinitialize() = 0;
     };
