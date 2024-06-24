@@ -6,6 +6,11 @@
 #include <unordered_map>
 #include <string>
 
+namespace harmony
+{
+	class Inputs;
+}
+
 namespace win32
 {
 	class WindowsMessageMap
@@ -44,13 +49,17 @@ namespace win32
 		const harmony::Window::Description& getDescription() const override;
 		void* getHandle() override;
 		bool isRunning() const override;
-
+		
 		void initialize() override;
-		void deinitialize() override;
+		void resize(unsigned int width, unsigned int height) override;
 		void update() override;
+		void deinitialize() override;
 
 	private:
 		harmony::Window::Description mDescription;
+
+		harmony::Inputs* mInputSystem;
+
 		bool mIsRunning;
 		HWND mHandle;
 		MSG mMsgs;

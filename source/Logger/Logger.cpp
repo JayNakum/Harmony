@@ -51,21 +51,21 @@ void Logger::log(const char* message, const LogType & type, const std::source_lo
 
 void Logger::softAssert(bool condition, const char* message, const std::source_location& _src) const
 {
-	if (condition)
+	if (!condition)
 	{
-		consoleLog(COLOR_ASSERT, message, _src);
+		consoleLog(COLOR_WARNING, message, _src);
 		__debugbreak();
 	}
 }
 
-//void Logger::assert(bool condition, const char* message, const std::source_location& _src) const
-//{
-//	if (condition)
-//	{
-//		consoleLog(COLOR_ASSERT, message, _src);
-//		exit(-1);
-//	}
-//}
+void Logger::hardAssert(bool condition, const char* message, const std::source_location& _src) const
+{
+	if (!condition)
+	{
+		consoleLog(COLOR_ASSERT, message, _src);
+		exit(-1);
+	}
+}
 
 void Logger::consoleLog(const char* color, const char* message, const std::source_location& _src) const
 {

@@ -20,6 +20,7 @@ project "Graphics"
     "%{prj_src.Interface}",
     "%{prj_src.Harmony}",
 
+    "%{include_dirs.DirectX12}",
     "%{include_dirs.Sokol}"
 	}
 

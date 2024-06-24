@@ -2,7 +2,6 @@
 
 #include <cstdint>
 
-
 namespace harmony
 {
 	namespace component
@@ -10,6 +9,8 @@ namespace harmony
 		class Transform
 		{
 		public:
+			const char* label = "default empty transform component";
+
 			float scale[3];
 			float rotation[3];
 			float position[3];
@@ -18,6 +19,8 @@ namespace harmony
 		class Visual
 		{
 		public:
+			const char* label = "default empty visual component";
+
 			struct Mesh
 			{
 				const float* vertices = nullptr;

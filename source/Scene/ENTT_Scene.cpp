@@ -2,21 +2,27 @@
 
 #include "Harmony.h"
 
+#include "Helpers/HLog.h"
+
 #include <string>
 
 namespace ENTT
 {
 	Entity::Entity(const harmony::Entity::Description& description, const entt::entity& entity)
-		: mDescription(description), mEntity(entity), mDrawable(nullptr) {}
+		: mDescription(description), mEntity(entity), mDrawable(nullptr) 
+	{
+		HLOG_INFO("Created %s", mDescription.label);
+	}
 
 	Entity::~Entity()
 	{
+		HLOG_INFO("Destroyed %s", mDescription.label);
 		mDescription = { 0 };
 	}
 
 	void Entity::initialize()
 	{
-		if (mDescription.visual.has_value())
+		/*if (mDescription.visual.has_value())
 		{
 			harmony::Buffer::Description vBufferDescription;
 			{
@@ -44,10 +50,15 @@ namespace ENTT
 			}
 			mDrawable = harmony::createDrawable(drawableDescription);
 			mDrawable->initialize();
-		}
+		}*/
+
+		HLOG_DEBUG("Initialized %s", mDescription.label);
 	}
 
-	void Entity::deinitialize() {}
+	void Entity::deinitialize() 
+	{
+		HLOG_DEBUG("Deinitialized %s", mDescription.label);
+	}
 
 	const void* Entity::getID() const
 	{
@@ -67,23 +78,32 @@ namespace ENTT
 namespace ENTT
 {
 	Scene::Scene(const harmony::Scene::Description& description)
-		: mDescription(description) {}
+		: mDescription(description) 
+	{
+		HLOG_INFO("Created %s", mDescription.label);
+	}
 
 	Scene::~Scene()
 	{
 		mRegistry.clear();
+		HLOG_INFO("Destroyed %s", mDescription.label);
+		mDescription = { 0 };
 	}
 
 	void Scene::initialize()
 	{
 		for (auto& entity : mEntities)
 			entity.second->initialize();
+
+		HLOG_DEBUG("Initialized %s", mDescription.label);
 	}
 
 	void Scene::deinitialize()
 	{
 		for (auto& entity : mEntities)
 			entity.second->deinitialize();
+
+		HLOG_DEBUG("Deinitialized %s", mDescription.label);
 	}
 
 	std::list<harmony::Entity*> Scene::getVisualEntities() const
@@ -119,5 +139,6 @@ namespace ENTT
 	void Scene::addVisualComponent(const void* entityID, const harmony::component::Visual& component)
 	{
 		mRegistry.emplace<harmony::component::Visual>(*(entt::entity*)entityID, component);
+		HLOG_DEBUG("Added %s", component.label);
 	}
 }

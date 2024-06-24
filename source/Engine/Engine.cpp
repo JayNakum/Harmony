@@ -2,7 +2,7 @@
 
 #include "Harmony.h"
 
-#include <sokol_app.h>
+//#include <sokol_app.h>
 
 #define GLM_FORCE_SSE2
 #define GLM_FORCE_INLINE
@@ -11,225 +11,249 @@
 #include <gtc/matrix_transform.hpp>
 #include <gtc/type_ptr.hpp>
 
-class Engine
+//class Engine
+//{
+//public:
+//	void initialize()
+//	{		
+//		// Renderer init
+//		{
+//			renderer = harmony::getRenderer();
+//			renderer->initialize();
+//		}
+//
+//		// Scene creation
+//		{
+//			harmony::Scene::Description sceneDescription;
+//			sceneDescription.label = "Test Scene";
+//			scene = harmony::createScene(sceneDescription);
+//			{
+//				harmony::component::Visual visual;
+//				{
+//					const float vertices[] = {
+//						// positions        colors
+//						-1.0, -1.0, -1.0,   1.0, 0.0, 0.0, 1.0,
+//						 1.0, -1.0, -1.0,   1.0, 0.0, 0.0, 1.0,
+//						 1.0,  1.0, -1.0,   1.0, 0.0, 0.0, 1.0,
+//						-1.0,  1.0, -1.0,   1.0, 0.0, 0.0, 1.0,
+//
+//						-1.0, -1.0,  1.0,   0.0, 1.0, 0.0, 1.0,
+//						 1.0, -1.0,  1.0,   0.0, 1.0, 0.0, 1.0,
+//						 1.0,  1.0,  1.0,   0.0, 1.0, 0.0, 1.0,
+//						-1.0,  1.0,  1.0,   0.0, 1.0, 0.0, 1.0,
+//
+//						-1.0, -1.0, -1.0,   0.0, 0.0, 1.0, 1.0,
+//						-1.0,  1.0, -1.0,   0.0, 0.0, 1.0, 1.0,
+//						-1.0,  1.0,  1.0,   0.0, 0.0, 1.0, 1.0,
+//						-1.0, -1.0,  1.0,   0.0, 0.0, 1.0, 1.0,
+//
+//						 1.0, -1.0, -1.0,   1.0, 0.5, 0.0, 1.0,
+//						 1.0,  1.0, -1.0,   1.0, 0.5, 0.0, 1.0,
+//						 1.0,  1.0,  1.0,   1.0, 0.5, 0.0, 1.0,
+//						 1.0, -1.0,  1.0,   1.0, 0.5, 0.0, 1.0,
+//
+//						-1.0, -1.0, -1.0,   0.0, 0.5, 1.0, 1.0,
+//						-1.0, -1.0,  1.0,   0.0, 0.5, 1.0, 1.0,
+//						 1.0, -1.0,  1.0,   0.0, 0.5, 1.0, 1.0,
+//						 1.0, -1.0, -1.0,   0.0, 0.5, 1.0, 1.0,
+//
+//						-1.0,  1.0, -1.0,   1.0, 0.0, 0.5, 1.0,
+//						-1.0,  1.0,  1.0,   1.0, 0.0, 0.5, 1.0,
+//						 1.0,  1.0,  1.0,   1.0, 0.0, 0.5, 1.0,
+//						 1.0, 1.0,  -1.0,	1.0, 0.0, 0.5, 1.0
+//					};
+//					visual.mesh.vertices = vertices;
+//					visual.mesh.verticesSize = sizeof(vertices);
+//
+//					const uint16_t indices[] = {
+//						0, 1, 2,  0, 2, 3,
+//						6, 5, 4,  7, 6, 4,
+//						8, 9, 10,  8, 10, 11,
+//						14, 13, 12,  15, 14, 12,
+//						16, 17, 18,  16, 18, 19,
+//						22, 21, 20, 23, 22, 20
+//					};
+//					visual.mesh.indices = indices;
+//					visual.mesh.indicesSize = sizeof(indices);
+//				}
+//				harmony::Entity::Description entityDescription;
+//				{
+//					entityDescription.label = "Test Entity";
+//					entityDescription.visual = visual;
+//				}
+//				auto entity = scene->createEntity(entityDescription);
+//			}
+//
+//			harmony::Shader::Description shaderDescription;
+//			{
+//				shaderDescription.label = "Test Shader Program";
+//				shaderDescription.attributesCount = 2;
+//				shaderDescription.attrs[0].name = "POSITION";
+//				shaderDescription.attrs[1].name = "COLOR";
+//				shaderDescription.attrs[1].index = 1;
+//
+//				shaderDescription.vs.constantBlocksCount = 1;
+//				shaderDescription.vs.constantBlocks[0].size = sizeof(glm::mat4);
+//				shaderDescription.vs.source =
+//					"cbuffer params: register(b0) {\n"
+//					"  float4x4 mvp;\n"
+//					"};\n"
+//					"struct vs_in {\n"
+//					"  float4 pos: POSITION;\n"
+//					"  float4 color: COLOR1;\n"
+//					"};\n"
+//					"struct vs_out {\n"
+//					"  float4 color: COLOR0;\n"
+//					"  float4 pos: SV_Position;\n"
+//					"};\n"
+//					"vs_out main(vs_in inp) {\n"
+//					"  vs_out outp;\n"
+//					"  outp.pos = mul(mvp, inp.pos);\n"
+//					"  outp.color = inp.color;\n"
+//					"  return outp;\n"
+//					"};\n";
+//
+//				shaderDescription.fs.source =
+//					"float4 main(float4 color: COLOR0): SV_Target0 {\n"
+//					"  return color;\n"
+//					"}\n";
+//			}
+//
+//			auto shaderProgram1 = harmony::createShader(shaderDescription);
+//			harmony::Pipeline::Description pipelineDescription;
+//			{
+//				pipelineDescription.label = "Test Pipeline";
+//				pipelineDescription.layout.attributesCount = 2;
+//				pipelineDescription.layout.attributes[0].format = harmony::Pipeline::VertexFormat::eFLOAT3;
+//				pipelineDescription.layout.attributes[1].format = harmony::Pipeline::VertexFormat::eFLOAT4;
+//				pipelineDescription.shaderProgram = shaderProgram1;
+//				pipelineDescription.indexType = harmony::Pipeline::IndexType::eUINT16;
+//				pipelineDescription.cullMode = harmony::Pipeline::CullMode::eBACK;
+//				//pipelineDescription.depthBufferEnabled = true;
+//			}
+//			pipeline = harmony::createPipeline(pipelineDescription);
+//
+//			harmony::RenderPass::Description passDescription;
+//			{
+//				passDescription.label = "Test Render Pass";
+//				passDescription.action.colors.value[0] = 1.0f;
+//				passDescription.action.colors.value[1] = 1.0f;
+//				passDescription.action.colors.value[2] = 1.0f;
+//				passDescription.action.colors.value[3] = 1.0f;
+//			}
+//			pass = harmony::createRenderPass(passDescription);
+//		}
+//
+//		// Init sequence
+//		{
+//			scene->initialize();
+//			pipeline->initialize();
+//			pass->initialize();
+//		}
+//	}
+//
+//	void update()
+//	{
+//		window->update();
+//		inputSystem->update();
+//
+//		auto& windowDescription = window->getDescription();
+//		glm::mat4 proj = glm::perspective(90.0f, (float)windowDescription.width / (float)windowDescription.height, 0.01f, 10.0f);
+//		glm::mat4 view = glm::lookAt(glm::vec3(0.0f, 3.0f, 5.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+//		glm::mat4 model(1);
+//		
+//		if (inputSystem->actionOccured(harmony::Inputs::Action::eMOVE_LEFT, harmony::Inputs::ePRESSED))
+//			rx -= 1.0f;
+//
+//		model *= glm::scale(model, glm::vec3(1.3f));
+//		model *= glm::rotate(model, glm::radians(rx), glm::vec3(0.0f, 1.0f, 0.0f));
+//		glm::mat4 mvp = proj * view * model;
+//
+//		auto drawable = (*(scene->getVisualEntities().begin()))->getDrawable();
+//
+//		pass->begin();
+//		pipeline->bind();
+//		pipeline->applyConstants(0, &mvp, sizeof(mvp));
+//		
+//		drawable->bind();
+//		drawable->draw(0, 36, 1);
+//
+//		pass->end();
+//	}
+//
+//	void deinitialize()
+//	{
+//		scene->deinitialize();
+//		pipeline->deinitialize();
+//		pass->deinitialize();
+//
+//		delete scene;
+//		delete pipeline;
+//		delete pass;
+//
+//		renderer->deinitialize();
+//
+//		delete renderer;
+//	}
+//
+//private:
+//	float rx = 0.0f;
+//	
+//	harmony::Window* window			= nullptr;
+//	harmony::Inputs* inputSystem	= nullptr;
+//	harmony::Renderer* renderer		= nullptr;
+//
+//	harmony::Scene* scene			= nullptr;
+//
+//	harmony::Pipeline* pipeline		= nullptr;
+//	harmony::RenderPass* pass		= nullptr;
+//
+//
+//};
+
+
+int main()
 {
-public:
-	void init()
-	{
-		// Window init
-		{
-			harmony::Window::Description windowDescription;
-			windowDescription.width = 1024;
-			windowDescription.height = 576;
-			windowDescription.isFullScreen = false;
-			harmony::createWindow(windowDescription);
-			window = harmony::getWindow();
-			window->initialize();
+	{// TODO: Move to harmony::initialize()
+		harmony::Window::Description windowDescription;
+		harmony::createWindow(windowDescription);
 
-			inputSystem = harmony::getInputSystem();
-			inputSystem->initialize();
-		}
-		
-		// Renderer init
-		{
-			renderer = harmony::getRenderer();
-			renderer->initialize();
-		}
+		harmony::Inputs::Description inputSysDescription;
+		harmony::createInputSystem(inputSysDescription);
 
-		// Scene creation
-		{
-			harmony::Scene::Description sceneDescription;
-			sceneDescription.label = "Test Scene";
-			scene = harmony::createScene(sceneDescription);
-			{
-				harmony::component::Visual visual;
-				{
-					const float vertices[] = {
-						// positions        colors
-						-1.0, -1.0, -1.0,   1.0, 0.0, 0.0, 1.0,
-						 1.0, -1.0, -1.0,   1.0, 0.0, 0.0, 1.0,
-						 1.0,  1.0, -1.0,   1.0, 0.0, 0.0, 1.0,
-						-1.0,  1.0, -1.0,   1.0, 0.0, 0.0, 1.0,
-
-						-1.0, -1.0,  1.0,   0.0, 1.0, 0.0, 1.0,
-						 1.0, -1.0,  1.0,   0.0, 1.0, 0.0, 1.0,
-						 1.0,  1.0,  1.0,   0.0, 1.0, 0.0, 1.0,
-						-1.0,  1.0,  1.0,   0.0, 1.0, 0.0, 1.0,
-
-						-1.0, -1.0, -1.0,   0.0, 0.0, 1.0, 1.0,
-						-1.0,  1.0, -1.0,   0.0, 0.0, 1.0, 1.0,
-						-1.0,  1.0,  1.0,   0.0, 0.0, 1.0, 1.0,
-						-1.0, -1.0,  1.0,   0.0, 0.0, 1.0, 1.0,
-
-						1.0, -1.0, -1.0,   1.0, 0.5, 0.0, 1.0,
-						1.0,  1.0, -1.0,   1.0, 0.5, 0.0, 1.0,
-						1.0,  1.0,  1.0,   1.0, 0.5, 0.0, 1.0,
-						1.0, -1.0,  1.0,   1.0, 0.5, 0.0, 1.0,
-
-						-1.0, -1.0, -1.0,   0.0, 0.5, 1.0, 1.0,
-						-1.0, -1.0,  1.0,   0.0, 0.5, 1.0, 1.0,
-						 1.0, -1.0,  1.0,   0.0, 0.5, 1.0, 1.0,
-						 1.0, -1.0, -1.0,   0.0, 0.5, 1.0, 1.0,
-
-						-1.0,  1.0, -1.0,   1.0, 0.0, 0.5, 1.0,
-						-1.0,  1.0,  1.0,   1.0, 0.0, 0.5, 1.0,
-						 1.0,  1.0,  1.0,   1.0, 0.0, 0.5, 1.0,
-						 1.0, 1.0, -1.0, 1.0, 0.0, 0.5, 1.0
-					};
-					visual.mesh.vertices = vertices;
-					visual.mesh.verticesSize = sizeof(vertices);
-
-					const uint16_t indices[] = {
-						0, 1, 2,  0, 2, 3,
-						6, 5, 4,  7, 6, 4,
-						8, 9, 10,  8, 10, 11,
-						14, 13, 12,  15, 14, 12,
-						16, 17, 18,  16, 18, 19,
-						22, 21, 20, 23, 22, 20
-					};
-					visual.mesh.indices = indices;
-					visual.mesh.indicesSize = sizeof(indices);
-				}
-				harmony::Entity::Description entityDescription;
-				{
-					entityDescription.label = "Test Entity";
-					entityDescription.visual = visual;
-				}
-				auto entity = scene->createEntity(entityDescription);
-			}
-
-			harmony::Shader::Description shaderDescription;
-			{
-				shaderDescription.label = "Test Shader Program";
-				shaderDescription.attributesCount = 2;
-				shaderDescription.attrs[0].name = "POSITION";
-				shaderDescription.attrs[1].name = "COLOR";
-				shaderDescription.attrs[1].index = 1;
-
-				shaderDescription.vs.constantBlocksCount = 1;
-				shaderDescription.vs.constantBlocks[0].size = sizeof(glm::mat4);
-				shaderDescription.vs.source =
-					"cbuffer params: register(b0) {\n"
-					"  float4x4 mvp;\n"
-					"};\n"
-					"struct vs_in {\n"
-					"  float4 pos: POSITION;\n"
-					"  float4 color: COLOR1;\n"
-					"};\n"
-					"struct vs_out {\n"
-					"  float4 color: COLOR0;\n"
-					"  float4 pos: SV_Position;\n"
-					"};\n"
-					"vs_out main(vs_in inp) {\n"
-					"  vs_out outp;\n"
-					"  outp.pos = mul(mvp, inp.pos);\n"
-					"  outp.color = inp.color;\n"
-					"  return outp;\n"
-					"};\n";
-
-				shaderDescription.fs.source =
-					"float4 main(float4 color: COLOR0): SV_Target0 {\n"
-					"  return color;\n"
-					"}\n";
-			}
-
-			auto shaderProgram1 = harmony::createShader(shaderDescription);
-			harmony::Pipeline::Description pipelineDescription;
-			{
-				pipelineDescription.label = "Test Pipeline";
-				pipelineDescription.layout.attributesCount = 2;
-				pipelineDescription.layout.attributes[0].format = harmony::Pipeline::VertexFormat::eFLOAT3;
-				pipelineDescription.layout.attributes[1].format = harmony::Pipeline::VertexFormat::eFLOAT4;
-				pipelineDescription.shaderProgram = shaderProgram1;
-				pipelineDescription.indexType = harmony::Pipeline::IndexType::eUINT16;
-				pipelineDescription.cullMode = harmony::Pipeline::CullMode::eBACK;
-				//pipelineDescription.depthBufferEnabled = true;
-			}
-			pipeline = harmony::createPipeline(pipelineDescription);
-
-			harmony::RenderPass::Description passDescription;
-			{
-				passDescription.label = "Test Render Pass";
-				passDescription.action.colors.value[0] = 1.0f;
-				passDescription.action.colors.value[1] = 1.0f;
-				passDescription.action.colors.value[2] = 1.0f;
-				passDescription.action.colors.value[3] = 1.0f;
-			}
-			pass = harmony::createRenderPass(passDescription);
-		}
-
-		// Init sequence
-		{
-			scene->initialize();
-			pipeline->initialize();
-			pass->initialize();
-		}
+		//harmony::createRenderer();
 	}
 
-	void frame()
-	{
-		inputSystem->update();
-
-		auto& windowDescription = window->getDescription();
-		glm::mat4 proj = glm::perspective(90.0f, (float)windowDescription.width / (float)windowDescription.height, 0.01f, 10.0f);
-		glm::mat4 view = glm::lookAt(glm::vec3(0.0f, 3.0f, 5.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-		glm::mat4 model(1);
-		
-		if (inputSystem->actionOccured(harmony::Inputs::Action::eMOVE_LEFT, harmony::Inputs::ePRESSED))
-			rx -= 1.0f;
-
-		model *= glm::scale(model, glm::vec3(1.3f));
-		model *= glm::rotate(model, glm::radians(rx), glm::vec3(0.0f, 1.0f, 0.0f));
-		glm::mat4 mvp = proj * view * model;
-
-		auto drawable = (*(scene->getVisualEntities().begin()))->getDrawable();
-
-		pass->begin();
-		pipeline->bind();
-		pipeline->applyConstants(0, &mvp, sizeof(mvp));
-		
-		drawable->bind();
-		drawable->draw(0, 36, 1);
-
-		pass->end();
-
-		// This manual reset is only needed because sokol::event() only gets called when an event happens, so we need to reset the state manually. Otherwise, the current state will not change until we get another event.
-		inputSystem->reset();
-	}
-
-	void cleanup()
-	{
-		scene->deinitialize();
-		pipeline->deinitialize();
-		pass->deinitialize();
-
-		delete scene;
-		delete pipeline;
-		delete pass;
-
-		renderer->deinitialize();
-		inputSystem->deinitialize();
-		window->deinitialize();
-		delete renderer;
-		delete window;
-	}
-
-private:
-	float rx = 0.0f;
+	auto window = harmony::getWindow();
+	auto inputSystem = harmony::getInputSystem();
+	//auto engine = new Engine();
 	
-	harmony::Window* window			= nullptr;
-	harmony::Inputs* inputSystem	= nullptr;
-	harmony::Renderer* renderer		= nullptr;
+	window->initialize();
+	inputSystem->initialize();
+	//engine->initialize();
 
-	harmony::Scene* scene			= nullptr;
+	while (window->isRunning())
+	{
+		window->update();
+		inputSystem->update();
+		//engine->update();
+	}
+	
+	//engine->deinitialize();
+	inputSystem->deinitialize();
+	window->deinitialize();
+	
+	//delete engine;
+	delete inputSystem;
+	delete window;
 
-	harmony::Pipeline* pipeline		= nullptr;
-	harmony::RenderPass* pass		= nullptr;
+	return 0;
+}
 
+/*
+// this is some extra code required because of sokol GFX.
+// and instead of 'int main(int argc, char* argv[])' we use 'sapp_desc sokol_main(int argc, char* argv[])'
 
-}engine;
-
-// this is some extra code required because of sokol GFX
 namespace sokol
 {
 	static void init()
@@ -240,7 +264,12 @@ namespace sokol
 	static void frame()
 	{
 		harmony::getWindow()->update();
+		harmony::getInputSystem()->update();
+
 		engine.frame();
+
+		// This manual reset is only needed because sokol::event() only gets called when an event happens, so we need to reset the state manually. Otherwise, the current state will not change until we get another event.
+		harmony::getInputSystem()->reset();
 	}
 
 	static void cleanup()
@@ -431,3 +460,4 @@ sapp_desc sokol_main(int argc, char* argv[])
 	}
 	return appDesc;
 }
+*/

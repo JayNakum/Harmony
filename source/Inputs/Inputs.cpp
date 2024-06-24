@@ -1,9 +1,11 @@
 #include "Inputs.h"
 
+#include "Helpers/HLog.h"
+
 const std::unordered_map<harmony::Inputs::Action, harmony::Inputs::Key> Inputs::sInputBindings = {
 	{ harmony::Inputs::Action::eINVALID_ACTION, harmony::Inputs::Key::eINVALID_KEY },
 	{ harmony::Inputs::Action::eMOVE_RIGHT, harmony::Inputs::Key::eKEY_ARROW_RIGHT },
-	{ harmony::Inputs::Action::eMOVE_LEFT, harmony::Inputs::Key::eKEY_A },
+	{ harmony::Inputs::Action::eMOVE_LEFT, harmony::Inputs::Key::eKEY_ARROW_LEFT },
 	{ harmony::Inputs::Action::eMOVE_BACKWARD, harmony::Inputs::Key::eKEY_ARROW_DOWN },
 	{ harmony::Inputs::Action::eMOVE_FORWARD, harmony::Inputs::Key::eKEY_ARROW_UP },
 
@@ -20,7 +22,14 @@ const std::unordered_map<harmony::Inputs::Action, harmony::Inputs::Key> Inputs::
 Inputs::Inputs(const harmony::Inputs::Description& description)
 	: mPreviousKeyState{false}, mCurrentKeyState{false}, 
 	mPreviousMousePosition{0.0}, mCurrentMousePosition{0.0}, mCurrentMouseDelta{0.0}
-{}
+{
+	HLOG_INFO("Created.");
+}
+
+Inputs::~Inputs()
+{
+	HLOG_INFO("Destroyed.");
+}
 
 const harmony::Inputs::Description& Inputs::getDescription() const
 {
@@ -30,6 +39,7 @@ const harmony::Inputs::Description& Inputs::getDescription() const
 void Inputs::initialize()
 {
 	reset();
+	HLOG_DEBUG("Initialized.");
 }
 
 void Inputs::update()
@@ -92,11 +102,14 @@ void Inputs::reset()
 
 	mCurrentMousePosition[0] = 0.0f;
 	mCurrentMousePosition[1] = 0.0f;
+
+	HLOG_DEBUG("Reset.");
 }
 
 void Inputs::deinitialize()
 {
 	reset();
+	HLOG_DEBUG("Deinitialized.");
 }
 
 void Inputs::keyCallback(const Key key, const Event e)
@@ -122,7 +135,7 @@ bool Inputs::actionOccured(const Action action, const Event e) const
 	switch (e)
 	{
 	default:
-		// INVALID EVENT
+		HSOFT_ASSERT(false, "Invalid event polled for action %d", action);
 		break;
 
 	case eJUST_PRESSED:

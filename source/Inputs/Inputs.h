@@ -11,7 +11,8 @@ private:
 
 public:
 	Inputs(const harmony::Inputs::Description& description);
-	
+	~Inputs();
+
 	const harmony::Inputs::Description& getDescription() const;
 
 	void initialize();

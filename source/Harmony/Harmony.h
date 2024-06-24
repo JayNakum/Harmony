@@ -21,19 +21,19 @@ namespace harmony
 	void createWindow(const harmony::Window::Description& description);
 	harmony::Window* getWindow();
 
-	void createInputSystem();
+	void createInputSystem(const harmony::Inputs::Description& inputSysDescription);
 	harmony::Inputs* getInputSystem();
 
-	void createRenderer();
-	harmony::Renderer* getRenderer();
+	/*void createRenderer();
+	harmony::Renderer* getRenderer();*/
 
 	harmony::Scene* createScene(const harmony::Scene::Description& description);
 
-	harmony::Buffer* createBuffer(const harmony::Buffer::Description& description);
+	/*harmony::Buffer* createBuffer(const harmony::Buffer::Description& description);
 	harmony::Drawable* createDrawable(const harmony::Drawable::Description& description);
 
 	harmony::Shader* createShader(const harmony::Shader::Description& description);
 	harmony::Pipeline* createPipeline(const harmony::Pipeline::Description& description);
 
-	harmony::RenderPass* createRenderPass(const harmony::RenderPass::Description& description);
+	harmony::RenderPass* createRenderPass(const harmony::RenderPass::Description& description);*/
 }
