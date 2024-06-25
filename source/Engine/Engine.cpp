@@ -2,6 +2,8 @@
 
 #include "Harmony.h"
 
+#include "Helpers/HLog.h"
+
 //#include <sokol_app.h>
 
 #define GLM_FORCE_SSE2
@@ -211,6 +213,38 @@
 //
 //};
 
+class Engine
+{
+public:
+	Engine()
+	{
+		renderer = harmony::getRenderer();
+		HLOG_INFO("Created.");
+	}
+	void initialize()
+	{
+		renderer->initialize();
+	}
+	void update()
+	{
+	}
+	void render()
+	{
+		renderer->render();
+	}
+	void deinitialize()
+	{
+		renderer->deinitialize();
+	}
+	~Engine()
+	{
+		delete renderer;
+		HLOG_INFO("Destroyed.");
+	}
+
+private:
+	harmony::Renderer* renderer;
+};
 
 int main()
 {
@@ -220,34 +254,34 @@ int main()
 
 		harmony::Inputs::Description inputSysDescription;
 		harmony::createInputSystem(inputSysDescription);
-
-		//harmony::createRenderer();
+		
+		harmony::Renderer::Description rendererDescription;
+		harmony::createRenderer(rendererDescription);
 	}
 
 	auto window = harmony::getWindow();
 	auto inputSystem = harmony::getInputSystem();
-	//auto engine = new Engine();
+	auto engine = new Engine();
 	
 	window->initialize();
 	inputSystem->initialize();
-	//engine->initialize();
+	engine->initialize();
 
 	while (window->isRunning())
 	{
 		window->update();
 		inputSystem->update();
-		//engine->update();
+		engine->update();
+		engine->render();
 	}
 	
-	//engine->deinitialize();
+	engine->deinitialize();
 	inputSystem->deinitialize();
 	window->deinitialize();
 	
-	//delete engine;
+	delete engine;
 	delete inputSystem;
 	delete window;
-
-	return 0;
 }
 
 /*

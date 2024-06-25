@@ -6,6 +6,8 @@
 // #include "SG_Window.h"
 
 #include "Inputs.h"
+
+#include "DX12_Renderer.h"
 // #include "SG_Renderer.h"
 
 #include "ENTT_Scene.h"
@@ -55,19 +57,20 @@ namespace harmony
 		return gInputSystem;
 	}
 
-	/*void createRenderer()
+	void createRenderer(const harmony::Renderer::Description& rendererDescription)
 	{
 		delete gRenderer;
-		gRenderer = new sokol::Renderer();
+		gRenderer = new dx12::Renderer(rendererDescription);
 	}
 	harmony::Renderer* getRenderer()
 	{
 		if (gRenderer == nullptr)
 		{
-			createRenderer();
+			harmony::Renderer::Description defaultDescription;
+			createRenderer(defaultDescription);
 		}
 		return gRenderer;
-	}*/
+	}
 
 	harmony::Scene* createScene(const harmony::Scene::Description& description)
 	{

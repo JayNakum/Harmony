@@ -24,6 +24,13 @@ project "Graphics"
     "%{include_dirs.Sokol}"
 	}
 
+  links
+  {
+    "d3d12.lib",
+    "dxgi.lib",
+    "d3dcompiler.lib"
+  }
+
   filter "configurations:Debug"
 		runtime "Debug"
 		symbols "On"

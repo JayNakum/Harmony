@@ -23,6 +23,7 @@ project "Harmony"
     "%{prj_src.Graphics}",
     "%{prj_src.Scene}",
 
+    "%{include_dirs.DirectX12}",
     "%{include_dirs.Sokol}",
     "%{include_dirs.ENTT}"
 	}

@@ -24,8 +24,8 @@ namespace harmony
 	void createInputSystem(const harmony::Inputs::Description& inputSysDescription);
 	harmony::Inputs* getInputSystem();
 
-	/*void createRenderer();
-	harmony::Renderer* getRenderer();*/
+	void createRenderer(const harmony::Renderer::Description& rendererDescription);
+	harmony::Renderer* getRenderer();
 
 	harmony::Scene* createScene(const harmony::Scene::Description& description);
 

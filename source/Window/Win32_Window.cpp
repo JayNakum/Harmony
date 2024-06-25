@@ -289,7 +289,7 @@ namespace win32
 
 	void* Window::getHandle()
 	{
-		return mHandle;
+		return &mHandle;
 	}
 
 	bool Window::isRunning() const
