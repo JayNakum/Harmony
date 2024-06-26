@@ -180,7 +180,7 @@ namespace harmony
 
         struct Description
         {
-            Type type = Type::eCONTROLLER;
+            Type type = Type::eKEYBOARD;
         };
 
     public:

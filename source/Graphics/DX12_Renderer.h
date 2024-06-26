@@ -13,15 +13,12 @@
 #include <D3Dcompiler.h>
 #include <DirectXMath.h>
 
-#include <string>
 #include <wrl.h>
 #include <shellapi.h>
-//#include <comdef.h>
 
 #ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers.
+#define WIN32_LEAN_AND_MEAN
 #endif
-
 #include <windows.h>
 
 using namespace Microsoft::WRL;
@@ -61,5 +58,7 @@ namespace dx12
 		UINT64 mFenceValue = 0;
 		HANDLE mFenceEvent = nullptr;
 		ComPtr<ID3D12PipelineState> mPipelineState;
+
+		ComPtr<ID3D12RootSignature> mRootSignature;
 	};
 }

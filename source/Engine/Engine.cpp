@@ -254,7 +254,7 @@ int main()
 
 		harmony::Inputs::Description inputSysDescription;
 		harmony::createInputSystem(inputSysDescription);
-		
+
 		harmony::Renderer::Description rendererDescription;
 		harmony::createRenderer(rendererDescription);
 	}
