@@ -147,9 +147,11 @@ namespace dx12
 		DXGI_ADAPTER_DESC1 desc;
 		adapter->GetDesc1(&desc);
 
-		HLOG_INFO("Adapter: %ls(%zu)", desc.Description, desc.DeviceId);
-		HLOG_INFO("Dedicated Video Memory: %zu bytes", desc.DedicatedVideoMemory);
-		HLOG_INFO("Shared System Memory: %zu bytes", desc.SharedSystemMemory);
+		HLOG_INFO("Adapter Selected.\nAdapter: %ls(%zu)\nDedicated Video Memory: %zu bytes\nShared System Memory: %zu bytes", 
+			desc.Description, desc.DeviceId, 
+			desc.DedicatedVideoMemory, 
+			desc.SharedSystemMemory
+		);
 
 		*ppAdapter = adapter.Detach();
 	}
@@ -210,10 +212,10 @@ namespace dx12
 		hResult = mDevice->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&mCommandQueue));
 		HASSERT(SUCCEEDED(hResult), "Failed to create command queue.\n%s", hrErrorDescription(hResult).get());
 
+		auto& windowDesc = harmony::getWindow()->getDescription();
+
 		DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
 		swapChainDesc.BufferCount = mFrameCount;
-
-		auto& windowDesc = harmony::getWindow()->getDescription();
 		swapChainDesc.Width = windowDesc.width;
 		swapChainDesc.Height = windowDesc.height;
 		swapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -293,11 +295,11 @@ namespace dx12
 			UINT compileFlags = 0;
 #endif // _DEBUG
 
-			// TODO: Replace the assert with error and provide a default fall-back shader.
+			// TODO: Replace the HASSERT with HLOG_ERROR and provide a default fall-back.
 			hResult = D3DCompileFromFile(L"D:\\Harmony\\resources\\shaders\\shaders.hlsl", nullptr, nullptr, "VSMain", "vs_5_0", compileFlags, 0, &vertexShader, nullptr);
 			HASSERT(SUCCEEDED(hResult), "Failed to compile vertex shader.\n%s", hrErrorDescription(hResult).get());
 			
-			hResult = D3DCompileFromFile(L"D:\\Harmony\\resources\\shaders\\shaders.hlsl", nullptr, nullptr, "PSMain", "ps_5_0", compileFlags, 0, &vertexShader, nullptr);
+			hResult = D3DCompileFromFile(L"D:\\Harmony\\resources\\shaders\\shaders.hlsl", nullptr, nullptr, "PSMain", "ps_5_0", compileFlags, 0, &pixelShader, nullptr);
 			HASSERT(SUCCEEDED(hResult), "Failed to compile pixel shader.\n%s", hrErrorDescription(hResult).get());
 
 			D3D12_INPUT_ELEMENT_DESC inputElementDescs[] = {
@@ -311,9 +313,15 @@ namespace dx12
 			psoDesc.VS = CD3DX12_SHADER_BYTECODE(vertexShader.Get());
 			psoDesc.PS = CD3DX12_SHADER_BYTECODE(pixelShader.Get());
 			psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+			psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
 			psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 			psoDesc.DepthStencilState.DepthEnable = FALSE;
+			psoDesc.DepthStencilState.StencilEnable = FALSE;
+			
+			psoDesc.SampleMask = UINT_MAX;
 			psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+			psoDesc.NumRenderTargets = 1;
+			psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
 			psoDesc.SampleDesc.Count = 1;
 
 			hResult = mDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&mPipelineState));
@@ -327,19 +335,54 @@ namespace dx12
 		HASSERT(SUCCEEDED(hResult), "Failed to close command list.\n%s", hrErrorDescription(hResult).get());
 
 		{
+			auto& windowDesc = harmony::getWindow()->getDescription();
+			auto aspectRatio = static_cast<float>(windowDesc.width) / static_cast<float>(windowDesc.height);
+			Vertex triangleVertices[] = {
+				{{0.0f, 0.25f * aspectRatio, 0.1f}, {1.0f, 0.0f, 0.0f, 1.0f}},
+				{{0.25f, -0.25f * aspectRatio, 0.1f}, {0.0f, 1.0f, 0.0f, 1.0f}},
+				{{-0.25f, -0.25f * aspectRatio, 0.1f}, {0.0f, 0.0f, 1.0f, 1.0f}}
+			};
 
+			const UINT vertexBufferSize = sizeof(triangleVertices);
+
+			CD3DX12_HEAP_PROPERTIES uploadHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+			CD3DX12_RESOURCE_DESC vertexBufferDesc = CD3DX12_RESOURCE_DESC::Buffer(vertexBufferSize);
+			hResult = mDevice->CreateCommittedResource(
+				&uploadHeapProperties,
+				D3D12_HEAP_FLAG_NONE,
+				&vertexBufferDesc,
+				D3D12_RESOURCE_STATE_GENERIC_READ,
+				nullptr,
+				IID_PPV_ARGS(&mVertexBuffer)
+			);
+			HASSERT(SUCCEEDED(hResult), "Failed to create vertex buffer.\n%s", hrErrorDescription(hResult).get());
+			
+			UINT8* pVertexDataBegin;
+			CD3DX12_RANGE readRange(0, 0);
+			hResult = mVertexBuffer->Map(0, &readRange, reinterpret_cast<void**>(&pVertexDataBegin));
+			HASSERT(SUCCEEDED(hResult), "Failed to map vertex buffer.\n%s", hrErrorDescription(hResult).get());
+			memcpy(pVertexDataBegin, triangleVertices, sizeof(triangleVertices));
+
+			mVertexBufferView.BufferLocation = mVertexBuffer->GetGPUVirtualAddress();
+			mVertexBufferView.StrideInBytes = sizeof(Vertex);
+			mVertexBufferView.SizeInBytes = vertexBufferSize;
+			mVertexBuffer->Unmap(0, nullptr);
 		}
 
 
-		hResult = mDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&mFence));
-		HASSERT(SUCCEEDED(hResult), "Failed to create fence.\n%s", hrErrorDescription(hResult).get());
-		mFenceValue = 1;
-
-		mFenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
-		if (mFenceEvent == nullptr)
 		{
-			hResult = HRESULT_FROM_WIN32(GetLastError());
-			HASSERT(SUCCEEDED(hResult), "Failed to create fence event.\n%s", hrErrorDescription(hResult).get());
+			hResult = mDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&mFence));
+			HASSERT(SUCCEEDED(hResult), "Failed to create fence.\n%s", hrErrorDescription(hResult).get());
+			mFenceValue = 1;
+
+			mFenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+			if (mFenceEvent == nullptr)
+			{
+				hResult = HRESULT_FROM_WIN32(GetLastError());
+				HASSERT(SUCCEEDED(hResult), "Failed to create fence event.\n%s", hrErrorDescription(hResult).get());
+			}
+
+			waitForPreviousFrame();
 		}
 	}
 
@@ -353,13 +396,23 @@ namespace dx12
 		hResult = mCommandList->Reset(mCommandAllocator.Get(), mPipelineState.Get());
 		HASSERT(SUCCEEDED(hResult), "Failed to reset command allocator.\n%s", hrErrorDescription(hResult).get());
 		
+		mCommandList->SetGraphicsRootSignature(mRootSignature.Get());
+		mCommandList->RSSetViewports(1, &mViewport);
+		mCommandList->RSSetScissorRects(1, &mScissorRect);
+
 		auto rtBarrier = CD3DX12_RESOURCE_BARRIER::Transition(mRenderTargets[mFrameIndex].Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
 		mCommandList->ResourceBarrier(1, &rtBarrier);
 
 		CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(mRTVHeap->GetCPUDescriptorHandleForHeapStart(), mFrameIndex, mRTVDescriptorSize);
 		
+		mCommandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
+
 		const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
 		mCommandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
+		mCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		mCommandList->IASetVertexBuffers(0, 1, &mVertexBufferView);
+		mCommandList->DrawInstanced(3, 1, 0, 0);
+
 
 		auto presentBarrier = CD3DX12_RESOURCE_BARRIER::Transition(mRenderTargets[mFrameIndex].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
 		mCommandList->ResourceBarrier(1, &presentBarrier);

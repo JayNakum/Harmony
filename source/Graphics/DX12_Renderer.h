@@ -43,6 +43,11 @@ namespace dx12
 
 	private:
 		static const UINT mFrameCount = 2;
+		struct Vertex
+		{
+			DirectX::XMFLOAT3 position;
+			DirectX::XMFLOAT4 color;
+		};
 		harmony::Renderer::Description mDescription;
 		UINT mFrameIndex = 0;
 	private:
@@ -59,6 +64,11 @@ namespace dx12
 		HANDLE mFenceEvent = nullptr;
 		ComPtr<ID3D12PipelineState> mPipelineState;
 
+		CD3DX12_VIEWPORT mViewport;
+		CD3DX12_RECT mScissorRect;
 		ComPtr<ID3D12RootSignature> mRootSignature;
+
+		ComPtr<ID3D12Resource> mVertexBuffer;
+		D3D12_VERTEX_BUFFER_VIEW mVertexBufferView;
 	};
 }
