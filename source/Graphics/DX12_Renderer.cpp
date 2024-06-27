@@ -397,7 +397,17 @@ namespace dx12
 		HASSERT(SUCCEEDED(hResult), "Failed to reset command allocator.\n%s", hrErrorDescription(hResult).get());
 		
 		mCommandList->SetGraphicsRootSignature(mRootSignature.Get());
+		mViewport.TopLeftX = 0.0f;
+		mViewport.TopLeftY = 0.0f;
+		mViewport.Width = (float)harmony::getWindow()->getDescription().width;
+		mViewport.Height = (float)harmony::getWindow()->getDescription().height;
+		mViewport.MinDepth = 0.0f;
+		mViewport.MaxDepth = 1.0f;
 		mCommandList->RSSetViewports(1, &mViewport);
+		mScissorRect.left = 0;
+		mScissorRect.top = 0;
+		mScissorRect.right = harmony::getWindow()->getDescription().width;
+		mScissorRect.bottom = harmony::getWindow()->getDescription().height;
 		mCommandList->RSSetScissorRects(1, &mScissorRect);
 
 		auto rtBarrier = CD3DX12_RESOURCE_BARRIER::Transition(mRenderTargets[mFrameIndex].Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
@@ -407,7 +417,7 @@ namespace dx12
 		
 		mCommandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
 
-		const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
+		const float clearColor[] = { 0.1f, 0.1f, 0.1f, 1.0f };
 		mCommandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
 		mCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		mCommandList->IASetVertexBuffers(0, 1, &mVertexBufferView);
