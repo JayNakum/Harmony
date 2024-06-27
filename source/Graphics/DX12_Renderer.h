@@ -68,7 +68,27 @@ namespace dx12
 		CD3DX12_RECT mScissorRect;
 		ComPtr<ID3D12RootSignature> mRootSignature;
 
-		ComPtr<ID3D12Resource> mVertexBuffer;
-		D3D12_VERTEX_BUFFER_VIEW mVertexBufferView;
+	};
+}
+
+namespace dx12
+{
+	class Buffer : public harmony::Buffer
+	{
+	public:
+		Buffer(const harmony::Buffer::Description& description);
+		~Buffer();
+
+		const void* getID() const override;
+		const Description& getDescription() const override;
+
+		void initialize() override;
+		void deinitialize() override;
+
+	private:
+		harmony::Buffer::Description mDescription;
+
+		ComPtr<ID3D12Resource> mBuffer;
+		D3D12_VERTEX_BUFFER_VIEW mBufferView;
 	};
 }

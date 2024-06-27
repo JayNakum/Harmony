@@ -452,3 +452,43 @@ namespace dx12
 		mFrameIndex = mSwapChain->GetCurrentBackBufferIndex();
 	}
 }
+
+namespace dx12
+{
+	Buffer::Buffer(const harmony::Buffer::Description& description)
+		: mDescription(description), mBuffer{ 0 } {}
+
+	Buffer::~Buffer()
+	{
+		mDescription = { 0 };
+		
+	}
+
+	const void* Buffer::getID() const
+	{
+		return mBuffer;
+	}
+
+	const harmony::Buffer::Description& Buffer::getDescription() const
+	{
+		return mDescription;
+	}
+
+	void Buffer::initialize()
+	{
+		sg_buffer_desc createDesc = { 0 };
+		createDesc.label = mDescription.label;
+		createDesc.data.ptr = mDescription.data;
+		createDesc.size = mDescription.size;
+		createDesc.type = Buffer::sTYPE.at(mDescription.type);
+		createDesc.usage = Buffer::sUSAGE.at(mDescription.usage);
+
+		mBuffer = sg_make_buffer(createDesc);
+
+	}
+
+	void Buffer::deinitialize()
+	{
+		sg_dealloc_buffer(mBuffer);
+	}
+}
