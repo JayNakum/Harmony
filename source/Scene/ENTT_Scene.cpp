@@ -14,15 +14,9 @@ namespace ENTT
 		HLOG_INFO("Created %s", mDescription.label);
 	}
 
-	Entity::~Entity()
-	{
-		HLOG_INFO("Destroyed %s", mDescription.label);
-		mDescription = { 0 };
-	}
-
 	void Entity::initialize()
 	{
-		/*if (mDescription.visual.has_value())
+		if (mDescription.visual.has_value())
 		{
 			harmony::Buffer::Description vBufferDescription;
 			{
@@ -32,6 +26,7 @@ namespace ENTT
 				vBufferDescription.size = mDescription.visual->mesh.verticesSize;
 			}
 			auto vertexBuffer = harmony::createBuffer(vBufferDescription);
+			vertexBuffer->initialize();
 
 			harmony::Buffer::Description iBufferDescription;
 			{
@@ -41,22 +36,28 @@ namespace ENTT
 				iBufferDescription.size = mDescription.visual->mesh.indicesSize;
 			}
 			auto indexBuffer = harmony::createBuffer(iBufferDescription);
+			indexBuffer->initialize();
 
 			harmony::Drawable::Description drawableDescription;
 			{
 				drawableDescription.label = mDescription.label;
 				drawableDescription.vertexBuffer = vertexBuffer;
 				drawableDescription.indexBuffer = indexBuffer;
+				drawableDescription.fs.images[0] = mDescription.visual->texture1.image;
+				drawableDescription.fs.imgCount = 1;
+				drawableDescription.fs.samplers[0] = mDescription.visual->texture1.sampler;
+				drawableDescription.fs.smpCount = 1;
 			}
 			mDrawable = harmony::createDrawable(drawableDescription);
 			mDrawable->initialize();
-		}*/
+		}
 
 		HLOG_DEBUG("Initialized %s", mDescription.label);
 	}
 
 	void Entity::deinitialize() 
 	{
+		mDrawable->deinitialize();
 		HLOG_DEBUG("Deinitialized %s", mDescription.label);
 	}
 
@@ -72,6 +73,13 @@ namespace ENTT
 	const harmony::Drawable* Entity::getDrawable() const
 	{
 		return mDrawable;
+	}
+
+	Entity::~Entity()
+	{
+		HLOG_INFO("Destroyed %s", mDescription.label);
+		mDescription = { 0 };
+		delete mDrawable;
 	}
 }
 

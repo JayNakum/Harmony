@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Graphics/HBuffer.h"
+#include "Graphics/HTexture.h"
 #include "Graphics/HDrawable.h"
 #include "Graphics/HShader.h"
 #include "Graphics/HPipeline.h"
@@ -16,11 +17,16 @@ namespace sokol
     class Renderer : public harmony::Renderer
     {
     public:
-        Renderer() = default;
+        Renderer(const harmony::Renderer::Description& description);
         ~Renderer();
 
+        const harmony::Renderer::Description& getDescription() const override;
         void initialize() override;
+        void render() override;
         void deinitialize() override;
+
+    private:
+        harmony::Renderer::Description mDescription;
     };
 }
 
@@ -50,10 +56,48 @@ namespace sokol
 
 namespace sokol
 {
+    class Image : public harmony::Image
+    {
+    public:
+        Image(const harmony::Image::Description& description);
+        ~Image();
+
+        const void* getID() const;
+        const harmony::Image::Description& getDescription() const;
+        void initialize();
+        void deinitialize();
+
+    private:
+        harmony::Image::Description mDescription;
+        sg_image mImage;
+    };
+
+    class Sampler : public harmony::Sampler
+    {
+    public:
+        Sampler(const harmony::Sampler::Description& description);
+        ~Sampler();
+
+    public:
+        const void* getID() const override;
+        const harmony::Sampler::Description& getDescription() const override;
+        void initialize() override;
+        void deinitialize() override;
+
+    private:
+        harmony::Sampler::Description mDescription;
+        sg_sampler mSampler;
+
+    private:
+        static const std::unordered_map<harmony::Sampler::Filter, sg_filter> sFILTER;
+    };
+}
+
+namespace sokol
+{
     class Drawable : public harmony::Drawable
     {
     public:
-
         Drawable(const harmony::Drawable::Description& description);
         ~Drawable();
 

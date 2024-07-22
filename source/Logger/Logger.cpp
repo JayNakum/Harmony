@@ -54,7 +54,6 @@ void Logger::softAssert(bool condition, const char* message, const std::source_l
 	if (!condition)
 	{
 		consoleLog(COLOR_WARNING, message, _src);
-		__debugbreak();
 	}
 }
 
@@ -63,7 +62,6 @@ void Logger::hardAssert(bool condition, const char* message, const std::source_l
 	if (!condition)
 	{
 		consoleLog(COLOR_ASSERT, message, _src);
-		exit(-1);
 	}
 }
 

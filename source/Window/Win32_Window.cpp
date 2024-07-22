@@ -289,7 +289,7 @@ namespace win32
 
 	void* Window::getHandle()
 	{
-		return mHandle;
+		return &mHandle;
 	}
 
 	bool Window::isRunning() const
@@ -377,7 +377,7 @@ namespace win32
 	LRESULT Window::HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noexcept
 	{
 		static WindowsMessageMap mm;
-		OutputDebugString(mm(msg, lParam, wParam).c_str());
+		// OutputDebugString(mm(msg, lParam, wParam).c_str());
 		switch (msg)
 		{
 		case WM_CLOSE:

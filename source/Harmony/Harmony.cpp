@@ -2,11 +2,13 @@
 
 #include <iostream>
 
-#include "Win32_Window.h"
-// #include "SG_Window.h"
+//#include "Win32_Window.h"
+#include "SG_Window.h"
 
 #include "Inputs.h"
-// #include "SG_Renderer.h"
+
+//#include "DX12_Renderer.h"
+#include "SG_Renderer.h"
 
 #include "ENTT_Scene.h"
 
@@ -21,7 +23,7 @@ namespace harmony
 	void createWindow(const harmony::Window::Description& windowDescription)
 	{
 		delete gMainWindow;
-		gMainWindow = new win32::Window(windowDescription);
+		gMainWindow = new sokol::Window(windowDescription);
 	}
 
 	harmony::Logger* createLogger(const harmony::Logger::Description& loggerDescription)
@@ -55,28 +57,37 @@ namespace harmony
 		return gInputSystem;
 	}
 
-	/*void createRenderer()
+	void createRenderer(const harmony::Renderer::Description& rendererDescription)
 	{
 		delete gRenderer;
-		gRenderer = new sokol::Renderer();
+		gRenderer = new sokol::Renderer(rendererDescription);
 	}
 	harmony::Renderer* getRenderer()
 	{
 		if (gRenderer == nullptr)
 		{
-			createRenderer();
+			harmony::Renderer::Description defaultDescription;
+			createRenderer(defaultDescription);
 		}
 		return gRenderer;
-	}*/
+	}
 
 	harmony::Scene* createScene(const harmony::Scene::Description& description)
 	{
 		return new ENTT::Scene(description);
 	}
 
-	/*harmony::Buffer* createBuffer(const harmony::Buffer::Description& description)
+	harmony::Buffer* createBuffer(const harmony::Buffer::Description& description)
 	{
 		return new sokol::Buffer(description);
+	}
+	harmony::Image* createImage(const harmony::Image::Description& description)
+	{
+		return new sokol::Image(description);
+	}
+	harmony::Sampler* createSampler(const harmony::Sampler::Description& description)
+	{
+		return new sokol::Sampler(description);
 	}
 	harmony::Drawable* createDrawable(const harmony::Drawable::Description& description)
 	{
@@ -93,5 +104,5 @@ namespace harmony
 	harmony::RenderPass* createRenderPass(const harmony::RenderPass::Description& description)
 	{
 		return new sokol::RenderPass(description);
-	}*/
+	}
 }
