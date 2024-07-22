@@ -98,7 +98,6 @@ namespace sokol
     class Drawable : public harmony::Drawable
     {
     public:
-
         Drawable(const harmony::Drawable::Description& description);
         ~Drawable();
 
@@ -113,6 +112,8 @@ namespace sokol
 
     private:
         harmony::Drawable::Description mDescription;
+        harmony::Buffer* mVBuffer;
+        harmony::Buffer* mIBuffer;
         sg_bindings mBind;
     };
 }

@@ -155,7 +155,13 @@ namespace sokol
 namespace sokol
 {
 	sokol::Drawable::Drawable(const harmony::Drawable::Description& description)
-		: mDescription(description), mBind{ 0 } {}
+		: mDescription(description), mBind{ 0 }, mVBuffer(nullptr), mIBuffer(nullptr) 
+	{
+		mVBuffer = harmony::createBuffer(mDescription.vertexBufferDescription);
+		
+		if (mDescription.indexBufferDescription.size)
+			mIBuffer = harmony::createBuffer(mDescription.indexBufferDescription);
+	}
 
 	const harmony::Drawable::Description& sokol::Drawable::getDescription() const
 	{
@@ -164,19 +170,19 @@ namespace sokol
 
 	void Drawable::initialize()
 	{
-		mDescription.vertexBuffer->initialize();
-		mBind.vertex_buffers[0] = *((sg_buffer*)mDescription.vertexBuffer->getID());
+		mVBuffer->initialize();
+		mBind.vertex_buffers[0] = *((sg_buffer*)mVBuffer->getID());
 		
-		if (mDescription.indexBuffer)
+		if (mIBuffer)
 		{
-			mDescription.indexBuffer->initialize();
-			mBind.index_buffer = *((sg_buffer*)mDescription.indexBuffer->getID());
+			mIBuffer->initialize();
+			mBind.index_buffer = *((sg_buffer*)mIBuffer->getID());
 		}
 
 		{// Vertex Shader Bindings
 			if (mDescription.vs.imgCount)
 			{
-				for (size_t i = 0; i < mDescription.vs.imgCount; ++i)
+				for (unsigned int i = 0; i < mDescription.vs.imgCount; ++i)
 				{
 					mBind.vs.images[i] = *((sg_image*)mDescription.vs.images[i]->getID());
 				}
@@ -184,7 +190,7 @@ namespace sokol
 
 			if (mDescription.vs.smpCount)
 			{
-				for (size_t i = 0; i < mDescription.vs.smpCount; ++i)
+				for (unsigned int i = 0; i < mDescription.vs.smpCount; ++i)
 				{
 					mBind.vs.samplers[i] = *((sg_sampler*)mDescription.vs.samplers[i]->getID());
 				}
@@ -194,7 +200,7 @@ namespace sokol
 		{// Fragment Shader Bindings
 			if (mDescription.fs.imgCount)
 			{
-				for (size_t i = 0; i < mDescription.fs.imgCount; ++i)
+				for (unsigned int i = 0; i < mDescription.fs.imgCount; ++i)
 				{
 					mBind.fs.images[i] = *((sg_image*)mDescription.fs.images[i]->getID());
 				}
@@ -202,7 +208,7 @@ namespace sokol
 
 			if (mDescription.fs.smpCount)
 			{
-				for (size_t i = 0; i < mDescription.fs.smpCount; ++i)
+				for (unsigned int i = 0; i < mDescription.fs.smpCount; ++i)
 				{
 					mBind.fs.samplers[i] = *((sg_sampler*)mDescription.fs.samplers[i]->getID());
 				}
@@ -230,15 +236,15 @@ namespace sokol
 	{
 		unbind();
 
-		mDescription.vertexBuffer->deinitialize();
-		if (mDescription.indexBuffer)
-			mDescription.indexBuffer->deinitialize();
+		mVBuffer->deinitialize();
+		if (mIBuffer)
+			mIBuffer->deinitialize();
 	}
 
 	Drawable::~Drawable()
 	{
-		delete mDescription.vertexBuffer;
-		delete mDescription.indexBuffer;
+		delete mVBuffer;
+		delete mIBuffer;
 		mBind = { 0 };
 	}
 }
@@ -281,11 +287,35 @@ namespace sokol
 				createDesc.vs.uniform_blocks[i].uniforms[j].type = sCONSTANT_TYPE.at(mDescription.vs.constantBlocks[i].constants[j].type);
 			}
 		}
+		for (unsigned int i = 0; i < mDescription.vs.texturesCount; ++i)
+		{
+			createDesc.vs.images[i].used = mDescription.vs.textures[i].used;
+			createDesc.vs.samplers[i].used = mDescription.vs.textures[i].used;
+			createDesc.vs.image_sampler_pairs[i].used = mDescription.vs.textures[i].used;
+			createDesc.vs.image_sampler_pairs[i].image_slot = mDescription.vs.textures[i].imageSlot;
+			createDesc.vs.image_sampler_pairs[i].sampler_slot = mDescription.vs.textures[i].samplerSlot;
+		}
 
 		createDesc.fs.source = mDescription.fs.source;
+		for (unsigned int i = 0; i < mDescription.fs.constantBlocksCount; ++i)
+		{
+			createDesc.fs.uniform_blocks[i].size = mDescription.fs.constantBlocks[i].size;
+			for (unsigned int j = 0; j < mDescription.fs.constantBlocks[i].constantCount; ++j)
+			{
+				createDesc.fs.uniform_blocks[i].uniforms[j].name = mDescription.fs.constantBlocks[i].constants[j].name;
+				createDesc.fs.uniform_blocks[i].uniforms[j].type = sCONSTANT_TYPE.at(mDescription.fs.constantBlocks[i].constants[j].type);
+			}
+		}
+		for (unsigned int i = 0; i < mDescription.fs.texturesCount; ++i)
+		{
+			createDesc.fs.images[i].used = mDescription.fs.textures[i].used;
+			createDesc.fs.samplers[i].used = mDescription.fs.textures[i].used;
+			createDesc.fs.image_sampler_pairs[i].used = mDescription.fs.textures[i].used;
+			createDesc.fs.image_sampler_pairs[i].image_slot = mDescription.fs.textures[i].imageSlot;
+			createDesc.fs.image_sampler_pairs[i].sampler_slot = mDescription.fs.textures[i].samplerSlot;
+		}
 
 		mShader = sg_make_shader(createDesc);
-
 	}
 
 	void Shader::deinitialize()

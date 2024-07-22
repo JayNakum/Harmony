@@ -83,7 +83,7 @@ void Inputs::update()
 	mPreviousMousePosition[0] = mCurrentMousePosition[0];
 	mPreviousMousePosition[1] = mCurrentMousePosition[1];
 
-	for (size_t i = 0; i < eMAX_KEYS; ++i)
+	for (unsigned int i = 0; i < eMAX_KEYS; ++i)
 	{
 		mPreviousKeyState[i] = mCurrentKeyState[i];
 	}
@@ -91,7 +91,7 @@ void Inputs::update()
 
 void Inputs::reset()
 {
-	for (size_t i = 0; i < eMAX_KEYS; ++i)
+	for (unsigned int i = 0; i < eMAX_KEYS; ++i)
 	{
 		mPreviousKeyState[i] = false;
 		mCurrentKeyState[i] = false;

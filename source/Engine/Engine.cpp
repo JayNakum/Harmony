@@ -33,7 +33,7 @@ public:
 				harmony::component::Visual visual;
 				{
 					const float vertices[] = {
-					// pos                  color                       uvs
+					// pos                  color                       uv
 					-1.0f, -1.0f, -1.0f,    1.0f, 0.0f, 0.0f, 1.0f,     0.0f, 0.0f,
 					 1.0f, -1.0f, -1.0f,    1.0f, 0.0f, 0.0f, 1.0f,     1.0f, 0.0f,
 					 1.0f,  1.0f, -1.0f,    1.0f, 0.0f, 0.0f, 1.0f,     1.0f, 1.0f,
@@ -77,7 +77,35 @@ public:
 					};
 					visual.mesh.indices = indices;
 					visual.mesh.indicesSize = sizeof(indices);
+
+					uint32_t pixels[4 * 4] = {
+						0xFFFFFFFF, 0x00000000, 0xFFFFFFFF, 0x00000000,
+						0x00000000, 0xFFFFFFFF, 0x00000000, 0xFFFFFFFF,
+						0xFFFFFFFF, 0x00000000, 0xFFFFFFFF, 0x00000000,
+						0x00000000, 0xFFFFFFFF, 0x00000000, 0xFFFFFFFF,
+					};
+
+					harmony::Image::Description imageDescription;
+					imageDescription.width = 4;
+					imageDescription.height = 4;
+					imageDescription.memory = pixels;
+					imageDescription.size = sizeof(pixels);
+					imageDescription.imagePath = "embedded image";
+					auto image = harmony::createImage(imageDescription);
+					image->initialize();
+
+					harmony::Sampler::Description samplerDescription;
+					samplerDescription.label = "texture sampler";
+					samplerDescription.minFilter = harmony::Sampler::Filter::eLINEAR;
+					samplerDescription.magFilter = harmony::Sampler::Filter::eLINEAR;
+					auto sampler = harmony::createSampler(samplerDescription);
+					sampler->initialize();
+
+					visual.texture1.label = "black and white embedded texture";
+					visual.texture1.image = image;
+					visual.texture1.sampler = sampler;
 				}
+
 				harmony::Entity::Description entityDescription;
 				{
 					entityDescription.label = "Test Entity";
@@ -86,27 +114,10 @@ public:
 				auto entity = scene->createEntity(entityDescription);
 			}
 
-			{
-				uint32_t pixels[4 * 4] = {
-					0xFFFFFFFF, 0x00000000, 0xFFFFFFFF, 0x00000000,
-					0x00000000, 0xFFFFFFFF, 0x00000000, 0xFFFFFFFF,
-					0xFFFFFFFF, 0x00000000, 0xFFFFFFFF, 0x00000000,
-					0x00000000, 0xFFFFFFFF, 0x00000000, 0xFFFFFFFF,
-				};
-
-				harmony::Image::Description imageDescription;
-				imageDescription.width = 4;
-				imageDescription.height = 4;
-				imageDescription.memory = pixels;
-				imageDescription.size = sizeof(pixels);
-				imageDescription.imagePath = "embedded texture";
-
-			}
-
 			harmony::Shader::Description shaderDescription;
 			{
 				shaderDescription.label = "Test Shader Program";
-				shaderDescription.attributesCount = 2;
+				shaderDescription.attributesCount = 3;
 				shaderDescription.attrs[0].name = "POSITION";
 				shaderDescription.attrs[1].name = "COLOR";
 				shaderDescription.attrs[1].index = 1;
@@ -116,9 +127,7 @@ public:
 				shaderDescription.vs.constantBlocksCount = 1;
 				shaderDescription.vs.constantBlocks[0].size = sizeof(glm::mat4);
 				shaderDescription.vs.source =
-					"cbuffer params: register(b0) {\n"
-					"  float4x4 mvp;\n"
-					"};\n"
+					"float4x4 mvp;\n"
 					"struct vs_in {\n"
 					"  float4 pos: POSITION;\n"
 					"  float4 color: COLOR1;\n"
@@ -135,21 +144,26 @@ public:
 					"  outp.color = inp.color;\n"
 					"  outp.uv = inp.uv * 5.0;\n"
 					"  return outp;\n"
-					"};\n";
+					"}\n";
+
+				shaderDescription.fs.texturesCount = 1;
+				shaderDescription.fs.textures[0].imageSlot = 0;
+				shaderDescription.fs.textures[0].samplerSlot= 0;
+				shaderDescription.fs.textures[0].used = true;
 
 				shaderDescription.fs.source =
-					"Texture2D<float4> tex: register(t0);\n"
-					"sampler smp: register(s0);\n"
+					"Texture2D<float4> tex;\n"
+					"sampler smp;\n"
 					"float4 main(float4 color: COLOR0, float2 uv: TEXCOORD0): SV_Target0 {\n"
 					"  return tex.Sample(smp, uv) * color;\n"
 					"}\n";
 			}
-
 			auto shaderProgram1 = harmony::createShader(shaderDescription);
+
 			harmony::Pipeline::Description pipelineDescription;
 			{
 				pipelineDescription.label = "Test Pipeline";
-				pipelineDescription.layout.attributesCount = 2;
+				pipelineDescription.layout.attributesCount = 3;
 				pipelineDescription.layout.attributes[0].format = harmony::Pipeline::VertexFormat::eFLOAT3;
 				pipelineDescription.layout.attributes[1].format = harmony::Pipeline::VertexFormat::eFLOAT4;
 				pipelineDescription.layout.attributes[2].format = harmony::Pipeline::VertexFormat::eFLOAT2;

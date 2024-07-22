@@ -34,6 +34,11 @@ namespace harmony
 				const Sampler* sampler = nullptr;
 			};
 
+			struct Material
+			{
+				Texture textures[1] = { nullptr };
+			};
+
 			struct Mesh
 			{
 				const float* vertices = nullptr;

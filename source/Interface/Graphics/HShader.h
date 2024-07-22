@@ -33,15 +33,24 @@ namespace harmony
         struct ConstantBlock
         {
             size_t size;
-            Constant constants[16];
+            Constant constants[16] = { 0 };
             unsigned int constantCount = 0;
         };
 
-        struct StageDescription
+        struct Texture
+        {
+            bool used = false;
+            unsigned int imageSlot = 0;
+            unsigned int samplerSlot = 0;
+        };
+
+        struct StageDescription // TODO: use reflections to get these
         {
             const char* source = "default shader";
-            ConstantBlock constantBlocks[4];
+            ConstantBlock constantBlocks[4] = { 0 };
             unsigned int constantBlocksCount = 0;
+            Texture textures[1] = { 0 }; // TODO: query the the size of this array
+            unsigned int texturesCount = 0;
         };
 
         struct Description

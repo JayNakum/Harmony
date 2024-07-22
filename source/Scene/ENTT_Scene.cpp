@@ -31,7 +31,7 @@ namespace ENTT
 				vBufferDescription.data = mDescription.visual->mesh.vertices;
 				vBufferDescription.size = mDescription.visual->mesh.verticesSize;
 			}
-			auto vertexBuffer = harmony::createBuffer(vBufferDescription);
+			
 
 			harmony::Buffer::Description iBufferDescription;
 			{
@@ -40,13 +40,16 @@ namespace ENTT
 				iBufferDescription.data = mDescription.visual->mesh.indices;
 				iBufferDescription.size = mDescription.visual->mesh.indicesSize;
 			}
-			auto indexBuffer = harmony::createBuffer(iBufferDescription);
 
 			harmony::Drawable::Description drawableDescription;
 			{
 				drawableDescription.label = mDescription.label;
-				drawableDescription.vertexBuffer = vertexBuffer;
-				drawableDescription.indexBuffer = indexBuffer;
+				drawableDescription.vertexBufferDescription = vBufferDescription;
+				drawableDescription.indexBufferDescription = iBufferDescription;
+				drawableDescription.fs.images[0] = mDescription.visual->texture1.image;
+				drawableDescription.fs.imgCount = 1;
+				drawableDescription.fs.samplers[0] = mDescription.visual->texture1.sampler;
+				drawableDescription.fs.smpCount = 1;
 			}
 			mDrawable = harmony::createDrawable(drawableDescription);
 			mDrawable->initialize();

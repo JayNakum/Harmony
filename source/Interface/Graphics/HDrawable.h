@@ -4,23 +4,29 @@
 
 namespace harmony
 {
+    class Image;
+    class Sampler;
+}
+
+namespace harmony
+{
     class Drawable
     {
     public:
         struct StageBindings
         {
-            harmony::Image* images[12] = { nullptr };
-            size_t imgCount = 0;
+            const harmony::Image* images[12] = { nullptr };
+            unsigned int imgCount = 0;
 
-            harmony::Sampler* samplers[8] = { nullptr };
-            size_t smpCount = 0;
+            const harmony::Sampler* samplers[8] = { nullptr };
+            unsigned int smpCount = 0;
         };
 
         struct Description
         {
             const char* label = "default drawable";
-            harmony::Buffer* vertexBuffer = nullptr;
-            harmony::Buffer* indexBuffer = nullptr;
+            harmony::Buffer::Description vertexBufferDescription = { 0 };
+            harmony::Buffer::Description indexBufferDescription = { 0 };
             StageBindings vs = { 0 };
             StageBindings fs = { 0 };
         };
