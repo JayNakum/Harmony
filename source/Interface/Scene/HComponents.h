@@ -30,8 +30,8 @@ namespace harmony
 			struct Texture
 			{
 				const char* label = "default texture";
-				const Image* image = nullptr;
-				const Sampler* sampler = nullptr;
+				Image* image = nullptr;
+				Sampler* sampler = nullptr;
 			};
 
 			struct Material

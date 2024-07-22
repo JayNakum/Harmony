@@ -92,14 +92,12 @@ public:
 					imageDescription.size = sizeof(pixels);
 					imageDescription.imagePath = "embedded image";
 					auto image = harmony::createImage(imageDescription);
-					image->initialize();
 
 					harmony::Sampler::Description samplerDescription;
 					samplerDescription.label = "texture sampler";
 					samplerDescription.minFilter = harmony::Sampler::Filter::eLINEAR;
 					samplerDescription.magFilter = harmony::Sampler::Filter::eLINEAR;
 					auto sampler = harmony::createSampler(samplerDescription);
-					sampler->initialize();
 
 					visual.texture1.label = "black and white embedded texture";
 					visual.texture1.image = image;
@@ -202,7 +200,7 @@ public:
 		glm::mat4 model(1);
 		
 		//if (inputSystem->actionOccured(harmony::Inputs::Action::eMOVE_LEFT, harmony::Inputs::ePRESSED))
-			rx -= 1.0f;
+		rx -= 1.0f;
 
 		model *= glm::scale(model, glm::vec3(1.3f));
 		model *= glm::rotate(model, glm::radians(rx), glm::vec3(0.0f, 1.0f, 0.0f));
@@ -255,7 +253,6 @@ namespace sokol
 {
 	static void init()
 	{
-
 		harmony::getWindow()->initialize();
 		harmony::getInputSystem()->initialize();
 		engine.initialize();

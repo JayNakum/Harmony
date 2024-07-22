@@ -1,12 +1,7 @@
 #pragma once
 
 #include "HBuffer.h"
-
-namespace harmony
-{
-    class Image;
-    class Sampler;
-}
+#include "HTexture.h"
 
 namespace harmony
 {
@@ -15,18 +10,19 @@ namespace harmony
     public:
         struct StageBindings
         {
-            const harmony::Image* images[12] = { nullptr };
+            harmony::Image* images[12] = { nullptr };
             unsigned int imgCount = 0;
 
-            const harmony::Sampler* samplers[8] = { nullptr };
+            harmony::Sampler* samplers[8] = { nullptr };
             unsigned int smpCount = 0;
         };
 
         struct Description
         {
             const char* label = "default drawable";
-            harmony::Buffer::Description vertexBufferDescription = { 0 };
-            harmony::Buffer::Description indexBufferDescription = { 0 };
+            harmony::Buffer* vertexBuffer = nullptr;
+            harmony::Buffer* indexBuffer = nullptr;
+
             StageBindings vs = { 0 };
             StageBindings fs = { 0 };
         };

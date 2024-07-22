@@ -112,8 +112,6 @@ namespace sokol
 
     private:
         harmony::Drawable::Description mDescription;
-        harmony::Buffer* mVBuffer;
-        harmony::Buffer* mIBuffer;
         sg_bindings mBind;
     };
 }

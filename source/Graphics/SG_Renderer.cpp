@@ -155,13 +155,7 @@ namespace sokol
 namespace sokol
 {
 	sokol::Drawable::Drawable(const harmony::Drawable::Description& description)
-		: mDescription(description), mBind{ 0 }, mVBuffer(nullptr), mIBuffer(nullptr) 
-	{
-		mVBuffer = harmony::createBuffer(mDescription.vertexBufferDescription);
-		
-		if (mDescription.indexBufferDescription.size)
-			mIBuffer = harmony::createBuffer(mDescription.indexBufferDescription);
-	}
+		: mDescription(description), mBind{ 0 } {}
 
 	const harmony::Drawable::Description& sokol::Drawable::getDescription() const
 	{
@@ -170,13 +164,13 @@ namespace sokol
 
 	void Drawable::initialize()
 	{
-		mVBuffer->initialize();
-		mBind.vertex_buffers[0] = *((sg_buffer*)mVBuffer->getID());
+		mDescription.vertexBuffer->initialize();
+		mBind.vertex_buffers[0] = *((sg_buffer*)mDescription.vertexBuffer->getID());
 		
-		if (mIBuffer)
+		if (mDescription.indexBuffer)
 		{
-			mIBuffer->initialize();
-			mBind.index_buffer = *((sg_buffer*)mIBuffer->getID());
+			mDescription.indexBuffer->initialize();
+			mBind.index_buffer = *((sg_buffer*)mDescription.indexBuffer->getID());
 		}
 
 		{// Vertex Shader Bindings
@@ -184,6 +178,7 @@ namespace sokol
 			{
 				for (unsigned int i = 0; i < mDescription.vs.imgCount; ++i)
 				{
+					mDescription.vs.images[i]->initialize();
 					mBind.vs.images[i] = *((sg_image*)mDescription.vs.images[i]->getID());
 				}
 			}
@@ -192,6 +187,7 @@ namespace sokol
 			{
 				for (unsigned int i = 0; i < mDescription.vs.smpCount; ++i)
 				{
+					mDescription.vs.samplers[i]->initialize();
 					mBind.vs.samplers[i] = *((sg_sampler*)mDescription.vs.samplers[i]->getID());
 				}
 			}
@@ -202,6 +198,7 @@ namespace sokol
 			{
 				for (unsigned int i = 0; i < mDescription.fs.imgCount; ++i)
 				{
+					mDescription.fs.images[i]->initialize();
 					mBind.fs.images[i] = *((sg_image*)mDescription.fs.images[i]->getID());
 				}
 			}
@@ -210,6 +207,7 @@ namespace sokol
 			{
 				for (unsigned int i = 0; i < mDescription.fs.smpCount; ++i)
 				{
+					mDescription.fs.samplers[i]->initialize();
 					mBind.fs.samplers[i] = *((sg_sampler*)mDescription.fs.samplers[i]->getID());
 				}
 			}
@@ -236,16 +234,56 @@ namespace sokol
 	{
 		unbind();
 
-		mVBuffer->deinitialize();
-		if (mIBuffer)
-			mIBuffer->deinitialize();
+		for (unsigned int i = 0; i < mDescription.vs.imgCount; ++i)
+		{
+			mDescription.vs.images[i]->deinitialize();
+		}
+
+		for (unsigned int i = 0; i < mDescription.vs.smpCount; ++i)
+		{
+			mDescription.vs.samplers[i]->deinitialize();
+		}
+
+		for (unsigned int i = 0; i < mDescription.fs.imgCount; ++i)
+		{
+			mDescription.fs.images[i]->deinitialize();
+		}
+
+		for (unsigned int i = 0; i < mDescription.fs.smpCount; ++i)
+		{
+			mDescription.fs.samplers[i]->deinitialize();
+		}
+
+		mDescription.vertexBuffer->deinitialize();
+		mDescription.indexBuffer->deinitialize();
 	}
 
 	Drawable::~Drawable()
 	{
-		delete mVBuffer;
-		delete mIBuffer;
 		mBind = { 0 };
+
+		delete mDescription.vertexBuffer;
+		delete mDescription.indexBuffer;
+
+		for (unsigned int i = 0; i < mDescription.vs.imgCount; ++i)
+		{
+			delete mDescription.vs.images[i];
+		}
+
+		for (unsigned int i = 0; i < mDescription.vs.smpCount; ++i)
+		{
+			delete mDescription.vs.samplers[i];
+		}
+
+		for (unsigned int i = 0; i < mDescription.fs.imgCount; ++i)
+		{
+			delete mDescription.fs.images[i];
+		}
+
+		for (unsigned int i = 0; i < mDescription.fs.smpCount; ++i)
+		{
+			delete mDescription.fs.samplers[i];
+		}
 	}
 }
 
