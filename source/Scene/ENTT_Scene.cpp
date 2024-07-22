@@ -22,7 +22,7 @@ namespace ENTT
 
 	void Entity::initialize()
 	{
-		/*if (mDescription.visual.has_value())
+		if (mDescription.visual.has_value())
 		{
 			harmony::Buffer::Description vBufferDescription;
 			{
@@ -50,7 +50,7 @@ namespace ENTT
 			}
 			mDrawable = harmony::createDrawable(drawableDescription);
 			mDrawable->initialize();
-		}*/
+		}
 
 		HLOG_DEBUG("Initialized %s", mDescription.label);
 	}

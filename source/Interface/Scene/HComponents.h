@@ -4,6 +4,12 @@
 
 namespace harmony
 {
+	class Image;
+	class Sampler;
+}
+
+namespace harmony
+{
 	namespace component
 	{
 		class Transform
@@ -21,6 +27,13 @@ namespace harmony
 		public:
 			const char* label = "default empty visual component";
 
+			struct Texture
+			{
+				const char* label = "default texture";
+				const Image* image = nullptr;
+				const Sampler* sampler = nullptr;
+			};
+
 			struct Mesh
 			{
 				const float* vertices = nullptr;
@@ -31,6 +44,7 @@ namespace harmony
 			};
 
 			Mesh mesh;
+			Texture texture1;
 		};
 	}
 }

@@ -5,6 +5,7 @@
 
 #include "Graphics/HBuffer.h"
 #include "Graphics/HDrawable.h"
+#include "Graphics/HTexture.h"
 #include "Graphics/HShader.h"
 #include "Graphics/HPipeline.h"
 #include "Graphics/HRenderPass.h"
@@ -29,11 +30,13 @@ namespace harmony
 
 	harmony::Scene* createScene(const harmony::Scene::Description& description);
 
-	/*harmony::Buffer* createBuffer(const harmony::Buffer::Description& description);
+	harmony::Buffer* createBuffer(const harmony::Buffer::Description& description);
+	harmony::Image* createImage(const harmony::Image::Description& description);
+	harmony::Sampler* createSampler(const harmony::Sampler::Description& description);
 	harmony::Drawable* createDrawable(const harmony::Drawable::Description& description);
 
 	harmony::Shader* createShader(const harmony::Shader::Description& description);
 	harmony::Pipeline* createPipeline(const harmony::Pipeline::Description& description);
 
-	harmony::RenderPass* createRenderPass(const harmony::RenderPass::Description& description);*/
+	harmony::RenderPass* createRenderPass(const harmony::RenderPass::Description& description);
 }

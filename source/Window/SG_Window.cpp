@@ -3,7 +3,13 @@
 namespace sokol
 {
 	Window::Window(const harmony::Window::Description& description)
-		: mDescription(description) {}
+		: mDescription(description)
+	{
+		if (mDescription.width == 0)
+			mDescription.width = 1024;
+		if (mDescription.height == 0)
+			mDescription.height = 576;
+	}
 
 	Window::~Window()
 	{

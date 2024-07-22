@@ -7,9 +7,22 @@
 
 namespace sokol
 {
+	Renderer::Renderer(const harmony::Renderer::Description& description)
+		: mDescription(description) {}
+
 	Renderer::~Renderer()
 	{
 		sg_shutdown();
+	}
+
+	const harmony::Renderer::Description& Renderer::getDescription() const
+	{
+		return mDescription;
+	}
+
+	void Renderer::render()
+	{
+
 	}
 
 	void Renderer::initialize()
@@ -67,6 +80,80 @@ namespace sokol
 
 namespace sokol
 {
+	Image::Image(const harmony::Image::Description& description)
+		: mDescription(description), mImage{ 0 }
+	{}
+
+	const void* Image::getID() const
+	{
+		return &mImage;
+	}
+
+	const harmony::Image::Description& Image::getDescription() const
+	{
+		return mDescription;
+	}
+
+	void Image::initialize()
+	{
+		sg_image_desc createDesc = { 0 };
+		createDesc.label = mDescription.imagePath;
+		createDesc.width = mDescription.width;
+		createDesc.height = mDescription.height;
+		createDesc.pixel_format = SG_PIXELFORMAT_RGBA8;
+		createDesc.data.subimage[0][0].ptr = mDescription.memory;
+		createDesc.data.subimage[0][0].size = mDescription.size;
+		mImage = sg_make_image(createDesc);
+	}
+
+	void Image::deinitialize()
+	{
+		sg_dealloc_image(mImage);
+	}
+
+	Image::~Image() 
+	{
+		sg_destroy_image(mImage);
+		mDescription = { 0 };
+	}
+
+	Sampler::Sampler(const harmony::Sampler::Description& description)
+		: mDescription(description), mSampler{ 0 } {}
+
+	const void* Sampler::getID() const
+	{
+		return &mSampler;
+	}
+
+	const harmony::Sampler::Description& Sampler::getDescription() const
+	{
+		return mDescription;
+	}
+
+	void Sampler::initialize()
+	{
+		sg_sampler_desc createDesc = { 0 };
+		createDesc.label = mDescription.label;
+		createDesc.min_filter = sFILTER.at(mDescription.minFilter);
+		createDesc.mag_filter = sFILTER.at(mDescription.magFilter);
+
+		mSampler = sg_make_sampler(createDesc);
+	}
+
+	void Sampler::deinitialize()
+	{
+		sg_dealloc_sampler(mSampler);
+	}
+
+	Sampler::~Sampler()
+	{
+		sg_destroy_sampler(mSampler);
+		mDescription = { 0 };
+	}
+}
+
+namespace sokol
+{
 	sokol::Drawable::Drawable(const harmony::Drawable::Description& description)
 		: mDescription(description), mBind{ 0 } {}
 
@@ -84,6 +171,42 @@ namespace sokol
 		{
 			mDescription.indexBuffer->initialize();
 			mBind.index_buffer = *((sg_buffer*)mDescription.indexBuffer->getID());
+		}
+
+		{// Vertex Shader Bindings
+			if (mDescription.vs.imgCount)
+			{
+				for (size_t i = 0; i < mDescription.vs.imgCount; ++i)
+				{
+					mBind.vs.images[i] = *((sg_image*)mDescription.vs.images[i]->getID());
+				}
+			}
+
+			if (mDescription.vs.smpCount)
+			{
+				for (size_t i = 0; i < mDescription.vs.smpCount; ++i)
+				{
+					mBind.vs.samplers[i] = *((sg_sampler*)mDescription.vs.samplers[i]->getID());
+				}
+			}
+		}
+
+		{// Fragment Shader Bindings
+			if (mDescription.fs.imgCount)
+			{
+				for (size_t i = 0; i < mDescription.fs.imgCount; ++i)
+				{
+					mBind.fs.images[i] = *((sg_image*)mDescription.fs.images[i]->getID());
+				}
+			}
+
+			if (mDescription.fs.smpCount)
+			{
+				for (size_t i = 0; i < mDescription.fs.smpCount; ++i)
+				{
+					mBind.fs.samplers[i] = *((sg_sampler*)mDescription.fs.samplers[i]->getID());
+				}
+			}
 		}
 	}
 	
@@ -367,5 +490,10 @@ namespace sokol
 	const std::unordered_map<harmony::Pipeline::ShaderStageType, sg_shader_stage> Pipeline::sSTAGE_TYPE = {
 		{ harmony::Pipeline::ShaderStageType::eVERTEX_SHADER, sg_shader_stage::SG_SHADERSTAGE_VS },
 		{ harmony::Pipeline::ShaderStageType::eFRAGMENT_SHADER, sg_shader_stage::SG_SHADERSTAGE_FS }
+	};
+
+	const std::unordered_map<harmony::Sampler::Filter, sg_filter> Sampler::sFILTER = {
+		{ harmony::Sampler::Filter::eLINEAR, sg_filter::SG_FILTER_LINEAR },
+		{ harmony::Sampler::Filter::eNEAREST, sg_filter::SG_FILTER_NEAREST }
 	};
 }

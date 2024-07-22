@@ -39,7 +39,7 @@ namespace harmony
 
         struct StageDescription
         {
-            const char* source = nullptr;
+            const char* source = "default shader";
             ConstantBlock constantBlocks[4];
             unsigned int constantBlocksCount = 0;
         };
