@@ -31,12 +31,15 @@ namespace harmony
 	harmony::Scene* createScene(const harmony::Scene::Description& description);
 
 	harmony::Buffer* createBuffer(const harmony::Buffer::Description& description);
+	
+	harmony::Drawable* createDrawable(const harmony::Drawable::Description& description);
+	/*
 	harmony::Image* createImage(const harmony::Image::Description& description);
 	harmony::Sampler* createSampler(const harmony::Sampler::Description& description);
-	harmony::Drawable* createDrawable(const harmony::Drawable::Description& description);
 
 	harmony::Shader* createShader(const harmony::Shader::Description& description);
 	harmony::Pipeline* createPipeline(const harmony::Pipeline::Description& description);
 
 	harmony::RenderPass* createRenderPass(const harmony::RenderPass::Description& description);
+	*/
 }

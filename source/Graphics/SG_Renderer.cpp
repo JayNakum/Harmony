@@ -157,7 +157,7 @@ namespace sokol
 	sokol::Drawable::Drawable(const harmony::Drawable::Description& description)
 		: mDescription(description), mBind{ 0 } {}
 
-	const harmony::Drawable::Description& sokol::Drawable::getDescription() const
+	const harmony::Drawable::Description& Drawable::getDescription() const
 	{
 		return mDescription;
 	}
@@ -214,14 +214,14 @@ namespace sokol
 		}
 	}
 	
-	void Drawable::bind() const
+	void Drawable::bind(unsigned int slot) const
 	{
 		sg_apply_bindings(&mBind);
 	}
 	
-	void Drawable::draw(int baseElement, int numElements, int numInstances) const
+	void Drawable::draw(const harmony::Drawable::DrawDescription& drawDescription) const
 	{
-		sg_draw(baseElement, numElements, numInstances);
+		sg_draw(drawDescription.baseElement, drawDescription.numElements, drawDescription.numInstances);
 	}
 
 	void Drawable::unbind() const

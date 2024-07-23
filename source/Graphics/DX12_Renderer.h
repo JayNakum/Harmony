@@ -51,14 +51,14 @@ namespace dx12
 		harmony::Renderer::Description mDescription;
 		UINT mFrameIndex = 0;
 	private:
-		ComPtr<ID3D12Device> mDevice;
+		
 		ComPtr<ID3D12CommandQueue> mCommandQueue;
 		ComPtr<IDXGISwapChain3> mSwapChain;
 		UINT mRTVDescriptorSize = 0;
 		ComPtr<ID3D12DescriptorHeap> mRTVHeap;
 		ComPtr<ID3D12Resource> mRenderTargets[mFrameCount];
 		ComPtr<ID3D12CommandAllocator> mCommandAllocator;
-		ComPtr<ID3D12GraphicsCommandList> mCommandList;
+		
 		ComPtr<ID3D12Fence> mFence;
 		UINT64 mFenceValue = 0;
 		HANDLE mFenceEvent = nullptr;
@@ -90,5 +90,27 @@ namespace dx12
 
 		ComPtr<ID3D12Resource> mBuffer;
 		D3D12_VERTEX_BUFFER_VIEW mBufferView;
+	};
+}
+
+namespace dx12
+{
+	class Drawable : public harmony::Drawable
+	{
+	public:
+		Drawable(const harmony::Drawable::Description& description);
+		~Drawable();
+
+	public:
+		const harmony::Drawable::Description& getDescription() const override;
+
+		void initialize() override;
+		void bind(unsigned int slot = 0) const override;
+		void draw(const harmony::Drawable::DrawDescription& drawDescription) const override;
+		void unbind() const override;
+		void deinitialize() override;
+
+	private:
+		harmony::Drawable::Description mDescription;
 	};
 }

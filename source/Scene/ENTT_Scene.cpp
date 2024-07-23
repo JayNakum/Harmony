@@ -24,19 +24,22 @@ namespace ENTT
 				vBufferDescription.type = harmony::Buffer::Type::eVERTEX_BUFFER;
 				vBufferDescription.data = mDescription.visual->mesh.vertices;
 				vBufferDescription.size = mDescription.visual->mesh.verticesSize;
+				vBufferDescription.stride = mDescription.visual->mesh.verticesStride;
 			}
 			auto vertexBuffer = harmony::createBuffer(vBufferDescription);
 			vertexBuffer->initialize();
 
-			harmony::Buffer::Description iBufferDescription;
+			harmony::Buffer* indexBuffer = nullptr;
+			if(mDescription.visual->mesh.indicesSize)
 			{
+				harmony::Buffer::Description iBufferDescription;
 				iBufferDescription.label = mDescription.label;
 				iBufferDescription.type = harmony::Buffer::Type::eINDEX_BUFFER;
 				iBufferDescription.data = mDescription.visual->mesh.indices;
 				iBufferDescription.size = mDescription.visual->mesh.indicesSize;
+				indexBuffer = harmony::createBuffer(iBufferDescription);
+				indexBuffer->initialize();
 			}
-			auto indexBuffer = harmony::createBuffer(iBufferDescription);
-			indexBuffer->initialize();
 
 			harmony::Drawable::Description drawableDescription;
 			{

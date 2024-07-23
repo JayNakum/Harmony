@@ -34,15 +34,11 @@ namespace harmony
 				Sampler* sampler = nullptr;
 			};
 
-			struct Material
-			{
-				Texture textures[1] = { nullptr };
-			};
-
 			struct Mesh
 			{
 				const float* vertices = nullptr;
 				size_t verticesSize = 0;
+				size_t verticesStride = 0;
 
 				const uint16_t* indices = nullptr;
 				size_t indicesSize = 0;

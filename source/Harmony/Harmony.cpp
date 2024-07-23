@@ -2,13 +2,13 @@
 
 #include <iostream>
 
-//#include "Win32_Window.h"
-#include "SG_Window.h"
+#include "Win32_Window.h"
+//#include "SG_Window.h"
 
 #include "Inputs.h"
 
-//#include "DX12_Renderer.h"
-#include "SG_Renderer.h"
+#include "DX12_Renderer.h"
+//#include "SG_Renderer.h"
 
 #include "ENTT_Scene.h"
 
@@ -23,7 +23,7 @@ namespace harmony
 	void createWindow(const harmony::Window::Description& windowDescription)
 	{
 		delete gMainWindow;
-		gMainWindow = new sokol::Window(windowDescription);
+		gMainWindow = new win32::Window(windowDescription);
 	}
 
 	harmony::Logger* createLogger(const harmony::Logger::Description& loggerDescription)
@@ -60,7 +60,7 @@ namespace harmony
 	void createRenderer(const harmony::Renderer::Description& rendererDescription)
 	{
 		delete gRenderer;
-		gRenderer = new sokol::Renderer(rendererDescription);
+		gRenderer = new dx12::Renderer(rendererDescription);
 	}
 	harmony::Renderer* getRenderer()
 	{
@@ -79,30 +79,33 @@ namespace harmony
 
 	harmony::Buffer* createBuffer(const harmony::Buffer::Description& description)
 	{
-		return new sokol::Buffer(description);
+		return new dx12::Buffer(description);
 	}
+	
+	harmony::Drawable* createDrawable(const harmony::Drawable::Description& description)
+	{
+		return new dx12::Drawable(description);
+	}
+	/*
 	harmony::Image* createImage(const harmony::Image::Description& description)
 	{
-		return new sokol::Image(description);
+		return new dx12::Image(description);
 	}
 	harmony::Sampler* createSampler(const harmony::Sampler::Description& description)
 	{
-		return new sokol::Sampler(description);
-	}
-	harmony::Drawable* createDrawable(const harmony::Drawable::Description& description)
-	{
-		return new sokol::Drawable(description);
+		return new dx12::Sampler(description);
 	}
 	harmony::Shader* createShader(const harmony::Shader::Description& description)
 	{
-		return new sokol::Shader(description);
+		return new dx12::Shader(description);
 	}
 	harmony::Pipeline* createPipeline(const harmony::Pipeline::Description& description)
 	{
-		return new sokol::Pipeline(description);
+		return new dx12::Pipeline(description);
 	}
 	harmony::RenderPass* createRenderPass(const harmony::RenderPass::Description& description)
 	{
-		return new sokol::RenderPass(description);
+		return new dx12::RenderPass(description);
 	}
+	*/
 }

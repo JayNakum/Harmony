@@ -105,8 +105,8 @@ namespace sokol
         const harmony::Drawable::Description& getDescription() const override;
 
         void initialize() override;
-        void bind() const override;
-        void draw(int baseElement, int numElements, int numInstances = 1) const override;
+        void bind(unsigned int slot = 0) const override; // Slot is unused in sokol
+        void draw(const harmony::Drawable::DrawDescription& drawDescription) const override;
         void unbind() const override;
         void deinitialize() override;
 

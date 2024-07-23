@@ -2,6 +2,12 @@
 
 #include "Helpers/HLog.h"
 
+namespace dx12
+{
+	ComPtr<ID3D12Device> gDevice;
+	ComPtr<ID3D12GraphicsCommandList> gGFXCommandList;
+}
+
 static inline std::unique_ptr<char[]> hrErrorDescription(const HRESULT hResult)
 {
 	HRESULT hr = hResult;
@@ -65,7 +71,7 @@ namespace dx12
 	{
 		populateCommandList();
 
-		ID3D12CommandList* ppCommandList[] = {mCommandList.Get()};
+		ID3D12CommandList* ppCommandList[] = {gGFXCommandList.Get()};
 		mCommandQueue->ExecuteCommandLists(_countof(ppCommandList), ppCommandList);
 
 		HRESULT hResult = mSwapChain->Present(1, 0);
@@ -189,7 +195,7 @@ namespace dx12
 			hResult = factory->EnumWarpAdapter(IID_PPV_ARGS(&warpAdapter));
 			HASSERT(SUCCEEDED(hResult), "Failed to get warp adapter.\n%s", hrErrorDescription(hResult).get());
 			
-			hResult = D3D12CreateDevice(warpAdapter.Get(), D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&mDevice));
+			hResult = D3D12CreateDevice(warpAdapter.Get(), D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&gDevice));
 			HASSERT(SUCCEEDED(hResult), "Failed to create warp device.\n%s", hrErrorDescription(hResult).get());
 
 			DXGI_ADAPTER_DESC desc;
@@ -202,14 +208,14 @@ namespace dx12
 		{
 			ComPtr<IDXGIAdapter1> hardwareAdapter;
 			getHardwareAdapter(factory.Get(), &hardwareAdapter);
-			hResult = D3D12CreateDevice(hardwareAdapter.Get(), D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&mDevice));
+			hResult = D3D12CreateDevice(hardwareAdapter.Get(), D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&gDevice));
 			HASSERT(SUCCEEDED(hResult), "Failed to create hardware device.\n%s", hrErrorDescription(hResult).get());
 		}
 
 		D3D12_COMMAND_QUEUE_DESC queueDesc = {};
 		queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
 		queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
-		hResult = mDevice->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&mCommandQueue));
+		hResult = gDevice->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&mCommandQueue));
 		HASSERT(SUCCEEDED(hResult), "Failed to create command queue.\n%s", hrErrorDescription(hResult).get());
 
 		auto& windowDesc = harmony::getWindow()->getDescription();
@@ -244,10 +250,10 @@ namespace dx12
 			rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
 			rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 
-			hResult = mDevice->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&mRTVHeap));
+			hResult = gDevice->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&mRTVHeap));
 			HASSERT(SUCCEEDED(hResult), "Failed to create descriptor RTV heap.\n%s", hrErrorDescription(hResult).get());
 
-			mRTVDescriptorSize = mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+			mRTVDescriptorSize = gDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 		}
 
 		{
@@ -258,12 +264,12 @@ namespace dx12
 				hResult = mSwapChain->GetBuffer(n, IID_PPV_ARGS(&mRenderTargets[n]));
 				HASSERT(SUCCEEDED(hResult), "Failed to get RT buffer.\n%s", hrErrorDescription(hResult).get());
 				
-				mDevice->CreateRenderTargetView(mRenderTargets[n].Get(), nullptr, rtvHandle);
+				gDevice->CreateRenderTargetView(mRenderTargets[n].Get(), nullptr, rtvHandle);
 				rtvHandle.Offset(1, mRTVDescriptorSize);
 			}
 		}
 		
-		hResult = mDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&mCommandAllocator));
+		hResult = gDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&mCommandAllocator));
 		HASSERT(SUCCEEDED(hResult), "Failed to create command allocator.\n%s", hrErrorDescription(hResult).get());
 	}
 
@@ -281,7 +287,7 @@ namespace dx12
 			hResult = D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error);
 			HASSERT(SUCCEEDED(hResult), "Failed to serialize root signature.\n%s", hrErrorDescription(hResult).get());
 
-			hResult = mDevice->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&mRootSignature));
+			hResult = gDevice->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&mRootSignature));
 			HASSERT(SUCCEEDED(hResult), "Failed to create root signature.\n%s", hrErrorDescription(hResult).get());
 		}
 
@@ -324,54 +330,19 @@ namespace dx12
 			psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
 			psoDesc.SampleDesc.Count = 1;
 
-			hResult = mDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&mPipelineState));
+			hResult = gDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&mPipelineState));
 			HASSERT(SUCCEEDED(hResult), "Failed to create a graphics pipeline state.\n%s", hrErrorDescription(hResult).get());
 		}
 
-		hResult = mDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, mCommandAllocator.Get(), nullptr, IID_PPV_ARGS(&mCommandList));
+		hResult = gDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, mCommandAllocator.Get(), nullptr, IID_PPV_ARGS(&gGFXCommandList));
 		HASSERT(SUCCEEDED(hResult), "Failed to create command list.\n%s", hrErrorDescription(hResult).get());
 		
-		hResult = mCommandList->Close();
+		hResult = gGFXCommandList->Close();
 		HASSERT(SUCCEEDED(hResult), "Failed to close command list.\n%s", hrErrorDescription(hResult).get());
 
-		{
-			auto& windowDesc = harmony::getWindow()->getDescription();
-			auto aspectRatio = static_cast<float>(windowDesc.width) / static_cast<float>(windowDesc.height);
-			Vertex triangleVertices[] = {
-				{{0.0f, 0.25f * aspectRatio, 0.1f}, {1.0f, 0.0f, 0.0f, 1.0f}},
-				{{0.25f, -0.25f * aspectRatio, 0.1f}, {0.0f, 1.0f, 0.0f, 1.0f}},
-				{{-0.25f, -0.25f * aspectRatio, 0.1f}, {0.0f, 0.0f, 1.0f, 1.0f}}
-			};
-
-			const UINT vertexBufferSize = sizeof(triangleVertices);
-
-			CD3DX12_HEAP_PROPERTIES uploadHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
-			CD3DX12_RESOURCE_DESC vertexBufferDesc = CD3DX12_RESOURCE_DESC::Buffer(vertexBufferSize);
-			hResult = mDevice->CreateCommittedResource(
-				&uploadHeapProperties,
-				D3D12_HEAP_FLAG_NONE,
-				&vertexBufferDesc,
-				D3D12_RESOURCE_STATE_GENERIC_READ,
-				nullptr,
-				IID_PPV_ARGS(&mVertexBuffer)
-			);
-			HASSERT(SUCCEEDED(hResult), "Failed to create vertex buffer.\n%s", hrErrorDescription(hResult).get());
-			
-			UINT8* pVertexDataBegin;
-			CD3DX12_RANGE readRange(0, 0);
-			hResult = mVertexBuffer->Map(0, &readRange, reinterpret_cast<void**>(&pVertexDataBegin));
-			HASSERT(SUCCEEDED(hResult), "Failed to map vertex buffer.\n%s", hrErrorDescription(hResult).get());
-			memcpy(pVertexDataBegin, triangleVertices, sizeof(triangleVertices));
-
-			mVertexBufferView.BufferLocation = mVertexBuffer->GetGPUVirtualAddress();
-			mVertexBufferView.StrideInBytes = sizeof(Vertex);
-			mVertexBufferView.SizeInBytes = vertexBufferSize;
-			mVertexBuffer->Unmap(0, nullptr);
-		}
-
 
 		{
-			hResult = mDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&mFence));
+			hResult = gDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&mFence));
 			HASSERT(SUCCEEDED(hResult), "Failed to create fence.\n%s", hrErrorDescription(hResult).get());
 			mFenceValue = 1;
 
@@ -393,41 +364,40 @@ namespace dx12
 		hResult = mCommandAllocator->Reset();
 		HASSERT(SUCCEEDED(hResult), "Failed to reset command allocator.\n%s", hrErrorDescription(hResult).get());
 
-		hResult = mCommandList->Reset(mCommandAllocator.Get(), mPipelineState.Get());
+		hResult = gGFXCommandList->Reset(mCommandAllocator.Get(), mPipelineState.Get());
 		HASSERT(SUCCEEDED(hResult), "Failed to reset command allocator.\n%s", hrErrorDescription(hResult).get());
 		
-		mCommandList->SetGraphicsRootSignature(mRootSignature.Get());
+		gGFXCommandList->SetGraphicsRootSignature(mRootSignature.Get());
 		mViewport.TopLeftX = 0.0f;
 		mViewport.TopLeftY = 0.0f;
 		mViewport.Width = (float)harmony::getWindow()->getDescription().width;
 		mViewport.Height = (float)harmony::getWindow()->getDescription().height;
 		mViewport.MinDepth = 0.0f;
 		mViewport.MaxDepth = 1.0f;
-		mCommandList->RSSetViewports(1, &mViewport);
+		gGFXCommandList->RSSetViewports(1, &mViewport);
 		mScissorRect.left = 0;
 		mScissorRect.top = 0;
 		mScissorRect.right = harmony::getWindow()->getDescription().width;
 		mScissorRect.bottom = harmony::getWindow()->getDescription().height;
-		mCommandList->RSSetScissorRects(1, &mScissorRect);
+		gGFXCommandList->RSSetScissorRects(1, &mScissorRect);
 
 		auto rtBarrier = CD3DX12_RESOURCE_BARRIER::Transition(mRenderTargets[mFrameIndex].Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
-		mCommandList->ResourceBarrier(1, &rtBarrier);
+		gGFXCommandList->ResourceBarrier(1, &rtBarrier);
 
 		CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(mRTVHeap->GetCPUDescriptorHandleForHeapStart(), mFrameIndex, mRTVDescriptorSize);
 		
-		mCommandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
+		gGFXCommandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
 
 		const float clearColor[] = { 0.1f, 0.1f, 0.1f, 1.0f };
-		mCommandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
-		mCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		mCommandList->IASetVertexBuffers(0, 1, &mVertexBufferView);
-		mCommandList->DrawInstanced(3, 1, 0, 0);
+		gGFXCommandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
+		gGFXCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
+		
 
 		auto presentBarrier = CD3DX12_RESOURCE_BARRIER::Transition(mRenderTargets[mFrameIndex].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
-		mCommandList->ResourceBarrier(1, &presentBarrier);
+		gGFXCommandList->ResourceBarrier(1, &presentBarrier);
 		
-		hResult = mCommandList->Close();
+		hResult = gGFXCommandList->Close();
 		HASSERT(SUCCEEDED(hResult), "Failed to close command list.\n%s", hrErrorDescription(hResult).get());
 	}
 
@@ -456,17 +426,26 @@ namespace dx12
 namespace dx12
 {
 	Buffer::Buffer(const harmony::Buffer::Description& description)
-		: mDescription(description), mBuffer{ 0 } {}
-
-	Buffer::~Buffer()
+		: mDescription(description), mBuffer{ 0 }, mBufferView{ 0 }
 	{
-		mDescription = { 0 };
-		
+		CD3DX12_HEAP_PROPERTIES uploadHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+		CD3DX12_RESOURCE_DESC bufferDesc = CD3DX12_RESOURCE_DESC::Buffer(mDescription.size);
+		HRESULT hResult = gDevice->CreateCommittedResource(
+			&uploadHeapProperties,
+			D3D12_HEAP_FLAG_NONE,
+			&bufferDesc,
+			D3D12_RESOURCE_STATE_GENERIC_READ,
+			nullptr,
+			IID_PPV_ARGS(&mBuffer)
+		);
+		HASSERT(SUCCEEDED(hResult), "Failed to create buffer %s\n%s", mDescription.label, hrErrorDescription(hResult).get());
+
+		HLOG_INFO("Created %s", mDescription.label);
 	}
 
 	const void* Buffer::getID() const
 	{
-		return mBuffer;
+		return &mBufferView;
 	}
 
 	const harmony::Buffer::Description& Buffer::getDescription() const
@@ -476,19 +455,97 @@ namespace dx12
 
 	void Buffer::initialize()
 	{
-		sg_buffer_desc createDesc = { 0 };
-		createDesc.label = mDescription.label;
-		createDesc.data.ptr = mDescription.data;
-		createDesc.size = mDescription.size;
-		createDesc.type = Buffer::sTYPE.at(mDescription.type);
-		createDesc.usage = Buffer::sUSAGE.at(mDescription.usage);
+		UINT8* pBufferDataBegin;
+		CD3DX12_RANGE readRange(0, 0);
+		HRESULT hResult = mBuffer->Map(0, &readRange, reinterpret_cast<void**>(&pBufferDataBegin));
+		HASSERT(SUCCEEDED(hResult), "Failed to map buffer %s\n%s", mDescription.label, hrErrorDescription(hResult).get());
+		memcpy(pBufferDataBegin, mDescription.data, mDescription.size);
 
-		mBuffer = sg_make_buffer(createDesc);
+		mBufferView.BufferLocation = mBuffer->GetGPUVirtualAddress();
+		mBufferView.StrideInBytes = mDescription.stride;
+		mBufferView.SizeInBytes = mDescription.size;
+		mBuffer->Unmap(0, nullptr);
 
+		HLOG_DEBUG("Initialized %s", mDescription.label);
 	}
 
 	void Buffer::deinitialize()
 	{
-		sg_dealloc_buffer(mBuffer);
+		HLOG_DEBUG("Deinitialized %s", mDescription.label);
+	}
+	
+	Buffer::~Buffer()
+	{
+		mBuffer->Release();
+		HLOG_INFO("Destroyed %s", mDescription.label);
+		mDescription = { 0 };
+	}
+}
+
+namespace dx12
+{
+	Drawable::Drawable(const harmony::Drawable::Description& description)
+		: mDescription(description)
+	{
+		HLOG_INFO("Created %s", mDescription.label);
+	}
+
+	const harmony::Drawable::Description& Drawable::getDescription() const
+	{
+		return mDescription;
+	}
+
+	void Drawable::initialize()
+	{
+		const auto& vBufferDesc = mDescription.vertexBuffer->getDescription();
+		HSOFT_ASSERT(vBufferDesc.type == harmony::Buffer::Type::eVERTEX_BUFFER, "Buffer type mismatch in %s", vBufferDesc.label);
+		
+		mDescription.vertexBuffer->initialize();
+
+
+		if (mDescription.indexBuffer)
+		{
+			const auto& iBufferDesc = mDescription.indexBuffer->getDescription();
+			HSOFT_ASSERT(iBufferDesc.type == harmony::Buffer::Type::eVERTEX_BUFFER, "Buffer type mismatch in %s", iBufferDesc.label);
+
+			mDescription.indexBuffer->initialize();
+		}
+
+		HLOG_DEBUG("Initialized %s", mDescription.label);
+	}
+
+	void Drawable::bind(unsigned int slot) const
+	{
+		gGFXCommandList->IASetVertexBuffers(slot, 1, (D3D12_VERTEX_BUFFER_VIEW*)mDescription.vertexBuffer->getID());
+	}
+
+	void Drawable::draw(const harmony::Drawable::DrawDescription& drawDescription) const
+	{
+		gGFXCommandList->DrawInstanced(drawDescription.numElements, drawDescription.numInstances, drawDescription.baseElement, drawDescription.baseInstance);
+	}
+
+	void Drawable::unbind() const
+	{
+		
+	}
+
+	void Drawable::deinitialize()
+	{
+		mDescription.vertexBuffer->deinitialize();
+		if (mDescription.indexBuffer)
+		{
+			mDescription.indexBuffer->deinitialize();
+		}
+
+		HLOG_DEBUG("Deinitialized %s", mDescription.label);
+	}
+
+	Drawable::~Drawable()
+	{
+		delete mDescription.vertexBuffer;
+		delete mDescription.indexBuffer;
+
+		HLOG_INFO("Destroyed %s", mDescription.label);
+		mDescription = { 0 };
 	}
 }
