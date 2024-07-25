@@ -23,8 +23,6 @@ namespace harmony
 	public:
 		Engine();
 
-		harmony::Entity* createEntity(const harmony::Entity::Description& entityDescription);
-
 		void initialize();
 		void update();
 		void render();
@@ -38,6 +36,19 @@ namespace harmony
 		harmony::Pipeline* pipeline = nullptr;
 		harmony::RenderPass* pass = nullptr;
 	};
+}
 
-	extern Engine* engine;
+namespace harmony
+{
+	class Application
+	{
+	public:
+		Application();
+
+		virtual void initialize();
+		virtual void update();
+		virtual void deinitialize();
+
+		~Application();
+	};
 }

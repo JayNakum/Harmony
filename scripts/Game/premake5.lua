@@ -16,7 +16,7 @@ project "Game"
   includedirs
 	{
     "%{prj_src.Game}",
-    "%{prj_src.Engine}"
+    "%{prj_src.Harmony}"
 	}
 
   filter "configurations:Debug"

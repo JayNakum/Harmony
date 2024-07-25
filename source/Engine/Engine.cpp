@@ -15,11 +15,6 @@ namespace harmony
 		harmony::getRenderer()->initialize();
 	}
 
-	harmony::Entity* Engine::createEntity(const harmony::Entity::Description& entityDescription)
-	{
-		return scene->createEntity(entityDescription);
-	}
-
 	void Engine::initialize()
 	{
 		// Scene creation
@@ -371,19 +366,19 @@ namespace sokol
 {
 	static void init()
 	{
-		harmony::getEngine()->initialize();
+		harmony::engine->initialize();
 	}
 
 	static void frame()
 	{
-		harmony::getEngine()->update();
+		harmony::engine->update();
 		// This manual reset is only needed because sokol::event() only gets called when an event happens, so we need to reset the state manually. Otherwise, the current state will not change until we get another event.
 		harmony::getInputSystem()->reset();
 	}
 
 	static void cleanup()
 	{
-		harmony::getEngine()->deinitialize();
+		harmony::engine->deinitialize();
 	}
 
 	static const std::unordered_map<sapp_keycode, harmony::Inputs::Key> sg_keyMap = {
