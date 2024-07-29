@@ -1,26 +1,265 @@
-#include <iostream>
+#include "Engine.h"
 
 #include "Harmony.h"
 
-#include "Helpers/HLog.h"
+#include <sokol_app.h>
 
-//#include <sokol_app.h>
+namespace harmony
+{
+	Engine* engine = new Engine();
 
-#define GLM_FORCE_SSE2
-#define GLM_FORCE_INLINE
-#define GLM_FORCE_ALIGNED
-#include <glm.hpp>
-#include <gtc/matrix_transform.hpp>
-#include <gtc/type_ptr.hpp>
+	Engine::Engine()
+	{
+		harmony::getWindow()->initialize();
+		harmony::getInputSystem()->initialize();
+		harmony::getRenderer()->initialize();
+	}
+
+	void Engine::initialize()
+	{
+		// Scene creation
+		{
+			harmony::Scene::Description sceneDescription;
+			sceneDescription.label = "Test Scene";
+			scene = harmony::createScene(sceneDescription);
+			{
+				harmony::component::Visual visual;
+				{
+					const float vertices[] = {
+						// pos                  color                       uv
+						-1.0f, -1.0f, -1.0f,    1.0f, 0.0f, 0.0f, 1.0f,     0.0f, 0.0f,
+						 1.0f, -1.0f, -1.0f,    1.0f, 0.0f, 0.0f, 1.0f,     1.0f, 0.0f,
+						 1.0f,  1.0f, -1.0f,    1.0f, 0.0f, 0.0f, 1.0f,     1.0f, 1.0f,
+						-1.0f,  1.0f, -1.0f,    1.0f, 0.0f, 0.0f, 1.0f,     0.0f, 1.0f,
+
+						-1.0f, -1.0f,  1.0f,    0.0f, 1.0f, 0.0f, 1.0f,     0.0f, 0.0f,
+						 1.0f, -1.0f,  1.0f,    0.0f, 1.0f, 0.0f, 1.0f,     1.0f, 0.0f,
+						 1.0f,  1.0f,  1.0f,    0.0f, 1.0f, 0.0f, 1.0f,     1.0f, 1.0f,
+						-1.0f,  1.0f,  1.0f,    0.0f, 1.0f, 0.0f, 1.0f,     0.0f, 1.0f,
+
+						-1.0f, -1.0f, -1.0f,    0.0f, 0.0f, 1.0f, 1.0f,     0.0f, 0.0f,
+						-1.0f,  1.0f, -1.0f,    0.0f, 0.0f, 1.0f, 1.0f,     1.0f, 0.0f,
+						-1.0f,  1.0f,  1.0f,    0.0f, 0.0f, 1.0f, 1.0f,     1.0f, 1.0f,
+						-1.0f, -1.0f,  1.0f,    0.0f, 0.0f, 1.0f, 1.0f,     0.0f, 1.0f,
+
+						 1.0f, -1.0f, -1.0f,    1.0f, 0.5f, 0.0f, 1.0f,     0.0f, 0.0f,
+						 1.0f,  1.0f, -1.0f,    1.0f, 0.5f, 0.0f, 1.0f,     1.0f, 0.0f,
+						 1.0f,  1.0f,  1.0f,    1.0f, 0.5f, 0.0f, 1.0f,     1.0f, 1.0f,
+						 1.0f, -1.0f,  1.0f,    1.0f, 0.5f, 0.0f, 1.0f,     0.0f, 1.0f,
+
+						-1.0f, -1.0f, -1.0f,    0.0f, 0.5f, 1.0f, 1.0f,     0.0f, 0.0f,
+						-1.0f, -1.0f,  1.0f,    0.0f, 0.5f, 1.0f, 1.0f,     1.0f, 0.0f,
+						 1.0f, -1.0f,  1.0f,    0.0f, 0.5f, 1.0f, 1.0f,     1.0f, 1.0f,
+						 1.0f, -1.0f, -1.0f,    0.0f, 0.5f, 1.0f, 1.0f,     0.0f, 1.0f,
+
+						-1.0f,  1.0f, -1.0f,    1.0f, 0.0f, 0.5f, 1.0f,     0.0f, 0.0f,
+						-1.0f,  1.0f,  1.0f,    1.0f, 0.0f, 0.5f, 1.0f,     1.0f, 0.0f,
+						 1.0f,  1.0f,  1.0f,    1.0f, 0.0f, 0.5f, 1.0f,     1.0f, 1.0f,
+						 1.0f,  1.0f, -1.0f,    1.0f, 0.0f, 0.5f, 1.0f,     0.0f, 1.0f
+					};
+					visual.mesh.vertices = vertices;
+					visual.mesh.verticesSize = sizeof(vertices);
+
+					const uint16_t indices[] = {
+						0, 1, 2,  0, 2, 3,
+						6, 5, 4,  7, 6, 4,
+						8, 9, 10,  8, 10, 11,
+						14, 13, 12,  15, 14, 12,
+						16, 17, 18,  16, 18, 19,
+						22, 21, 20, 23, 22, 20
+					};
+					visual.mesh.indices = indices;
+					visual.mesh.indicesSize = sizeof(indices);
+
+					uint32_t pixels[4 * 4] = {
+						0xFFFFFFFF, 0x00000000, 0xFFFFFFFF, 0x00000000,
+						0x00000000, 0xFFFFFFFF, 0x00000000, 0xFFFFFFFF,
+						0xFFFFFFFF, 0x00000000, 0xFFFFFFFF, 0x00000000,
+						0x00000000, 0xFFFFFFFF, 0x00000000, 0xFFFFFFFF,
+					};
+
+					harmony::Image::Description imageDescription;
+					imageDescription.width = 4;
+					imageDescription.height = 4;
+					imageDescription.memory = pixels;
+					imageDescription.size = sizeof(pixels);
+					imageDescription.imagePath = "embedded image";
+					auto image = harmony::createImage(imageDescription);
+
+					harmony::Sampler::Description samplerDescription;
+					samplerDescription.label = "texture sampler";
+					samplerDescription.minFilter = harmony::Sampler::Filter::eLINEAR;
+					samplerDescription.magFilter = harmony::Sampler::Filter::eLINEAR;
+					auto sampler = harmony::createSampler(samplerDescription);
+
+					visual.texture1.label = "black and white embedded texture";
+					visual.texture1.image = image;
+					visual.texture1.sampler = sampler;
+				}
+
+				harmony::Entity::Description entityDescription;
+				{
+					entityDescription.label = "Test Entity";
+					entityDescription.visual = visual;
+				}
+				auto entity = scene->createEntity(entityDescription);
+			}
+
+			harmony::Shader::Description shaderDescription;
+			{
+				shaderDescription.label = "Test Shader Program";
+				shaderDescription.attributesCount = 3;
+				shaderDescription.attrs[0].name = "POSITION";
+				shaderDescription.attrs[1].name = "COLOR";
+				shaderDescription.attrs[1].index = 1;
+				shaderDescription.attrs[2].name = "TEXCOORD";
+				shaderDescription.attrs[2].index = 1;
+
+				shaderDescription.vs.constantBlocksCount = 1;
+				shaderDescription.vs.constantBlocks[0].size = sizeof(glm::mat4);
+				shaderDescription.vs.source =
+					"float4x4 mvp;\n"
+					"struct vs_in {\n"
+					"  float4 pos: POSITION;\n"
+					"  float4 color: COLOR1;\n"
+					"  float2 uv: TEXCOORD1;\n"
+					"};\n"
+					"struct vs_out {\n"
+					"  float4 color: COLOR0;\n"
+					"  float2 uv: TEXCOORD0;\n"
+					"  float4 pos: SV_Position;\n"
+					"};\n"
+					"vs_out main(vs_in inp) {\n"
+					"  vs_out outp;\n"
+					"  outp.pos = mul(mvp, inp.pos);\n"
+					"  outp.color = inp.color;\n"
+					"  outp.uv = inp.uv * 5.0;\n"
+					"  return outp;\n"
+					"}\n";
+
+				shaderDescription.fs.texturesCount = 1;
+				shaderDescription.fs.textures[0].imageSlot = 0;
+				shaderDescription.fs.textures[0].samplerSlot = 0;
+				shaderDescription.fs.textures[0].used = true;
+
+				shaderDescription.fs.source =
+					"Texture2D<float4> tex;\n"
+					"sampler smp;\n"
+					"float4 main(float4 color: COLOR0, float2 uv: TEXCOORD0): SV_Target0 {\n"
+					"  return tex.Sample(smp, uv) * color;\n"
+					"}\n";
+			}
+			auto shaderProgram1 = harmony::createShader(shaderDescription);
+
+			harmony::Pipeline::Description pipelineDescription;
+			{
+				pipelineDescription.label = "Test Pipeline";
+				pipelineDescription.layout.attributesCount = 3;
+				pipelineDescription.layout.attributes[0].format = harmony::Pipeline::VertexFormat::eFLOAT3;
+				pipelineDescription.layout.attributes[1].format = harmony::Pipeline::VertexFormat::eFLOAT4;
+				pipelineDescription.layout.attributes[2].format = harmony::Pipeline::VertexFormat::eFLOAT2;
+				pipelineDescription.shaderProgram = shaderProgram1;
+				pipelineDescription.indexType = harmony::Pipeline::IndexType::eUINT16;
+				pipelineDescription.cullMode = harmony::Pipeline::CullMode::eBACK;
+				pipelineDescription.depthBufferEnabled = true;
+			}
+			pipeline = harmony::createPipeline(pipelineDescription);
+
+			harmony::RenderPass::Description passDescription;
+			{
+				passDescription.label = "Test Render Pass";
+				passDescription.action.colors.value[0] = 1.0f;
+				passDescription.action.colors.value[1] = 1.0f;
+				passDescription.action.colors.value[2] = 1.0f;
+				passDescription.action.colors.value[3] = 1.0f;
+			}
+			pass = harmony::createRenderPass(passDescription);
+		}
+
+		// Init sequence
+		{
+			scene->initialize();
+			pipeline->initialize();
+			pass->initialize();
+		}
+	}
+
+	void Engine::update()
+	{
+		harmony::getWindow()->update();
+		harmony::getInputSystem()->update();
+
+		auto& windowDescription = harmony::getWindow()->getDescription();
+		glm::mat4 proj = glm::perspective(90.0f, (float)windowDescription.width / (float)windowDescription.height, 0.01f, 10.0f);
+		glm::mat4 view = glm::lookAt(glm::vec3(0.0f, 3.0f, 5.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		glm::mat4 model(1);
+
+		//if (inputSystem->actionOccured(harmony::Inputs::Action::eMOVE_LEFT, harmony::Inputs::ePRESSED))
+		rx -= 1.0f;
+
+		model *= glm::scale(model, glm::vec3(1.3f));
+		model *= glm::rotate(model, glm::radians(rx), glm::vec3(0.0f, 1.0f, 0.0f));
+		glm::mat4 mvp = proj * view * model;
+
+		auto drawable = (*(scene->getVisualEntities().begin()))->getDrawable();
+
+		pass->begin();
+		pipeline->bind();
+		pipeline->applyConstants(0, &mvp, sizeof(mvp));
+
+		drawable->bind();
+		harmony::Drawable::DrawDescription drawDesc;
+		drawDesc.numElements = 36;
+
+		drawable->draw(drawDesc);
+
+		pass->end();
+	}
+
+	void Engine::render()
+	{
+		for (const auto& vEntity : scene->getVisualEntities())
+		{
+			const auto& drawable = vEntity->getDrawable();
+			drawable->bind();
+			harmony::Drawable::DrawDescription drawDesc;
+			drawDesc.numElements = 36;
+			drawable->draw();
+			drawable->unbind();
+		}
+	}
+
+	void Engine::deinitialize()
+	{
+		scene->deinitialize();
+		pipeline->deinitialize();
+		pass->deinitialize();
+
+		delete scene;
+		delete pipeline;
+		delete pass;
+	}
+
+	Engine::~Engine()
+	{
+		harmony::getRenderer()->deinitialize();
+		harmony::getInputSystem()->deinitialize();
+		harmony::getWindow()->deinitialize();
+	}
+}
 
 //class Engine
 //{
 //public:
+//	Engine()
+//		: renderer(nullptr)
+//	{
+//		renderer = harmony::getRenderer();
+//		HLOG_INFO("Created.");
+//	}
 //	void initialize()
-//	{		
-//		// Renderer init
+//	{
 //		{
-//			renderer = harmony::getRenderer();
 //			renderer->initialize();
 //		}
 //
@@ -32,356 +271,114 @@
 //			{
 //				harmony::component::Visual visual;
 //				{
-//					const float vertices[] = {
-//					// pos                  color                       uv
-//					-1.0f, -1.0f, -1.0f,    1.0f, 0.0f, 0.0f, 1.0f,     0.0f, 0.0f,
-//					 1.0f, -1.0f, -1.0f,    1.0f, 0.0f, 0.0f, 1.0f,     1.0f, 0.0f,
-//					 1.0f,  1.0f, -1.0f,    1.0f, 0.0f, 0.0f, 1.0f,     1.0f, 1.0f,
-//					-1.0f,  1.0f, -1.0f,    1.0f, 0.0f, 0.0f, 1.0f,     0.0f, 1.0f,
-//
-//					-1.0f, -1.0f,  1.0f,    0.0f, 1.0f, 0.0f, 1.0f,     0.0f, 0.0f,
-//					 1.0f, -1.0f,  1.0f,    0.0f, 1.0f, 0.0f, 1.0f,     1.0f, 0.0f,
-//					 1.0f,  1.0f,  1.0f,    0.0f, 1.0f, 0.0f, 1.0f,     1.0f, 1.0f,
-//					-1.0f,  1.0f,  1.0f,    0.0f, 1.0f, 0.0f, 1.0f,     0.0f, 1.0f,
-//
-//					-1.0f, -1.0f, -1.0f,    0.0f, 0.0f, 1.0f, 1.0f,     0.0f, 0.0f,
-//					-1.0f,  1.0f, -1.0f,    0.0f, 0.0f, 1.0f, 1.0f,     1.0f, 0.0f,
-//					-1.0f,  1.0f,  1.0f,    0.0f, 0.0f, 1.0f, 1.0f,     1.0f, 1.0f,
-//					-1.0f, -1.0f,  1.0f,    0.0f, 0.0f, 1.0f, 1.0f,     0.0f, 1.0f,
-//
-//					 1.0f, -1.0f, -1.0f,    1.0f, 0.5f, 0.0f, 1.0f,     0.0f, 0.0f,
-//					 1.0f,  1.0f, -1.0f,    1.0f, 0.5f, 0.0f, 1.0f,     1.0f, 0.0f,
-//					 1.0f,  1.0f,  1.0f,    1.0f, 0.5f, 0.0f, 1.0f,     1.0f, 1.0f,
-//					 1.0f, -1.0f,  1.0f,    1.0f, 0.5f, 0.0f, 1.0f,     0.0f, 1.0f,
-//
-//					-1.0f, -1.0f, -1.0f,    0.0f, 0.5f, 1.0f, 1.0f,     0.0f, 0.0f,
-//					-1.0f, -1.0f,  1.0f,    0.0f, 0.5f, 1.0f, 1.0f,     1.0f, 0.0f,
-//					 1.0f, -1.0f,  1.0f,    0.0f, 0.5f, 1.0f, 1.0f,     1.0f, 1.0f,
-//					 1.0f, -1.0f, -1.0f,    0.0f, 0.5f, 1.0f, 1.0f,     0.0f, 1.0f,
-//
-//					-1.0f,  1.0f, -1.0f,    1.0f, 0.0f, 0.5f, 1.0f,     0.0f, 0.0f,
-//					-1.0f,  1.0f,  1.0f,    1.0f, 0.0f, 0.5f, 1.0f,     1.0f, 0.0f,
-//					 1.0f,  1.0f,  1.0f,    1.0f, 0.0f, 0.5f, 1.0f,     1.0f, 1.0f,
-//					 1.0f,  1.0f, -1.0f,    1.0f, 0.0f, 0.5f, 1.0f,     0.0f, 1.0f
+//					visual.label = "Triangle visual component";
+//					float vertices[] = {
+//						// pos					// color
+//						 0.0f,   0.25f, 0.0f,	1.0f, 0.0f, 0.0f, 1.0f,
+//						 0.25f, -0.25f, 0.0f,	0.0f, 1.0f, 0.0f, 1.0f,
+//						-0.25f, -0.25f, 0.0f,	0.0f, 0.0f, 1.0f, 1.0f
 //					};
 //					visual.mesh.vertices = vertices;
 //					visual.mesh.verticesSize = sizeof(vertices);
-//
-//					const uint16_t indices[] = {
-//						0, 1, 2,  0, 2, 3,
-//						6, 5, 4,  7, 6, 4,
-//						8, 9, 10,  8, 10, 11,
-//						14, 13, 12,  15, 14, 12,
-//						16, 17, 18,  16, 18, 19,
-//						22, 21, 20, 23, 22, 20
-//					};
-//					visual.mesh.indices = indices;
-//					visual.mesh.indicesSize = sizeof(indices);
-//
-//					uint32_t pixels[4 * 4] = {
-//						0xFFFFFFFF, 0x00000000, 0xFFFFFFFF, 0x00000000,
-//						0x00000000, 0xFFFFFFFF, 0x00000000, 0xFFFFFFFF,
-//						0xFFFFFFFF, 0x00000000, 0xFFFFFFFF, 0x00000000,
-//						0x00000000, 0xFFFFFFFF, 0x00000000, 0xFFFFFFFF,
-//					};
-//
-//					harmony::Image::Description imageDescription;
-//					imageDescription.width = 4;
-//					imageDescription.height = 4;
-//					imageDescription.memory = pixels;
-//					imageDescription.size = sizeof(pixels);
-//					imageDescription.imagePath = "embedded image";
-//					auto image = harmony::createImage(imageDescription);
-//
-//					harmony::Sampler::Description samplerDescription;
-//					samplerDescription.label = "texture sampler";
-//					samplerDescription.minFilter = harmony::Sampler::Filter::eLINEAR;
-//					samplerDescription.magFilter = harmony::Sampler::Filter::eLINEAR;
-//					auto sampler = harmony::createSampler(samplerDescription);
-//
-//					visual.texture1.label = "black and white embedded texture";
-//					visual.texture1.image = image;
-//					visual.texture1.sampler = sampler;
+//					visual.mesh.verticesStride = sizeof(float) * 7;
 //				}
 //
 //				harmony::Entity::Description entityDescription;
 //				{
-//					entityDescription.label = "Test Entity";
+//					entityDescription.label = "Triangle";
 //					entityDescription.visual = visual;
 //				}
 //				auto entity = scene->createEntity(entityDescription);
 //			}
-//
-//			harmony::Shader::Description shaderDescription;
-//			{
-//				shaderDescription.label = "Test Shader Program";
-//				shaderDescription.attributesCount = 3;
-//				shaderDescription.attrs[0].name = "POSITION";
-//				shaderDescription.attrs[1].name = "COLOR";
-//				shaderDescription.attrs[1].index = 1;
-//				shaderDescription.attrs[2].name = "TEXCOORD";
-//				shaderDescription.attrs[2].index = 1;
-//
-//				shaderDescription.vs.constantBlocksCount = 1;
-//				shaderDescription.vs.constantBlocks[0].size = sizeof(glm::mat4);
-//				shaderDescription.vs.source =
-//					"float4x4 mvp;\n"
-//					"struct vs_in {\n"
-//					"  float4 pos: POSITION;\n"
-//					"  float4 color: COLOR1;\n"
-//					"  float2 uv: TEXCOORD1;\n"
-//					"};\n"
-//					"struct vs_out {\n"
-//					"  float4 color: COLOR0;\n"
-//					"  float2 uv: TEXCOORD0;\n"
-//					"  float4 pos: SV_Position;\n"
-//					"};\n"
-//					"vs_out main(vs_in inp) {\n"
-//					"  vs_out outp;\n"
-//					"  outp.pos = mul(mvp, inp.pos);\n"
-//					"  outp.color = inp.color;\n"
-//					"  outp.uv = inp.uv * 5.0;\n"
-//					"  return outp;\n"
-//					"}\n";
-//
-//				shaderDescription.fs.texturesCount = 1;
-//				shaderDescription.fs.textures[0].imageSlot = 0;
-//				shaderDescription.fs.textures[0].samplerSlot= 0;
-//				shaderDescription.fs.textures[0].used = true;
-//
-//				shaderDescription.fs.source =
-//					"Texture2D<float4> tex;\n"
-//					"sampler smp;\n"
-//					"float4 main(float4 color: COLOR0, float2 uv: TEXCOORD0): SV_Target0 {\n"
-//					"  return tex.Sample(smp, uv) * color;\n"
-//					"}\n";
-//			}
-//			auto shaderProgram1 = harmony::createShader(shaderDescription);
-//
-//			harmony::Pipeline::Description pipelineDescription;
-//			{
-//				pipelineDescription.label = "Test Pipeline";
-//				pipelineDescription.layout.attributesCount = 3;
-//				pipelineDescription.layout.attributes[0].format = harmony::Pipeline::VertexFormat::eFLOAT3;
-//				pipelineDescription.layout.attributes[1].format = harmony::Pipeline::VertexFormat::eFLOAT4;
-//				pipelineDescription.layout.attributes[2].format = harmony::Pipeline::VertexFormat::eFLOAT2;
-//				pipelineDescription.shaderProgram = shaderProgram1;
-//				pipelineDescription.indexType = harmony::Pipeline::IndexType::eUINT16;
-//				pipelineDescription.cullMode = harmony::Pipeline::CullMode::eBACK;
-//				pipelineDescription.depthBufferEnabled = true;
-//			}
-//			pipeline = harmony::createPipeline(pipelineDescription);
-//
-//			harmony::RenderPass::Description passDescription;
-//			{
-//				passDescription.label = "Test Render Pass";
-//				passDescription.action.colors.value[0] = 1.0f;
-//				passDescription.action.colors.value[1] = 1.0f;
-//				passDescription.action.colors.value[2] = 1.0f;
-//				passDescription.action.colors.value[3] = 1.0f;
-//			}
-//			pass = harmony::createRenderPass(passDescription);
 //		}
 //
-//		// Init sequence
+//
 //		{
 //			scene->initialize();
-//			pipeline->initialize();
-//			pass->initialize();
 //		}
 //	}
-//
 //	void update()
 //	{
-//		auto inputSystem = harmony::getInputSystem();
-//		auto& windowDescription = harmony::getWindow()->getDescription();
-//		glm::mat4 proj = glm::perspective(90.0f, (float)windowDescription.width / (float)windowDescription.height, 0.01f, 10.0f);
-//		glm::mat4 view = glm::lookAt(glm::vec3(0.0f, 3.0f, 5.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-//		glm::mat4 model(1);
 //		
-//		//if (inputSystem->actionOccured(harmony::Inputs::Action::eMOVE_LEFT, harmony::Inputs::ePRESSED))
-//		rx -= 1.0f;
-//
-//		model *= glm::scale(model, glm::vec3(1.3f));
-//		model *= glm::rotate(model, glm::radians(rx), glm::vec3(0.0f, 1.0f, 0.0f));
-//		glm::mat4 mvp = proj * view * model;
-//
-//		auto drawable = (*(scene->getVisualEntities().begin()))->getDrawable();
-//
-//		pass->begin();
-//		pipeline->bind();
-//		pipeline->applyConstants(0, &mvp, sizeof(mvp));
-//		
-//		drawable->bind();
-//		drawable->draw(0, 36);
-//
-//		pass->end();
 //	}
-//
+//	void render()
+//	{
+//		renderer->render();
+//	}
 //	void deinitialize()
 //	{
-//		scene->deinitialize();
-//		pipeline->deinitialize();
-//		pass->deinitialize();
-//
-//		delete scene;
-//		delete pipeline;
-//		delete pass;
-//
 //		renderer->deinitialize();
-//
+//	}
+//	~Engine()
+//	{
 //		delete renderer;
+//		HLOG_INFO("Destroyed.");
 //	}
 //
 //private:
-//	float rx = 0.0f;
-//	
-//	harmony::Renderer* renderer		= nullptr;
+//	harmony::Renderer* renderer;
 //
-//	harmony::Scene* scene			= nullptr;
+//	harmony::Scene* scene = nullptr;
+//};
 //
-//	harmony::Pipeline* pipeline		= nullptr;
-//	harmony::RenderPass* pass		= nullptr;
+//int main()
+//{
+//	{// TODO: Move to harmony::initialize()
+//		harmony::Window::Description windowDescription;
+//		harmony::createWindow(windowDescription);
 //
-//}engine;
-
-class Engine
-{
-public:
-	Engine()
-		: renderer(nullptr)
-	{
-		renderer = harmony::getRenderer();
-		HLOG_INFO("Created.");
-	}
-	void initialize()
-	{
-		{
-			renderer->initialize();
-		}
-
-		// Scene creation
-		{
-			harmony::Scene::Description sceneDescription;
-			sceneDescription.label = "Test Scene";
-			scene = harmony::createScene(sceneDescription);
-			{
-				harmony::component::Visual visual;
-				{
-					visual.label = "Triangle visual component";
-					float vertices[] = {
-						// pos					// color
-						 0.0f,   0.25f, 0.0f,	1.0f, 0.0f, 0.0f, 1.0f,
-						 0.25f, -0.25f, 0.0f,	0.0f, 1.0f, 0.0f, 1.0f,
-						-0.25f, -0.25f, 0.0f,	0.0f, 0.0f, 1.0f, 1.0f
-					};
-					visual.mesh.vertices = vertices;
-					visual.mesh.verticesSize = sizeof(vertices);
-					visual.mesh.verticesStride = sizeof(float) * 7;
-				}
-
-				harmony::Entity::Description entityDescription;
-				{
-					entityDescription.label = "Triangle";
-					entityDescription.visual = visual;
-				}
-				auto entity = scene->createEntity(entityDescription);
-			}
-		}
-
-
-		{
-			scene->initialize();
-		}
-	}
-	void update()
-	{
-		
-	}
-	void render()
-	{
-		renderer->render();
-	}
-	void deinitialize()
-	{
-		renderer->deinitialize();
-	}
-	~Engine()
-	{
-		delete renderer;
-		HLOG_INFO("Destroyed.");
-	}
-
-private:
-	harmony::Renderer* renderer;
-
-	harmony::Scene* scene = nullptr;
-};
-
-int main()
-{
-	{// TODO: Move to harmony::initialize()
-		harmony::Window::Description windowDescription;
-		harmony::createWindow(windowDescription);
-
-		harmony::Inputs::Description inputSysDescription;
-		harmony::createInputSystem(inputSysDescription);
-
-		harmony::Renderer::Description rendererDescription;
-		harmony::createRenderer(rendererDescription);
-	}
-
-	auto window = harmony::getWindow();
-	auto inputSystem = harmony::getInputSystem();
-	auto engine = new Engine();
-
-	window->initialize();
-	inputSystem->initialize();
-	engine->initialize();
-
-	while (window->isRunning())
-	{
-		window->update();
-		inputSystem->update();
-		engine->update();
-		engine->render();
-	}
-
-	engine->deinitialize();
-	inputSystem->deinitialize();
-	window->deinitialize();
-
-	delete engine;
-	delete inputSystem;
-	delete window;
-}
+//		harmony::Inputs::Description inputSysDescription;
+//		harmony::createInputSystem(inputSysDescription);
+//
+//		harmony::Renderer::Description rendererDescription;
+//		harmony::createRenderer(rendererDescription);
+//	}
+//
+//	auto window = harmony::getWindow();
+//	auto inputSystem = harmony::getInputSystem();
+//	auto engine = new Engine();
+//
+//	window->initialize();
+//	inputSystem->initialize();
+//	engine->initialize();
+//
+//	while (window->isRunning())
+//	{
+//		window->update();
+//		inputSystem->update();
+//		engine->update();
+//		engine->render();
+//	}
+//
+//	engine->deinitialize();
+//	inputSystem->deinitialize();
+//	window->deinitialize();
+//
+//	delete engine;
+//	delete inputSystem;
+//	delete window;
+//}
 
 // this is some extra code required because of sokol GFX.
 // and instead of 'int main(int argc, char* argv[])' we use 'sapp_desc sokol_main(int argc, char* argv[])'
-/*
+
 namespace sokol
 {
 	static void init()
 	{
-		harmony::getWindow()->initialize();
-		harmony::getInputSystem()->initialize();
-		engine.initialize();
+		harmony::engine->initialize();
 	}
 
 	static void frame()
 	{
-		harmony::getWindow()->update();
-		harmony::getInputSystem()->update();
-
-		engine.update();
-
+		harmony::engine->update();
 		// This manual reset is only needed because sokol::event() only gets called when an event happens, so we need to reset the state manually. Otherwise, the current state will not change until we get another event.
 		harmony::getInputSystem()->reset();
 	}
 
 	static void cleanup()
 	{
-		engine.deinitialize();
+		harmony::engine->deinitialize();
 	}
 
 	static const std::unordered_map<sapp_keycode, harmony::Inputs::Key> sg_keyMap = {
@@ -567,4 +564,3 @@ sapp_desc sokol_main(int argc, char* argv[])
 	}
 	return appDesc;
 }
-*/

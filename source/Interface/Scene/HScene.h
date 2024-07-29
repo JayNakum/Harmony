@@ -30,7 +30,7 @@ namespace harmony
 		virtual const Description& getDescription() const = 0;
 
 		virtual const Drawable* getDrawable() const = 0;
-		
+
 	private:
 		virtual void initialize() = 0;
 		virtual void deinitialize() = 0;
@@ -50,8 +50,7 @@ namespace harmony
 		virtual const Description& getDescription() const = 0;
 
 		virtual Entity* createEntity(const Entity::Description& description) = 0;
-		// virtual void addVisualComponent(const void* entityID, const harmony::component::Visual& component) = 0;
-
+		
 		virtual void initialize() = 0;
 		virtual void deinitialize() = 0;
 

@@ -33,7 +33,7 @@ namespace harmony
 	harmony::Buffer* createBuffer(const harmony::Buffer::Description& description);
 	
 	harmony::Drawable* createDrawable(const harmony::Drawable::Description& description);
-	/*
+	
 	harmony::Image* createImage(const harmony::Image::Description& description);
 	harmony::Sampler* createSampler(const harmony::Sampler::Description& description);
 
@@ -41,5 +41,5 @@ namespace harmony
 	harmony::Pipeline* createPipeline(const harmony::Pipeline::Description& description);
 
 	harmony::RenderPass* createRenderPass(const harmony::RenderPass::Description& description);
-	*/
+	
 }
