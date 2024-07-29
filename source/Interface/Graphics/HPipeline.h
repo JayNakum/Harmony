@@ -37,6 +37,8 @@ namespace harmony
         struct VertexAttribute
         {
             VertexFormat format;
+			const char* name;
+			int index = -1;
         };
 
         struct VertexLayout
@@ -77,7 +79,14 @@ namespace harmony
         struct Description
         {
             const char* label           = "default pipeline";
-            Shader* shaderProgram;
+            
+            Shader* vertexShader        = nullptr;
+            Shader* fragmentShader      = nullptr;
+
+
+			AttributeDescription attrs[16];
+			unsigned int attributesCount;
+
             VertexLayout layout;
             PrimitiveType primitiveType = PrimitiveType::eTRIANGLES;
             CullMode cullMode           = CullMode::eNONE;

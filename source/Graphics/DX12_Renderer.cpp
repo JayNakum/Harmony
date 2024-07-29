@@ -549,3 +549,93 @@ namespace dx12
 		mDescription = { 0 };
 	}
 }
+
+namespace dx12
+{
+	Shader::Shader(const harmony::Shader::Description& description) 
+		: mDescription(description), mShader(nullptr)
+	{
+		HLOG_INFO("Created %s", mDescription.label);
+	}
+
+	const harmony::Shader::Description& Shader::getDescription() const
+	{
+		return mDescription;
+	}
+
+	const void* Shader::getID() const
+	{
+		return mShader.Get();
+	}
+
+	void Shader::initialize()
+	{
+		HRESULT hResult;
+
+#ifdef _DEBUG
+		UINT compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
+#else
+		UINT compileFlags = 0;
+#endif // _DEBUG
+
+		hResult = D3DCompile(
+			mDescription.vs.source,
+			strlen(mDescription.vs.source),
+			nullptr,
+			nullptr,
+			nullptr,
+			"main",
+			"vs_5_0",
+			compileFlags,
+			0,
+			&mShader,
+			&mErrorBlob
+		);
+
+		if (FAILED(hResult))
+		{
+			// TODO: Provide a fall back vertex shader
+			HLOG_ERROR("Failed to compile vertex shader\n%s\n%s", mDescription.label, mErrorBlob->GetBufferPointer(), hrErrorDescription(hResult).get());
+		}
+
+		mErrorBlob->Release();
+
+		hResult = D3DCompile(
+			mDescription.fs.source,
+			strlen(mDescription.fs.source),
+			nullptr,
+			nullptr,
+			nullptr,
+			"main",
+			"ps_5_0",
+			compileFlags,
+			0,
+			&mFragmentShader,
+			&mErrorBlob
+		);
+
+		if (FAILED(hResult))
+		{
+			// TODO: Provide a fall back fragment shader
+			HLOG_ERROR("Failed to compile fragment shader\n%s\n%s", mDescription.label, mErrorBlob->GetBufferPointer(), hrErrorDescription(hResult).get());
+		}
+
+		mErrorBlob->Release();
+
+		HLOG_INFO("Initialized %s", mDescription.label);
+	}
+
+	void Shader::deinitialize()
+	{
+
+		HLOG_INFO("Deinitialized %s", mDescription.label);
+	}
+
+	Shader::~Shader()
+	{
+		mVertexShader->Release();
+		mFragmentShader->Release();
+		HLOG_INFO("Destroyed %s", mDescription.label);
+		mDescription = { 0 };
+	}
+}

@@ -131,10 +131,6 @@ namespace sokol
 
     private:
         harmony::Shader::Description mDescription;
-        sg_shader mShader;
-
-    private:
-        static const std::unordered_map<harmony::Shader::ConstantType, sg_uniform_type> sCONSTANT_TYPE;
     };
 }
 
@@ -158,8 +154,10 @@ namespace sokol
     private:
         harmony::Pipeline::Description mDescription;
         sg_pipeline mPipeline;
+        sg_shader mShaderProgram;
+	private:
+		static const std::unordered_map<harmony::Shader::ConstantType, sg_uniform_type> sCONSTANT_TYPE;
 
-    private:
         static const std::unordered_map<harmony::Pipeline::VertexFormat, sg_vertex_format> sVERTEX_FORMAT;
         static const std::unordered_map<harmony::Pipeline::PrimitiveType, sg_primitive_type> sPRIMITIVE_TYPE;
         static const std::unordered_map<harmony::Pipeline::CullMode, sg_cull_mode> sCULL_MODE;

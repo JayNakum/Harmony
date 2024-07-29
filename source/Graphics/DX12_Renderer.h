@@ -114,3 +114,23 @@ namespace dx12
 		harmony::Drawable::Description mDescription;
 	};
 }
+
+namespace dx12
+{
+	class Shader : public harmony::Shader
+	{
+	public:
+		Shader(const harmony::Shader::Description& description);
+		~Shader();
+	public:
+		const harmony::Shader::Description& getDescription() const override;
+		const void* getID() const override;
+		void initialize() override;
+		void deinitialize() override;
+
+	private:
+		harmony::Shader::Description mDescription;
+		ComPtr<ID3DBlob> mShader;
+		ComPtr<ID3DBlob> mErrorBlob;
+	};
+}

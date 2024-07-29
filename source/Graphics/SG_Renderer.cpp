@@ -290,11 +290,11 @@ namespace sokol
 namespace sokol
 {
 	sokol::Shader::Shader(const harmony::Shader::Description& description)
-		: mDescription(description), mShader{0} {}
+		: mDescription(description) {}
 
 	const void* sokol::Shader::getID() const
 	{
-		return &mShader;
+		return nullptr;
 	}
 
 	const harmony::Shader::Description& Shader::getDescription() const
@@ -304,66 +304,14 @@ namespace sokol
 
 	void Shader::initialize()
 	{
-		sg_shader_desc createDesc = { 0 };
-
-		createDesc.label = mDescription.label;
-
-		for (unsigned int i = 0; i < mDescription.attributesCount; ++i)
-		{
-			createDesc.attrs[i].sem_name = mDescription.attrs[i].name;
-			if (mDescription.attrs[i].index >= 0)
-				createDesc.attrs[i].sem_index = mDescription.attrs[i].index;
-		}
-
-		createDesc.vs.source = mDescription.vs.source;
-		for (unsigned int i = 0; i < mDescription.vs.constantBlocksCount; ++i)
-		{
-			createDesc.vs.uniform_blocks[i].size = mDescription.vs.constantBlocks[i].size;
-			for (unsigned int j = 0; j < mDescription.vs.constantBlocks[i].constantCount; ++j)
-			{
-				createDesc.vs.uniform_blocks[i].uniforms[j].name = mDescription.vs.constantBlocks[i].constants[j].name;
-				createDesc.vs.uniform_blocks[i].uniforms[j].type = sCONSTANT_TYPE.at(mDescription.vs.constantBlocks[i].constants[j].type);
-			}
-		}
-		for (unsigned int i = 0; i < mDescription.vs.texturesCount; ++i)
-		{
-			createDesc.vs.images[i].used = mDescription.vs.textures[i].used;
-			createDesc.vs.samplers[i].used = mDescription.vs.textures[i].used;
-			createDesc.vs.image_sampler_pairs[i].used = mDescription.vs.textures[i].used;
-			createDesc.vs.image_sampler_pairs[i].image_slot = mDescription.vs.textures[i].imageSlot;
-			createDesc.vs.image_sampler_pairs[i].sampler_slot = mDescription.vs.textures[i].samplerSlot;
-		}
-
-		createDesc.fs.source = mDescription.fs.source;
-		for (unsigned int i = 0; i < mDescription.fs.constantBlocksCount; ++i)
-		{
-			createDesc.fs.uniform_blocks[i].size = mDescription.fs.constantBlocks[i].size;
-			for (unsigned int j = 0; j < mDescription.fs.constantBlocks[i].constantCount; ++j)
-			{
-				createDesc.fs.uniform_blocks[i].uniforms[j].name = mDescription.fs.constantBlocks[i].constants[j].name;
-				createDesc.fs.uniform_blocks[i].uniforms[j].type = sCONSTANT_TYPE.at(mDescription.fs.constantBlocks[i].constants[j].type);
-			}
-		}
-		for (unsigned int i = 0; i < mDescription.fs.texturesCount; ++i)
-		{
-			createDesc.fs.images[i].used = mDescription.fs.textures[i].used;
-			createDesc.fs.samplers[i].used = mDescription.fs.textures[i].used;
-			createDesc.fs.image_sampler_pairs[i].used = mDescription.fs.textures[i].used;
-			createDesc.fs.image_sampler_pairs[i].image_slot = mDescription.fs.textures[i].imageSlot;
-			createDesc.fs.image_sampler_pairs[i].sampler_slot = mDescription.fs.textures[i].samplerSlot;
-		}
-
-		mShader = sg_make_shader(createDesc);
 	}
 
 	void Shader::deinitialize()
 	{
-		sg_dealloc_shader(mShader);
 	}
 
 	Shader::~Shader()
 	{
-		sg_destroy_shader(mShader);
 	}
 }
 
@@ -394,8 +342,63 @@ namespace sokol
 
 		createDesc.index_type = sINDEX_TYPE.at(mDescription.indexType);
 
-		mDescription.shaderProgram->initialize();
-		createDesc.shader = *((sg_shader*)mDescription.shaderProgram->getID());
+		{
+			const auto& vs = mDescription.vertexShader->getDescription();
+			const auto& fs = mDescription.fragmentShader->getDescription();
+
+			sg_shader_desc createDesc = { 0 };
+
+			createDesc.label = mDescription.label;
+
+			for (unsigned int i = 0; i < vs.attributesCount; ++i)
+			{
+				createDesc.attrs[i].sem_name = vs.attrs[i].name;
+				if (vs.attrs[i].index >= 0)
+					createDesc.attrs[i].sem_index = vs.attrs[i].index;
+			}
+
+			createDesc.vs.source = vs.shader.source;
+			for (unsigned int i = 0; i < vs.shader.constantBlocksCount; ++i)
+			{
+				createDesc.vs.uniform_blocks[i].size = vs.shader.constantBlocks[i].size;
+				for (unsigned int j = 0; j < vs.shader.constantBlocks[i].constantCount; ++j)
+				{
+					createDesc.vs.uniform_blocks[i].uniforms[j].name = vs.shader.constantBlocks[i].constants[j].name;
+					createDesc.vs.uniform_blocks[i].uniforms[j].type = sCONSTANT_TYPE.at(vs.shader.constantBlocks[i].constants[j].type);
+				}
+			}
+			for (unsigned int i = 0; i < vs.shader.texturesCount; ++i)
+			{
+				createDesc.vs.images[i].used = vs.shader.textures[i].used;
+				createDesc.vs.samplers[i].used = vs.shader.textures[i].used;
+				createDesc.vs.image_sampler_pairs[i].used = vs.shader.textures[i].used;
+				createDesc.vs.image_sampler_pairs[i].image_slot = vs.shader.textures[i].imageSlot;
+				createDesc.vs.image_sampler_pairs[i].sampler_slot = vs.shader.textures[i].samplerSlot;
+			}
+
+			createDesc.fs.source = fs.shader.source;
+			for (unsigned int i = 0; i < mDescription.fs.constantBlocksCount; ++i)
+			{
+				createDesc.fs.uniform_blocks[i].size = mDescription.fs.constantBlocks[i].size;
+				for (unsigned int j = 0; j < mDescription.fs.constantBlocks[i].constantCount; ++j)
+				{
+					createDesc.fs.uniform_blocks[i].uniforms[j].name = mDescription.fs.constantBlocks[i].constants[j].name;
+					createDesc.fs.uniform_blocks[i].uniforms[j].type = sCONSTANT_TYPE.at(mDescription.fs.constantBlocks[i].constants[j].type);
+				}
+			}
+			for (unsigned int i = 0; i < mDescription.fs.texturesCount; ++i)
+			{
+				createDesc.fs.images[i].used = mDescription.fs.textures[i].used;
+				createDesc.fs.samplers[i].used = mDescription.fs.textures[i].used;
+				createDesc.fs.image_sampler_pairs[i].used = mDescription.fs.textures[i].used;
+				createDesc.fs.image_sampler_pairs[i].image_slot = mDescription.fs.textures[i].imageSlot;
+				createDesc.fs.image_sampler_pairs[i].sampler_slot = mDescription.fs.textures[i].samplerSlot;
+			}
+
+			mShaderProgram = sg_make_shader(createDesc);
+		}
+
+		createDesc.shader = mShaderProgram;
 
 		createDesc.primitive_type = sPRIMITIVE_TYPE.at(mDescription.primitiveType);
 		createDesc.cull_mode = sCULL_MODE.at(mDescription.cullMode);
@@ -422,20 +425,20 @@ namespace sokol
 
 	void Pipeline::unbind() const
 	{
-		sg_pipeline unbind = { 0 };
-		sg_apply_pipeline(unbind);
+		sg_pipeline unbindDesc = { 0 };
+		sg_apply_pipeline(unbindDesc);
 	}
 
 	void Pipeline::deinitialize()
 	{
-		mDescription.shaderProgram->deinitialize();
 		sg_dealloc_pipeline(mPipeline);
+		sg_dealloc_shader(mShaderProgram);
 	}
 
 	Pipeline::~Pipeline()
 	{
 		sg_destroy_pipeline(mPipeline);
-		delete mDescription.shaderProgram;
+		sg_destroy_shader(mShaderProgram);
 		mDescription = { 0 };
 	}
 }

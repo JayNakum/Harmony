@@ -5,12 +5,6 @@ namespace harmony
     class Shader
     {
     public:
-        struct AttributeDescription
-        {
-            const char* name;
-            int index = -1;
-        };
-
         enum ConstantType
         {
             eFLOAT,
@@ -44,9 +38,16 @@ namespace harmony
             unsigned int samplerSlot = 0;
         };
 
+        enum Type
+        {
+            eVERTEX,
+            eFRAGMENT
+        };
+
         struct StageDescription // TODO: use reflections to get these
         {
             const char* source = "default shader";
+            Type type = eVERTEX;
             ConstantBlock constantBlocks[4] = { 0 };
             unsigned int constantBlocksCount = 0;
             Texture textures[1] = { 0 }; // TODO: query the the size of this array
@@ -56,10 +57,7 @@ namespace harmony
         struct Description
         {
             const char* label = "default shader program";
-            AttributeDescription attrs[16];
-            unsigned int attributesCount;
-            StageDescription vs;
-            StageDescription fs;
+            StageDescription shader;
         };
 
         virtual ~Shader() = default;
