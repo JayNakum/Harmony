@@ -44,20 +44,17 @@ namespace harmony
             eFRAGMENT
         };
 
-        struct StageDescription // TODO: use reflections to get these
+        struct Description
         {
+            const char* label = "default shader program";
+            
+            // TODO: use reflections to get these
             const char* source = "default shader";
             Type type = eVERTEX;
             ConstantBlock constantBlocks[4] = { 0 };
             unsigned int constantBlocksCount = 0;
             Texture textures[1] = { 0 }; // TODO: query the the size of this array
             unsigned int texturesCount = 0;
-        };
-
-        struct Description
-        {
-            const char* label = "default shader program";
-            StageDescription shader;
         };
 
         virtual ~Shader() = default;

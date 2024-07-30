@@ -131,6 +131,28 @@ namespace dx12
 	private:
 		harmony::Shader::Description mDescription;
 		ComPtr<ID3DBlob> mShader;
-		ComPtr<ID3DBlob> mErrorBlob;
+	};
+}
+
+namespace dx12
+{
+	class Pipeline : public harmony::Pipeline
+	{
+	public:
+		Pipeline(const harmony::Pipeline::Description& description);
+		~Pipeline();
+
+	public:
+		const void* getID() const override;
+		const harmony::Pipeline::Description& getDescription() const override;
+		void initialize() override;
+		void bind() const override;
+		void applyConstants(unsigned int constantBlockIndex, const void* data, size_t size, const harmony::Pipeline::ShaderStageType type = harmony::Pipeline::ShaderStageType::eVERTEX_SHADER) const override;
+		void unbind() const override;
+		void deinitialize() override;
+
+	private:
+		harmony::Pipeline::Description mDescription;
+		ComPtr<ID3D12PipelineState> mPipelineState;
 	};
 }

@@ -83,10 +83,6 @@ namespace harmony
             Shader* vertexShader        = nullptr;
             Shader* fragmentShader      = nullptr;
 
-
-			AttributeDescription attrs[16];
-			unsigned int attributesCount;
-
             VertexLayout layout;
             PrimitiveType primitiveType = PrimitiveType::eTRIANGLES;
             CullMode cullMode           = CullMode::eNONE;

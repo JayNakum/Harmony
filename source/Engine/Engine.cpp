@@ -105,19 +105,13 @@ namespace harmony
 				auto entity = scene->createEntity(entityDescription);
 			}
 
-			harmony::Shader::Description shaderDescription;
+			harmony::Shader::Description vShaderDescription;
 			{
-				shaderDescription.label = "Test Shader Program";
-				shaderDescription.attributesCount = 3;
-				shaderDescription.attrs[0].name = "POSITION";
-				shaderDescription.attrs[1].name = "COLOR";
-				shaderDescription.attrs[1].index = 1;
-				shaderDescription.attrs[2].name = "TEXCOORD";
-				shaderDescription.attrs[2].index = 1;
-
-				shaderDescription.vs.constantBlocksCount = 1;
-				shaderDescription.vs.constantBlocks[0].size = sizeof(glm::mat4);
-				shaderDescription.vs.source =
+				vShaderDescription.label = "Test Shader Program";
+				
+				vShaderDescription.constantBlocksCount = 1;
+				vShaderDescription.constantBlocks[0].size = sizeof(glm::mat4);
+				vShaderDescription.source =
 					"float4x4 mvp;\n"
 					"struct vs_in {\n"
 					"  float4 pos: POSITION;\n"
@@ -135,32 +129,49 @@ namespace harmony
 					"  outp.color = inp.color;\n"
 					"  outp.uv = inp.uv * 5.0;\n"
 					"  return outp;\n"
-					"}\n";
+					"}\n";				
+			}
+			auto vShader = harmony::createShader(vShaderDescription);
 
-				shaderDescription.fs.texturesCount = 1;
-				shaderDescription.fs.textures[0].imageSlot = 0;
-				shaderDescription.fs.textures[0].samplerSlot = 0;
-				shaderDescription.fs.textures[0].used = true;
+			harmony::Shader::Description fShaderDescription;
+			{
+				fShaderDescription.texturesCount = 1;
+				fShaderDescription.textures[0].imageSlot = 0;
+				fShaderDescription.textures[0].samplerSlot = 0;
+				fShaderDescription.textures[0].used = true;
 
-				shaderDescription.fs.source =
+				fShaderDescription.source =
 					"Texture2D<float4> tex;\n"
 					"sampler smp;\n"
 					"float4 main(float4 color: COLOR0, float2 uv: TEXCOORD0): SV_Target0 {\n"
 					"  return tex.Sample(smp, uv) * color;\n"
 					"}\n";
 			}
-			auto shaderProgram1 = harmony::createShader(shaderDescription);
+			auto fShader = harmony::createShader(fShaderDescription);
+
 
 			harmony::Pipeline::Description pipelineDescription;
 			{
 				pipelineDescription.label = "Test Pipeline";
 				pipelineDescription.layout.attributesCount = 3;
+
+				pipelineDescription.layout.attributes[0].name = "POSITION";
 				pipelineDescription.layout.attributes[0].format = harmony::Pipeline::VertexFormat::eFLOAT3;
+				
+				pipelineDescription.layout.attributes[1].name = "COLOR";
+				pipelineDescription.layout.attributes[1].index = 1;
 				pipelineDescription.layout.attributes[1].format = harmony::Pipeline::VertexFormat::eFLOAT4;
+				
+				pipelineDescription.layout.attributes[2].name = "TEXCOORD";
+				pipelineDescription.layout.attributes[2].index = 1;
 				pipelineDescription.layout.attributes[2].format = harmony::Pipeline::VertexFormat::eFLOAT2;
-				pipelineDescription.shaderProgram = shaderProgram1;
+
+				pipelineDescription.vertexShader = vShader;
+				pipelineDescription.fragmentShader = fShader;
+				
 				pipelineDescription.indexType = harmony::Pipeline::IndexType::eUINT16;
 				pipelineDescription.cullMode = harmony::Pipeline::CullMode::eBACK;
+				
 				pipelineDescription.depthBufferEnabled = true;
 			}
 			pipeline = harmony::createPipeline(pipelineDescription);

@@ -578,63 +578,89 @@ namespace dx12
 		UINT compileFlags = 0;
 #endif // _DEBUG
 
+		const char* target;
+
+		switch (mDescription.shader.type)
+		{
+		default:
+			HLOG_WARNING("Invalid shader type(%d) in %s. Assuming type vertex shader.", mDescription.shader.type, mDescription.label);
+		
+		case harmony::Shader::Type::eVERTEX:
+			target = "vs_5_0";
+			break;
+
+		case harmony::Shader::Type::eFRAGMENT:
+			target = "fs_5_0";
+			break;
+
+		}
+
+
+		ComPtr<ID3DBlob> errorBlob;
+
 		hResult = D3DCompile(
-			mDescription.vs.source,
-			strlen(mDescription.vs.source),
+			mDescription.shader.source,
+			strlen(mDescription.shader.source),
 			nullptr,
 			nullptr,
 			nullptr,
 			"main",
-			"vs_5_0",
+			target,
 			compileFlags,
 			0,
 			&mShader,
-			&mErrorBlob
+			&errorBlob
 		);
 
 		if (FAILED(hResult))
 		{
 			// TODO: Provide a fall back vertex shader
-			HLOG_ERROR("Failed to compile vertex shader\n%s\n%s", mDescription.label, mErrorBlob->GetBufferPointer(), hrErrorDescription(hResult).get());
+			HLOG_ERROR("Failed to compile shader\n%s\n%s", mDescription.label, errorBlob->GetBufferPointer(), hrErrorDescription(hResult).get());
 		}
 
-		mErrorBlob->Release();
-
-		hResult = D3DCompile(
-			mDescription.fs.source,
-			strlen(mDescription.fs.source),
-			nullptr,
-			nullptr,
-			nullptr,
-			"main",
-			"ps_5_0",
-			compileFlags,
-			0,
-			&mFragmentShader,
-			&mErrorBlob
-		);
-
-		if (FAILED(hResult))
-		{
-			// TODO: Provide a fall back fragment shader
-			HLOG_ERROR("Failed to compile fragment shader\n%s\n%s", mDescription.label, mErrorBlob->GetBufferPointer(), hrErrorDescription(hResult).get());
-		}
-
-		mErrorBlob->Release();
+		errorBlob->Release();
 
 		HLOG_INFO("Initialized %s", mDescription.label);
 	}
 
 	void Shader::deinitialize()
 	{
-
+		mShader->Release();
 		HLOG_INFO("Deinitialized %s", mDescription.label);
 	}
 
 	Shader::~Shader()
 	{
-		mVertexShader->Release();
-		mFragmentShader->Release();
+		HLOG_INFO("Destroyed %s", mDescription.label);
+		mDescription = { 0 };
+	}
+}
+
+namespace dx12
+{
+	Pipeline::Pipeline(const harmony::Pipeline::Description& description)
+		: mDescription(description), mPipelineState(nullptr)
+	{
+		HLOG_INFO("Created %s", mDescription.label);
+	}
+
+	void Pipeline::initialize()
+	{
+		HLOG_DEBUG("Initialized %s", mDescription.label);
+	}
+
+	void Pipeline::bind() const
+	{
+
+	}
+
+	void Pipeline::deinitialize()
+	{
+		HLOG_DEBUG("Deinitialized %s", mDescription.label);
+	}
+
+	Pipeline::~Pipeline()
+	{
 		HLOG_INFO("Destroyed %s", mDescription.label);
 		mDescription = { 0 };
 	}
