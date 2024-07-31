@@ -21,6 +21,8 @@
 #endif
 #include <windows.h>
 
+#include <unordered_map>
+
 using namespace Microsoft::WRL;
 
 namespace dx12
@@ -66,7 +68,6 @@ namespace dx12
 
 		CD3DX12_VIEWPORT mViewport;
 		CD3DX12_RECT mScissorRect;
-		ComPtr<ID3D12RootSignature> mRootSignature;
 
 	};
 }
@@ -154,5 +155,9 @@ namespace dx12
 	private:
 		harmony::Pipeline::Description mDescription;
 		ComPtr<ID3D12PipelineState> mPipelineState;
+		ComPtr<ID3D12RootSignature> mRootSignature;
+
+	private:
+		static const std::unordered_map<harmony::Pipeline::VertexFormat, DXGI_FORMAT> sVERTEX_FORMAT;
 	};
 }

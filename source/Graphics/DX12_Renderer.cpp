@@ -277,62 +277,6 @@ namespace dx12
 	{
 		HRESULT hResult;
 
-		{
-			CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
-			rootSignatureDesc.Init(0, nullptr, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
-			
-			ComPtr<ID3DBlob> signature;
-			ComPtr<ID3DBlob> error;
-
-			hResult = D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error);
-			HASSERT(SUCCEEDED(hResult), "Failed to serialize root signature.\n%s", hrErrorDescription(hResult).get());
-
-			hResult = gDevice->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&mRootSignature));
-			HASSERT(SUCCEEDED(hResult), "Failed to create root signature.\n%s", hrErrorDescription(hResult).get());
-		}
-
-		{
-			ComPtr<ID3DBlob> vertexShader;
-			ComPtr<ID3DBlob> pixelShader;
-
-#ifdef _DEBUG
-			UINT compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
-#else
-			UINT compileFlags = 0;
-#endif // _DEBUG
-
-			// TODO: Replace the HASSERT with HLOG_ERROR and provide a default fall-back.
-			hResult = D3DCompileFromFile(L"D:\\Harmony\\resources\\shaders\\shaders.hlsl", nullptr, nullptr, "VSMain", "vs_5_0", compileFlags, 0, &vertexShader, nullptr);
-			HASSERT(SUCCEEDED(hResult), "Failed to compile vertex shader.\n%s", hrErrorDescription(hResult).get());
-			
-			hResult = D3DCompileFromFile(L"D:\\Harmony\\resources\\shaders\\shaders.hlsl", nullptr, nullptr, "PSMain", "ps_5_0", compileFlags, 0, &pixelShader, nullptr);
-			HASSERT(SUCCEEDED(hResult), "Failed to compile pixel shader.\n%s", hrErrorDescription(hResult).get());
-
-			D3D12_INPUT_ELEMENT_DESC inputElementDescs[] = {
-				{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-				{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
-			};
-
-			D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
-			psoDesc.InputLayout = { inputElementDescs, _countof(inputElementDescs) };
-			psoDesc.pRootSignature = mRootSignature.Get();
-			psoDesc.VS = CD3DX12_SHADER_BYTECODE(vertexShader.Get());
-			psoDesc.PS = CD3DX12_SHADER_BYTECODE(pixelShader.Get());
-			psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-			psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
-			psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-			psoDesc.DepthStencilState.DepthEnable = FALSE;
-			psoDesc.DepthStencilState.StencilEnable = FALSE;
-			
-			psoDesc.SampleMask = UINT_MAX;
-			psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-			psoDesc.NumRenderTargets = 1;
-			psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
-			psoDesc.SampleDesc.Count = 1;
-
-			hResult = gDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&mPipelineState));
-			HASSERT(SUCCEEDED(hResult), "Failed to create a graphics pipeline state.\n%s", hrErrorDescription(hResult).get());
-		}
 
 		hResult = gDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, mCommandAllocator.Get(), nullptr, IID_PPV_ARGS(&gGFXCommandList));
 		HASSERT(SUCCEEDED(hResult), "Failed to create command list.\n%s", hrErrorDescription(hResult).get());
@@ -580,10 +524,10 @@ namespace dx12
 
 		const char* target;
 
-		switch (mDescription.shader.type)
+		switch (mDescription.type)
 		{
 		default:
-			HLOG_WARNING("Invalid shader type(%d) in %s. Assuming type vertex shader.", mDescription.shader.type, mDescription.label);
+			HLOG_WARNING("Invalid shader type(%d) in %s. Assuming type vertex shader.", mDescription.type, mDescription.label);
 		
 		case harmony::Shader::Type::eVERTEX:
 			target = "vs_5_0";
@@ -599,8 +543,8 @@ namespace dx12
 		ComPtr<ID3DBlob> errorBlob;
 
 		hResult = D3DCompile(
-			mDescription.shader.source,
-			strlen(mDescription.shader.source),
+			mDescription.source,
+			strlen(mDescription.source),
 			nullptr,
 			nullptr,
 			nullptr,
@@ -614,7 +558,7 @@ namespace dx12
 
 		if (FAILED(hResult))
 		{
-			// TODO: Provide a fall back vertex shader
+			// TODO: Provide a fall back shader
 			HLOG_ERROR("Failed to compile shader\n%s\n%s", mDescription.label, errorBlob->GetBufferPointer(), hrErrorDescription(hResult).get());
 		}
 
@@ -641,11 +585,74 @@ namespace dx12
 	Pipeline::Pipeline(const harmony::Pipeline::Description& description)
 		: mDescription(description), mPipelineState(nullptr)
 	{
+		HRESULT hResult;
+		{
+			CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
+			rootSignatureDesc.Init(0, nullptr, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+
+			ComPtr<ID3DBlob> signature;
+			ComPtr<ID3DBlob> error;
+
+			hResult = D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error);
+			HASSERT(SUCCEEDED(hResult), "Failed to serialize root signature.\n%s", hrErrorDescription(hResult).get());
+
+			hResult = gDevice->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&mRootSignature));
+			HASSERT(SUCCEEDED(hResult), "Failed to create root signature.\n%s", hrErrorDescription(hResult).get());
+		}
+
 		HLOG_INFO("Created %s", mDescription.label);
 	}
 
 	void Pipeline::initialize()
 	{
+
+		D3D12_INPUT_ELEMENT_DESC inputElementDescs[16] = {};
+		for (unsigned int i = 0; i < mDescription.layout.attributesCount; ++i)
+		{
+			DXGI_FORMAT fmt = DXGI_FORMAT::DXGI_FORMAT_UNKNOWN;
+			if (sVERTEX_FORMAT.find(mDescription.layout.attributes[i].format) != sVERTEX_FORMAT.end())
+			{
+				fmt = sVERTEX_FORMAT.at(mDescription.layout.attributes[i].format);
+			}
+
+			inputElementDescs[i] = {
+				mDescription.layout.attributes[i].name,
+				(unsigned int)mDescription.layout.attributes[i].index,
+				fmt,
+				0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 // TODO: Add support for per instance data
+			};
+		}
+
+
+		D3D12_GRAPHICS_PIPELINE_STATE_DESC createDesc = {};
+
+		createDesc.InputLayout = { inputElementDescs, mDescription.layout.attributesCount };
+		createDesc.pRootSignature = mRootSignature.Get();
+		createDesc.VS = CD3DX12_SHADER_BYTECODE((ID3DBlob*)(mDescription.vertexShader->getID()));
+		createDesc.PS = CD3DX12_SHADER_BYTECODE((ID3DBlob*)(mDescription.fragmentShader->getID()));
+		
+		createDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+		createDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
+		
+		createDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+		
+		createDesc.DepthStencilState.DepthEnable = FALSE;
+		createDesc.DepthStencilState.StencilEnable = FALSE;
+
+		createDesc.SampleMask = UINT_MAX;
+		createDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+		createDesc.NumRenderTargets = 1;
+		createDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+		createDesc.SampleDesc.Count = 1;
+
+		HRESULT hResult = gDevice->CreateGraphicsPipelineState(&createDesc, IID_PPV_ARGS(&mPipelineState));
+		
+		if (FAILED(hResult))
+		{
+			// TODO: Provide a fall back pipeline state
+			HLOG_ERROR("Failed to create a graphics pipeline state.\n%s", hrErrorDescription(hResult).get());
+		}
+		
 		HLOG_DEBUG("Initialized %s", mDescription.label);
 	}
 
@@ -664,4 +671,23 @@ namespace dx12
 		HLOG_INFO("Destroyed %s", mDescription.label);
 		mDescription = { 0 };
 	}
+
+	const std::unordered_map<harmony::Pipeline::VertexFormat, DXGI_FORMAT> Pipeline::sVERTEX_FORMAT = {
+		{ harmony::Pipeline::VertexFormat::eFLOAT4, DXGI_FORMAT::DXGI_FORMAT_R32G32B32A32_FLOAT },
+		{ harmony::Pipeline::VertexFormat::eFLOAT3, DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT },
+		{ harmony::Pipeline::VertexFormat::eHALF4, DXGI_FORMAT::DXGI_FORMAT_R16G16B16A16_FLOAT },
+		{ harmony::Pipeline::VertexFormat::eUSHORT4N, DXGI_FORMAT::DXGI_FORMAT_R16G16B16A16_UNORM },
+		{ harmony::Pipeline::VertexFormat::eSHORT4, DXGI_FORMAT::DXGI_FORMAT_R16G16B16A16_UINT },
+		{ harmony::Pipeline::VertexFormat::eSHORT4N, DXGI_FORMAT::DXGI_FORMAT_R16G16B16A16_SNORM },
+		{ harmony::Pipeline::VertexFormat::eFLOAT2, DXGI_FORMAT::DXGI_FORMAT_R32G32_FLOAT },
+		{ harmony::Pipeline::VertexFormat::eUBYTE4N, DXGI_FORMAT::DXGI_FORMAT_R8G8B8A8_UNORM },
+		{ harmony::Pipeline::VertexFormat::eUBYTE4, DXGI_FORMAT::DXGI_FORMAT_R8G8B8A8_UINT },
+		{ harmony::Pipeline::VertexFormat::eBYTE4N, DXGI_FORMAT::DXGI_FORMAT_R8G8B8A8_SNORM },
+		{ harmony::Pipeline::VertexFormat::eBYTE4, DXGI_FORMAT::DXGI_FORMAT_R8G8B8A8_SINT },
+		{ harmony::Pipeline::VertexFormat::eHALF2, DXGI_FORMAT::DXGI_FORMAT_R16G16_FLOAT },
+		{ harmony::Pipeline::VertexFormat::eUSHORT2N, DXGI_FORMAT::DXGI_FORMAT_R16G16_UNORM },
+		{ harmony::Pipeline::VertexFormat::eSHORT2N, DXGI_FORMAT::DXGI_FORMAT_R16G16_SNORM },
+		{ harmony::Pipeline::VertexFormat::eSHORT2, DXGI_FORMAT::DXGI_FORMAT_R16G16_SINT },
+		{ harmony::Pipeline::VertexFormat::eFLOAT, DXGI_FORMAT::DXGI_FORMAT_R32_FLOAT }
+	};
 }
