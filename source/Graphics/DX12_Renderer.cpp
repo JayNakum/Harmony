@@ -6,6 +6,7 @@ namespace dx12
 {
 	ComPtr<ID3D12Device> gDevice;
 	ComPtr<ID3D12GraphicsCommandList> gGFXCommandList;
+	ComPtr<ID3D12CommandAllocator> gCommandAllocator;
 }
 
 static inline std::unique_ptr<char[]> hrErrorDescription(const HRESULT hResult)
@@ -269,7 +270,7 @@ namespace dx12
 			}
 		}
 		
-		hResult = gDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&mCommandAllocator));
+		hResult = gDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&gCommandAllocator));
 		HASSERT(SUCCEEDED(hResult), "Failed to create command allocator.\n%s", hrErrorDescription(hResult).get());
 	}
 
@@ -278,7 +279,7 @@ namespace dx12
 		HRESULT hResult;
 
 
-		hResult = gDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, mCommandAllocator.Get(), nullptr, IID_PPV_ARGS(&gGFXCommandList));
+		hResult = gDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, gCommandAllocator.Get(), nullptr, IID_PPV_ARGS(&gGFXCommandList));
 		HASSERT(SUCCEEDED(hResult), "Failed to create command list.\n%s", hrErrorDescription(hResult).get());
 		
 		hResult = gGFXCommandList->Close();
@@ -305,13 +306,9 @@ namespace dx12
 	{
 		HRESULT hResult;
 
-		hResult = mCommandAllocator->Reset();
+		hResult = gCommandAllocator->Reset();
 		HASSERT(SUCCEEDED(hResult), "Failed to reset command allocator.\n%s", hrErrorDescription(hResult).get());
 
-		hResult = gGFXCommandList->Reset(mCommandAllocator.Get(), mPipelineState.Get());
-		HASSERT(SUCCEEDED(hResult), "Failed to reset command allocator.\n%s", hrErrorDescription(hResult).get());
-		
-		gGFXCommandList->SetGraphicsRootSignature(mRootSignature.Get());
 		mViewport.TopLeftX = 0.0f;
 		mViewport.TopLeftY = 0.0f;
 		mViewport.Width = (float)harmony::getWindow()->getDescription().width;
@@ -652,22 +649,27 @@ namespace dx12
 			// TODO: Provide a fall back pipeline state
 			HLOG_ERROR("Failed to create a graphics pipeline state.\n%s", hrErrorDescription(hResult).get());
 		}
-		
+
 		HLOG_DEBUG("Initialized %s", mDescription.label);
 	}
 
 	void Pipeline::bind() const
 	{
+		HRESULT hResult = gGFXCommandList->Reset(gCommandAllocator.Get(), mPipelineState.Get());
+		HASSERT(SUCCEEDED(hResult), "Failed to reset command allocator.\n%s", hrErrorDescription(hResult).get());
 
+		gGFXCommandList->SetGraphicsRootSignature(mRootSignature.Get());
 	}
 
 	void Pipeline::deinitialize()
 	{
+		mPipelineState->Release();
 		HLOG_DEBUG("Deinitialized %s", mDescription.label);
 	}
 
 	Pipeline::~Pipeline()
 	{
+		mRootSignature->Release();
 		HLOG_INFO("Destroyed %s", mDescription.label);
 		mDescription = { 0 };
 	}

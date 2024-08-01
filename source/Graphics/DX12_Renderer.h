@@ -59,12 +59,11 @@ namespace dx12
 		UINT mRTVDescriptorSize = 0;
 		ComPtr<ID3D12DescriptorHeap> mRTVHeap;
 		ComPtr<ID3D12Resource> mRenderTargets[mFrameCount];
-		ComPtr<ID3D12CommandAllocator> mCommandAllocator;
+		
 		
 		ComPtr<ID3D12Fence> mFence;
 		UINT64 mFenceValue = 0;
 		HANDLE mFenceEvent = nullptr;
-		ComPtr<ID3D12PipelineState> mPipelineState;
 
 		CD3DX12_VIEWPORT mViewport;
 		CD3DX12_RECT mScissorRect;
@@ -159,5 +158,26 @@ namespace dx12
 
 	private:
 		static const std::unordered_map<harmony::Pipeline::VertexFormat, DXGI_FORMAT> sVERTEX_FORMAT;
+	};
+}
+
+namespace dx12
+{
+	class RenderPass : public harmony::RenderPass
+	{
+	public:
+		RenderPass(const harmony::RenderPass::Description& description);
+		~RenderPass();
+
+	public:
+		const void* getID() const override;
+		const harmony::RenderPass::Description& getDescription() const override;
+		void initialize() override;
+		void begin() override;
+		void end() const override;
+		void deinitialize() override;
+
+	private:
+		harmony::RenderPass::Description mDescription;
 	};
 }
