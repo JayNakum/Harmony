@@ -15,6 +15,11 @@ namespace harmony
 		harmony::getInputSystem()->update();
 	}
 
+	void Engine::render()
+	{
+		harmony::getRenderer()->render();
+	}
+
 	void Engine::deinitialize()
 	{
 		harmony::getRenderer()->deinitialize();

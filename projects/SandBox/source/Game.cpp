@@ -150,6 +150,12 @@ public:
 	{
 		engine->update();
 		cube->update();
+	}
+
+	void render()
+	{
+		update();
+		engine->render();
 
 		auto& windowDescription = harmony::getWindow()->getDescription();
 		glm::mat4 proj = glm::perspective(90.0f, (float)windowDescription.width / (float)windowDescription.height, 0.01f, 10.0f);
@@ -173,7 +179,7 @@ public:
 			glm::mat4 mvp = vp * model;
 
 			auto drawable = entity->getDrawable();
-			
+
 			pass->begin();
 			pipeline->bind();
 			pipeline->applyConstants(0, &mvp, sizeof(mvp));
@@ -313,7 +319,7 @@ namespace sokol
 
 	static void frame()
 	{
-		game.update();
+		game.render();
 		// This manual reset is only needed because sokol::event() only gets called when an event happens, so we need to reset the state manually. Otherwise, the current state will not change until we get another event.
 		harmony::getInputSystem()->reset();
 	}
