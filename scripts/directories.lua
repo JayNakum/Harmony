@@ -3,7 +3,6 @@ obj_dir = "%{wks.location}/bin/obj/%{cfg.buildcfg}-%{cfg.system}-%{cfg.architect
 
 prj_src = {}
 prj_src["Engine"] = "%{wks.location}/../source/Engine"
-prj_src["Game"] = "%{wks.location}/../source/Game"
 prj_src["Interface"] = "%{wks.location}/../source/Interface"
 prj_src["Harmony"] = "%{wks.location}/../source/Harmony"
 prj_src["Window"] = "%{wks.location}/../source/Window"
@@ -11,6 +10,8 @@ prj_src["Inputs"] = "%{wks.location}/../source/Inputs"
 prj_src["Logger"] = "%{wks.location}/../source/Logger"
 prj_src["Graphics"] = "%{wks.location}/../source/Graphics"
 prj_src["Scene"] = "%{wks.location}/../source/Scene"
+
+prj_src["BounceMania"] = "%{wks.location}/../projects/BounceMania/source"
 
 DIRECTX_SDK = os.getenv("DXSDK_DIR")
 

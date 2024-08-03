@@ -37,18 +37,3 @@ namespace harmony
 		harmony::RenderPass* pass = nullptr;
 	};
 }
-
-namespace harmony
-{
-	class Application
-	{
-	public:
-		Application();
-
-		virtual void initialize();
-		virtual void update();
-		virtual void deinitialize();
-
-		~Application();
-	};
-}
