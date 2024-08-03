@@ -1,5 +1,5 @@
 project "Engine"
-  kind "ConsoleApp"
+  kind "StaticLib"
   language "C++"
   cppdialect "C++20"
 	staticruntime "on"
@@ -17,10 +17,7 @@ project "Engine"
 	{
     "%{prj_src.Engine}",
     "%{prj_src.Harmony}",
-    "%{prj_src.Interface}",
-
-    "%{include_dirs.Sokol}",
-    "%{include_dirs.GLM}"
+    "%{prj_src.Interface}"
 	}
   
   links

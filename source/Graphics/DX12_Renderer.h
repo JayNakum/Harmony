@@ -106,7 +106,7 @@ namespace dx12
 
 		void initialize() override;
 		void bind(unsigned int slot = 0) const override;
-		void draw(const harmony::Drawable::DrawDescription& drawDescription) const override;
+		void draw() const override;
 		void unbind() const override;
 		void deinitialize() override;
 

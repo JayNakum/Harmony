@@ -17,6 +17,14 @@ namespace harmony
             unsigned int smpCount = 0;
         };
 
+        struct DrawDescription
+        {
+            int numElements = 0;
+            int baseElement = 0;
+            int numInstances = 1;
+            int baseInstance = 0;
+        };
+
         struct Description
         {
             const char* label = "default drawable";
@@ -25,14 +33,7 @@ namespace harmony
 
             StageBindings vs = { 0 };
             StageBindings fs = { 0 };
-        };
-
-        struct DrawDescription
-        {
-            int numElements = 0;
-            int baseElement = 0;
-            int numInstances = 1;
-            int baseInstance = 0;
+            DrawDescription drawDescription;
         };
 
         virtual ~Drawable() = default;
@@ -42,7 +43,7 @@ namespace harmony
 
         virtual void initialize() = 0;
         virtual void bind(unsigned int slot = 0) const = 0;
-        virtual void draw(const DrawDescription& drawDescription) const = 0;
+        virtual void draw() const = 0;
         virtual void unbind() const = 0;
         virtual void deinitialize() = 0;
     };

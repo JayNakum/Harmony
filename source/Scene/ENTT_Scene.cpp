@@ -51,6 +51,13 @@ namespace ENTT
 				drawableDescription.fs.samplers[0] = mDescription.visual->texture1.sampler;
 				drawableDescription.fs.smpCount = 1;
 			}
+
+
+			drawableDescription.drawDescription.baseElement = 0;
+			drawableDescription.drawDescription.numElements = mDescription.visual->mesh.numElements;
+			drawableDescription.drawDescription.baseInstance = 0;
+			drawableDescription.drawDescription.numInstances = 1;
+
 			mDrawable = harmony::createDrawable(drawableDescription);
 			mDrawable->initialize();
 		}
@@ -69,7 +76,7 @@ namespace ENTT
 		return &mEntity;
 	}
 
-	const harmony::Entity::Description& Entity::getDescription() const
+	harmony::Entity::Description& Entity::getDescription()
 	{
 		return mDescription;
 	}

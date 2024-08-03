@@ -219,9 +219,9 @@ namespace sokol
 		sg_apply_bindings(&mBind);
 	}
 	
-	void Drawable::draw(const harmony::Drawable::DrawDescription& drawDescription) const
+	void Drawable::draw() const
 	{
-		sg_draw(drawDescription.baseElement, drawDescription.numElements, drawDescription.numInstances);
+		sg_draw(mDescription.drawDescription.baseElement, mDescription.drawDescription.numElements, mDescription.drawDescription.numInstances);
 	}
 
 	void Drawable::unbind() const

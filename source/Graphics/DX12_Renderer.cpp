@@ -460,9 +460,9 @@ namespace dx12
 		gGFXCommandList->IASetVertexBuffers(slot, 1, (D3D12_VERTEX_BUFFER_VIEW*)mDescription.vertexBuffer->getID());
 	}
 
-	void Drawable::draw(const harmony::Drawable::DrawDescription& drawDescription) const
+	void Drawable::draw() const
 	{
-		gGFXCommandList->DrawInstanced(drawDescription.numElements, drawDescription.numInstances, drawDescription.baseElement, drawDescription.baseInstance);
+		gGFXCommandList->DrawInstanced(mDescription.drawDescription.numElements, mDescription.drawDescription.numInstances, mDescription.drawDescription.baseElement, mDescription.drawDescription.baseInstance);
 	}
 
 	void Drawable::unbind() const

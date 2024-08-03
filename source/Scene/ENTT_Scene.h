@@ -17,7 +17,7 @@ namespace ENTT
 		~Entity();
 
 		const void* getID() const override;
-		const harmony::Entity::Description& getDescription() const override;
+		harmony::Entity::Description& getDescription() override;
 		const harmony::Drawable* getDrawable() const override;
 		
 	private:
