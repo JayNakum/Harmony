@@ -12,6 +12,32 @@ namespace harmony
 {
 	namespace component
 	{
+		class Physics
+		{
+		public:
+			enum Shape
+			{
+				eBOX,
+				eSPHERE,
+				eCAPSULE
+			};
+
+			enum Type
+			{
+				eSTATIC,
+				eKINEMATIC,
+				eDYNAMIC
+			};
+
+			Type type;
+			Shape shape;
+			float mass = 1.0f;
+			float friction = 0.5f;
+			float restitution = 0.5f;
+			float linearDamping = 0.0f;
+			float angularDamping = 0.05f;
+		};
+
 		class Transform
 		{
 		public:

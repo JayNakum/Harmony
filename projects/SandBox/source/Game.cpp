@@ -67,7 +67,7 @@ public:
 
 		if (inputSys->actionOccured(harmony::Inputs::Action::eMOVE_LEFT, harmony::Inputs::ePRESSED))
 		{
-			mEntity->getDescription().transform->rotation[1] -= 1.0f;
+			mEntity->applyForce();
 		}
 	}
 

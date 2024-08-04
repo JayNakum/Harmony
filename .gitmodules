@@ -10,3 +10,6 @@
 [submodule "vendors/DirectX-Headers"]
 	path = vendors/DirectX-Headers
 	url = https://github.com/microsoft/DirectX-Headers.git
+[submodule "vendors/physx"]
+	path = vendors/physx
+	url = https://github.com/NVIDIA-Omniverse/PhysX.git

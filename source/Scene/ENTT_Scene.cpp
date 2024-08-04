@@ -76,7 +76,7 @@ namespace ENTT
 		return &mEntity;
 	}
 
-	harmony::Entity::Description& Entity::getDescription()
+	const harmony::Entity::Description& Entity::getDescription() const
 	{
 		return mDescription;
 	}

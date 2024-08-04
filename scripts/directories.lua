@@ -26,9 +26,11 @@ include_dirs["DirectX12"] = "%{wks.location}/../vendors/DirectX-Headers/include"
 include_dirs["Sokol"] = "%{wks.location}/../vendors/sokol"
 include_dirs["GLM"] = "%{wks.location}/../vendors/glm/glm"
 include_dirs["ENTT"] = "%{wks.location}/../vendors/entt/src/entt"
+include_dirs["PhysX"] = "%{wks.location}/../vendors/physx/physx/include"
 
 lib_dirs = {}
 lib_dirs["DirectX"] = "%{DIRECTX_SDK}/Lib"
+lib_dirs["PhysX"] = "%{wks.location}/../vendors/physx/physx/bin/win.x86_64.vc143.mt"
 
 -- OTHERS --
 -- function addLibrariesInFolder(folder)

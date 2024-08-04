@@ -27,9 +27,9 @@ namespace harmony
 
 		virtual ~Entity() = default;
 		virtual const void* getID() const = 0;
-		virtual Description& getDescription() = 0;
+		virtual const Description& getDescription() const = 0;
 
-		virtual const Drawable* getDrawable() const = 0;
+		virtual const Drawable* getDrawable() const { return nullptr; };
 
 	private:
 		virtual void initialize() = 0;
