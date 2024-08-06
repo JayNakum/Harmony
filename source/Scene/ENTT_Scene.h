@@ -19,7 +19,8 @@ namespace ENTT
 		const void* getID() const override;
 		const harmony::Entity::Description& getDescription() const override;
 		const harmony::Drawable* getDrawable() const override;
-		
+		void setTransform(const harmony::component::Transform& transform) override;
+
 	private:
 		void initialize() override;
 		void deinitialize() override;

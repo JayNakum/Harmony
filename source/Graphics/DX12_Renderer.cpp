@@ -4,9 +4,9 @@
 
 namespace dx12
 {
-	ComPtr<ID3D12Device> gDevice;
-	ComPtr<ID3D12GraphicsCommandList> gGFXCommandList;
-	ComPtr<ID3D12CommandAllocator> gCommandAllocator;
+	static ComPtr<ID3D12Device> gDevice;
+	static ComPtr<ID3D12GraphicsCommandList> gGFXCommandList;
+	static ComPtr<ID3D12CommandAllocator> gCommandAllocator;
 }
 
 static inline std::unique_ptr<char[]> hrErrorDescription(const HRESULT hResult)

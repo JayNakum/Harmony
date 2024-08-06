@@ -85,6 +85,11 @@ namespace ENTT
 		return mDrawable;
 	}
 
+	void Entity::setTransform(const harmony::component::Transform& transform)
+	{
+		mDescription.transform = transform;
+	}
+
 	Entity::~Entity()
 	{
 		HLOG_INFO("Destroyed %s", mDescription.label);

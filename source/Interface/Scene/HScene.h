@@ -23,12 +23,13 @@ namespace harmony
 			
 			std::optional<component::Transform> transform;
 			std::optional<component::Visual> visual;
+			std::optional<component::Physics> physics;
 		};
 
 		virtual ~Entity() = default;
 		virtual const void* getID() const = 0;
 		virtual const Description& getDescription() const = 0;
-
+		virtual void setTransform(const component::Transform& transform) {}
 		virtual const Drawable* getDrawable() const { return nullptr; };
 
 	private:
