@@ -43,7 +43,9 @@ namespace ENTT
 		const harmony::Scene::Description& getDescription() const override;
 
 		harmony::Entity* createEntity(const harmony::Entity::Description& description) override;
+		void addTransformComponent(const void* entityID, const harmony::component::Transform& component);
 		void addVisualComponent(const void* entityID, const harmony::component::Visual& component);
+		void addPhysicsComponent(const void* entityID, const harmony::component::Physics& component);
 
 		void initialize() override;
 		void deinitialize() override;

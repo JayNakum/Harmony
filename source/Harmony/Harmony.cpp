@@ -11,6 +11,7 @@
 #include "SG_Renderer.h"
 
 #include "ENTT_Scene.h"
+#include "PhysX_Scene.h"
 
 #include "Logger.h"
 
@@ -75,6 +76,11 @@ namespace harmony
 	harmony::Scene* createScene(const harmony::Scene::Description& description)
 	{
 		return new ENTT::Scene(description);
+	}
+
+	harmony::Scene* createPhysicsScene(const harmony::Scene::Description& description)
+	{
+		return new physx::Scene(description);
 	}
 
 	harmony::Buffer* createBuffer(const harmony::Buffer::Description& description)

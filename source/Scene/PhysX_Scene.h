@@ -2,6 +2,7 @@
 
 #include "Scene/HScene.h"
 
+#include <PxConfig.h>
 #include <PxPhysicsAPI.h>
 
 namespace physx
@@ -10,7 +11,7 @@ namespace physx
 	{
 	private:
 		friend class Scene;
-		RigidBody(const harmony::Entity::Description& description, physx::PxRigidActor* const& actor);
+		RigidBody(const harmony::Entity::Description& description);
 	public:
 		~RigidBody();
 
@@ -25,6 +26,7 @@ namespace physx
 	private:
 		harmony::Entity::Description mDescription;
 		physx::PxRigidActor* mActor;
+		physx::PxMaterial* mMaterial;
 	};
 
 	class Scene : public harmony::Scene
@@ -37,12 +39,10 @@ namespace physx
 		const harmony::Scene::Description& getDescription() const override;
 
 		harmony::Entity* createEntity(const harmony::Entity::Description& description) override;
-		void addVisualComponent(const void* entityID, const harmony::component::Visual& component);
-
+		
 		void initialize() override;
+		void update() override;
 		void deinitialize() override;
-
-		std::list<harmony::Entity*> getVisualEntities() const override;
 
 	private:
 		harmony::Scene::Description mDescription;

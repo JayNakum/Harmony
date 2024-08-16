@@ -151,17 +151,37 @@ namespace ENTT
 		Entity* entity = new Entity(description, mRegistry.create());
 		mEntities[*(entt::entity*)entity->getID()] = entity;
 
+		if (description.transform.has_value())
+		{
+			addTransformComponent(entity->getID(), description.transform.value());
+		}
 		if (description.visual.has_value())
 		{
-			addVisualComponent(entity->getID(), *description.visual);
+			addVisualComponent(entity->getID(), description.visual.value());
+		}
+		if (description.physics.has_value())
+		{
+			addPhysicsComponent(entity->getID(), description.physics.value());
 		}
 
 		return mEntities[*(entt::entity*)entity->getID()];
 	}
 
+	void Scene::addTransformComponent(const void* entityID, const harmony::component::Transform& component)
+	{
+		mRegistry.emplace<harmony::component::Transform>(*(entt::entity*)entityID, component);
+		HLOG_DEBUG("Added %s", component.label);
+	}
+
 	void Scene::addVisualComponent(const void* entityID, const harmony::component::Visual& component)
 	{
 		mRegistry.emplace<harmony::component::Visual>(*(entt::entity*)entityID, component);
+		HLOG_DEBUG("Added %s", component.label);
+	}
+
+	void Scene::addPhysicsComponent(const void* entityID, const harmony::component::Physics& component)
+	{
+		mRegistry.emplace<harmony::component::Physics>(*(entt::entity*)entityID, component);
 		HLOG_DEBUG("Added %s", component.label);
 	}
 }

@@ -29,8 +29,23 @@ namespace harmony
 				eDYNAMIC
 			};
 
-			Type type;
-			Shape shape;
+			const char* label = "default static sphere physics component";
+			Type type = Type::eSTATIC;
+
+			union
+			{
+				struct Box
+				{
+					float halfExtents[3] = { 0.0f, 0.0f, 0.0f };
+				}box;
+
+				struct Sphere
+				{
+					float radius = 0.0f;
+				}sphere;
+			};
+			Shape shape = Shape::eSPHERE;
+
 			bool gravity = true;
 			float mass = 1.0f;
 			float staticFriction = 0.5f;

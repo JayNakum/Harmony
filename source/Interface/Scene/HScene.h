@@ -55,6 +55,8 @@ namespace harmony
 		virtual void initialize() = 0;
 		virtual void deinitialize() = 0;
 
+		virtual void update(){}
+
 		virtual std::list<Entity*> getVisualEntities() const
 		{
 			return std::list<Entity*>();

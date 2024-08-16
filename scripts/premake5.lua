@@ -3,9 +3,11 @@ include "directories.lua"
 workspace "Staff"
   location "../build/"
   architecture "x64"
-  startproject "SandBox"
   configurations {"Debug", "Release"}
   flags {"MultiProcessorCompile"}
+  
+  -- startproject "SandBox"
+  startproject "BounceMania"
 
 group "Core"
   include "Engine"
@@ -18,6 +20,6 @@ group "Modules"
   include "Graphics"
   include "Scene"
 group "Projects"
-  include "../projects/SandBox"
+  -- include "../projects/SandBox"
   -- include "../projects/Editor"
-  -- include "../projects/BounceMania"
+  include "../projects/BounceMania"

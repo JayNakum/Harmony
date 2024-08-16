@@ -30,6 +30,8 @@ namespace harmony
 
 	harmony::Scene* createScene(const harmony::Scene::Description& description);
 
+	harmony::Scene* createPhysicsScene(const harmony::Scene::Description& description);
+
 	harmony::Buffer* createBuffer(const harmony::Buffer::Description& description);
 	
 	harmony::Drawable* createDrawable(const harmony::Drawable::Description& description);

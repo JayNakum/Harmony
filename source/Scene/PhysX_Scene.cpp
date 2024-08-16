@@ -81,13 +81,19 @@ namespace helper
 
 namespace physx
 {
-	static physx::PxPhysics* gPhysX;
+	static physx::PxFoundation* gPhysXFoundation = nullptr;
+	static physx::PxPhysics* gPhysX = nullptr;
+
+#ifdef _DEBUG
+	static physx::PxPvd* gPVD = nullptr;
+#endif // _DEBUG
+
 }
 
 namespace physx
 {
-	RigidBody::RigidBody(const harmony::Entity::Description& description, physx::PxRigidActor* const& actor)
-		: mDescription(description), mActor(actor)
+	RigidBody::RigidBody(const harmony::Entity::Description& description)
+		: mDescription(description), mMaterial(nullptr)
 	{}
 
 	RigidBody::~RigidBody()
@@ -132,7 +138,94 @@ namespace physx
 		}
 
 		mActor->setGlobalPose(transform);
-		? gPhysX->createMaterial(phxComponent.staticFriction, phxComponent.dynamicFriction, phxComponent.restitution);
+		mMaterial = gPhysX->createMaterial(phxComponent.staticFriction, phxComponent.dynamicFriction, phxComponent.restitution);
+
+		switch (phxComponent.shape)
+		{
+			default:
+			case harmony::component::Physics::Shape::eSPHERE:
+			{
+				// TODO: Implement sphere
+			}break;
+
+			case harmony::component::Physics::Shape::eBOX:
+			{
+				//physx::PxBounds3 bounds = mActor->getWorldBounds();
+				physx::PxBoxGeometry geometry(physx::PxVec3(phxComponent.box.halfExtents[0], phxComponent.box.halfExtents[1], phxComponent.box.halfExtents[2]));
+				physx::PxShape* shape = physx::PxRigidActorExt::createExclusiveShape((*mActor), geometry, (*mMaterial));
+				shape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, true);
+				shape->setFlag(physx::PxShapeFlag::eSCENE_QUERY_SHAPE, true);
+				shape->setLocalPose(transform);
+				mActor->attachShape(*shape);
+				shape->release();
+			}break;
+
+			case harmony::component::Physics::Shape::eCAPSULE:
+			{
+				// TODO: Implement capsule
+			}break;
+		}
+	}
+
+	void RigidBody::deinitialize()
+	{
+		mActor->release();
 	}
 }
 
+namespace physx
+{
+	Scene::Scene(const harmony::Scene::Description& description)
+		: mDescription(description), mScene(nullptr)
+	{
+#ifdef _DEBUG
+		gPVD = PxCreatePvd(*gPhysXFoundation);
+
+		PxPvdTransport* transport = PxDefaultPvdSocketTransportCreate("127.0.0.1", 5425, 100);
+		gPVD->connect(*transport, PxPvdInstrumentationFlag::eALL);
+
+#endif // _DEBUG
+		gPhysX = PxCreatePhysics(PX_PHYSICS_VERSION, *gPhysXFoundation, PxTolerancesScale(), true, gPVD);
+
+	}
+	const harmony::Scene::Description& Scene::getDescription() const
+	{
+		return mDescription;
+	}
+
+	harmony::Entity* Scene::createEntity(const harmony::Entity::Description& description)
+	{
+		return new physx::RigidBody(description);
+	}
+
+	void Scene::initialize()
+	{
+		PxSceneDesc sceneDesc(gPhysX->getTolerancesScale());
+		sceneDesc.gravity = PxVec3(0.0f, -9.81f, 0.0f);
+		sceneDesc.cpuDispatcher = PxDefaultCpuDispatcherCreate(2);
+		sceneDesc.filterShader = PxDefaultSimulationFilterShader;
+		mScene = gPhysX->createScene(sceneDesc);
+	}
+
+	void Scene::update()
+	{
+		mScene->simulate(1.0f / 60.0f);
+		mScene->fetchResults(true);
+	}
+
+	void Scene::deinitialize()
+	{
+		mScene->release();
+	}
+
+	Scene::~Scene()
+	{
+
+#ifdef _DEBUG
+		gPVD->disconnect();
+		gPVD->release();
+#endif // _DEBUG
+		gPhysX->release();
+		gPhysXFoundation->release();
+	}
+}

@@ -25,8 +25,15 @@ project "Scene"
 
   links
   {
-    "PhysXDevice64.dll",
-    "PhysXGpu_64.dll"
+    "PhysX_static_64",
+    "PhysXCommon_static_64",
+    "PhysXCooking_static_64",
+    "PhysXExtensions_static_64",
+    "PhysXFoundation_static_64",
+    "PhysXPvdSDK_static_64",
+    -- "PhysXVehicle_static_64",
+    -- "PhysXVehicle2_static_64",
+    "PVDRuntime_64"
   }
 
   filter "configurations:Debug"
@@ -36,10 +43,6 @@ project "Scene"
     {
       "%{lib_dirs.PhysX}/debug"
     }
-    links
-    {
-      "freeglutd.dll",
-    }
 
 	filter "configurations:Release"
 		runtime "Release"
@@ -47,8 +50,4 @@ project "Scene"
     libdirs 
     {
       "%{lib_dirs.PhysX}/release"
-    }
-    links
-    {
-      "freeglut.dll",
     }
