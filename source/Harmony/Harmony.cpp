@@ -15,9 +15,12 @@
 
 #include "Logger.h"
 
+#include "Helpers/HLog.h"
+
 static harmony::Window* gMainWindow = nullptr;
 static harmony::Inputs* gInputSystem = nullptr;
 static harmony::Renderer* gRenderer = nullptr;
+static bool physxInit = physx::setupPhysX();
 
 namespace harmony
 {
@@ -80,6 +83,8 @@ namespace harmony
 
 	harmony::Scene* createPhysicsScene(const harmony::Scene::Description& description)
 	{
+		HASSERT(physxInit, "Physics system not initialized.");
+
 		return new physx::Scene(description);
 	}
 

@@ -94,6 +94,26 @@ namespace physx
 #ifdef _DEBUG
 	static physx::PxPvd* gPVD = nullptr;
 #endif // _DEBUG
+
+	bool setupPhysX()
+	{
+		gPhysXFoundation = PxCreateFoundation(PX_PHYSICS_VERSION, gDefaultAllocatorCallback, gDefaultErrorCallback);
+		if (gPhysXFoundation == nullptr)
+			return false;
+		
+#ifdef _DEBUG
+		gPVD = PxCreatePvd(*gPhysXFoundation);
+		// TODO: PVD not working. Fix this!
+		PxPvdTransport* transport = PxDefaultPvdSocketTransportCreate("127.0.0.1", 2003, 100);
+		gPVD->connect(*transport, PxPvdInstrumentationFlag::eALL);
+#endif // _DEBUG
+
+		gPhysX = PxCreatePhysics(PX_PHYSICS_VERSION, *gPhysXFoundation, PxTolerancesScale(), true, gPVD);
+		if (gPhysX == nullptr)
+			return false;
+
+		return true;
+	}
 }
 
 namespace physx
@@ -205,22 +225,6 @@ namespace physx
 	Scene::Scene(const harmony::Scene::Description& description)
 		: mDescription(description), mScene(nullptr)
 	{
-		// TODO: Currently it is assumed that there will only be one physics scene. 
-		// But that should be upto harmony to handle.
-		// Hence need to move the nvidia PhysX initialization to a separate system.
-
-		gPhysXFoundation = PxCreateFoundation(PX_PHYSICS_VERSION, gDefaultAllocatorCallback, gDefaultErrorCallback);
-
-#ifdef _DEBUG
-		gPVD = PxCreatePvd(*gPhysXFoundation);
-		// TODO: PVD not working. Fix this!
-		PxPvdTransport* transport = PxDefaultPvdSocketTransportCreate("127.0.0.1", 2003, 100);
-		gPVD->connect(*transport, PxPvdInstrumentationFlag::eALL);
-#endif // _DEBUG
-
-		gPhysX = PxCreatePhysics(PX_PHYSICS_VERSION, *gPhysXFoundation, PxTolerancesScale(), true, gPVD);
-
-
 		PxSceneDesc sceneDesc(gPhysX->getTolerancesScale());
 		sceneDesc.gravity = PxVec3(0.0f, -9.81f, 0.0f);
 		sceneDesc.cpuDispatcher = PxDefaultCpuDispatcherCreate(2);

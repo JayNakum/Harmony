@@ -53,4 +53,7 @@ namespace physx
 
 		std::unordered_map<physx::PxRigidActor*, RigidBody*> mRigidBodies;
 	};
+
+	// TODO: Probably not the best way. Could implement an entire physics system class to handle this instead.
+	bool setupPhysX();
 }
