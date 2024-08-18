@@ -1,5 +1,7 @@
 #include "PhysX_Scene.h"
 
+#include "Helpers/HLog.h"
+
 #include <cmath>
 
 namespace helper
@@ -25,9 +27,10 @@ namespace helper
 		return euler;
 	}
 
-	static harmony::component::Transform toTransform(const physx::PxTransform& pxTransform)
+	static harmony::component::Transform toTransform(const physx::PxTransform& pxTransform, const char* label)
 	{
 		harmony::component::Transform transform;
+		transform.label = label;
 		physx::PxMat44 modelMatrix(pxTransform);
 
 		transform.position[0] = modelMatrix.getPosition().x;
@@ -54,6 +57,8 @@ namespace helper
 		transform.rotation[0] = euler.x * (180.0f / physx::PxPi);
 		transform.rotation[1] = euler.y * (180.0f / physx::PxPi);
 		transform.rotation[2] = euler.z * (180.0f / physx::PxPi);
+
+		return transform;
 	}
 
 	static physx::PxTransform toPxTransform(const harmony::component::Transform& transform)
@@ -81,23 +86,50 @@ namespace helper
 
 namespace physx
 {
+	static physx::PxDefaultErrorCallback gDefaultErrorCallback;
+	static physx::PxDefaultAllocator gDefaultAllocatorCallback;
 	static physx::PxFoundation* gPhysXFoundation = nullptr;
 	static physx::PxPhysics* gPhysX = nullptr;
 
 #ifdef _DEBUG
 	static physx::PxPvd* gPVD = nullptr;
 #endif // _DEBUG
-
 }
 
 namespace physx
 {
 	RigidBody::RigidBody(const harmony::Entity::Description& description)
-		: mDescription(description), mMaterial(nullptr)
-	{}
+		: mDescription(description), mActor(nullptr), mMaterial(nullptr)
+	{
+		const auto& phxComponent = mDescription.physics.value();
+
+		auto transform = helper::toPxTransform(mDescription.transform.value());
+
+		bool isKinematic = false;
+		switch (phxComponent.type)
+		{
+		default:
+			HLOG_WARNING("Invalid/missing physics actor type for $s. Assuming Type::eSTATIC.", mDescription.label);
+		case harmony::component::Physics::Type::eSTATIC:
+			mActor = gPhysX->createRigidStatic(transform);
+			break;
+		case harmony::component::Physics::Type::eKINEMATIC:
+			isKinematic = true;
+		case harmony::component::Physics::Type::eDYNAMIC:
+			physx::PxRigidDynamic* actor = gPhysX->createRigidDynamic(transform);
+			actor->setRigidBodyFlag(physx::PxRigidBodyFlag::eKINEMATIC, isKinematic);
+			actor->setActorFlag(physx::PxActorFlag::eDISABLE_GRAVITY, !phxComponent.gravity);
+			physx::PxRigidBodyExt::setMassAndUpdateInertia(*actor, phxComponent.mass);
+			mActor = actor;
+			break;
+		}
+
+		HLOG_INFO("Created %s", mDescription.label);
+	}
 
 	RigidBody::~RigidBody()
 	{
+		HLOG_INFO("Destroyed %s", mDescription.label);
 		mDescription = { 0 };
 	}
 	const void* RigidBody::getID() const
@@ -116,33 +148,19 @@ namespace physx
 
 	void RigidBody::initialize()
 	{
+		HASSERT(mDescription.physics.has_value(), "Physics component is missing for %s", mDescription.label);
+
 		const auto& phxComponent = mDescription.physics.value();
 
 		auto transform = helper::toPxTransform(mDescription.transform.value());
-		bool isKinematic = false;
-		switch (phxComponent.type)
-		{
-		default:
-		case harmony::component::Physics::Type::eSTATIC:
-			mActor = gPhysX->createRigidStatic(transform);
-			break;
-		case harmony::component::Physics::Type::eKINEMATIC:
-			isKinematic = true;
-		case harmony::component::Physics::Type::eDYNAMIC:
-			physx::PxRigidDynamic* actor = gPhysX->createRigidDynamic(transform);
-			actor->setRigidBodyFlag(physx::PxRigidBodyFlag::eKINEMATIC, isKinematic);
-			actor->setActorFlag(physx::PxActorFlag::eDISABLE_GRAVITY, !phxComponent.gravity);
-			physx::PxRigidBodyExt::setMassAndUpdateInertia(*actor, phxComponent.mass);
-			mActor = actor;
-			break;
-		}
-
+		
 		mActor->setGlobalPose(transform);
 		mMaterial = gPhysX->createMaterial(phxComponent.staticFriction, phxComponent.dynamicFriction, phxComponent.restitution);
 
 		switch (phxComponent.shape)
 		{
 			default:
+				HLOG_WARNING("Invalid/missing physics actor shape for $s. Assuming Shape::eSPHERE.", mDescription.label);
 			case harmony::component::Physics::Shape::eSPHERE:
 			{
 				// TODO: Implement sphere
@@ -165,11 +183,20 @@ namespace physx
 				// TODO: Implement capsule
 			}break;
 		}
+
+		HLOG_DEBUG("Initialized %s", mDescription.label);
+	}
+
+	void RigidBody::update()
+	{
+		mDescription.transform = helper::toTransform(mActor->getGlobalPose(), mDescription.transform->label);
+
 	}
 
 	void RigidBody::deinitialize()
 	{
 		mActor->release();
+		HLOG_DEBUG("Deinitialized %s", mDescription.label);
 	}
 }
 
@@ -178,15 +205,29 @@ namespace physx
 	Scene::Scene(const harmony::Scene::Description& description)
 		: mDescription(description), mScene(nullptr)
 	{
+		// TODO: Currently it is assumed that there will only be one physics scene. 
+		// But that should be upto harmony to handle.
+		// Hence need to move the nvidia PhysX initialization to a separate system.
+
+		gPhysXFoundation = PxCreateFoundation(PX_PHYSICS_VERSION, gDefaultAllocatorCallback, gDefaultErrorCallback);
+
 #ifdef _DEBUG
 		gPVD = PxCreatePvd(*gPhysXFoundation);
-
-		PxPvdTransport* transport = PxDefaultPvdSocketTransportCreate("127.0.0.1", 5425, 100);
+		// TODO: PVD not working. Fix this!
+		PxPvdTransport* transport = PxDefaultPvdSocketTransportCreate("127.0.0.1", 2003, 100);
 		gPVD->connect(*transport, PxPvdInstrumentationFlag::eALL);
-
 #endif // _DEBUG
+
 		gPhysX = PxCreatePhysics(PX_PHYSICS_VERSION, *gPhysXFoundation, PxTolerancesScale(), true, gPVD);
 
+
+		PxSceneDesc sceneDesc(gPhysX->getTolerancesScale());
+		sceneDesc.gravity = PxVec3(0.0f, -9.81f, 0.0f);
+		sceneDesc.cpuDispatcher = PxDefaultCpuDispatcherCreate(2);
+		sceneDesc.filterShader = PxDefaultSimulationFilterShader;
+		mScene = gPhysX->createScene(sceneDesc);
+
+		HLOG_INFO("Created %s", mDescription.label);
 	}
 	const harmony::Scene::Description& Scene::getDescription() const
 	{
@@ -195,27 +236,38 @@ namespace physx
 
 	harmony::Entity* Scene::createEntity(const harmony::Entity::Description& description)
 	{
-		return new physx::RigidBody(description);
+		auto newBody = new physx::RigidBody(description);
+		mRigidBodies[(physx::PxRigidActor*)newBody->getID()] = newBody;
+		mScene->addActor(*(physx::PxActor*)newBody->getID());
+		return mRigidBodies[(physx::PxRigidActor*)newBody->getID()];
 	}
 
 	void Scene::initialize()
 	{
-		PxSceneDesc sceneDesc(gPhysX->getTolerancesScale());
-		sceneDesc.gravity = PxVec3(0.0f, -9.81f, 0.0f);
-		sceneDesc.cpuDispatcher = PxDefaultCpuDispatcherCreate(2);
-		sceneDesc.filterShader = PxDefaultSimulationFilterShader;
-		mScene = gPhysX->createScene(sceneDesc);
+
+		for (auto& entity : mRigidBodies)
+			entity.second->initialize();
+
+		HLOG_DEBUG("Initialized %s", mDescription.label);
 	}
 
 	void Scene::update()
 	{
 		mScene->simulate(1.0f / 60.0f);
 		mScene->fetchResults(true);
+
+		for (auto& entity : mRigidBodies)
+			entity.second->update();
 	}
 
 	void Scene::deinitialize()
 	{
+		for (auto& entity : mRigidBodies)
+			entity.second->deinitialize();
+
 		mScene->release();
+
+		HLOG_DEBUG("Deinitialized %s", mDescription.label);
 	}
 
 	Scene::~Scene()
@@ -227,5 +279,9 @@ namespace physx
 #endif // _DEBUG
 		gPhysX->release();
 		gPhysXFoundation->release();
+
+		HLOG_INFO("Destroyed %s", mDescription.label);
+
+		mDescription = { 0 };
 	}
 }

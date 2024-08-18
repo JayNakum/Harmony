@@ -5,6 +5,8 @@
 #include <PxConfig.h>
 #include <PxPhysicsAPI.h>
 
+#include <unordered_map>
+
 namespace physx
 {
 	class RigidBody : public harmony::Entity
@@ -21,6 +23,7 @@ namespace physx
 
 	private:
 		void initialize() override;
+		void update();
 		void deinitialize() override;
 
 	private:
@@ -47,5 +50,7 @@ namespace physx
 	private:
 		harmony::Scene::Description mDescription;
 		physx::PxScene* mScene;
+
+		std::unordered_map<physx::PxRigidActor*, RigidBody*> mRigidBodies;
 	};
 }
