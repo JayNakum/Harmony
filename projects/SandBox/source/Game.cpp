@@ -14,11 +14,12 @@
 class Entity
 {
 public:
-	Entity(harmony::Scene* const& scene)
+	Entity(harmony::Scene* const& gameScene, harmony::Scene* const& physicsScene)
 	{
 		harmony::Entity::Description createDesc;
 		harmony::component::Visual visual;
 		harmony::component::Transform transform;
+		harmony::component::Physics physics;
 		createDesc.label = "entity";
 
 		// Visual setup
@@ -29,7 +30,7 @@ public:
 			visual.mesh.verticesStride = sizeof(float) * 9;
 			visual.mesh.numElements = 36;
 			visual.mesh.indices = indices;
-			visual.mesh.indicesSize = sizeof(indices);		
+			visual.mesh.indicesSize = sizeof(indices);
 
 			harmony::Image::Description imageDescription;
 			imageDescription.width = 4;
@@ -57,22 +58,29 @@ public:
 		}
 		createDesc.transform = transform;
 
+		// Physics setup
+		{
+			physics.label = "physics component";
+			physics.shape = harmony::component::Physics::Shape::eBOX;
+			physics.box.halfExtents[0] = 0.5f;
+			physics.box.halfExtents[1] = 0.5f;
+			physics.box.halfExtents[2] = 0.5f;
+			physics.type = harmony::component::Physics::Type::eDYNAMIC;
+		}
+		createDesc.physics = physics;
 
-		mEntity = scene->createEntity(createDesc);
+		mEntity = gameScene->createEntity(createDesc);
+		mPhysXEntity = physicsScene->createEntity(createDesc);
 	}
 
 	void update()
 	{
-		auto inputSys = harmony::getInputSystem();
-
-		if (inputSys->actionOccured(harmony::Inputs::Action::eMOVE_LEFT, harmony::Inputs::ePRESSED))
-		{
-			mEntity->applyForce();
-		}
+		mEntity->setTransform(mPhysXEntity->getDescription().transform.value());
 	}
 
 private:
-	harmony::Entity* mEntity;
+	harmony::Entity* mEntity = nullptr;
+	harmony::Entity* mPhysXEntity = nullptr;
 
 private:
 	float vertices[216] = {
@@ -108,18 +116,18 @@ private:
 		 1.0f,  1.0f, -1.0f,    1.0f, 0.0f, 0.5f, 1.0f,     0.0f, 1.0f
 	};
 	uint16_t indices[36] = {
-			0, 1, 2,  0, 2, 3,
-			6, 5, 4,  7, 6, 4,
-			8, 9, 10,  8, 10, 11,
-			14, 13, 12,  15, 14, 12,
-			16, 17, 18,  16, 18, 19,
-			22, 21, 20, 23, 22, 20
+		0, 1, 2,  0, 2, 3,
+		6, 5, 4,  7, 6, 4,
+		8, 9, 10,  8, 10, 11,
+		14, 13, 12,  15, 14, 12,
+		16, 17, 18,  16, 18, 19,
+		22, 21, 20, 23, 22, 20
 	};
 	uint32_t pixels[4 * 4] = {
-			0xFFFFFFFF, 0x00000000, 0xFFFFFFFF, 0x00000000,
-			0x00000000, 0xFFFFFFFF, 0x00000000, 0xFFFFFFFF,
-			0xFFFFFFFF, 0x00000000, 0xFFFFFFFF, 0x00000000,
-			0x00000000, 0xFFFFFFFF, 0x00000000, 0xFFFFFFFF,
+		0xFFFFFFFF, 0x00000000, 0xFFFFFFFF, 0x00000000,
+		0x00000000, 0xFFFFFFFF, 0x00000000, 0xFFFFFFFF,
+		0xFFFFFFFF, 0x00000000, 0xFFFFFFFF, 0x00000000,
+		0x00000000, 0xFFFFFFFF, 0x00000000, 0xFFFFFFFF,
 	};
 };
 
@@ -137,11 +145,12 @@ public:
 	void initialize()
 	{
 		engine->initialize();
-		
+
 		setupScene();
 
 		// Init sequence
 		gameScene->initialize();
+		physicsScene->initialize();
 		pipeline->initialize();
 		pass->initialize();
 	}
@@ -149,6 +158,7 @@ public:
 	void update()
 	{
 		engine->update();
+		physicsScene->update();
 		cube->update();
 	}
 
@@ -196,12 +206,13 @@ public:
 		engine->deinitialize();
 
 		gameScene->deinitialize();
+		physicsScene->deinitialize();
 		pipeline->deinitialize();
 		pass->deinitialize();
 
 		delete cube;
 		delete gameScene;
-		
+
 		delete pipeline;
 		delete pass;
 
@@ -214,8 +225,9 @@ private:
 		harmony::Scene::Description sceneDescription;
 		sceneDescription.label = "Game Scene";
 		gameScene = harmony::createScene(sceneDescription);
+		physicsScene = harmony::createPhysicsScene(sceneDescription);
 
-		cube = new Entity(gameScene);
+		cube = new Entity(gameScene, physicsScene);
 
 		harmony::Shader::Description vShaderDescription;
 		{
@@ -303,6 +315,8 @@ private:
 	harmony::Engine* engine;
 
 	harmony::Scene* gameScene = nullptr;
+	harmony::Scene* physicsScene = nullptr;
+
 	Entity* cube = nullptr;
 
 	harmony::Pipeline* pipeline = nullptr;
