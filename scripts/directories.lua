@@ -27,10 +27,12 @@ include_dirs["Sokol"] = "%{wks.location}/../vendors/sokol"
 include_dirs["GLM"] = "%{wks.location}/../vendors/glm/glm"
 include_dirs["ENTT"] = "%{wks.location}/../vendors/entt/src/entt"
 include_dirs["PhysX"] = "%{wks.location}/../vendors/physx/physx/include"
+include_dirs["Box2D"] = "%{wks.location}/../vendors/box2d/include"
 
 lib_dirs = {}
 lib_dirs["DirectX"] = "%{DIRECTX_SDK}/Lib"
 lib_dirs["PhysX"] = "%{wks.location}/../vendors/physx/physx/bin/win.x86_64.vc143.mt"
+lib_dirs["Box2D"] = "%{wks.location}/../vendors/box2d/build/src"
 
 -- OTHERS --
 -- function addLibrariesInFolder(folder)

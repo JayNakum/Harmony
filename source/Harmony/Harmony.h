@@ -36,6 +36,7 @@ namespace harmony
 	
 	harmony::Drawable* createDrawable(const harmony::Drawable::Description& description);
 	
+	harmony::Image::Description getImageDescription(const char* imagePath);
 	harmony::Image* createImage(const harmony::Image::Description& description);
 	harmony::Sampler* createSampler(const harmony::Sampler::Description& description);
 

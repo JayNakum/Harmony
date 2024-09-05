@@ -20,7 +20,8 @@ project "Scene"
     "%{prj_src.Harmony}",
 
     "%{include_dirs.ENTT}",
-    "%{include_dirs.PhysX}"
+    "%{include_dirs.PhysX}",
+    "%{include_dirs.Box2D}"
 	}
 
   links
@@ -33,7 +34,9 @@ project "Scene"
     "PhysXPvdSDK_static_64",
     -- "PhysXVehicle_static_64",
     -- "PhysXVehicle2_static_64",
-    "PVDRuntime_64"
+    "PVDRuntime_64",
+    
+    "box2d"
   }
 
   filter "configurations:Debug"
@@ -41,7 +44,8 @@ project "Scene"
 		symbols "On"
     libdirs 
     {
-      "%{lib_dirs.PhysX}/debug"
+      "%{lib_dirs.PhysX}/debug",
+      "%{lib_dirs.Box2D}/Debug"
     }
 
 	filter "configurations:Release"
@@ -49,5 +53,6 @@ project "Scene"
 		optimize "On"
     libdirs 
     {
-      "%{lib_dirs.PhysX}/release"
+      "%{lib_dirs.PhysX}/release",
+      "%{lib_dirs.Box2D}/Release"
     }
