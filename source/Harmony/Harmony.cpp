@@ -11,12 +11,16 @@
 #include "SG_Renderer.h"
 
 #include "ENTT_Scene.h"
+#include "PhysX_Scene.h"
 
 #include "Logger.h"
+
+#include "Helpers/HLog.h"
 
 static harmony::Window* gMainWindow = nullptr;
 static harmony::Inputs* gInputSystem = nullptr;
 static harmony::Renderer* gRenderer = nullptr;
+static bool physxInit = physx::setupPhysX();
 
 namespace harmony
 {
@@ -77,10 +81,23 @@ namespace harmony
 		return new ENTT::Scene(description);
 	}
 
+	harmony::Scene* createPhysicsScene(const harmony::Scene::Description& description)
+	{
+		HASSERT(physxInit, "Physics system not initialized.");
+
+		return new physx::Scene(description);
+	}
+
 	harmony::Buffer* createBuffer(const harmony::Buffer::Description& description)
 	{
 		return new sokol::Buffer(description);
 	}
+	
+	harmony::Drawable* createDrawable(const harmony::Drawable::Description& description)
+	{
+		return new sokol::Drawable(description);
+	}
+	
 	harmony::Image* createImage(const harmony::Image::Description& description)
 	{
 		return new sokol::Image(description);
@@ -88,10 +105,6 @@ namespace harmony
 	harmony::Sampler* createSampler(const harmony::Sampler::Description& description)
 	{
 		return new sokol::Sampler(description);
-	}
-	harmony::Drawable* createDrawable(const harmony::Drawable::Description& description)
-	{
-		return new sokol::Drawable(description);
 	}
 	harmony::Shader* createShader(const harmony::Shader::Description& description)
 	{
@@ -105,4 +118,5 @@ namespace harmony
 	{
 		return new sokol::RenderPass(description);
 	}
+	
 }

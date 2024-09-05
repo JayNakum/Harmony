@@ -15,28 +15,29 @@ namespace harmony
 
         enum VertexFormat
         {
-            eFLOAT,
-            eFLOAT2,
-            eFLOAT3,
-            eFLOAT4,
-            eBYTE4,
-            eBYTE4N,
-            eUBYTE4,
-            eUBYTE4N,
-            eSHORT2,
-            eSHORT2N,
-            eUSHORT2N,
-            eSHORT4,
-            eSHORT4N,
-            eUSHORT4N,
-            eUINT10_N2,
-            eHALF2,
-            eHALF4
+            eFLOAT,     // 4 bytes
+            eFLOAT2,    // 8 bytes
+            eFLOAT3,    // 12 bytes
+            eFLOAT4,    // 16 bytes
+            eBYTE4,     // 4 bytes
+            eBYTE4N,    // 4 bytes
+            eUBYTE4,    // 4 bytes
+            eUBYTE4N,   // 4 bytes
+            eSHORT2,    // 4 bytes
+            eSHORT2N,   // 4 bytes
+            eUSHORT2N,  // 4 bytes
+            eSHORT4,    // 8 bytes
+            eSHORT4N,   // 8 bytes
+            eUSHORT4N,  // 8 bytes
+            eUINT10_N2, // 4 bytes
+            eHALF2,     // 4 bytes
+            eHALF4      // 8 bytes
         };
-
         struct VertexAttribute
         {
             VertexFormat format;
+			const char* name;
+			int index = -1;
         };
 
         struct VertexLayout
@@ -77,7 +78,10 @@ namespace harmony
         struct Description
         {
             const char* label           = "default pipeline";
-            Shader* shaderProgram;
+            
+            Shader* vertexShader        = nullptr;
+            Shader* fragmentShader      = nullptr;
+
             VertexLayout layout;
             PrimitiveType primitiveType = PrimitiveType::eTRIANGLES;
             CullMode cullMode           = CullMode::eNONE;

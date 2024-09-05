@@ -24,19 +24,22 @@ namespace ENTT
 				vBufferDescription.type = harmony::Buffer::Type::eVERTEX_BUFFER;
 				vBufferDescription.data = mDescription.visual->mesh.vertices;
 				vBufferDescription.size = mDescription.visual->mesh.verticesSize;
+				vBufferDescription.stride = mDescription.visual->mesh.verticesStride;
 			}
 			auto vertexBuffer = harmony::createBuffer(vBufferDescription);
 			vertexBuffer->initialize();
 
-			harmony::Buffer::Description iBufferDescription;
+			harmony::Buffer* indexBuffer = nullptr;
+			if(mDescription.visual->mesh.indicesSize)
 			{
+				harmony::Buffer::Description iBufferDescription;
 				iBufferDescription.label = mDescription.label;
 				iBufferDescription.type = harmony::Buffer::Type::eINDEX_BUFFER;
 				iBufferDescription.data = mDescription.visual->mesh.indices;
 				iBufferDescription.size = mDescription.visual->mesh.indicesSize;
+				indexBuffer = harmony::createBuffer(iBufferDescription);
+				indexBuffer->initialize();
 			}
-			auto indexBuffer = harmony::createBuffer(iBufferDescription);
-			indexBuffer->initialize();
 
 			harmony::Drawable::Description drawableDescription;
 			{
@@ -48,6 +51,13 @@ namespace ENTT
 				drawableDescription.fs.samplers[0] = mDescription.visual->texture1.sampler;
 				drawableDescription.fs.smpCount = 1;
 			}
+
+
+			drawableDescription.drawDescription.baseElement = 0;
+			drawableDescription.drawDescription.numElements = mDescription.visual->mesh.numElements;
+			drawableDescription.drawDescription.baseInstance = 0;
+			drawableDescription.drawDescription.numInstances = 1;
+
 			mDrawable = harmony::createDrawable(drawableDescription);
 			mDrawable->initialize();
 		}
@@ -73,6 +83,11 @@ namespace ENTT
 	const harmony::Drawable* Entity::getDrawable() const
 	{
 		return mDrawable;
+	}
+
+	void Entity::setTransform(const harmony::component::Transform& transform)
+	{
+		mDescription.transform = transform;
 	}
 
 	Entity::~Entity()
@@ -136,17 +151,37 @@ namespace ENTT
 		Entity* entity = new Entity(description, mRegistry.create());
 		mEntities[*(entt::entity*)entity->getID()] = entity;
 
+		if (description.transform.has_value())
+		{
+			addTransformComponent(entity->getID(), description.transform.value());
+		}
 		if (description.visual.has_value())
 		{
-			addVisualComponent(entity->getID(), *description.visual);
+			addVisualComponent(entity->getID(), description.visual.value());
+		}
+		if (description.physics.has_value())
+		{
+			addPhysicsComponent(entity->getID(), description.physics.value());
 		}
 
 		return mEntities[*(entt::entity*)entity->getID()];
 	}
 
+	void Scene::addTransformComponent(const void* entityID, const harmony::component::Transform& component)
+	{
+		mRegistry.emplace<harmony::component::Transform>(*(entt::entity*)entityID, component);
+		HLOG_DEBUG("Added %s", component.label);
+	}
+
 	void Scene::addVisualComponent(const void* entityID, const harmony::component::Visual& component)
 	{
 		mRegistry.emplace<harmony::component::Visual>(*(entt::entity*)entityID, component);
+		HLOG_DEBUG("Added %s", component.label);
+	}
+
+	void Scene::addPhysicsComponent(const void* entityID, const harmony::component::Physics& component)
+	{
+		mRegistry.emplace<harmony::component::Physics>(*(entt::entity*)entityID, component);
 		HLOG_DEBUG("Added %s", component.label);
 	}
 }

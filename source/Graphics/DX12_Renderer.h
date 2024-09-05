@@ -21,6 +21,8 @@
 #endif
 #include <windows.h>
 
+#include <unordered_map>
+
 using namespace Microsoft::WRL;
 
 namespace dx12
@@ -51,22 +53,20 @@ namespace dx12
 		harmony::Renderer::Description mDescription;
 		UINT mFrameIndex = 0;
 	private:
-		ComPtr<ID3D12Device> mDevice;
+		
 		ComPtr<ID3D12CommandQueue> mCommandQueue;
 		ComPtr<IDXGISwapChain3> mSwapChain;
 		UINT mRTVDescriptorSize = 0;
 		ComPtr<ID3D12DescriptorHeap> mRTVHeap;
 		ComPtr<ID3D12Resource> mRenderTargets[mFrameCount];
-		ComPtr<ID3D12CommandAllocator> mCommandAllocator;
-		ComPtr<ID3D12GraphicsCommandList> mCommandList;
+		
+		
 		ComPtr<ID3D12Fence> mFence;
 		UINT64 mFenceValue = 0;
 		HANDLE mFenceEvent = nullptr;
-		ComPtr<ID3D12PipelineState> mPipelineState;
 
 		CD3DX12_VIEWPORT mViewport;
 		CD3DX12_RECT mScissorRect;
-		ComPtr<ID3D12RootSignature> mRootSignature;
 
 	};
 }
@@ -90,5 +90,94 @@ namespace dx12
 
 		ComPtr<ID3D12Resource> mBuffer;
 		D3D12_VERTEX_BUFFER_VIEW mBufferView;
+	};
+}
+
+namespace dx12
+{
+	class Drawable : public harmony::Drawable
+	{
+	public:
+		Drawable(const harmony::Drawable::Description& description);
+		~Drawable();
+
+	public:
+		const harmony::Drawable::Description& getDescription() const override;
+
+		void initialize() override;
+		void bind(unsigned int slot = 0) const override;
+		void draw() const override;
+		void unbind() const override;
+		void deinitialize() override;
+
+	private:
+		harmony::Drawable::Description mDescription;
+	};
+}
+
+namespace dx12
+{
+	class Shader : public harmony::Shader
+	{
+	public:
+		Shader(const harmony::Shader::Description& description);
+		~Shader();
+	public:
+		const harmony::Shader::Description& getDescription() const override;
+		const void* getID() const override;
+		void initialize() override;
+		void deinitialize() override;
+
+	private:
+		harmony::Shader::Description mDescription;
+		ComPtr<ID3DBlob> mShader;
+	};
+}
+
+namespace dx12
+{
+	class Pipeline : public harmony::Pipeline
+	{
+	public:
+		Pipeline(const harmony::Pipeline::Description& description);
+		~Pipeline();
+
+	public:
+		const void* getID() const override;
+		const harmony::Pipeline::Description& getDescription() const override;
+		void initialize() override;
+		void bind() const override;
+		void applyConstants(unsigned int constantBlockIndex, const void* data, size_t size, const harmony::Pipeline::ShaderStageType type = harmony::Pipeline::ShaderStageType::eVERTEX_SHADER) const override;
+		void unbind() const override;
+		void deinitialize() override;
+
+	private:
+		harmony::Pipeline::Description mDescription;
+		ComPtr<ID3D12PipelineState> mPipelineState;
+		ComPtr<ID3D12RootSignature> mRootSignature;
+
+	private:
+		static const std::unordered_map<harmony::Pipeline::VertexFormat, DXGI_FORMAT> sVERTEX_FORMAT;
+	};
+}
+
+namespace dx12
+{
+	class RenderPass : public harmony::RenderPass
+	{
+	public:
+		RenderPass(const harmony::RenderPass::Description& description);
+		~RenderPass();
+
+	public:
+		const void* getID() const override;
+		const harmony::RenderPass::Description& getDescription() const override;
+		void initialize() override;
+		void begin() override;
+		void end() const override;
+		void deinitialize() override;
+
+	private:
+		harmony::RenderPass::Description mDescription;
 	};
 }

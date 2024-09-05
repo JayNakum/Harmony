@@ -25,12 +25,15 @@ project "Harmony"
 
     "%{include_dirs.DirectX12}",
     "%{include_dirs.Sokol}",
-    "%{include_dirs.ENTT}"
+    "%{include_dirs.ENTT}",
+    "%{include_dirs.PhysX}",
+    "%{include_dirs.Box2D}"
 	}
   
   links
   {
     -- Links to every project except application
+    -- "Engine", -- TODO: Make harmony the ultimate config manager
     "Window",
     "Inputs",
     "Logger",

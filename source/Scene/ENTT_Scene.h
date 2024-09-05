@@ -19,6 +19,7 @@ namespace ENTT
 		const void* getID() const override;
 		const harmony::Entity::Description& getDescription() const override;
 		const harmony::Drawable* getDrawable() const override;
+		void setTransform(const harmony::component::Transform& transform) override;
 
 	private:
 		void initialize() override;
@@ -29,6 +30,7 @@ namespace ENTT
 		entt::entity mEntity;
 
 		harmony::Drawable* mDrawable;
+
 	};
 
 	class Scene : public harmony::Scene
@@ -41,7 +43,9 @@ namespace ENTT
 		const harmony::Scene::Description& getDescription() const override;
 
 		harmony::Entity* createEntity(const harmony::Entity::Description& description) override;
+		void addTransformComponent(const void* entityID, const harmony::component::Transform& component);
 		void addVisualComponent(const void* entityID, const harmony::component::Visual& component);
+		void addPhysicsComponent(const void* entityID, const harmony::component::Physics& component);
 
 		void initialize() override;
 		void deinitialize() override;

@@ -12,14 +12,58 @@ namespace harmony
 {
 	namespace component
 	{
+		class Physics
+		{
+		public:
+			enum Shape
+			{
+				eBOX,
+				eSPHERE,
+				eCAPSULE
+			};
+
+			enum Type
+			{
+				eSTATIC,
+				eKINEMATIC,
+				eDYNAMIC
+			};
+
+			union
+			{
+				struct Box
+				{
+					float halfExtents[3] = { 0.0f, 0.0f, 0.0f };
+				}box = {};
+
+				struct Sphere
+				{
+					float radius = 0.0f;
+				}sphere;
+			};
+			
+			const char* label = "default static sphere physics component";
+			Type type = Type::eSTATIC;
+
+			Shape shape = Shape::eSPHERE;
+
+			bool gravity = true;
+			float mass = 1.0f;
+			float staticFriction = 0.5f;
+			float dynamicFriction = 0.5f;
+			float restitution = 0.5f;
+			float linearDamping = 0.0f;
+			float angularDamping = 0.05f;
+		};
+
 		class Transform
 		{
 		public:
 			const char* label = "default empty transform component";
 
-			float scale[3];
-			float rotation[3];
-			float position[3];
+			float scale[3] = { 1.0f, 1.0f, 1.0f };
+			float rotation[3] = { 0.0f, 0.0f, 0.0f };
+			float position[3] = { 0.0f, 0.0f, 0.0f };
 		};
 
 		class Visual
@@ -34,15 +78,12 @@ namespace harmony
 				Sampler* sampler = nullptr;
 			};
 
-			struct Material
-			{
-				Texture textures[1] = { nullptr };
-			};
-
 			struct Mesh
 			{
 				const float* vertices = nullptr;
 				size_t verticesSize = 0;
+				size_t verticesStride = 0;
+				unsigned int numElements = 0;
 
 				const uint16_t* indices = nullptr;
 				size_t indicesSize = 0;

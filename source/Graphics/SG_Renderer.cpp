@@ -157,7 +157,7 @@ namespace sokol
 	sokol::Drawable::Drawable(const harmony::Drawable::Description& description)
 		: mDescription(description), mBind{ 0 } {}
 
-	const harmony::Drawable::Description& sokol::Drawable::getDescription() const
+	const harmony::Drawable::Description& Drawable::getDescription() const
 	{
 		return mDescription;
 	}
@@ -214,14 +214,14 @@ namespace sokol
 		}
 	}
 	
-	void Drawable::bind() const
+	void Drawable::bind(unsigned int slot) const
 	{
 		sg_apply_bindings(&mBind);
 	}
 	
-	void Drawable::draw(int baseElement, int numElements, int numInstances) const
+	void Drawable::draw() const
 	{
-		sg_draw(baseElement, numElements, numInstances);
+		sg_draw(mDescription.drawDescription.baseElement, mDescription.drawDescription.numElements, mDescription.drawDescription.numInstances);
 	}
 
 	void Drawable::unbind() const
@@ -290,11 +290,11 @@ namespace sokol
 namespace sokol
 {
 	sokol::Shader::Shader(const harmony::Shader::Description& description)
-		: mDescription(description), mShader{0} {}
+		: mDescription(description) {}
 
 	const void* sokol::Shader::getID() const
 	{
-		return &mShader;
+		return nullptr;
 	}
 
 	const harmony::Shader::Description& Shader::getDescription() const
@@ -302,75 +302,17 @@ namespace sokol
 		return mDescription;
 	}
 
-	void Shader::initialize()
-	{
-		sg_shader_desc createDesc = { 0 };
+	void Shader::initialize() {}
 
-		createDesc.label = mDescription.label;
+	void Shader::deinitialize() {}
 
-		for (unsigned int i = 0; i < mDescription.attributesCount; ++i)
-		{
-			createDesc.attrs[i].sem_name = mDescription.attrs[i].name;
-			if (mDescription.attrs[i].index >= 0)
-				createDesc.attrs[i].sem_index = mDescription.attrs[i].index;
-		}
-
-		createDesc.vs.source = mDescription.vs.source;
-		for (unsigned int i = 0; i < mDescription.vs.constantBlocksCount; ++i)
-		{
-			createDesc.vs.uniform_blocks[i].size = mDescription.vs.constantBlocks[i].size;
-			for (unsigned int j = 0; j < mDescription.vs.constantBlocks[i].constantCount; ++j)
-			{
-				createDesc.vs.uniform_blocks[i].uniforms[j].name = mDescription.vs.constantBlocks[i].constants[j].name;
-				createDesc.vs.uniform_blocks[i].uniforms[j].type = sCONSTANT_TYPE.at(mDescription.vs.constantBlocks[i].constants[j].type);
-			}
-		}
-		for (unsigned int i = 0; i < mDescription.vs.texturesCount; ++i)
-		{
-			createDesc.vs.images[i].used = mDescription.vs.textures[i].used;
-			createDesc.vs.samplers[i].used = mDescription.vs.textures[i].used;
-			createDesc.vs.image_sampler_pairs[i].used = mDescription.vs.textures[i].used;
-			createDesc.vs.image_sampler_pairs[i].image_slot = mDescription.vs.textures[i].imageSlot;
-			createDesc.vs.image_sampler_pairs[i].sampler_slot = mDescription.vs.textures[i].samplerSlot;
-		}
-
-		createDesc.fs.source = mDescription.fs.source;
-		for (unsigned int i = 0; i < mDescription.fs.constantBlocksCount; ++i)
-		{
-			createDesc.fs.uniform_blocks[i].size = mDescription.fs.constantBlocks[i].size;
-			for (unsigned int j = 0; j < mDescription.fs.constantBlocks[i].constantCount; ++j)
-			{
-				createDesc.fs.uniform_blocks[i].uniforms[j].name = mDescription.fs.constantBlocks[i].constants[j].name;
-				createDesc.fs.uniform_blocks[i].uniforms[j].type = sCONSTANT_TYPE.at(mDescription.fs.constantBlocks[i].constants[j].type);
-			}
-		}
-		for (unsigned int i = 0; i < mDescription.fs.texturesCount; ++i)
-		{
-			createDesc.fs.images[i].used = mDescription.fs.textures[i].used;
-			createDesc.fs.samplers[i].used = mDescription.fs.textures[i].used;
-			createDesc.fs.image_sampler_pairs[i].used = mDescription.fs.textures[i].used;
-			createDesc.fs.image_sampler_pairs[i].image_slot = mDescription.fs.textures[i].imageSlot;
-			createDesc.fs.image_sampler_pairs[i].sampler_slot = mDescription.fs.textures[i].samplerSlot;
-		}
-
-		mShader = sg_make_shader(createDesc);
-	}
-
-	void Shader::deinitialize()
-	{
-		sg_dealloc_shader(mShader);
-	}
-
-	Shader::~Shader()
-	{
-		sg_destroy_shader(mShader);
-	}
+	Shader::~Shader() {}
 }
 
 namespace sokol
 {
 	Pipeline::Pipeline(const harmony::Pipeline::Description& description)
-		: mDescription(description), mPipeline{0} {}
+		: mDescription(description), mPipeline{ 0 }, mShaderProgram{ 0 } {}
 
 	const void* Pipeline::getID() const
 	{
@@ -394,8 +336,69 @@ namespace sokol
 
 		createDesc.index_type = sINDEX_TYPE.at(mDescription.indexType);
 
-		mDescription.shaderProgram->initialize();
-		createDesc.shader = *((sg_shader*)mDescription.shaderProgram->getID());
+		// sokol shader program init
+		{
+			sg_shader_desc createDesc = { 0 };
+
+			createDesc.label = mDescription.label;
+
+			for (unsigned int i = 0; i < mDescription.layout.attributesCount; ++i)
+			{
+				createDesc.attrs[i].sem_name = mDescription.layout.attributes[i].name;
+				if (mDescription.layout.attributes[i].index >= 0)
+				{
+					createDesc.attrs[i].sem_index = mDescription.layout.attributes[i].index;
+				}
+			}
+
+			{
+				const auto& vs = mDescription.vertexShader->getDescription();
+				createDesc.vs.source = vs.source;
+				for (unsigned int i = 0; i < vs.constantBlocksCount; ++i)
+				{
+					createDesc.vs.uniform_blocks[i].size = vs.constantBlocks[i].size;
+					for (unsigned int j = 0; j < vs.constantBlocks[i].constantCount; ++j)
+					{
+						createDesc.vs.uniform_blocks[i].uniforms[j].name = vs.constantBlocks[i].constants[j].name;
+						createDesc.vs.uniform_blocks[i].uniforms[j].type = sCONSTANT_TYPE.at(vs.constantBlocks[i].constants[j].type);
+					}
+				}
+				for (unsigned int i = 0; i < vs.texturesCount; ++i)
+				{
+					createDesc.vs.images[i].used = vs.textures[i].used;
+					createDesc.vs.samplers[i].used = vs.textures[i].used;
+					createDesc.vs.image_sampler_pairs[i].used = vs.textures[i].used;
+					createDesc.vs.image_sampler_pairs[i].image_slot = vs.textures[i].imageSlot;
+					createDesc.vs.image_sampler_pairs[i].sampler_slot = vs.textures[i].samplerSlot;
+				}
+			}
+
+			{
+				const auto& fs = mDescription.fragmentShader->getDescription();
+				createDesc.fs.source = fs.source;
+				for (unsigned int i = 0; i < fs.constantBlocksCount; ++i)
+				{
+					createDesc.fs.uniform_blocks[i].size = fs.constantBlocks[i].size;
+					for (unsigned int j = 0; j < fs.constantBlocks[i].constantCount; ++j)
+					{
+						createDesc.fs.uniform_blocks[i].uniforms[j].name = fs.constantBlocks[i].constants[j].name;
+						createDesc.fs.uniform_blocks[i].uniforms[j].type = sCONSTANT_TYPE.at(fs.constantBlocks[i].constants[j].type);
+					}
+				}
+				for (unsigned int i = 0; i < fs.texturesCount; ++i)
+				{
+					createDesc.fs.images[i].used = fs.textures[i].used;
+					createDesc.fs.samplers[i].used = fs.textures[i].used;
+					createDesc.fs.image_sampler_pairs[i].used = fs.textures[i].used;
+					createDesc.fs.image_sampler_pairs[i].image_slot = fs.textures[i].imageSlot;
+					createDesc.fs.image_sampler_pairs[i].sampler_slot = fs.textures[i].samplerSlot;
+				}
+			}
+
+			mShaderProgram = sg_make_shader(createDesc);
+		}
+
+		createDesc.shader = mShaderProgram;
 
 		createDesc.primitive_type = sPRIMITIVE_TYPE.at(mDescription.primitiveType);
 		createDesc.cull_mode = sCULL_MODE.at(mDescription.cullMode);
@@ -422,20 +425,20 @@ namespace sokol
 
 	void Pipeline::unbind() const
 	{
-		sg_pipeline unbind = { 0 };
-		sg_apply_pipeline(unbind);
+		sg_pipeline unbindDesc = { 0 };
+		sg_apply_pipeline(unbindDesc);
 	}
 
 	void Pipeline::deinitialize()
 	{
-		mDescription.shaderProgram->deinitialize();
 		sg_dealloc_pipeline(mPipeline);
+		sg_dealloc_shader(mShaderProgram);
 	}
 
 	Pipeline::~Pipeline()
 	{
 		sg_destroy_pipeline(mPipeline);
-		delete mDescription.shaderProgram;
+		sg_destroy_shader(mShaderProgram);
 		mDescription = { 0 };
 	}
 }
@@ -503,7 +506,7 @@ namespace sokol
 			{ harmony::Buffer::Usage::eSTREAM, sg_usage::SG_USAGE_STREAM }
 	};
 
-	const std::unordered_map<harmony::Shader::ConstantType, sg_uniform_type> Shader::sCONSTANT_TYPE = {
+	const std::unordered_map<harmony::Shader::ConstantType, sg_uniform_type> Pipeline::sCONSTANT_TYPE = {
 		{ harmony::Shader::ConstantType::eFLOAT, sg_uniform_type::SG_UNIFORMTYPE_FLOAT },
 		{ harmony::Shader::ConstantType::eFLOAT2, sg_uniform_type::SG_UNIFORMTYPE_FLOAT2 },
 		{ harmony::Shader::ConstantType::eFLOAT3, sg_uniform_type::SG_UNIFORMTYPE_FLOAT3 },

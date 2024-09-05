@@ -24,6 +24,7 @@ namespace harmony
             Type        type    = Type::eVERTEX_BUFFER;
             Usage       usage   = Usage::eIMMUTABLE;
             size_t      size    = 0;
+            size_t      stride  = 0;
             const void* data    = nullptr;
         };
 
