@@ -226,8 +226,8 @@ namespace sokol
 
 	void Drawable::unbind() const
 	{
-		sg_bindings unbind = { 0 };
-		sg_apply_bindings(unbind);
+		/*sg_bindings unbinds = { 0 };
+		sg_apply_bindings(&unbinds);*/
 	}
 
 	void Drawable::deinitialize()

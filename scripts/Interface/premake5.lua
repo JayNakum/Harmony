@@ -20,3 +20,4 @@ project "Interface"
 	filter "configurations:Release"
 		runtime "Release"
 		optimize "On"
+    defines { "NDEBUG" }

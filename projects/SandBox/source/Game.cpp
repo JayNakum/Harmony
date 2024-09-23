@@ -7,31 +7,115 @@
 #include <gtc/matrix_transform.hpp>
 #include <gtc/type_ptr.hpp>
 
+class Game
+{
+public:
+	Game()
+	{
+		HLOG_INFO("Created.");
+	}
+
+	void initScene()
+	{
+		harmony::Scene::Description sceneDescription;
+		sceneDescription.label = "Test Scene";
+		scene = HARMONY->createECSScene(sceneDescription);
+		{
+			harmony::component::Visual visual;
+			{
+				visual.label = "Triangle visual component";
+				float vertices[] = {
+					// pos					// color
+					 0.0f,   0.25f, 0.0f,	1.0f, 0.0f, 0.0f, 1.0f,
+					 0.25f, -0.25f, 0.0f,	0.0f, 1.0f, 0.0f, 1.0f,
+					-0.25f, -0.25f, 0.0f,	0.0f, 0.0f, 1.0f, 1.0f
+				};
+				visual.mesh.vertices = vertices;
+				visual.mesh.verticesSize = sizeof(vertices);
+				visual.mesh.verticesStride = sizeof(float) * 7;
+			}
+
+			harmony::Entity::Description entityDescription;
+			{
+				entityDescription.label = "Triangle";
+				entityDescription.visual = visual;
+			}
+			auto entity = scene->createEntity(entityDescription);
+		}
+
+		scene->initialize();
+	}
+
+	void initialize()
+	{
+		engine.initialize();
+		
+		initScene();
+	}
+	void update()
+	{
+		engine.update();
+	}
+	void render()
+	{
+		engine.render();
+	}
+	void deinitialize()
+	{
+		engine.deinitialize();
+	}
+	~Game()
+	{
+		HLOG_INFO("Destroyed.");
+	}
+
+private:
+	harmony::Engine engine;
+	harmony::Scene* scene = nullptr;
+};
+
+int main()
+{
+	Harmony::initializeSystem();
+
+	auto game = new Game();
+	
+	game->initialize();
+
+	while (HARMONY->getWindow()->isRunning())
+	{
+		game->update();
+		game->render();
+	}
+
+	game->deinitialize();
+
+	delete game;
+}
+
+/*
 #include <sokol_app.h>
 
 #include <unordered_map>
 
-class Player
+class Entity
 {
 public:
-	inline const harmony::Entity* getGameEntity() const { return mGameEntity; }
-	inline const harmony::Entity* getPhysicsEntity() const { return mPhysicsEntity; }
-
-	Player(harmony::Scene* const& gameScene, harmony::Scene* const& physicsScene)
+	Entity(harmony::Scene* const& gameScene, harmony::Scene* const& physicsScene)
 	{
-		harmony::component::Transform transform;
-		{
-			transform.label = "player transform component";
-			transform.scale[0] = 0.9f;
-			transform.scale[1] = 0.9f;
-		}
+		harmony::Entity::Description createDesc;
 		harmony::component::Visual visual;
+		harmony::component::Transform transform;
+		harmony::component::Physics physics;
+		createDesc.label = "entity";
+
+		// Visual setup
 		{
-			visual.label = "player visual componenet";
+			visual.label = "visual componenet";
 			visual.mesh.vertices = vertices;
 			visual.mesh.verticesSize = sizeof(vertices);
-			visual.mesh.verticesStride = sizeof(float) * 5;
-			visual.mesh.numElements = 6;
+			visual.mesh.verticesStride = sizeof(float) * 9;
+			visual.mesh.numElements = 36;
 			visual.mesh.indices = indices;
 			visual.mesh.indicesSize = sizeof(indices);
 
@@ -40,55 +124,98 @@ public:
 			imageDescription.height = 4;
 			imageDescription.memory = pixels;
 			imageDescription.size = sizeof(pixels);
-			imageDescription.imagePath = "player texture";
+			imageDescription.imagePath = "embedded image";
 			auto image = harmony::createImage(imageDescription);
 
 			harmony::Sampler::Description samplerDescription;
-			samplerDescription.label = "player texture sampler";
+			samplerDescription.label = "texture sampler";
 			samplerDescription.minFilter = harmony::Sampler::Filter::eLINEAR;
 			samplerDescription.magFilter = harmony::Sampler::Filter::eLINEAR;
 			auto sampler = harmony::createSampler(samplerDescription);
 
-			visual.texture1.label = "black and white player texture";
+			visual.texture1.label = "black and white embedded texture";
 			visual.texture1.image = image;
 			visual.texture1.sampler = sampler;
 		}
-
-		harmony::Entity::Description createDesc;
-		createDesc.transform = transform;
 		createDesc.visual = visual;
-		mGameEntity = gameScene->createEntity(createDesc);
+
+		// Transform setup
+		{
+			transform.label = "transform component";
+		}
+		createDesc.transform = transform;
+
+		// Physics setup
+		{
+			physics.label = "physics component";
+			physics.shape = harmony::component::Physics::Shape::eBOX;
+			physics.box.halfExtents[0] = 0.5f;
+			physics.box.halfExtents[1] = 0.5f;
+			physics.box.halfExtents[2] = 0.5f;
+			physics.type = harmony::component::Physics::Type::eDYNAMIC;
+		}
+		createDesc.physics = physics;
+
+		mEntity = gameScene->createEntity(createDesc);
+		mPhysXEntity = physicsScene->createEntity(createDesc);
 	}
 
 	void update()
 	{
-		// mGameEntity->setTransform(mPhysicsEntity->getDescription().transform.value());
+		mEntity->setTransform(mPhysXEntity->getDescription().transform.value());
 	}
 
 private:
-	float vertices[20] = {
-		// Position			// UV
-		-0.5f, -0.5f, 0.0f, 0.0f, 0.0f,
-		-0.5f,  0.5f, 0.0f, 0.0f, 1.0f,
-		 0.5f,  0.5f, 0.0f, 1.0f, 1.0f,
-		 0.5f, -0.5f, 0.0f, 1.0f, 0.0f
-	};
+	harmony::Entity* mEntity = nullptr;
+	harmony::Entity* mPhysXEntity = nullptr;
 
-	uint16_t indices[6] = {
-		0, 1, 2,
-		0, 2, 3
-	};
+private:
+	float vertices[216] = {
+		// pos                  color                       uv
+		-1.0f, -1.0f, -1.0f,    1.0f, 0.0f, 0.0f, 1.0f,     0.0f, 0.0f,
+		 1.0f, -1.0f, -1.0f,    1.0f, 0.0f, 0.0f, 1.0f,     1.0f, 0.0f,
+		 1.0f,  1.0f, -1.0f,    1.0f, 0.0f, 0.0f, 1.0f,     1.0f, 1.0f,
+		-1.0f,  1.0f, -1.0f,    1.0f, 0.0f, 0.0f, 1.0f,     0.0f, 1.0f,
 
+		-1.0f, -1.0f,  1.0f,    0.0f, 1.0f, 0.0f, 1.0f,     0.0f, 0.0f,
+		 1.0f, -1.0f,  1.0f,    0.0f, 1.0f, 0.0f, 1.0f,     1.0f, 0.0f,
+		 1.0f,  1.0f,  1.0f,    0.0f, 1.0f, 0.0f, 1.0f,     1.0f, 1.0f,
+		-1.0f,  1.0f,  1.0f,    0.0f, 1.0f, 0.0f, 1.0f,     0.0f, 1.0f,
+
+		-1.0f, -1.0f, -1.0f,    0.0f, 0.0f, 1.0f, 1.0f,     0.0f, 0.0f,
+		-1.0f,  1.0f, -1.0f,    0.0f, 0.0f, 1.0f, 1.0f,     1.0f, 0.0f,
+		-1.0f,  1.0f,  1.0f,    0.0f, 0.0f, 1.0f, 1.0f,     1.0f, 1.0f,
+		-1.0f, -1.0f,  1.0f,    0.0f, 0.0f, 1.0f, 1.0f,     0.0f, 1.0f,
+
+		 1.0f, -1.0f, -1.0f,    1.0f, 0.5f, 0.0f, 1.0f,     0.0f, 0.0f,
+		 1.0f,  1.0f, -1.0f,    1.0f, 0.5f, 0.0f, 1.0f,     1.0f, 0.0f,
+		 1.0f,  1.0f,  1.0f,    1.0f, 0.5f, 0.0f, 1.0f,     1.0f, 1.0f,
+		 1.0f, -1.0f,  1.0f,    1.0f, 0.5f, 0.0f, 1.0f,     0.0f, 1.0f,
+
+		-1.0f, -1.0f, -1.0f,    0.0f, 0.5f, 1.0f, 1.0f,     0.0f, 0.0f,
+		-1.0f, -1.0f,  1.0f,    0.0f, 0.5f, 1.0f, 1.0f,     1.0f, 0.0f,
+		 1.0f, -1.0f,  1.0f,    0.0f, 0.5f, 1.0f, 1.0f,     1.0f, 1.0f,
+		 1.0f, -1.0f, -1.0f,    0.0f, 0.5f, 1.0f, 1.0f,     0.0f, 1.0f,
+
+		-1.0f,  1.0f, -1.0f,    1.0f, 0.0f, 0.5f, 1.0f,     0.0f, 0.0f,
+		-1.0f,  1.0f,  1.0f,    1.0f, 0.0f, 0.5f, 1.0f,     1.0f, 0.0f,
+		 1.0f,  1.0f,  1.0f,    1.0f, 0.0f, 0.5f, 1.0f,     1.0f, 1.0f,
+		 1.0f,  1.0f, -1.0f,    1.0f, 0.0f, 0.5f, 1.0f,     0.0f, 1.0f
+	};
+	uint16_t indices[36] = {
+		0, 1, 2,  0, 2, 3,
+		6, 5, 4,  7, 6, 4,
+		8, 9, 10,  8, 10, 11,
+		14, 13, 12,  15, 14, 12,
+		16, 17, 18,  16, 18, 19,
+		22, 21, 20, 23, 22, 20
+	};
 	uint32_t pixels[4 * 4] = {
 		0xFFFFFFFF, 0x00000000, 0xFFFFFFFF, 0x00000000,
 		0x00000000, 0xFFFFFFFF, 0x00000000, 0xFFFFFFFF,
 		0xFFFFFFFF, 0x00000000, 0xFFFFFFFF, 0x00000000,
 		0x00000000, 0xFFFFFFFF, 0x00000000, 0xFFFFFFFF,
 	};
-
-private:
-	harmony::Entity* mGameEntity = nullptr;
-	harmony::Entity* mPhysicsEntity = nullptr;
 };
 
 class Game
@@ -98,7 +225,7 @@ public:
 		: engine(new harmony::Engine())
 	{
 		harmony::Window::Description createDesc;
-		createDesc.title = "BounceMania";
+		createDesc.title = "SandBox";
 		harmony::createWindow(createDesc);
 	}
 
@@ -117,42 +244,9 @@ public:
 
 	void update()
 	{
-		auto ip = harmony::getInputSystem();
 		engine->update();
-		ip->update();
-
 		physicsScene->update();
-
-		if (ip->actionOccured(harmony::Inputs::Action::eMOVE_FORWARD, harmony::Inputs::Event::ePRESSED))
-		{
-			camera.z += 0.1f;
-		}
-		if (ip->actionOccured(harmony::Inputs::Action::eMOVE_BACKWARD, harmony::Inputs::Event::ePRESSED))
-		{
-			camera.z -= 0.1f;
-		}
-		if (ip->actionOccured(harmony::Inputs::Action::eMOVE_LEFT, harmony::Inputs::Event::ePRESSED))
-		{
-			camera.x += 0.1f;
-		}
-		if (ip->actionOccured(harmony::Inputs::Action::eMOVE_RIGHT, harmony::Inputs::Event::ePRESSED))
-		{
-			camera.x -= 0.1f;
-		}
-		if (ip->actionOccured(harmony::Inputs::Action::eMOVE_UP, harmony::Inputs::Event::ePRESSED))
-		{
-			camera.y += 0.1f;
-		}
-		if (ip->actionOccured(harmony::Inputs::Action::eMOVE_DOWN, harmony::Inputs::Event::ePRESSED))
-		{
-			camera.y -= 0.1f;
-		}
-	}
-
-	inline const glm::mat4 cameraView() const
-	{
-		glm::vec3 center(camera.x, camera.y, camera.z + 1.0f);
-		return glm::lookAt(camera, center, glm::vec3(0.0f, 1.0f, 0.0f));
+		cube->update();
 	}
 
 	void render()
@@ -161,12 +255,8 @@ public:
 		engine->render();
 
 		auto& windowDescription = harmony::getWindow()->getDescription();
-		
-		float aspectRatio = (float)windowDescription.width / (float)windowDescription.height;
-		// glm::mat4 proj = glm::perspective(90.0f, aspectRatio, 0.01f, 100.0f);
-		glm::mat4 proj = glm::ortho(-1.0f, 1.0f, -1.0f / aspectRatio, 1.0f / aspectRatio);
-
-		glm::mat4 view = cameraView();
+		glm::mat4 proj = glm::perspective(90.0f, (float)windowDescription.width / (float)windowDescription.height, 0.01f, 10.0f);
+		glm::mat4 view = glm::lookAt(glm::vec3(0.0f, 3.0f, 5.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
 		glm::mat4 vp = proj * view;
 
@@ -193,26 +283,28 @@ public:
 
 			drawable->bind();
 			drawable->draw();
-
+			drawable->unbind();
 			pass->end();
 		}
 	}
 
 	void deinitialize()
 	{
-		engine->deinitialize();
+		delete cube;
+
+		physicsScene->deinitialize();
+		delete physicsScene;
 
 		gameScene->deinitialize();
-		physicsScene->deinitialize();
-		pipeline->deinitialize();
-		pass->deinitialize();
-
-		delete ball;
 		delete gameScene;
-
+		
+		pipeline->deinitialize();
 		delete pipeline;
+		
+		pass->deinitialize();
 		delete pass;
 
+		engine->deinitialize();
 		delete engine;
 	}
 
@@ -224,7 +316,7 @@ private:
 		gameScene = harmony::createScene(sceneDescription);
 		physicsScene = harmony::createPhysicsScene(sceneDescription);
 
-		ball = new Player(gameScene, physicsScene);
+		cube = new Entity(gameScene, physicsScene);
 
 		harmony::Shader::Description vShaderDescription;
 		{
@@ -236,15 +328,18 @@ private:
 				"float4x4 mvp;\n"
 				"struct vs_in {\n"
 				"  float4 pos: POSITION;\n"
+				"  float4 color: COLOR1;\n"
 				"  float2 uv: TEXCOORD1;\n"
 				"};\n"
 				"struct vs_out {\n"
+				"  float4 color: COLOR0;\n"
 				"  float2 uv: TEXCOORD0;\n"
 				"  float4 pos: SV_Position;\n"
 				"};\n"
 				"vs_out main(vs_in inp) {\n"
 				"  vs_out outp;\n"
 				"  outp.pos = mul(mvp, inp.pos);\n"
+				"  outp.color = inp.color;\n"
 				"  outp.uv = inp.uv * 5.0;\n"
 				"  return outp;\n"
 				"}\n";
@@ -261,8 +356,8 @@ private:
 			fShaderDescription.source =
 				"Texture2D<float4> tex;\n"
 				"sampler smp;\n"
-				"float4 main(float2 uv: TEXCOORD0): SV_Target0 {\n"
-				"  return tex.Sample(smp, uv) * float4(1.0f, 0.0f, 1.0f, 1.0f);\n"
+				"float4 main(float4 color: COLOR0, float2 uv: TEXCOORD0): SV_Target0 {\n"
+				"  return tex.Sample(smp, uv) * color;\n"
 				"}\n";
 		}
 		auto fShader = harmony::createShader(fShaderDescription);
@@ -271,22 +366,26 @@ private:
 		harmony::Pipeline::Description pipelineDescription;
 		{
 			pipelineDescription.label = "Test Pipeline";
-			pipelineDescription.layout.attributesCount = 2;
+			pipelineDescription.layout.attributesCount = 3;
 
 			pipelineDescription.layout.attributes[0].name = "POSITION";
 			pipelineDescription.layout.attributes[0].format = harmony::Pipeline::VertexFormat::eFLOAT3;
 
-			pipelineDescription.layout.attributes[1].name = "TEXCOORD";
+			pipelineDescription.layout.attributes[1].name = "COLOR";
 			pipelineDescription.layout.attributes[1].index = 1;
-			pipelineDescription.layout.attributes[1].format = harmony::Pipeline::VertexFormat::eFLOAT2;
+			pipelineDescription.layout.attributes[1].format = harmony::Pipeline::VertexFormat::eFLOAT4;
+
+			pipelineDescription.layout.attributes[2].name = "TEXCOORD";
+			pipelineDescription.layout.attributes[2].index = 1;
+			pipelineDescription.layout.attributes[2].format = harmony::Pipeline::VertexFormat::eFLOAT2;
 
 			pipelineDescription.vertexShader = vShader;
 			pipelineDescription.fragmentShader = fShader;
 
 			pipelineDescription.indexType = harmony::Pipeline::IndexType::eUINT16;
-			pipelineDescription.cullMode = harmony::Pipeline::CullMode::eNONE;
+			pipelineDescription.cullMode = harmony::Pipeline::CullMode::eBACK;
 
-			pipelineDescription.depthBufferEnabled = false;
+			pipelineDescription.depthBufferEnabled = true;
 		}
 		pipeline = harmony::createPipeline(pipelineDescription);
 
@@ -307,15 +406,14 @@ private:
 	harmony::Scene* gameScene = nullptr;
 	harmony::Scene* physicsScene = nullptr;
 
-	Player* ball = nullptr;
-
-	glm::vec3 camera = glm::vec3(0.0f, 0.0f, 0.0f);
+	Entity* cube = nullptr;
 
 	harmony::Pipeline* pipeline = nullptr;
 	harmony::RenderPass* pass = nullptr;
 }game;
+*/
 
-
+#ifdef SOKOL
 namespace sokol
 {
 	static void init()
@@ -518,3 +616,4 @@ sapp_desc sokol_main(int argc, char* argv[])
 	}
 	return appDesc;
 }
+#endif // SOKOL

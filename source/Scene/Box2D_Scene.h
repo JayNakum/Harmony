@@ -4,10 +4,32 @@
 
 #include "box2d/box2d.h"
 
-#include <unordered_map>
+#include <list>
 
 namespace box2d
 {
+	class RigidBody : public harmony::Entity
+	{
+	private:
+		friend class Scene;
+		RigidBody(const harmony::Entity::Description& description, const b2BodyId& actor);
+	public:
+		~RigidBody();
+
+		const void* getID() const override;
+		const harmony::Entity::Description& getDescription() const override;
+		void setTransform(const harmony::component::Transform& transform) override;
+
+	private:
+		void initialize() override;
+		void update();
+		void deinitialize() override;
+
+	private:
+		harmony::Entity::Description mDescription;
+		b2BodyId mActor;
+	};
+
 	class Scene : public harmony::Scene
 	{
 	public:
@@ -25,8 +47,8 @@ namespace box2d
 
 	private:
 		harmony::Scene::Description mDescription;
-		b2WorldDef mScene;
+		b2WorldId mScene;
 
-		//std::unordered_map<b2BodyId, RigidBody*> mRigidBodies;
+		std::list<RigidBody*> mRigidBodies;
 	};
 }

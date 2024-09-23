@@ -4,33 +4,33 @@ namespace harmony
 {
 	void Engine::initialize()
 	{
-		harmony::getWindow()->initialize();
-		harmony::getInputSystem()->initialize();
-		harmony::getRenderer()->initialize();
+		HARMONY->getWindow()->initialize();
+		HARMONY->getInputSystem()->initialize();
+		HARMONY->getRenderer()->initialize();
 	}
 
 	void Engine::update()
 	{
-		harmony::getWindow()->update();
-		harmony::getInputSystem()->update();
+		HARMONY->getWindow()->update();
+		HARMONY->getInputSystem()->update();
 	}
 
 	void Engine::render()
 	{
-		harmony::getRenderer()->render();
+		HARMONY->getRenderer()->render();
 	}
 
 	void Engine::deinitialize()
 	{
-		harmony::getRenderer()->deinitialize();
-		harmony::getInputSystem()->deinitialize();
-		harmony::getWindow()->deinitialize();
+		HARMONY->getRenderer()->deinitialize();
+		HARMONY->getInputSystem()->deinitialize();
+		HARMONY->getWindow()->deinitialize();
 	}
 
 	Engine::~Engine()
 	{
-		delete harmony::getRenderer();
-		delete harmony::getInputSystem();
-		delete harmony::getWindow();
+		delete HARMONY->getRenderer();
+		delete HARMONY->getInputSystem();
+		delete HARMONY->getWindow();
 	}
 }

@@ -15,34 +15,56 @@
 
 #include "HLogger.h"
 
-namespace harmony
+#define HARMONY Harmony::getInstance()
+
+class Harmony
 {
-	harmony::Logger* createLogger(const harmony::Logger::Description& description = {});
+private:
+	Harmony() = default;
+	static Harmony* mInstance;
 
-	void createWindow(const harmony::Window::Description& description);
-	harmony::Window* getWindow();
+public:
+	~Harmony() = default;
 
-	void createInputSystem(const harmony::Inputs::Description& inputSysDescription);
-	harmony::Inputs* getInputSystem();
 
-	void createRenderer(const harmony::Renderer::Description& rendererDescription);
-	harmony::Renderer* getRenderer();
+	struct Description
+	{
+		harmony::Window::Description	windowDesc;
+		harmony::Inputs::Description	inputSysDesc;
+		harmony::Renderer::Description	rendererDesc;
+	};
 
-	harmony::Scene* createScene(const harmony::Scene::Description& description);
+	static Harmony*		getInstance();
+	static void			initializeSystem(const Harmony::Description description = {});
 
-	harmony::Scene* createPhysicsScene(const harmony::Scene::Description& description);
+	harmony::Window*	createNewWindow(const harmony::Window::Description& description);
+	harmony::Inputs*	createNewInputSystem(const harmony::Inputs::Description& description);
+	harmony::Renderer*	createNewRenderer(const harmony::Renderer::Description& description);
+	harmony::Logger*	createNewLogger(const harmony::Logger::Description& description = {});
 
-	harmony::Buffer* createBuffer(const harmony::Buffer::Description& description);
+	inline harmony::Window*		getWindow(unsigned int i = 0) const { return mMainWindow; }
+	inline harmony::Inputs*		getInputSystem(unsigned int i = 0) const { return mInputSystem; }
+	inline harmony::Renderer*	getRenderer(unsigned int i = 0) const { return mRenderer; }
+
+	inline void setWindow(harmony::Window* const& window) { mMainWindow = window; };
+	inline void setInputSystem(harmony::Inputs* const& inputSys) { mInputSystem = inputSys; }
+	inline void setRenderer(harmony::Renderer* const& renderer) { mRenderer = renderer; }
 	
-	harmony::Drawable* createDrawable(const harmony::Drawable::Description& description);
-	
-	harmony::Image::Description getImageDescription(const char* imagePath);
-	harmony::Image* createImage(const harmony::Image::Description& description);
-	harmony::Sampler* createSampler(const harmony::Sampler::Description& description);
 
-	harmony::Shader* createShader(const harmony::Shader::Description& description);
-	harmony::Pipeline* createPipeline(const harmony::Pipeline::Description& description);
+	harmony::Scene*			createECSScene(const harmony::Scene::Description& description) const;
+	harmony::Scene*			createPhysicsScene(const harmony::Scene::Description& description) const;
+	harmony::Buffer*		createBuffer(const harmony::Buffer::Description& description) const;
+	harmony::Drawable*		createDrawable(const harmony::Drawable::Description& description) const;
+	harmony::Shader*		createShader(const harmony::Shader::Description& description) const;
+	harmony::Pipeline*		createPipeline(const harmony::Pipeline::Description& description) const;
+	//harmony::RenderPass*	createRenderPass(const harmony::RenderPass::Description& description) const;
 
-	harmony::RenderPass* createRenderPass(const harmony::RenderPass::Description& description);
-	
-}
+	//harmony::Image::Description	getImageDescription(const char* imagePath) const;
+	//harmony::Image*				createImage(const harmony::Image::Description& description) const;
+	//harmony::Sampler*				createSampler(const harmony::Sampler::Description& description) const;
+
+private:
+	harmony::Window*	mMainWindow = nullptr;
+	harmony::Inputs*	mInputSystem = nullptr;
+	harmony::Renderer*	mRenderer = nullptr;
+};

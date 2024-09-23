@@ -4,7 +4,7 @@
 
 #include <memory>
 
-static const harmony::Logger* logger = harmony::createLogger();
+static const harmony::Logger* logger = HARMONY->createNewLogger();
 
 // Helper function to create a formatted string
 template<typename ... Args>

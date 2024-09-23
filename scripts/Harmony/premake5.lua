@@ -48,3 +48,4 @@ project "Harmony"
 	filter "configurations:Release"
 		runtime "Release"
 		optimize "On"
+    defines { "NDEBUG" }

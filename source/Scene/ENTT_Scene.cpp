@@ -26,7 +26,7 @@ namespace ENTT
 				vBufferDescription.size = mDescription.visual->mesh.verticesSize;
 				vBufferDescription.stride = mDescription.visual->mesh.verticesStride;
 			}
-			auto vertexBuffer = harmony::createBuffer(vBufferDescription);
+			auto vertexBuffer = HARMONY->createBuffer(vBufferDescription);
 			vertexBuffer->initialize();
 
 			harmony::Buffer* indexBuffer = nullptr;
@@ -37,7 +37,7 @@ namespace ENTT
 				iBufferDescription.type = harmony::Buffer::Type::eINDEX_BUFFER;
 				iBufferDescription.data = mDescription.visual->mesh.indices;
 				iBufferDescription.size = mDescription.visual->mesh.indicesSize;
-				indexBuffer = harmony::createBuffer(iBufferDescription);
+				indexBuffer = HARMONY->createBuffer(iBufferDescription);
 				indexBuffer->initialize();
 			}
 
@@ -58,7 +58,7 @@ namespace ENTT
 			drawableDescription.drawDescription.baseInstance = 0;
 			drawableDescription.drawDescription.numInstances = 1;
 
-			mDrawable = harmony::createDrawable(drawableDescription);
+			mDrawable = HARMONY->createDrawable(drawableDescription);
 			mDrawable->initialize();
 		}
 
@@ -108,6 +108,11 @@ namespace ENTT
 
 	Scene::~Scene()
 	{
+		for (auto& entity : mEntities)
+			delete entity.second;
+
+		mEntities.clear();
+
 		mRegistry.clear();
 		HLOG_INFO("Destroyed %s", mDescription.label);
 		mDescription = { 0 };

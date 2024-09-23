@@ -51,6 +51,7 @@ project "Scene"
 	filter "configurations:Release"
 		runtime "Release"
 		optimize "On"
+    defines { "NDEBUG" }
     libdirs 
     {
       "%{lib_dirs.PhysX}/release",

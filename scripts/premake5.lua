@@ -7,7 +7,7 @@ workspace "Staff"
   flags {"MultiProcessorCompile"}
   
   startproject "SandBox"
-  -- startproject "BounceMania"
+  -- startproject "Editor"
 
 group "Core"
   include "Engine"
@@ -22,4 +22,3 @@ group "Modules"
 group "Projects"
   include "../projects/SandBox"
   -- include "../projects/Editor"
-  -- include "../projects/BounceMania"

@@ -1,14 +1,22 @@
 #include "Harmony.h"
 
-#include <iostream>
+#ifdef SOKOL
 
-//#include "Win32_Window.h"
 #include "SG_Window.h"
+#include "SG_Renderer.h"
+
+using namespace sokol;
+
+#else
+
+#include "Win32_Window.h"
+#include "DX12_Renderer.h"
+using namespace win32;
+using namespace dx12;
+
+#endif
 
 #include "Inputs.h"
-
-//#include "DX12_Renderer.h"
-#include "SG_Renderer.h"
 
 #include "ENTT_Scene.h"
 #include "PhysX_Scene.h"
@@ -17,106 +25,93 @@
 
 #include "Helpers/HLog.h"
 
-static harmony::Window* gMainWindow = nullptr;
-static harmony::Inputs* gInputSystem = nullptr;
-static harmony::Renderer* gRenderer = nullptr;
-static bool physxInit = physx::setupPhysX();
+#include <iostream>
 
-namespace harmony
+Harmony* Harmony::mInstance = nullptr;
+Harmony* Harmony::getInstance()
 {
-	void createWindow(const harmony::Window::Description& windowDescription)
+	if (mInstance == nullptr)
 	{
-		delete gMainWindow;
-		gMainWindow = new sokol::Window(windowDescription);
+		mInstance = new Harmony();
 	}
-
-	harmony::Logger* createLogger(const harmony::Logger::Description& loggerDescription)
-	{
-		return new ::Logger(loggerDescription);
-	}
-
-	harmony::Window* getWindow()
-	{
-		if (gMainWindow == nullptr)
-		{
-			harmony::Window::Description defaultDescription;
-			createWindow(defaultDescription);
-		}
-		return gMainWindow;
-	}
-
-	void createInputSystem(const harmony::Inputs::Description& inputSysDescription)
-	{
-		delete gInputSystem;
-		gInputSystem = new ::Inputs(inputSysDescription);
-	}
-
-	harmony::Inputs* getInputSystem()
-	{
-		if (gInputSystem == nullptr)
-		{
-			harmony::Inputs::Description defaultDescription;
-			createInputSystem(defaultDescription);
-		}
-		return gInputSystem;
-	}
-
-	void createRenderer(const harmony::Renderer::Description& rendererDescription)
-	{
-		delete gRenderer;
-		gRenderer = new sokol::Renderer(rendererDescription);
-	}
-	harmony::Renderer* getRenderer()
-	{
-		if (gRenderer == nullptr)
-		{
-			harmony::Renderer::Description defaultDescription;
-			createRenderer(defaultDescription);
-		}
-		return gRenderer;
-	}
-
-	harmony::Scene* createScene(const harmony::Scene::Description& description)
-	{
-		return new ENTT::Scene(description);
-	}
-
-	harmony::Scene* createPhysicsScene(const harmony::Scene::Description& description)
-	{
-		HASSERT(physxInit, "Physics system not initialized.");
-
-		return new physx::Scene(description);
-	}
-
-	harmony::Buffer* createBuffer(const harmony::Buffer::Description& description)
-	{
-		return new sokol::Buffer(description);
-	}
-	
-	harmony::Drawable* createDrawable(const harmony::Drawable::Description& description)
-	{
-		return new sokol::Drawable(description);
-	}
-	
-	harmony::Image* createImage(const harmony::Image::Description& description)
-	{
-		return new sokol::Image(description);
-	}
-	harmony::Sampler* createSampler(const harmony::Sampler::Description& description)
-	{
-		return new sokol::Sampler(description);
-	}
-	harmony::Shader* createShader(const harmony::Shader::Description& description)
-	{
-		return new sokol::Shader(description);
-	}
-	harmony::Pipeline* createPipeline(const harmony::Pipeline::Description& description)
-	{
-		return new sokol::Pipeline(description);
-	}
-	harmony::RenderPass* createRenderPass(const harmony::RenderPass::Description& description)
-	{
-		return new sokol::RenderPass(description);
-	}
-	
+	return mInstance;
 }
+
+void Harmony::initializeSystem(const Harmony::Description description)
+{
+	Harmony::getInstance()->setWindow(Harmony::getInstance()->createNewWindow(description.windowDesc));
+
+	Harmony::getInstance()->setInputSystem(Harmony::getInstance()->createNewInputSystem(description.inputSysDesc));
+
+	Harmony::getInstance()->setRenderer(Harmony::getInstance()->createNewRenderer(description.rendererDesc));
+}
+
+harmony::Window* Harmony::createNewWindow(const harmony::Window::Description& description)
+{
+	return new Window(description);
+}
+
+harmony::Inputs* Harmony::createNewInputSystem(const harmony::Inputs::Description& description)
+{
+	return new Inputs(description);
+}
+
+harmony::Renderer* Harmony::createNewRenderer(const harmony::Renderer::Description& description)
+{
+	return new Renderer(description);
+}
+
+harmony::Logger* Harmony::createNewLogger(const harmony::Logger::Description& description)
+{
+	return new Logger(description);
+}
+
+harmony::Scene* Harmony::createECSScene(const harmony::Scene::Description& description) const
+{
+	return new ENTT::Scene(description);
+}
+
+harmony::Scene* Harmony::createPhysicsScene(const harmony::Scene::Description& description) const
+{
+	return new physx::Scene(description);
+}
+
+harmony::Buffer* Harmony::createBuffer(const harmony::Buffer::Description& description) const
+{
+	return new Buffer(description);
+}
+
+harmony::Drawable* Harmony::createDrawable(const harmony::Drawable::Description& description) const
+{
+	return new Drawable(description);
+}
+
+//harmony::Image::Description Harmony::getImageDescription(const char* imagePath) const
+//{
+//	return harmony::Image::Description();
+//}
+//
+//harmony::Image* Harmony::createImage(const harmony::Image::Description& description) const
+//{
+//	return new Image(description);
+//}
+//
+//harmony::Sampler* Harmony::createSampler(const harmony::Sampler::Description& description) const
+//{
+//	return new Sampler(description);
+//}
+
+harmony::Shader* Harmony::createShader(const harmony::Shader::Description& description) const
+{
+	return new Shader(description);
+}
+
+harmony::Pipeline* Harmony::createPipeline(const harmony::Pipeline::Description& description) const
+{
+	return new Pipeline(description);
+}
+
+//harmony::RenderPass* Harmony::createRenderPass(const harmony::RenderPass::Description& description) const
+//{
+//	return new RenderPass(description);
+//}

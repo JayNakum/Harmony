@@ -325,7 +325,7 @@ namespace win32
 
 		PeekMessage(&mMsgs, NULL, 0, 0, PM_NOREMOVE);
 
-		mInputSystem = harmony::getInputSystem();
+		mInputSystem = HARMONY->getInputSystem();
 
 		HLOG_DEBUG("Initialized %s(%d, %d)", mDescription.title, mDescription.width, mDescription.height);
 	}

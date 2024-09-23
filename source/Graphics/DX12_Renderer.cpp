@@ -219,7 +219,7 @@ namespace dx12
 		hResult = gDevice->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&mCommandQueue));
 		HASSERT(SUCCEEDED(hResult), "Failed to create command queue.\n%s", hrErrorDescription(hResult).get());
 
-		auto& windowDesc = harmony::getWindow()->getDescription();
+		auto& windowDesc = HARMONY->getWindow()->getDescription();
 
 		DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
 		swapChainDesc.BufferCount = mFrameCount;
@@ -233,7 +233,7 @@ namespace dx12
 		ComPtr<IDXGISwapChain1> swapChain;
 		hResult = factory->CreateSwapChainForHwnd(
 				mCommandQueue.Get(),
-				*((HWND*)(harmony::getWindow()->getHandle())),
+				*((HWND*)(HARMONY->getWindow()->getHandle())),
 				&swapChainDesc,
 				nullptr, nullptr,
 				&swapChain
@@ -311,15 +311,15 @@ namespace dx12
 
 		mViewport.TopLeftX = 0.0f;
 		mViewport.TopLeftY = 0.0f;
-		mViewport.Width = (float)harmony::getWindow()->getDescription().width;
-		mViewport.Height = (float)harmony::getWindow()->getDescription().height;
+		mViewport.Width = (float)HARMONY->getWindow()->getDescription().width;
+		mViewport.Height = (float)HARMONY->getWindow()->getDescription().height;
 		mViewport.MinDepth = 0.0f;
 		mViewport.MaxDepth = 1.0f;
 		gGFXCommandList->RSSetViewports(1, &mViewport);
 		mScissorRect.left = 0;
 		mScissorRect.top = 0;
-		mScissorRect.right = harmony::getWindow()->getDescription().width;
-		mScissorRect.bottom = harmony::getWindow()->getDescription().height;
+		mScissorRect.right = HARMONY->getWindow()->getDescription().width;
+		mScissorRect.bottom = HARMONY->getWindow()->getDescription().height;
 		gGFXCommandList->RSSetScissorRects(1, &mScissorRect);
 
 		auto rtBarrier = CD3DX12_RESOURCE_BARRIER::Transition(mRenderTargets[mFrameIndex].Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
@@ -403,8 +403,8 @@ namespace dx12
 		memcpy(pBufferDataBegin, mDescription.data, mDescription.size);
 
 		mBufferView.BufferLocation = mBuffer->GetGPUVirtualAddress();
-		mBufferView.StrideInBytes = mDescription.stride;
-		mBufferView.SizeInBytes = mDescription.size;
+		mBufferView.StrideInBytes = (UINT)mDescription.stride;
+		mBufferView.SizeInBytes = (UINT)mDescription.size;
 		mBuffer->Unmap(0, nullptr);
 
 		HLOG_DEBUG("Initialized %s", mDescription.label);
@@ -536,7 +536,6 @@ namespace dx12
 
 		}
 
-
 		ComPtr<ID3DBlob> errorBlob;
 
 		hResult = D3DCompile(
@@ -557,6 +556,7 @@ namespace dx12
 		{
 			// TODO: Provide a fall back shader
 			HLOG_ERROR("Failed to compile shader\n%s\n%s", mDescription.label, errorBlob->GetBufferPointer(), hrErrorDescription(hResult).get());
+			HASSERT(false, "Provide a fall back");
 		}
 
 		errorBlob->Release();
@@ -600,9 +600,18 @@ namespace dx12
 		HLOG_INFO("Created %s", mDescription.label);
 	}
 
+	const void* Pipeline::getID() const
+	{
+		return mPipelineState.Get();
+	}
+
+	const harmony::Pipeline::Description& Pipeline::getDescription() const
+	{
+		return mDescription;
+	}
+
 	void Pipeline::initialize()
 	{
-
 		D3D12_INPUT_ELEMENT_DESC inputElementDescs[16] = {};
 		for (unsigned int i = 0; i < mDescription.layout.attributesCount; ++i)
 		{
@@ -648,6 +657,7 @@ namespace dx12
 		{
 			// TODO: Provide a fall back pipeline state
 			HLOG_ERROR("Failed to create a graphics pipeline state.\n%s", hrErrorDescription(hResult).get());
+			HASSERT(false, "Provide a fall back");
 		}
 
 		HLOG_DEBUG("Initialized %s", mDescription.label);
@@ -659,6 +669,16 @@ namespace dx12
 		HASSERT(SUCCEEDED(hResult), "Failed to reset command allocator.\n%s", hrErrorDescription(hResult).get());
 
 		gGFXCommandList->SetGraphicsRootSignature(mRootSignature.Get());
+	}
+
+	void Pipeline::applyConstants(unsigned int constantBlockIndex, const void* data, size_t size, const harmony::Pipeline::ShaderStageType type) const
+	{
+
+	}
+
+	void Pipeline::unbind() const
+	{
+
 	}
 
 	void Pipeline::deinitialize()
@@ -692,4 +712,41 @@ namespace dx12
 		{ harmony::Pipeline::VertexFormat::eSHORT2, DXGI_FORMAT::DXGI_FORMAT_R16G16_SINT },
 		{ harmony::Pipeline::VertexFormat::eFLOAT, DXGI_FORMAT::DXGI_FORMAT_R32_FLOAT }
 	};
+}
+
+namespace dx12
+{
+	RenderPass::RenderPass(const harmony::RenderPass::Description& description)
+		: mDescription(description)
+	{
+
+	}
+
+	RenderPass::~RenderPass()
+	{
+
+	}
+
+	const void* RenderPass::getID() const
+	{
+		//return here
+	}
+
+	const harmony::RenderPass::Description& RenderPass::getDescription() const
+	{
+		return mDescription;
+	}
+
+	void RenderPass::initialize()
+	{
+	}
+	void RenderPass::begin()
+		{
+		}
+	void RenderPass::end() const
+		{
+		}
+	void RenderPass::deinitialize()
+		{
+		}
 }

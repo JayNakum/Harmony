@@ -6,31 +6,33 @@
 
 namespace helper
 {
-	static physx::PxVec3 toEuler(const physx::PxQuat& q)
+	static inline physx::PxVec3 toEuler(const physx::PxQuat& quaternion)
 	{
 		physx::PxVec3 euler;
 
-		float sinr_cosp = 2 * (q.w * q.x + q.y * q.z);
-		float cosr_cosp = 1 - 2 * (q.x * q.x + q.y * q.y);
-		euler.x = std::atan2(sinr_cosp, cosr_cosp);
-		
-		float sinp = 2 * (q.w * q.y - q.z * q.x);
-		if (std::abs(sinp) >= 1)
-			euler.y = std::copysign(physx::PxPiDivTwo, sinp);
-		else
-			euler.y = std::asin(sinp);
+		float sinr_cosp = 2 * (quaternion.w * quaternion.x + quaternion.y * quaternion.z);
+		float cosr_cosp = 1 - 2 * (quaternion.x * quaternion.x + quaternion.y * quaternion.y);
+		euler.x = std::atan2f(sinr_cosp, cosr_cosp);
 
-		float siny_cosp = 2 * (q.w * q.z + q.x * q.y);
-		float cosy_cosp = 1 - 2 * (q.y * q.y + q.z * q.z);
-		euler.z = std::atan2(siny_cosp, cosy_cosp);
+		float sinp = 2 * (quaternion.w * quaternion.y - quaternion.z * quaternion.x);
+		if (std::abs(sinp) >= 1)
+		{
+			euler.y = std::copysignf(physx::PxPiDivTwo, sinp);
+		}
+		else
+		{
+			euler.y = std::asinf(sinp);
+		}
+
+		float siny_cosp = 2 * (quaternion.w * quaternion.z + quaternion.x * quaternion.y);
+		float cosy_cosp = 1 - 2 * (quaternion.y * quaternion.y + quaternion.z * quaternion.z);
+		euler.z = std::atan2f(siny_cosp, cosy_cosp);
 
 		return euler;
 	}
 
-	static harmony::component::Transform toTransform(const physx::PxTransform& pxTransform, const char* label)
+	static inline void toTransform(const physx::PxTransform& pxTransform, harmony::component::Transform& transform)
 	{
-		harmony::component::Transform transform;
-		transform.label = label;
 		physx::PxMat44 modelMatrix(pxTransform);
 
 		transform.position[0] = modelMatrix.getPosition().x;
@@ -57,11 +59,9 @@ namespace helper
 		transform.rotation[0] = euler.x * (180.0f / physx::PxPi);
 		transform.rotation[1] = euler.y * (180.0f / physx::PxPi);
 		transform.rotation[2] = euler.z * (180.0f / physx::PxPi);
-
-		return transform;
 	}
 
-	static physx::PxTransform toPxTransform(const harmony::component::Transform& transform)
+	static inline void fromTransform(const harmony::component::Transform& transform, physx::PxTransform& pxTransform)
 	{
 		physx::PxMat44 translationMatrix(physx::PxTransform(
 			physx::PxVec3(transform.position[0], transform.position[1], transform.position[2])
@@ -80,7 +80,7 @@ namespace helper
 
 		physx::PxMat44 modelMatrix = translationMatrix * rotationMatrix * scaleMatrix;
 		
-		return physx::PxTransform(modelMatrix);
+		pxTransform = physx::PxTransform(modelMatrix);
 	}
 }
 
@@ -91,15 +91,15 @@ namespace physx
 	static physx::PxFoundation* gPhysXFoundation = nullptr;
 	static physx::PxPhysics* gPhysX = nullptr;
 
-#ifdef _DEBUG
 	static physx::PxPvd* gPVD = nullptr;
-#endif // _DEBUG
 
 	bool setupPhysX()
 	{
 		gPhysXFoundation = PxCreateFoundation(PX_PHYSICS_VERSION, gDefaultAllocatorCallback, gDefaultErrorCallback);
 		if (gPhysXFoundation == nullptr)
+		{
 			return false;
+		}
 		
 #ifdef _DEBUG
 		gPVD = PxCreatePvd(*gPhysXFoundation);
@@ -110,7 +110,9 @@ namespace physx
 
 		gPhysX = PxCreatePhysics(PX_PHYSICS_VERSION, *gPhysXFoundation, PxTolerancesScale(), true, gPVD);
 		if (gPhysX == nullptr)
+		{
 			return false;
+		}
 
 		return true;
 	}
@@ -123,25 +125,34 @@ namespace physx
 	{
 		const auto& phxComponent = mDescription.physics.value();
 
-		auto transform = helper::toPxTransform(mDescription.transform.value());
+		physx::PxTransform pxTransform;
+		helper::fromTransform(mDescription.transform.value(), pxTransform);
 
 		bool isKinematic = false;
 		switch (phxComponent.type)
 		{
-		default:
-			HLOG_WARNING("Invalid/missing physics actor type for $s. Assuming Type::eSTATIC.", mDescription.label);
-		case harmony::component::Physics::Type::eSTATIC:
-			mActor = gPhysX->createRigidStatic(transform);
-			break;
-		case harmony::component::Physics::Type::eKINEMATIC:
-			isKinematic = true;
-		case harmony::component::Physics::Type::eDYNAMIC:
-			physx::PxRigidDynamic* actor = gPhysX->createRigidDynamic(transform);
-			actor->setRigidBodyFlag(physx::PxRigidBodyFlag::eKINEMATIC, isKinematic);
-			actor->setActorFlag(physx::PxActorFlag::eDISABLE_GRAVITY, !phxComponent.gravity);
-			physx::PxRigidBodyExt::setMassAndUpdateInertia(*actor, phxComponent.mass);
-			mActor = actor;
-			break;
+			default:
+			{	
+				HLOG_WARNING("Invalid/missing physics actor type for %s. Assuming Type::eSTATIC.", mDescription.label);
+			}
+
+			case harmony::component::Physics::Type::eSTATIC:
+			{
+				mActor = gPhysX->createRigidStatic(pxTransform);
+			}break;
+
+			case harmony::component::Physics::Type::eKINEMATIC:
+			{
+				isKinematic = true;
+			}
+			
+			case harmony::component::Physics::Type::eDYNAMIC:
+			{
+				physx::PxRigidDynamic* actor = gPhysX->createRigidDynamic(pxTransform);
+				actor->setRigidBodyFlag(physx::PxRigidBodyFlag::eKINEMATIC, isKinematic);
+				physx::PxRigidBodyExt::setMassAndUpdateInertia(*actor, phxComponent.mass);
+				mActor = actor;
+			}break;
 		}
 
 		HLOG_INFO("Created %s", mDescription.label);
@@ -149,6 +160,7 @@ namespace physx
 
 	RigidBody::~RigidBody()
 	{
+		mActor->release();
 		HLOG_INFO("Destroyed %s", mDescription.label);
 		mDescription = { 0 };
 	}
@@ -172,15 +184,19 @@ namespace physx
 
 		const auto& phxComponent = mDescription.physics.value();
 
-		auto transform = helper::toPxTransform(mDescription.transform.value());
+		physx::PxTransform pxTransform;
+		helper::fromTransform(mDescription.transform.value(), pxTransform);
 		
-		mActor->setGlobalPose(transform);
+		mActor->setActorFlag(physx::PxActorFlag::eDISABLE_GRAVITY, !phxComponent.gravity);
+		mActor->setGlobalPose(pxTransform);
 		mMaterial = gPhysX->createMaterial(phxComponent.staticFriction, phxComponent.dynamicFriction, phxComponent.restitution);
 
 		switch (phxComponent.shape)
 		{
 			default:
+			{
 				HLOG_WARNING("Invalid/missing physics actor shape for $s. Assuming Shape::eSPHERE.", mDescription.label);
+			}
 			case harmony::component::Physics::Shape::eSPHERE:
 			{
 				// TODO: Implement sphere
@@ -193,7 +209,7 @@ namespace physx
 				physx::PxShape* shape = physx::PxRigidActorExt::createExclusiveShape((*mActor), geometry, (*mMaterial));
 				shape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, true);
 				shape->setFlag(physx::PxShapeFlag::eSCENE_QUERY_SHAPE, true);
-				shape->setLocalPose(transform);
+				shape->setLocalPose(pxTransform);
 				mActor->attachShape(*shape);
 				shape->release();
 			}break;
@@ -209,13 +225,11 @@ namespace physx
 
 	void RigidBody::update()
 	{
-		mDescription.transform = helper::toTransform(mActor->getGlobalPose(), mDescription.transform->label);
-
+		helper::toTransform(mActor->getGlobalPose(), mDescription.transform.value());
 	}
 
 	void RigidBody::deinitialize()
 	{
-		mActor->release();
 		HLOG_DEBUG("Deinitialized %s", mDescription.label);
 	}
 }
@@ -230,7 +244,6 @@ namespace physx
 		sceneDesc.cpuDispatcher = PxDefaultCpuDispatcherCreate(2);
 		sceneDesc.filterShader = PxDefaultSimulationFilterShader;
 		mScene = gPhysX->createScene(sceneDesc);
-
 		HLOG_INFO("Created %s", mDescription.label);
 	}
 	const harmony::Scene::Description& Scene::getDescription() const
@@ -240,17 +253,17 @@ namespace physx
 
 	harmony::Entity* Scene::createEntity(const harmony::Entity::Description& description)
 	{
-		auto newBody = new physx::RigidBody(description);
-		mRigidBodies[(physx::PxRigidActor*)newBody->getID()] = newBody;
-		mScene->addActor(*(physx::PxActor*)newBody->getID());
-		return mRigidBodies[(physx::PxRigidActor*)newBody->getID()];
+		auto entity = new physx::RigidBody(description);
+		mScene->addActor(*(physx::PxActor*)entity->getID());
+		return mRigidBodies.emplace_back(entity);
 	}
 
 	void Scene::initialize()
 	{
-
 		for (auto& entity : mRigidBodies)
-			entity.second->initialize();
+		{
+			entity->initialize();
+		}
 
 		HLOG_DEBUG("Initialized %s", mDescription.label);
 	}
@@ -261,28 +274,38 @@ namespace physx
 		mScene->fetchResults(true);
 
 		for (auto& entity : mRigidBodies)
-			entity.second->update();
+		{
+			entity->update();
+		}
 	}
 
 	void Scene::deinitialize()
 	{
 		for (auto& entity : mRigidBodies)
-			entity.second->deinitialize();
-
-		mScene->release();
+		{
+			entity->deinitialize();
+		}
 
 		HLOG_DEBUG("Deinitialized %s", mDescription.label);
 	}
 
 	Scene::~Scene()
 	{
+		for (auto& entity : mRigidBodies)
+		{
+			delete entity;
+		}
+
+		mRigidBodies.clear();
+
+		mScene->release();
 
 #ifdef _DEBUG
 		gPVD->disconnect();
 		gPVD->release();
 #endif // _DEBUG
-		gPhysX->release();
 		gPhysXFoundation->release();
+		//gPhysX->release();
 
 		HLOG_INFO("Destroyed %s", mDescription.label);
 
