@@ -36,30 +36,33 @@ namespace dx12
 		void initialize() override;
 		void render() override;
 		void deinitialize() override;
+
+	private:
+		void setupFrame();
+
+		void closeFrame();
+
+		void execute();
+
+		void presentNow();
+
 	private:
 		void getHardwareAdapter(_In_ IDXGIFactory1* pFactory, _Outptr_result_maybenull_ IDXGIAdapter1** ppAdapter, bool requestHighPerformanceAdapter = false) const;
-		void loadPipeline();
-		void loadAssets();
-		void populateCommandList();
 		void waitForPreviousFrame();
 
 	private:
 		static const UINT mFrameCount = 2;
-		struct Vertex
-		{
-			DirectX::XMFLOAT3 position;
-			DirectX::XMFLOAT4 color;
-		};
-		harmony::Renderer::Description mDescription;
 		UINT mFrameIndex = 0;
+
+		harmony::Renderer::Description mDescription;
+	
 	private:
-		
-		ComPtr<ID3D12CommandQueue> mCommandQueue;
 		ComPtr<IDXGISwapChain3> mSwapChain;
+		ComPtr<ID3D12CommandQueue> mCommandQueue;
+
 		UINT mRTVDescriptorSize = 0;
 		ComPtr<ID3D12DescriptorHeap> mRTVHeap;
-		ComPtr<ID3D12Resource> mRenderTargets[mFrameCount];
-		
+		ComPtr<ID3D12Resource> renderTargets[mFrameCount];
 		
 		ComPtr<ID3D12Fence> mFence;
 		UINT64 mFenceValue = 0;
@@ -67,7 +70,6 @@ namespace dx12
 
 		CD3DX12_VIEWPORT mViewport;
 		CD3DX12_RECT mScissorRect;
-
 	};
 }
 

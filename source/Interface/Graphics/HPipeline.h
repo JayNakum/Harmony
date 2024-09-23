@@ -33,6 +33,41 @@ namespace harmony
             eHALF2,     // 4 bytes
             eHALF4      // 8 bytes
         };
+
+        unsigned int getByteSize(const VertexFormat format) const
+        {
+            switch (format)
+            {
+            default:
+                return 0;
+
+            case eFLOAT:
+			case eBYTE4:
+			case eBYTE4N:
+			case eUBYTE4:
+			case eUBYTE4N:
+			case eSHORT2:
+			case eSHORT2N:
+            case eUSHORT2N:
+            case eUINT10_N2:
+            case eHALF2:
+                return 4;
+
+            case eFLOAT2:
+            case eSHORT4:
+            case eSHORT4N:
+            case eUSHORT4N:
+            case eHALF4:
+                return 8;
+
+            case eFLOAT3:
+                return 12;
+
+            case eFLOAT4:
+                return 16;
+            }
+        }
+
         struct VertexAttribute
         {
             VertexFormat format;

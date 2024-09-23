@@ -5,6 +5,7 @@ namespace harmony
     class Renderer
     {
     public:
+
         struct Description
         {
 			bool useWarpDevice = false;

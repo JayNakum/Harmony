@@ -461,7 +461,6 @@ namespace sokol
 	void RenderPass::initialize()
 	{
 		mPass.label = mDescription.label;
-
 		mPass.action.colors->load_action = SG_LOADACTION_CLEAR;
 		mPass.action.colors[0].clear_value = { 
 			mDescription.action.colors.value[0],

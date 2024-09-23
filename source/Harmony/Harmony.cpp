@@ -111,7 +111,7 @@ harmony::Pipeline* Harmony::createPipeline(const harmony::Pipeline::Description&
 	return new Pipeline(description);
 }
 
-//harmony::RenderPass* Harmony::createRenderPass(const harmony::RenderPass::Description& description) const
-//{
-//	return new RenderPass(description);
-//}
+harmony::RenderPass* Harmony::createRenderPass(const harmony::RenderPass::Description& description) const
+{
+	return new RenderPass(description);
+}

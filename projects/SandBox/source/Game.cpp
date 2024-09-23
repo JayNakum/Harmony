@@ -7,6 +7,12 @@
 #include <gtc/matrix_transform.hpp>
 #include <gtc/type_ptr.hpp>
 
+
+harmony::Scene* scene = nullptr;
+harmony::Pipeline* pipeline = nullptr;
+harmony::Shader* vs = nullptr;
+harmony::Shader* ps = nullptr;
+
 class Game
 {
 public:
@@ -43,6 +49,81 @@ public:
 			auto entity = scene->createEntity(entityDescription);
 		}
 
+		harmony::Shader::Description vShaderDescription;
+		{
+			vShaderDescription.label = "Test Shader Program";
+			vShaderDescription.type = harmony::Shader::Type::eVERTEX;
+			vShaderDescription.source = R"(
+struct VSInput
+{
+    float3 position : POSITION;
+    float4 color : COLOR;
+};
+
+struct PSInput
+{
+    float4 position : SV_POSITION;
+    float4 color : COLOR;
+};
+
+PSInput main(VSInput input)
+{
+    PSInput result;
+
+    result.position = float4(input.position, 0.0f);
+    result.color = input.color;
+
+    return result;
+}
+			)";
+		}
+		auto vShader = HARMONY->createShader(vShaderDescription);
+		vShader->initialize();
+
+		harmony::Shader::Description fShaderDescription;
+		{
+			fShaderDescription.type = harmony::Shader::Type::eFRAGMENT;
+			fShaderDescription.source = R"(
+struct PSInput
+{
+    float4 position : SV_POSITION;
+    float4 color : COLOR;
+};
+
+float4 main(PSInput input) : SV_TARGET
+{
+    return input.color;
+}
+			)";
+		}
+		auto fShader = HARMONY->createShader(fShaderDescription);
+		fShader->initialize();
+
+		harmony::Pipeline::Description pipelineDescription;
+		{
+			pipelineDescription.label = "Test Pipeline";
+			pipelineDescription.layout.attributesCount = 2;
+
+			pipelineDescription.layout.attributes[0].name = "POSITION";
+			pipelineDescription.layout.attributes[0].index = 0;
+			pipelineDescription.layout.attributes[0].format = harmony::Pipeline::VertexFormat::eFLOAT3;
+
+			pipelineDescription.layout.attributes[1].name = "COLOR";
+			pipelineDescription.layout.attributes[1].index = 0;
+			pipelineDescription.layout.attributes[1].format = harmony::Pipeline::VertexFormat::eFLOAT4;
+
+			pipelineDescription.vertexShader = vShader;
+			pipelineDescription.fragmentShader = fShader;
+
+			pipelineDescription.indexType = harmony::Pipeline::IndexType::eUINT16;
+			pipelineDescription.cullMode = harmony::Pipeline::CullMode::eBACK;
+
+			pipelineDescription.depthBufferEnabled = true;
+		}
+		pipeline = HARMONY->createPipeline(pipelineDescription);
+
+		pipeline->initialize();
+
 		scene->initialize();
 	}
 
@@ -52,16 +133,44 @@ public:
 		
 		initScene();
 	}
+
+/*
+* Improved DX12 renderer
+* higher level abstraction is done
+* 
+* now need to implement deferred rendering
+* will be easy in dx12
+* abstract render targets > create render passes in the engine > create various EngineRenderers > draw onto those render targets
+* 
+* will be difficult in sokol
+* since they do not have a thing called render target, need to write it to an image and then show it on a quad.
+* OR
+* either provide a HACK or simply SKIP the render passes implementation for sokol
+* 
+* TODO PATH FOR DX
+* Do the next level of abstraction and then we can get started with advance rendering techniques
+* 
+* TODO PATH FOR SOKOL
+* Just make it work with the DX renderer
+*/
+
+
 	void update()
 	{
 		engine.update();
+		scene->update();
 	}
 	void render()
 	{
 		engine.render();
+		for (const auto& visual : scene->getVisualEntities())
+		{
+			visual->getDrawable()->draw();
+		}
 	}
 	void deinitialize()
 	{
+		pipeline->deinitialize();
 		engine.deinitialize();
 	}
 	~Game()
@@ -71,7 +180,6 @@ public:
 
 private:
 	harmony::Engine engine;
-	harmony::Scene* scene = nullptr;
 };
 
 int main()

@@ -57,7 +57,7 @@ public:
 	harmony::Drawable*		createDrawable(const harmony::Drawable::Description& description) const;
 	harmony::Shader*		createShader(const harmony::Shader::Description& description) const;
 	harmony::Pipeline*		createPipeline(const harmony::Pipeline::Description& description) const;
-	//harmony::RenderPass*	createRenderPass(const harmony::RenderPass::Description& description) const;
+	harmony::RenderPass*	createRenderPass(const harmony::RenderPass::Description& description) const;
 
 	//harmony::Image::Description	getImageDescription(const char* imagePath) const;
 	//harmony::Image*				createImage(const harmony::Image::Description& description) const;
