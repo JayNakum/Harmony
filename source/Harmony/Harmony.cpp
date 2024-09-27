@@ -3,14 +3,14 @@
 #ifdef SOKOL
 
 #include "SG_Window.h"
-#include "SG_Renderer.h"
+#include "SG_RenderAPI.h"
 
 using namespace sokol;
 
 #else
 
 #include "Win32_Window.h"
-#include "DX12_Renderer.h"
+#include "DX12_RenderAPI.h"
 using namespace win32;
 using namespace dx12;
 
@@ -43,7 +43,7 @@ void Harmony::initializeSystem(const Harmony::Description description)
 
 	Harmony::getInstance()->setInputSystem(Harmony::getInstance()->createNewInputSystem(description.inputSysDesc));
 
-	Harmony::getInstance()->setRenderer(Harmony::getInstance()->createNewRenderer(description.rendererDesc));
+	Harmony::getInstance()->setRenderAPI(Harmony::getInstance()->createNewRenderAPI(description.rendererDesc));
 }
 
 harmony::Window* Harmony::createNewWindow(const harmony::Window::Description& description)
@@ -56,9 +56,9 @@ harmony::Inputs* Harmony::createNewInputSystem(const harmony::Inputs::Descriptio
 	return new Inputs(description);
 }
 
-harmony::Renderer* Harmony::createNewRenderer(const harmony::Renderer::Description& description)
+harmony::RenderAPI* Harmony::createNewRenderAPI(const harmony::RenderAPI::Description& description)
 {
-	return new Renderer(description);
+	return new RenderAPI(description);
 }
 
 harmony::Logger* Harmony::createNewLogger(const harmony::Logger::Description& description)

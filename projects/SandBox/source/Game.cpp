@@ -10,8 +10,6 @@
 
 harmony::Scene* scene = nullptr;
 harmony::Pipeline* pipeline = nullptr;
-harmony::Shader* vs = nullptr;
-harmony::Shader* ps = nullptr;
 
 class Game
 {
@@ -162,11 +160,16 @@ float4 main(PSInput input) : SV_TARGET
 	}
 	void render()
 	{
-		engine.render();
+		pass.begin();
+		pipeline->bind();
 		for (const auto& visual : scene->getVisualEntities())
 		{
 			visual->getDrawable()->draw();
 		}
+		pipeline->unbind();
+		pass.end()
+
+		engine.render();
 	}
 	void deinitialize()
 	{

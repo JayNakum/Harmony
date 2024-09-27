@@ -6,7 +6,7 @@
 #include "Graphics/HShader.h"
 #include "Graphics/HPipeline.h"
 #include "Graphics/HRenderPass.h"
-#include "Graphics/HRenderer.h"
+#include "Graphics/HRenderAPI.h"
 
 #include <sokol_gfx.h>
 
@@ -14,19 +14,21 @@
 
 namespace sokol
 {
-    class Renderer : public harmony::Renderer
+    class RenderAPI : public harmony::RenderAPI
     {
     public:
-        Renderer(const harmony::Renderer::Description& description);
-        ~Renderer();
+        RenderAPI(const harmony::RenderAPI::Description& description);
+        ~RenderAPI();
 
-        const harmony::Renderer::Description& getDescription() const override;
+        const harmony::RenderAPI::Description& getDescription() const override;
         void initialize() override;
-        void render() override;
+        void frameBegin() override;
+        void frameEnd() override;
         void deinitialize() override;
 
     private:
-        harmony::Renderer::Description mDescription;
+		harmony::RenderAPI::Description mDescription;
+		sg_pass mPass;
     };
 }
 
@@ -185,6 +187,5 @@ namespace sokol
 
     private:
         harmony::RenderPass::Description mDescription;
-        sg_pass mPass;
     };
 }

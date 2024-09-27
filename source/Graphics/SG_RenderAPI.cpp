@@ -1,31 +1,25 @@
-#include "SG_Renderer.h"
+#include "SG_RenderAPI.h"
 
-#include "Harmony.h"
 #include "Helpers/HLog.h"
 
 #include <sokol_glue.h>
 
 namespace sokol
 {
-	Renderer::Renderer(const harmony::Renderer::Description& description)
+	RenderAPI::RenderAPI(const harmony::RenderAPI::Description& description)
 		: mDescription(description) {}
 
-	Renderer::~Renderer()
+	RenderAPI::~RenderAPI()
 	{
 		sg_shutdown();
 	}
 
-	const harmony::Renderer::Description& Renderer::getDescription() const
+	const harmony::RenderAPI::Description& RenderAPI::getDescription() const
 	{
 		return mDescription;
 	}
 
-	void Renderer::render()
-	{
-
-	}
-
-	void Renderer::initialize()
+	void RenderAPI::initialize()
 	{
 		sg_desc createDesc = { 0 };
 		createDesc.environment = sglue_environment();
@@ -33,7 +27,16 @@ namespace sokol
 		sg_setup(createDesc);
 	}
 
-	void Renderer::deinitialize()
+	void RenderAPI::frameBegin()
+	{
+	}
+
+
+	void RenderAPI::frameEnd()
+	{
+	}
+
+	void RenderAPI::deinitialize()
 	{
 	}
 }

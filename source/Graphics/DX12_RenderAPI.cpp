@@ -1,4 +1,4 @@
-#include "DX12_Renderer.h"
+#include "DX12_RenderAPI.h"
 
 #include "Helpers/HLog.h"
 
@@ -46,23 +46,23 @@ static inline std::unique_ptr<char[]> hrErrorDescription(const HRESULT hResult)
 
 namespace dx12
 {
-	Renderer::Renderer(const harmony::Renderer::Description& description)
+	RenderAPI::RenderAPI(const harmony::RenderAPI::Description& description)
 		: mDescription(description)
 	{
 		HLOG_INFO("Created.");
 	}
 
-	Renderer::~Renderer()
+	RenderAPI::~RenderAPI()
 	{
 		HLOG_INFO("Destroyed.");
 	}
 
-	const harmony::Renderer::Description& Renderer::getDescription() const
+	const harmony::RenderAPI::Description& RenderAPI::getDescription() const
 	{
 		return mDescription;
 	}
 
-	void Renderer::initialize()
+	void RenderAPI::initialize()
 	{
 		HRESULT hResult;
 
@@ -162,10 +162,10 @@ namespace dx12
 
 				for (UINT n = 0; n < mFrameCount; ++n)
 				{
-					hResult = mSwapChain->GetBuffer(n, IID_PPV_ARGS(&renderTargets[n]));
+					hResult = mSwapChain->GetBuffer(n, IID_PPV_ARGS(&mRenderTargets[n]));
 					HASSERT(SUCCEEDED(hResult), "Failed to get RT buffer.\n%s", hrErrorDescription(hResult).get());
 
-					gDevice->CreateRenderTargetView(renderTargets[n].Get(), nullptr, rtvHandle);
+					gDevice->CreateRenderTargetView(mRenderTargets[n].Get(), nullptr, rtvHandle);
 					rtvHandle.Offset(1, mRTVDescriptorSize);
 				}
 			}
@@ -198,11 +198,11 @@ namespace dx12
 		HLOG_DEBUG("Initialized.");
 	}
 
-	void Renderer::setupFrame()
+	void RenderAPI::setupFrame()
 	{
 		HRESULT hResult;
 
-		{ // Reset pass
+		{
 			hResult = gCommandAllocator->Reset();
 			HASSERT(SUCCEEDED(hResult), "Failed to reset command allocator.\n%s", hrErrorDescription(hResult).get());
 
@@ -211,72 +211,79 @@ namespace dx12
 		}
 
 		{
-			{ // Setup FrameParams_Window
-				mViewport.TopLeftX = 0.0f;
-				mViewport.TopLeftY = 0.0f;
-				mViewport.Width = (float)HARMONY->getWindow()->getDescription().width;
-				mViewport.Height = (float)HARMONY->getWindow()->getDescription().height;
-				mViewport.MinDepth = 0.0f;
-				mViewport.MaxDepth = 1.0f;
-				gGFXCommandList->RSSetViewports(1, &mViewport);
-				mScissorRect.left = 0;
-				mScissorRect.top = 0;
-				mScissorRect.right = HARMONY->getWindow()->getDescription().width;
-				mScissorRect.bottom = HARMONY->getWindow()->getDescription().height;
-				gGFXCommandList->RSSetScissorRects(1, &mScissorRect);
-			}
+			mViewport.TopLeftX = 0.0f;
+			mViewport.TopLeftY = 0.0f;
+			mViewport.Width = (float)HARMONY->getWindow()->getDescription().width;
+			mViewport.Height = (float)HARMONY->getWindow()->getDescription().height;
+			mViewport.MinDepth = 0.0f;
+			mViewport.MaxDepth = 1.0f;
+			gGFXCommandList->RSSetViewports(1, &mViewport);
+			mScissorRect.left = 0;
+			mScissorRect.top = 0;
+			mScissorRect.right = HARMONY->getWindow()->getDescription().width;
+			mScissorRect.bottom = HARMONY->getWindow()->getDescription().height;
+			gGFXCommandList->RSSetScissorRects(1, &mScissorRect);
+		}
 
-			{ // Setup FrameParams_Swapchain
-				auto rtBarrier = CD3DX12_RESOURCE_BARRIER::Transition(renderTargets[mFrameIndex].Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
-				gGFXCommandList->ResourceBarrier(1, &rtBarrier);
-
-				CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(mRTVHeap->GetCPUDescriptorHandleForHeapStart(), mFrameIndex, mRTVDescriptorSize);
-
-				gGFXCommandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
-				gGFXCommandList->ClearRenderTargetView(rtvHandle, mDescription.action.colors.value, 0, nullptr);
-			}
+		{
+			auto rtBarrier = CD3DX12_RESOURCE_BARRIER::Transition(mRenderTargets[mFrameIndex].Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
+			gGFXCommandList->ResourceBarrier(1, &rtBarrier);
 		}
 	}
 
-	void Renderer::closeFrame() 
+	void RenderAPI::closeFrame() 
 	{
-		auto presentBarrier = CD3DX12_RESOURCE_BARRIER::Transition(renderTargets[mFrameIndex].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
+		auto presentBarrier = CD3DX12_RESOURCE_BARRIER::Transition(mRenderTargets[mFrameIndex].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
 		gGFXCommandList->ResourceBarrier(1, &presentBarrier);
 
 		HRESULT hResult = gGFXCommandList->Close();
 		HASSERT(SUCCEEDED(hResult), "Failed to close command list.\n%s", hrErrorDescription(hResult).get());
 	}
 
-	void Renderer::execute() 
-	{ // Execute CommandList
+	void RenderAPI::execute() 
+	{
 		ID3D12CommandList* ppCommandList[] = { gGFXCommandList.Get() };
 		mCommandQueue->ExecuteCommandLists(_countof(ppCommandList), ppCommandList);
 	}
 
-	void Renderer::presentNow()
-	{ // Present
+	void RenderAPI::presentNow()
+	{
 		HRESULT hResult = mSwapChain->Present(1, 0);
 		HASSERT(SUCCEEDED(hResult), "Failed to present swapchain.\n%s", hrErrorDescription(hResult).get());
 
 		waitForPreviousFrame();
 	}
 
-	void Renderer::render()
+	void RenderAPI::frameBegin()
 	{
 		setupFrame();
+
+		{
+			CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(mRTVHeap->GetCPUDescriptorHandleForHeapStart(), mFrameIndex, mRTVDescriptorSize);
+
+			gGFXCommandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
+
+			gGFXCommandList->ClearRenderTargetView(rtvHandle, value, 0, nullptr);
+		}
 
 		{ 
 			// RENDER HERE!
 		}
 		
+	}
+
+	void RenderAPI::frameEnd()
+	{
 		closeFrame();
 
 		execute();
 		
 		presentNow();
+
 	}
 
-	void Renderer::deinitialize()
+
+	void RenderAPI::deinitialize()
 	{
 		waitForPreviousFrame();
 
@@ -286,7 +293,7 @@ namespace dx12
 	}
 
 
-	void Renderer::getHardwareAdapter(_In_ IDXGIFactory1* pFactory, _Outptr_result_maybenull_ IDXGIAdapter1** ppAdapter, bool requestHighPerformanceAdapter) const
+	void RenderAPI::getHardwareAdapter(_In_ IDXGIFactory1* pFactory, _Outptr_result_maybenull_ IDXGIAdapter1** ppAdapter, bool requestHighPerformanceAdapter) const
 	{
 		HRESULT hResult;
 
@@ -359,7 +366,7 @@ namespace dx12
 		*ppAdapter = adapter.Detach();
 	}
 
-	void Renderer::waitForPreviousFrame()
+	void RenderAPI::waitForPreviousFrame()
 	{
 		HRESULT hResult;
 		const UINT64 fence = mFenceValue;
@@ -691,7 +698,7 @@ namespace dx12
 
 	void Pipeline::applyConstants(unsigned int constantBlockIndex, const void* data, size_t size, const harmony::Pipeline::ShaderStageType type) const
 	{
-
+		// TODO: implement shader constants
 	}
 
 	void Pipeline::unbind() const

@@ -2,7 +2,7 @@
 
 namespace harmony
 {
-    class Renderer
+    class RenderAPI
     {
     public:
 
@@ -11,10 +11,11 @@ namespace harmony
 			bool useWarpDevice = false;
         };
 
-        virtual ~Renderer() = default;
+        virtual ~RenderAPI() = default;
         virtual const Description& getDescription() const = 0;
         virtual void initialize() = 0;
-        virtual void render() = 0;
+        virtual void frameBegin() = 0;
+        virtual void frameEnd() = 0;
         virtual void deinitialize() = 0;
     };
 }

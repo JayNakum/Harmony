@@ -9,7 +9,7 @@
 #include "Graphics/HShader.h"
 #include "Graphics/HPipeline.h"
 #include "Graphics/HRenderPass.h"
-#include "Graphics/HRenderer.h"
+#include "Graphics/HRenderAPI.h"
 
 #include "Scene/HScene.h"
 
@@ -31,7 +31,7 @@ public:
 	{
 		harmony::Window::Description	windowDesc;
 		harmony::Inputs::Description	inputSysDesc;
-		harmony::Renderer::Description	rendererDesc;
+		harmony::RenderAPI::Description	rendererDesc;
 	};
 
 	static Harmony*		getInstance();
@@ -39,16 +39,16 @@ public:
 
 	harmony::Window*	createNewWindow(const harmony::Window::Description& description);
 	harmony::Inputs*	createNewInputSystem(const harmony::Inputs::Description& description);
-	harmony::Renderer*	createNewRenderer(const harmony::Renderer::Description& description);
+	harmony::RenderAPI*	createNewRenderAPI(const harmony::RenderAPI::Description& description);
 	harmony::Logger*	createNewLogger(const harmony::Logger::Description& description = {});
 
 	inline harmony::Window*		getWindow(unsigned int i = 0) const { return mMainWindow; }
 	inline harmony::Inputs*		getInputSystem(unsigned int i = 0) const { return mInputSystem; }
-	inline harmony::Renderer*	getRenderer(unsigned int i = 0) const { return mRenderer; }
+	inline harmony::RenderAPI*	getRenderer(unsigned int i = 0) const { return mRenderAPI; }
 
 	inline void setWindow(harmony::Window* const& window) { mMainWindow = window; };
 	inline void setInputSystem(harmony::Inputs* const& inputSys) { mInputSystem = inputSys; }
-	inline void setRenderer(harmony::Renderer* const& renderer) { mRenderer = renderer; }
+	inline void setRenderAPI(harmony::RenderAPI* const& renderer) { mRenderAPI = renderer; }
 	
 
 	harmony::Scene*			createECSScene(const harmony::Scene::Description& description) const;
@@ -66,5 +66,5 @@ public:
 private:
 	harmony::Window*	mMainWindow = nullptr;
 	harmony::Inputs*	mInputSystem = nullptr;
-	harmony::Renderer*	mRenderer = nullptr;
+	harmony::RenderAPI*	mRenderAPI = nullptr;
 };

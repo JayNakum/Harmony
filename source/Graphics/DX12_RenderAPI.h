@@ -1,11 +1,11 @@
 #pragma once
 
+#include "Graphics/HRenderAPI.h"
 #include "Graphics/HBuffer.h"
 #include "Graphics/HDrawable.h"
 #include "Graphics/HShader.h"
 #include "Graphics/HPipeline.h"
 #include "Graphics/HRenderPass.h"
-#include "Graphics/HRenderer.h"
 
 #include "directx/d3dx12.h"
 #include <d3d12.h>
@@ -27,23 +27,21 @@ using namespace Microsoft::WRL;
 
 namespace dx12
 {
-	class Renderer : public harmony::Renderer
+	class RenderAPI : public harmony::RenderAPI
 	{
 	public:
-		Renderer(const harmony::Renderer::Description& description);
-		~Renderer();
-		const harmony::Renderer::Description& getDescription() const;
+		RenderAPI(const harmony::RenderAPI::Description& description);
+		~RenderAPI();
+		const harmony::RenderAPI::Description& getDescription() const;
 		void initialize() override;
-		void render() override;
+		void frameBegin() override;
+		void frameEnd() override;
 		void deinitialize() override;
 
 	private:
 		void setupFrame();
-
 		void closeFrame();
-
 		void execute();
-
 		void presentNow();
 
 	private:
@@ -54,7 +52,7 @@ namespace dx12
 		static const UINT mFrameCount = 2;
 		UINT mFrameIndex = 0;
 
-		harmony::Renderer::Description mDescription;
+		harmony::RenderAPI::Description mDescription;
 	
 	private:
 		ComPtr<IDXGISwapChain3> mSwapChain;
@@ -62,7 +60,7 @@ namespace dx12
 
 		UINT mRTVDescriptorSize = 0;
 		ComPtr<ID3D12DescriptorHeap> mRTVHeap;
-		ComPtr<ID3D12Resource> renderTargets[mFrameCount];
+		ComPtr<ID3D12Resource> mRenderTargets[mFrameCount];
 		
 		ComPtr<ID3D12Fence> mFence;
 		UINT64 mFenceValue = 0;
