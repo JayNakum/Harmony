@@ -19,7 +19,7 @@ using namespace dx12;
 #include "Inputs.h"
 
 #include "ENTT_Scene.h"
-#include "PhysX_Scene.h"
+//#include "Box2D_Scene.h"
 
 #include "Logger.h"
 
@@ -73,7 +73,7 @@ harmony::Scene* Harmony::createECSScene(const harmony::Scene::Description& descr
 
 harmony::Scene* Harmony::createPhysicsScene(const harmony::Scene::Description& description) const
 {
-	return new physx::Scene(description);
+	return nullptr; // new box2d::Scene(description);
 }
 
 harmony::Buffer* Harmony::createBuffer(const harmony::Buffer::Description& description) const
@@ -86,20 +86,20 @@ harmony::Drawable* Harmony::createDrawable(const harmony::Drawable::Description&
 	return new Drawable(description);
 }
 
-//harmony::Image::Description Harmony::getImageDescription(const char* imagePath) const
-//{
-//	return harmony::Image::Description();
-//}
-//
-//harmony::Image* Harmony::createImage(const harmony::Image::Description& description) const
-//{
-//	return new Image(description);
-//}
-//
-//harmony::Sampler* Harmony::createSampler(const harmony::Sampler::Description& description) const
-//{
-//	return new Sampler(description);
-//}
+harmony::Image::Description Harmony::getImageDescription(const char* imagePath) const
+{
+	return harmony::Image::Description();
+}
+
+harmony::Image* Harmony::createImage(const harmony::Image::Description& description) const
+{
+	return new Image(description);
+}
+
+harmony::Sampler* Harmony::createSampler(const harmony::Sampler::Description& description) const
+{
+	return new Sampler(description);
+}
 
 harmony::Shader* Harmony::createShader(const harmony::Shader::Description& description) const
 {
@@ -111,7 +111,7 @@ harmony::Pipeline* Harmony::createPipeline(const harmony::Pipeline::Description&
 	return new Pipeline(description);
 }
 
-harmony::RenderPass* Harmony::createRenderPass(const harmony::RenderPass::Description& description) const
+harmony::Swapchain* Harmony::createSwapchain(const harmony::Swapchain::Description& description) const
 {
-	return new RenderPass(description);
+	return new Swapchain(description);
 }

@@ -6,6 +6,8 @@
 #include "Graphics/HShader.h"
 #include "Graphics/HPipeline.h"
 #include "Graphics/HRenderPass.h"
+#include "Graphics/HSwapchain.h"
+#include "Graphics/HRenderTarget.h"
 #include "Graphics/HRenderAPI.h"
 
 #include <sokol_gfx.h>
@@ -28,7 +30,48 @@ namespace sokol
 
     private:
 		harmony::RenderAPI::Description mDescription;
-		sg_pass mPass;
+    };
+}
+
+namespace sokol
+{
+    class RenderTarget : public harmony::RenderTarget
+    {
+        friend class Swapchain;
+        RenderTarget() = default;
+        ~RenderTarget() = default;
+    public:
+        void initialize() override;
+        const void* getID() const;
+        void bind(const Action& action);
+        void deinitialize() override;
+
+    private:
+        sg_pass_action mAction;
+    };
+}
+
+namespace sokol
+{
+    class Swapchain : public harmony::Swapchain
+    {
+    public:
+        Swapchain(const harmony::Swapchain::Description& description);
+        ~Swapchain();
+
+        const void* getID() const override;
+        const harmony::Swapchain::Description& getDescription() const override;
+        harmony::RenderTarget* getCurrentRenderTarget() const override;
+        void initialize() override;
+        void prepare() override;
+        void resize(unsigned int width, unsigned int height) override;
+        void present() override;
+        void deinitialize() override;
+
+    private:
+        harmony::Swapchain::Description mDescription;
+        sg_pass mPass;
+        harmony::RenderTarget* mRenderTarget = nullptr;
     };
 }
 
@@ -166,26 +209,5 @@ namespace sokol
         static const std::unordered_map<harmony::Pipeline::FaceWinding, sg_face_winding> sFACE_WINDING;
         static const std::unordered_map<harmony::Pipeline::IndexType, sg_index_type> sINDEX_TYPE;
         static const std::unordered_map<harmony::Pipeline::ShaderStageType, sg_shader_stage> sSTAGE_TYPE;
-    };
-}
-
-namespace sokol
-{
-    class RenderPass : public harmony::RenderPass
-    {
-    public:
-        RenderPass(const harmony::RenderPass::Description& description);
-        ~RenderPass();
-
-    public:
-        const void* getID() const override;
-        const harmony::RenderPass::Description& getDescription() const override;
-        void initialize() override;
-        void begin() override;
-        void end() const override;
-        void deinitialize() override;
-
-    private:
-        harmony::RenderPass::Description mDescription;
     };
 }

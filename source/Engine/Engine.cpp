@@ -17,11 +17,7 @@ namespace harmony
 
 	void Engine::render()
 	{
-		HARMONY->getRenderer()->frameBegin();
-		{
-			// RENDER HERE!
-		}
-		HARMONY->getRenderer()->frameEnd();
+		mRenderer.render();
 	}
 
 	void Engine::deinitialize()

@@ -41,6 +41,93 @@ namespace sokol
 	}
 }
 
+/*
+* In sokol, there is no support for separate render targets and multi-buffer rendering
+* Hence here, creating a render target just means creating a pass action that defined the clear values
+* And creating a swapchain means creating a sg_pass.
+* In sokol, there is no good reason to handle swapchains manually so this seems like the place to keep this.
+* 
+* This is here because it seems like a logical hack 
+* without having to implement a proper system where render targets means an sg_image and writing to it instead and blit it to a quad.
+* And there is no good reason to implement that for now.
+* 
+* So for now we will create a common swapchain (that is sg_renderpass) and a singular render target (which is the action that will happen on that render pass).
+* This is done to have a sort of unified interface with other low level APIs.
+*/
+
+namespace sokol
+{
+	void RenderTarget::initialize()
+	{}
+
+	const void* RenderTarget::getID() const
+	{
+		return &mAction;
+	}
+
+	void RenderTarget::bind(const Action& action)
+	{
+		mAction.colors->load_action = SG_LOADACTION_CLEAR;
+		mAction.colors[0].clear_value = {
+			action.colors.value[0],
+			action.colors.value[1],
+			action.colors.value[2],
+			action.colors.value[3]
+		};
+
+	}
+
+	void RenderTarget::deinitialize()
+	{}
+}
+
+namespace sokol
+{
+	Swapchain::Swapchain(const harmony::Swapchain::Description& description)
+		: mDescription(description), mPass{0}, mRenderTarget(new RenderTarget())
+	{}
+
+	Swapchain::~Swapchain()
+	{}
+
+	const void* Swapchain::getID() const
+	{
+		return nullptr;
+	}
+
+	const harmony::Swapchain::Description& Swapchain::getDescription() const
+	{
+		return mDescription;
+	}
+
+	harmony::RenderTarget* Swapchain::getCurrentRenderTarget() const
+	{
+		return mRenderTarget;
+	}
+	
+	void Swapchain::initialize()
+	{
+	}
+
+	void Swapchain::prepare()
+	{
+		mPass.swapchain = sglue_swapchain();
+		sg_begin_pass(mPass);
+	}
+
+	void Swapchain::resize(unsigned int width, unsigned int height)
+	{}
+
+	void Swapchain::present()
+	{
+		sg_end_pass();
+		sg_commit();
+	}
+
+	void Swapchain::deinitialize()
+	{}
+}
+
 namespace sokol
 {
 	Buffer::Buffer(const harmony::Buffer::Description& description)
@@ -442,56 +529,6 @@ namespace sokol
 	{
 		sg_destroy_pipeline(mPipeline);
 		sg_destroy_shader(mShaderProgram);
-		mDescription = { 0 };
-	}
-}
-
-namespace sokol
-{
-	RenderPass::RenderPass(const harmony::RenderPass::Description& description)
-		: mDescription(description), mPass{0} {}
-
-	const void* RenderPass::getID() const
-	{
-		return &mPass;
-	}
-
-	const harmony::RenderPass::Description& RenderPass::getDescription() const
-	{
-		return mDescription;
-	}
-
-	void RenderPass::initialize()
-	{
-		mPass.label = mDescription.label;
-		mPass.action.colors->load_action = SG_LOADACTION_CLEAR;
-		mPass.action.colors[0].clear_value = { 
-			mDescription.action.colors.value[0],
-			mDescription.action.colors.value[1],
-			mDescription.action.colors.value[2],
-			mDescription.action.colors.value[3]
-		};
-
-	}
-
-	void RenderPass::begin()
-	{
-		mPass.swapchain = sglue_swapchain();
-		sg_begin_pass(mPass);
-	}
-
-	void RenderPass::end() const
-	{
-		sg_end_pass();
-		sg_commit();
-	}
-
-	void RenderPass::deinitialize() {}
-
-	RenderPass::~RenderPass()
-	{
-
-		mPass = { 0 };
 		mDescription = { 0 };
 	}
 }

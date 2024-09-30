@@ -4,11 +4,17 @@
 
 #include "Helpers/HLog.h"
 
-namespace gfx
+namespace harmony
 {
 	class Renderer
 	{
 	public:
-		Renderer()
+		Renderer();
+
+		void render();
+
+	private:
+		harmony::Swapchain* mSwapchain;
+
 	};
 }

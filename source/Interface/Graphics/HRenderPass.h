@@ -2,24 +2,12 @@
 
 namespace harmony
 {
-    class RenderPass
+    /*class RenderPass
     {
     public:
-        struct Action
-        {
-            struct Attachment
-            {
-                float value[4];
-            };
-
-            Attachment colors;
-        };
-
-
         struct Description
         {
-            const char* label = "default render pass";
-            Action action;
+            const char* label = "default render pass";=
         };
 
         virtual ~RenderPass() = default;
@@ -32,5 +20,5 @@ namespace harmony
         virtual void begin() = 0;
         virtual void end() const = 0;
         virtual void deinitialize() = 0;
-    };
+    };*/
 }

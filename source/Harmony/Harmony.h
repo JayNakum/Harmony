@@ -1,5 +1,7 @@
 #pragma once
 
+#define SOKOL
+
 #include "Window/HWindow.h"
 #include "Inputs/HInputs.h"
 
@@ -9,6 +11,8 @@
 #include "Graphics/HShader.h"
 #include "Graphics/HPipeline.h"
 #include "Graphics/HRenderPass.h"
+#include "Graphics/HSwapchain.h"
+#include "Graphics/HRenderTarget.h"
 #include "Graphics/HRenderAPI.h"
 
 #include "Scene/HScene.h"
@@ -57,11 +61,11 @@ public:
 	harmony::Drawable*		createDrawable(const harmony::Drawable::Description& description) const;
 	harmony::Shader*		createShader(const harmony::Shader::Description& description) const;
 	harmony::Pipeline*		createPipeline(const harmony::Pipeline::Description& description) const;
-	harmony::RenderPass*	createRenderPass(const harmony::RenderPass::Description& description) const;
+	harmony::Swapchain*		createSwapchain(const harmony::Swapchain::Description& description) const;
 
-	//harmony::Image::Description	getImageDescription(const char* imagePath) const;
-	//harmony::Image*				createImage(const harmony::Image::Description& description) const;
-	//harmony::Sampler*				createSampler(const harmony::Sampler::Description& description) const;
+	harmony::Image::Description	getImageDescription(const char* imagePath) const;
+	harmony::Image*				createImage(const harmony::Image::Description& description) const;
+	harmony::Sampler*			createSampler(const harmony::Sampler::Description& description) const;
 
 private:
 	harmony::Window*	mMainWindow = nullptr;

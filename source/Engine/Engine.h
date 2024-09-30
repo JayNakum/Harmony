@@ -2,6 +2,8 @@
 
 #include "Harmony.h"
 
+#include "Graphics/Renderer.h"
+
 #include "Helpers/HLog.h"
 
 namespace harmony
@@ -15,5 +17,8 @@ namespace harmony
 		void deinitialize();
 
 		~Engine();
+
+	private:
+		Renderer mRenderer;
 	};
 }
