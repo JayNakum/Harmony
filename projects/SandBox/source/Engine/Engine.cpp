@@ -6,7 +6,7 @@ namespace harmony
 	{
 		HARMONY->getWindow()->initialize();
 		HARMONY->getInputSystem()->initialize();
-		HARMONY->getRenderer()->initialize();
+		HARMONY->getRenderAPI()->initialize();
 	}
 
 	void Engine::update()
@@ -22,14 +22,14 @@ namespace harmony
 
 	void Engine::deinitialize()
 	{
-		HARMONY->getRenderer()->deinitialize();
+		HARMONY->getRenderAPI()->deinitialize();
 		HARMONY->getInputSystem()->deinitialize();
 		HARMONY->getWindow()->deinitialize();
 	}
 
 	Engine::~Engine()
 	{
-		delete HARMONY->getRenderer();
+		delete HARMONY->getRenderAPI();
 		delete HARMONY->getInputSystem();
 		delete HARMONY->getWindow();
 	}

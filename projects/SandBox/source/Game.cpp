@@ -1,4 +1,4 @@
-#include "Engine.h"
+#include "Engine/Engine.h"
 
 #define GLM_FORCE_SSE2
 #define GLM_FORCE_INLINE
@@ -9,8 +9,6 @@
 
 #include <sokol_app.h>
 #include <unordered_map>
-
-
 
 
 //class Entity
@@ -550,6 +548,7 @@ namespace sokol
 
 sapp_desc sokol_main(int argc, char* argv[])
 {
+	Harmony::initializeSystem();
 	sapp_desc appDesc = { 0 };
 	{
 		const auto& windowDesc = HARMONY->getWindow()->getDescription();

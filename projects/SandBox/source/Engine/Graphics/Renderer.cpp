@@ -7,11 +7,11 @@ namespace harmony
 
 	void Renderer::render()
 	{
-		HARMONY->getRenderer()->frameBegin();
+		HARMONY->getRenderAPI()->frameBegin();
 		{
 			// RENDER HERE!
 		}
-		HARMONY->getRenderer()->frameEnd();
+		HARMONY->getRenderAPI()->frameEnd();
 	}
 }
 

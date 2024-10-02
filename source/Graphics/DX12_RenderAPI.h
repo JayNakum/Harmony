@@ -160,24 +160,3 @@ namespace dx12
 		static const std::unordered_map<harmony::Pipeline::VertexFormat, DXGI_FORMAT> sVERTEX_FORMAT;
 	};
 }
-
-namespace dx12
-{
-	class RenderPass : public harmony::RenderPass
-	{
-	public:
-		RenderPass(const harmony::RenderPass::Description& description);
-		~RenderPass();
-
-	public:
-		const void* getID() const override;
-		const harmony::RenderPass::Description& getDescription() const override;
-		void initialize() override;
-		void begin() override;
-		void end() const override;
-		void deinitialize() override;
-
-	private:
-		harmony::RenderPass::Description mDescription;
-	};
-}

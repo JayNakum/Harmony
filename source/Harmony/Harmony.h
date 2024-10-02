@@ -1,7 +1,5 @@
 #pragma once
 
-#define SOKOL
-
 #include "Window/HWindow.h"
 #include "Inputs/HInputs.h"
 
@@ -48,7 +46,7 @@ public:
 
 	inline harmony::Window*		getWindow(unsigned int i = 0) const { return mMainWindow; }
 	inline harmony::Inputs*		getInputSystem(unsigned int i = 0) const { return mInputSystem; }
-	inline harmony::RenderAPI*	getRenderer(unsigned int i = 0) const { return mRenderAPI; }
+	inline harmony::RenderAPI*	getRenderAPI(unsigned int i = 0) const { return mRenderAPI; }
 
 	inline void setWindow(harmony::Window* const& window) { mMainWindow = window; };
 	inline void setInputSystem(harmony::Inputs* const& inputSys) { mInputSystem = inputSys; }

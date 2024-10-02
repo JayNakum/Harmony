@@ -2,11 +2,12 @@
 target_dir = "%{wks.location}/bin/%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}/%{prj.name}"
 obj_dir = "%{wks.location}/bin/obj/%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}/%{prj.name}"
 
--- ENGINE PROJECTS --
+-- CORE --
 prj_src = {}
-prj_src["Engine"] = "%{wks.location}/../source/Engine"
 prj_src["Interface"] = "%{wks.location}/../source/Interface"
 prj_src["Harmony"] = "%{wks.location}/../source/Harmony"
+
+-- MODULES --
 prj_src["Window"] = "%{wks.location}/../source/Window"
 prj_src["Inputs"] = "%{wks.location}/../source/Inputs"
 prj_src["Logger"] = "%{wks.location}/../source/Logger"

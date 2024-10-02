@@ -103,7 +103,7 @@ void Inputs::reset()
 	mCurrentMousePosition[0] = 0.0f;
 	mCurrentMousePosition[1] = 0.0f;
 
-	HLOG_DEBUG("Reset.");
+	//HLOG_DEBUG("Reset.");
 }
 
 void Inputs::deinitialize()

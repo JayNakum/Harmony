@@ -7,7 +7,7 @@
 
 using namespace sokol;
 
-#else
+#elif DX12
 
 #include "Win32_Window.h"
 #include "DX12_RenderAPI.h"

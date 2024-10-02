@@ -27,7 +27,6 @@ project "SandBox"
   
   links
   {
-    "Engine",
     "Harmony"
   }
 

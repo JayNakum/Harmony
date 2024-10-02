@@ -17,7 +17,9 @@ project "Logger"
 	{
     "%{prj_src.Logger}",
     "%{prj_src.Interface}",
-    "%{prj_src.Harmony}"
+    "%{prj_src.Harmony}",
+    
+    "%{include_dirs.Sokol}"
 	}
 
   filter "configurations:Debug"

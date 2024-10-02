@@ -7,11 +7,15 @@
 namespace sokol
 {
 	RenderAPI::RenderAPI(const harmony::RenderAPI::Description& description)
-		: mDescription(description) {}
+		: mDescription(description) 
+	{
+		HLOG_INFO("Created.");
+	}
 
 	RenderAPI::~RenderAPI()
 	{
 		sg_shutdown();
+		HLOG_INFO("Destroyed.");
 	}
 
 	const harmony::RenderAPI::Description& RenderAPI::getDescription() const
@@ -25,6 +29,8 @@ namespace sokol
 		createDesc.environment = sglue_environment();
 		// createDesc.logger.func = slog_func;
 		sg_setup(createDesc);
+
+		HLOG_DEBUG("Initialized.");
 	}
 
 	void RenderAPI::frameBegin()
@@ -58,7 +64,9 @@ namespace sokol
 namespace sokol
 {
 	void RenderTarget::initialize()
-	{}
+	{
+		HLOG_DEBUG("Initialized.");
+	}
 
 	const void* RenderTarget::getID() const
 	{
@@ -78,17 +86,23 @@ namespace sokol
 	}
 
 	void RenderTarget::deinitialize()
-	{}
+	{
+		HLOG_DEBUG("Deinitialized.");
+	}
 }
 
 namespace sokol
 {
 	Swapchain::Swapchain(const harmony::Swapchain::Description& description)
 		: mDescription(description), mPass{0}, mRenderTarget(new RenderTarget())
-	{}
+	{
+		HLOG_INFO("Created %s", mDescription.label);
+	}
 
 	Swapchain::~Swapchain()
-	{}
+	{
+		HLOG_INFO("Destroyed %s", mDescription.label);
+	}
 
 	const void* Swapchain::getID() const
 	{
