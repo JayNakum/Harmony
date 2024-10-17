@@ -3,6 +3,7 @@ project "Logger"
   language "C++"
   cppdialect "C++20"
 	staticruntime "on"
+  characterset ("MBCS")
 
   targetdir (target_dir)
   objdir (obj_dir)

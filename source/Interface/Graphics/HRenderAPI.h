@@ -16,6 +16,7 @@ namespace harmony
         virtual void initialize() = 0;
         virtual void frameBegin() = 0;
         virtual void frameEnd() = 0;
+        virtual void present() = 0;
         virtual void deinitialize() = 0;
     };
 }

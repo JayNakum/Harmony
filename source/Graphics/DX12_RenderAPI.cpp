@@ -4,9 +4,11 @@
 
 namespace dx12
 {
+	static ComPtr<IDXGIFactory4> gFactory;
 	static ComPtr<ID3D12Device> gDevice;
 	static ComPtr<ID3D12GraphicsCommandList> gGFXCommandList;
 	static ComPtr<ID3D12CommandAllocator> gCommandAllocator;
+	static ComPtr<ID3D12CommandQueue> gCommandQueue;
 }
 
 static inline std::unique_ptr<char[]> hrErrorDescription(const HRESULT hResult)
@@ -85,15 +87,15 @@ namespace dx12
 			}
 #endif
 
-			ComPtr<IDXGIFactory4> factory;
-			hResult = CreateDXGIFactory2(dxgiFactoryFlags, IID_PPV_ARGS(&factory));
+			
+			hResult = CreateDXGIFactory2(dxgiFactoryFlags, IID_PPV_ARGS(&gFactory));
 			HASSERT(SUCCEEDED(hResult), "Failed to create DXGI factory.\n%s", hrErrorDescription(hResult).get());
 
 
 			if (mDescription.useWarpDevice)
 			{
 				ComPtr<IDXGIAdapter> warpAdapter;
-				hResult = factory->EnumWarpAdapter(IID_PPV_ARGS(&warpAdapter));
+				hResult = gFactory->EnumWarpAdapter(IID_PPV_ARGS(&warpAdapter));
 				HASSERT(SUCCEEDED(hResult), "Failed to get warp adapter.\n%s", hrErrorDescription(hResult).get());
 
 				hResult = D3D12CreateDevice(warpAdapter.Get(), D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&gDevice));
@@ -108,7 +110,7 @@ namespace dx12
 			else
 			{
 				ComPtr<IDXGIAdapter1> hardwareAdapter;
-				getHardwareAdapter(factory.Get(), &hardwareAdapter);
+				getHardwareAdapter(gFactory.Get(), &hardwareAdapter);
 				hResult = D3D12CreateDevice(hardwareAdapter.Get(), D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&gDevice));
 				HASSERT(SUCCEEDED(hResult), "Failed to create hardware device.\n%s", hrErrorDescription(hResult).get());
 			}
@@ -116,60 +118,10 @@ namespace dx12
 			D3D12_COMMAND_QUEUE_DESC queueDesc = {};
 			queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
 			queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
-			hResult = gDevice->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&mCommandQueue));
+			hResult = gDevice->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&gCommandQueue));
 			HASSERT(SUCCEEDED(hResult), "Failed to create command queue.\n%s", hrErrorDescription(hResult).get());
 
-			auto& windowDesc = HARMONY->getWindow()->getDescription();
-
-			DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
-			swapChainDesc.BufferCount = mFrameCount;
-			swapChainDesc.Width = windowDesc.width;
-			swapChainDesc.Height = windowDesc.height;
-			swapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-			swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-			swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-			swapChainDesc.SampleDesc.Count = 1;
-
-			ComPtr<IDXGISwapChain1> swapChain;
-			hResult = factory->CreateSwapChainForHwnd(
-				mCommandQueue.Get(),
-				*((HWND*)(HARMONY->getWindow()->getHandle())),
-				&swapChainDesc,
-				nullptr, nullptr,
-				&swapChain
-			);
-			HASSERT(SUCCEEDED(hResult), "Failed to create the default swapchain.\n%s", hrErrorDescription(hResult).get());
-
-			hResult = swapChain.As(&mSwapChain);
-			HASSERT(SUCCEEDED(hResult), "Failed to set the default swapchain. \n%s", hrErrorDescription(hResult).get());
-
-			mFrameIndex = mSwapChain->GetCurrentBackBufferIndex();
-
-			{
-				D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc = {};
-				rtvHeapDesc.NumDescriptors = mFrameCount;
-				rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
-				rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-
-				hResult = gDevice->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&mRTVHeap));
-				HASSERT(SUCCEEDED(hResult), "Failed to create descriptor RTV heap.\n%s", hrErrorDescription(hResult).get());
-
-				mRTVDescriptorSize = gDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-			}
-
-			{
-				CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(mRTVHeap->GetCPUDescriptorHandleForHeapStart());
-
-				for (UINT n = 0; n < mFrameCount; ++n)
-				{
-					hResult = mSwapChain->GetBuffer(n, IID_PPV_ARGS(&mRenderTargets[n]));
-					HASSERT(SUCCEEDED(hResult), "Failed to get RT buffer.\n%s", hrErrorDescription(hResult).get());
-
-					gDevice->CreateRenderTargetView(mRenderTargets[n].Get(), nullptr, rtvHandle);
-					rtvHandle.Offset(1, mRTVDescriptorSize);
-				}
-			}
-
+			
 			hResult = gDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&gCommandAllocator));
 			HASSERT(SUCCEEDED(hResult), "Failed to create command allocator.\n%s", hrErrorDescription(hResult).get());
 		
@@ -194,11 +146,28 @@ namespace dx12
 
 			waitForPreviousFrame();
 		}
-
 		HLOG_DEBUG("Initialized.");
 	}
 
-	void RenderAPI::setupFrame()
+
+	void RenderAPI::closeFrame() 
+	{
+		HRESULT hResult = gGFXCommandList->Close();
+		HASSERT(SUCCEEDED(hResult), "Failed to close command list.\n%s", hrErrorDescription(hResult).get());
+	}
+
+	void RenderAPI::execute() 
+	{
+		ID3D12CommandList* ppCommandList[] = { gGFXCommandList.Get() };
+		gCommandQueue->ExecuteCommandLists(_countof(ppCommandList), ppCommandList);
+	}
+
+	void RenderAPI::present()
+	{
+		waitForPreviousFrame();
+	}
+
+	void RenderAPI::frameBegin()
 	{
 		HRESULT hResult;
 
@@ -224,62 +193,12 @@ namespace dx12
 			mScissorRect.bottom = HARMONY->getWindow()->getDescription().height;
 			gGFXCommandList->RSSetScissorRects(1, &mScissorRect);
 		}
-
-		{
-			auto rtBarrier = CD3DX12_RESOURCE_BARRIER::Transition(mRenderTargets[mFrameIndex].Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
-			gGFXCommandList->ResourceBarrier(1, &rtBarrier);
-		}
-	}
-
-	void RenderAPI::closeFrame() 
-	{
-		auto presentBarrier = CD3DX12_RESOURCE_BARRIER::Transition(mRenderTargets[mFrameIndex].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
-		gGFXCommandList->ResourceBarrier(1, &presentBarrier);
-
-		HRESULT hResult = gGFXCommandList->Close();
-		HASSERT(SUCCEEDED(hResult), "Failed to close command list.\n%s", hrErrorDescription(hResult).get());
-	}
-
-	void RenderAPI::execute() 
-	{
-		ID3D12CommandList* ppCommandList[] = { gGFXCommandList.Get() };
-		mCommandQueue->ExecuteCommandLists(_countof(ppCommandList), ppCommandList);
-	}
-
-	void RenderAPI::presentNow()
-	{
-		HRESULT hResult = mSwapChain->Present(1, 0);
-		HASSERT(SUCCEEDED(hResult), "Failed to present swapchain.\n%s", hrErrorDescription(hResult).get());
-
-		waitForPreviousFrame();
-	}
-
-	void RenderAPI::frameBegin()
-	{
-		setupFrame();
-
-		{
-			CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(mRTVHeap->GetCPUDescriptorHandleForHeapStart(), mFrameIndex, mRTVDescriptorSize);
-
-			gGFXCommandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
-
-			gGFXCommandList->ClearRenderTargetView(rtvHandle, value, 0, nullptr);
-		}
-
-		{ 
-			// RENDER HERE!
-		}
-		
 	}
 
 	void RenderAPI::frameEnd()
 	{
 		closeFrame();
-
 		execute();
-		
-		presentNow();
-
 	}
 
 
@@ -371,7 +290,7 @@ namespace dx12
 		HRESULT hResult;
 		const UINT64 fence = mFenceValue;
 		{
-			hResult = mCommandQueue->Signal(mFence.Get(), fence);
+			hResult = gCommandQueue->Signal(mFence.Get(), fence);
 			HASSERT(SUCCEEDED(hResult), "Failed to signal fence.\n%s", hrErrorDescription(hResult).get());
 		}
 		mFenceValue++;
@@ -383,8 +302,173 @@ namespace dx12
 
 			WaitForSingleObject(mFenceEvent, INFINITE);
 		}
+	}
+}
+
+namespace dx12
+{
+	RenderTarget::RenderTarget(const harmony::RenderTarget::Description& description, ComPtr<ID3D12Resource> renderTarget, CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle)
+		: mRenderTarget(renderTarget), mRTVHandle(rtvHandle)
+	{
+		HLOG_INFO("Created %s", mDescription.label);
+	}
+
+	const harmony::RenderTarget::Description& RenderTarget::getDescription() const
+	{
+		return mDescription;
+	}
+
+	const void* RenderTarget::getID() const
+	{
+		return mRenderTarget.Get();
+	}
+
+	void RenderTarget::initialize()
+	{
+		HLOG_DEBUG("Initialized %s", mDescription.label);
+	}
+	void RenderTarget::bind(const Action& action)
+	{
+		auto rtBarrier = CD3DX12_RESOURCE_BARRIER::Transition(mRenderTarget.Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
+		gGFXCommandList->ResourceBarrier(1, &rtBarrier);
+
+		gGFXCommandList->OMSetRenderTargets(1, &mRTVHandle, FALSE, nullptr);
+
+		gGFXCommandList->ClearRenderTargetView(mRTVHandle, action.colors.value, 0, nullptr);
+	}
+
+	void RenderTarget::unbind()
+	{
+		auto presentBarrier = CD3DX12_RESOURCE_BARRIER::Transition(mRenderTarget.Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
+		gGFXCommandList->ResourceBarrier(1, &presentBarrier);
+	}
+
+	void RenderTarget::deinitialize()
+	{
+		HLOG_DEBUG("Deinitialized %s", mDescription.label);
+	}
+
+	RenderTarget::~RenderTarget()
+	{
+		HLOG_INFO("Destroyed %s", mDescription.label);
+		mDescription = { 0 };
+	}
+}
+
+namespace dx12
+{
+	Swapchain::Swapchain(const harmony::Swapchain::Description& description)
+		: mDescription(description)
+	{
+		DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
+		swapChainDesc.BufferCount = mBackbufferCount;
+		swapChainDesc.Width = mDescription.width;
+		swapChainDesc.Height = mDescription.height;
+		swapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+		swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+		swapChainDesc.SampleDesc.Count = 1;
+
+		ComPtr<IDXGISwapChain1> swapChain;
+		HRESULT hResult = gFactory->CreateSwapChainForHwnd(
+			gCommandQueue.Get(),
+			*((HWND*)(HARMONY->getWindow()->getHandle())),
+			&swapChainDesc,
+			nullptr, nullptr,
+			&swapChain
+		);
+		HASSERT(SUCCEEDED(hResult), "Failed to create the default swapchain.\n%s", hrErrorDescription(hResult).get());
+
+		hResult = swapChain.As(&mSwapChain);
+		HASSERT(SUCCEEDED(hResult), "Failed to set the default swapchain. \n%s", hrErrorDescription(hResult).get());
+
+		HLOG_INFO("Created %s", mDescription.label);
+	}
+
+	const void* Swapchain::getID() const
+	{
+		return mSwapChain.Get();
+	}
+
+	const harmony::Swapchain::Description& Swapchain::getDescription() const
+	{
+		return mDescription;
+	}
+
+	void Swapchain::initialize()
+	{
+		{
+			D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc = {};
+			rtvHeapDesc.NumDescriptors = mBackbufferCount;
+			rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+			rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+
+			HRESULT hResult = gDevice->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&mRTVHeap));
+			HASSERT(SUCCEEDED(hResult), "Failed to create descriptor RTV heap.\n%s", hrErrorDescription(hResult).get());
+
+			mRTVDescriptorSize = gDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+		}
+
+		{
+			CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(mRTVHeap->GetCPUDescriptorHandleForHeapStart());
+
+			for (UINT n = 0; n < mBackbufferCount; ++n)
+			{
+				ComPtr<ID3D12Resource> renderTarget;
+				HRESULT hResult = mSwapChain->GetBuffer(n, IID_PPV_ARGS(&renderTarget));
+				HASSERT(SUCCEEDED(hResult), "Failed to get RT buffer.\n%s", hrErrorDescription(hResult).get());
+
+				gDevice->CreateRenderTargetView(renderTarget.Get(), nullptr, rtvHandle);
+				
+				{
+					std::string label = "render target";
+					label += " " + std::to_string(n);
+
+					harmony::RenderTarget::Description createDesc;
+					createDesc.label = label.c_str();
+
+					mRenderTargets[n] = new RenderTarget(createDesc, renderTarget, rtvHandle);
+				}
+
+				rtvHandle.Offset(1, mRTVDescriptorSize);
+			}
+		}
+
+		HLOG_DEBUG("Initialized %s", mDescription.label);
+	}
+
+	harmony::RenderTarget* Swapchain::getCurrentRenderTarget() const
+	{
+		return mRenderTargets[mFrameIndex];
+	}
+
+	void Swapchain::prepare()
+	{
+		
+	}
+
+	void Swapchain::resize(unsigned int width, unsigned int height)
+	{
+		// TODO: resize swapchain
+	}
+
+	void Swapchain::present()
+	{
+		HRESULT hResult = mSwapChain->Present(1, 0);
+		HASSERT(SUCCEEDED(hResult), "Failed to present swapchain.\n%s", hrErrorDescription(hResult).get());
 
 		mFrameIndex = mSwapChain->GetCurrentBackBufferIndex();
+	}
+
+	void Swapchain::deinitialize()
+	{
+		HLOG_DEBUG("Deinitialized %s", mDescription.label);
+	}
+
+	Swapchain::~Swapchain()
+	{
+		HLOG_INFO("Destroyed %s", mDescription.label);
+		mDescription = { 0 };
 	}
 }
 

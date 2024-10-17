@@ -9,8 +9,9 @@ workspace "Staff"
   startproject "SandBox"
   -- startproject "Editor"
 
+  defines { "DX12" } -- Graphics API: SOKOL / DX12
+
 group "Core"
-  include "Engine"
   include "Harmony"
   include "Interface"
 group "Modules"

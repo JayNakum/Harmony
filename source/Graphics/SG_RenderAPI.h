@@ -26,6 +26,7 @@ namespace sokol
         void initialize() override;
         void frameBegin() override;
         void frameEnd() override;
+        void present() override;
         void deinitialize() override;
 
     private:
@@ -38,16 +39,20 @@ namespace sokol
     class RenderTarget : public harmony::RenderTarget
     {
         friend class Swapchain;
-        RenderTarget() = default;
+        RenderTarget(const harmony::RenderTarget::Description& description = {});
         ~RenderTarget() = default;
     public:
+        const harmony::RenderTarget::Description& getDescription() const override;
+
         void initialize() override;
         const void* getID() const;
-        void bind(const Action& action);
+        void bind(const Action& action) override;
+        void unbind() override;
         void deinitialize() override;
 
     private:
         sg_pass_action mAction;
+        harmony::RenderTarget::Description mDescription;
     };
 }
 
@@ -62,6 +67,7 @@ namespace sokol
         const void* getID() const override;
         const harmony::Swapchain::Description& getDescription() const override;
         harmony::RenderTarget* getCurrentRenderTarget() const override;
+
         void initialize() override;
         void prepare() override;
         void resize(unsigned int width, unsigned int height) override;

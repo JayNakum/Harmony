@@ -9,9 +9,10 @@ namespace harmony
 	class Renderer
 	{
 	public:
-		Renderer();
-
+		void initialize();
 		void render();
+		void deinitialize();
+		~Renderer();
 
 	private:
 		harmony::Swapchain* mSwapchain;

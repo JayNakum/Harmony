@@ -9,12 +9,13 @@ namespace harmony
 	public:
 		enum LogType
 		{
-			eDEBUG,
-			eINFO,
-			eWARNING,
-			eERROR,
-			eCRITICAL,
-
+			eASSERT = 0,
+			eCRITICAL = 1,
+			eERROR = 2,
+			eSOFT_ASSERT = 3,
+			eWARNING = 3,
+			eINFO = 4,
+			eDEBUG = 5,
 			eNO_LOG
 		};
 		using LogLevel = LogType;

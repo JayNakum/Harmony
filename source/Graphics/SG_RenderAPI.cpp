@@ -3,6 +3,7 @@
 #include "Helpers/HLog.h"
 
 #include <sokol_glue.h>
+#include "DX12_RenderAPI.h"
 
 namespace sokol
 {
@@ -42,6 +43,10 @@ namespace sokol
 	{
 	}
 
+	void RenderAPI::present()
+	{
+	}
+
 	void RenderAPI::deinitialize()
 	{
 	}
@@ -63,9 +68,20 @@ namespace sokol
 
 namespace sokol
 {
+	RenderTarget::RenderTarget(const harmony::RenderTarget::Description& description)
+		: mDescription(description)
+	{
+		HLOG_INFO("Created %s", mDescription.label);
+	}
+
+	const harmony::RenderTarget::Description& RenderTarget::getDescription() const
+	{
+		return mDescription;
+	}
+
 	void RenderTarget::initialize()
 	{
-		HLOG_DEBUG("Initialized.");
+		HLOG_DEBUG("Initialized %s", mDescription.label);
 	}
 
 	const void* RenderTarget::getID() const
@@ -85,9 +101,13 @@ namespace sokol
 
 	}
 
+	void RenderTarget::unbind()
+	{
+	}
+
 	void RenderTarget::deinitialize()
 	{
-		HLOG_DEBUG("Deinitialized.");
+		HLOG_DEBUG("Deinitialized %s", mDescription.label);
 	}
 }
 
@@ -118,9 +138,10 @@ namespace sokol
 	{
 		return mRenderTarget;
 	}
-	
+
 	void Swapchain::initialize()
 	{
+		HLOG_DEBUG("Initialized %s", mDescription.label);
 	}
 
 	void Swapchain::prepare()
@@ -139,18 +160,24 @@ namespace sokol
 	}
 
 	void Swapchain::deinitialize()
-	{}
+	{
+		HLOG_DEBUG("Deinitialized %s", mDescription.label);
+	}
 }
 
 namespace sokol
 {
 	Buffer::Buffer(const harmony::Buffer::Description& description)
-		: mDescription(description), mBuffer{ 0 } {}
+		: mDescription(description), mBuffer{ 0 } 
+	{
+		HLOG_INFO("Created %s", mDescription.label);
+	}
 
 	Buffer::~Buffer()
 	{
-		mDescription = { 0 };
 		sg_destroy_buffer(mBuffer);
+		HLOG_INFO("Destroyed %s", mDescription.label);
+		mDescription = { 0 };
 	}
 	
 	const void* Buffer::getID() const
@@ -173,12 +200,13 @@ namespace sokol
 		createDesc.usage = Buffer::sUSAGE.at(mDescription.usage);
 
 		mBuffer = sg_make_buffer(createDesc);
-
+		HLOG_DEBUG("Initialized %s", mDescription.label);
 	}
 
 	void Buffer::deinitialize()
 	{
 		sg_dealloc_buffer(mBuffer);
+		HLOG_DEBUG("Deinitialized %s", mDescription.label);
 	}
 }
 
@@ -186,7 +214,9 @@ namespace sokol
 {
 	Image::Image(const harmony::Image::Description& description)
 		: mDescription(description), mImage{ 0 }
-	{}
+	{
+		HLOG_INFO("Created %s", mDescription.imagePath);
+	}
 
 	const void* Image::getID() const
 	{
@@ -208,21 +238,28 @@ namespace sokol
 		createDesc.data.subimage[0][0].ptr = mDescription.memory;
 		createDesc.data.subimage[0][0].size = mDescription.size;
 		mImage = sg_make_image(createDesc);
+
+		HLOG_DEBUG("Initialized %s", mDescription.imagePath);
 	}
 
 	void Image::deinitialize()
 	{
 		sg_dealloc_image(mImage);
+		HLOG_DEBUG("Deinitialized %s", mDescription.imagePath);
 	}
 
 	Image::~Image() 
 	{
 		sg_destroy_image(mImage);
+		HLOG_INFO("Destroyed %s", mDescription.imagePath);
 		mDescription = { 0 };
 	}
 
 	Sampler::Sampler(const harmony::Sampler::Description& description)
-		: mDescription(description), mSampler{ 0 } {}
+		: mDescription(description), mSampler{ 0 } 
+	{
+		HLOG_INFO("Created %s", mDescription.label);
+	}
 
 	const void* Sampler::getID() const
 	{
@@ -242,16 +279,19 @@ namespace sokol
 		createDesc.mag_filter = sFILTER.at(mDescription.magFilter);
 
 		mSampler = sg_make_sampler(createDesc);
+		HLOG_DEBUG("Initialized %s", mDescription.label);
 	}
 
 	void Sampler::deinitialize()
 	{
 		sg_dealloc_sampler(mSampler);
+		HLOG_DEBUG("Deinitialized %s", mDescription.label);
 	}
 
 	Sampler::~Sampler()
 	{
 		sg_destroy_sampler(mSampler);
+		HLOG_INFO("Destroyed %s", mDescription.label);
 		mDescription = { 0 };
 	}
 }
@@ -259,7 +299,10 @@ namespace sokol
 namespace sokol
 {
 	sokol::Drawable::Drawable(const harmony::Drawable::Description& description)
-		: mDescription(description), mBind{ 0 } {}
+		: mDescription(description), mBind{ 0 } 
+	{
+		HLOG_INFO("Created %s", mDescription.label);
+	}
 
 	const harmony::Drawable::Description& Drawable::getDescription() const
 	{
@@ -316,6 +359,8 @@ namespace sokol
 				}
 			}
 		}
+
+		HLOG_DEBUG("Initialized %s", mDescription.label);
 	}
 	
 	void Drawable::bind(unsigned int slot) const
@@ -360,6 +405,8 @@ namespace sokol
 
 		mDescription.vertexBuffer->deinitialize();
 		mDescription.indexBuffer->deinitialize();
+
+		HLOG_DEBUG("Deinitialized %s", mDescription.label);
 	}
 
 	Drawable::~Drawable()
@@ -388,13 +435,20 @@ namespace sokol
 		{
 			delete mDescription.fs.samplers[i];
 		}
+
+		HLOG_INFO("Destroyed %s", mDescription.label);
+		
+		mDescription = { 0 };
 	}
 }
 
 namespace sokol
 {
 	sokol::Shader::Shader(const harmony::Shader::Description& description)
-		: mDescription(description) {}
+		: mDescription(description)
+	{
+		HLOG_INFO("Created %s", mDescription.label);
+	}
 
 	const void* sokol::Shader::getID() const
 	{
@@ -406,17 +460,29 @@ namespace sokol
 		return mDescription;
 	}
 
-	void Shader::initialize() {}
+	void Shader::initialize() 
+	{
+		HLOG_DEBUG("Initialized %s", mDescription.label);
+	}
 
-	void Shader::deinitialize() {}
+	void Shader::deinitialize() 
+	{
+		HLOG_DEBUG("Deinitialized %s", mDescription.label);
+	}
 
-	Shader::~Shader() {}
+	Shader::~Shader() 
+	{
+		HLOG_INFO("Destroyed %s", mDescription.label);
+	}
 }
 
 namespace sokol
 {
 	Pipeline::Pipeline(const harmony::Pipeline::Description& description)
-		: mDescription(description), mPipeline{ 0 }, mShaderProgram{ 0 } {}
+		: mDescription(description), mPipeline{ 0 }, mShaderProgram{ 0 } 
+	{
+		HLOG_INFO("Created %s", mDescription.label);
+	}
 
 	const void* Pipeline::getID() const
 	{
@@ -515,6 +581,8 @@ namespace sokol
 		}
 
 		mPipeline = sg_make_pipeline(createDesc);
+
+		HLOG_DEBUG("Initialized %s", mDescription.label);
 	}
 
 	void Pipeline::bind() const
@@ -537,12 +605,17 @@ namespace sokol
 	{
 		sg_dealloc_pipeline(mPipeline);
 		sg_dealloc_shader(mShaderProgram);
+
+		HLOG_DEBUG("Deinitialized %s", mDescription.label);
 	}
 
 	Pipeline::~Pipeline()
 	{
 		sg_destroy_pipeline(mPipeline);
 		sg_destroy_shader(mShaderProgram);
+
+		HLOG_INFO("Destroyed %s", mDescription.label);
+
 		mDescription = { 0 };
 	}
 }
@@ -550,13 +623,13 @@ namespace sokol
 namespace sokol
 {
 	const std::unordered_map<harmony::Buffer::Type, sg_buffer_type> Buffer::sTYPE = {
-			{ harmony::Buffer::Type::eVERTEX_BUFFER, sg_buffer_type::SG_BUFFERTYPE_VERTEXBUFFER },
-			{ harmony::Buffer::Type::eINDEX_BUFFER, sg_buffer_type::SG_BUFFERTYPE_INDEXBUFFER }
+		{ harmony::Buffer::Type::eVERTEX_BUFFER, sg_buffer_type::SG_BUFFERTYPE_VERTEXBUFFER },
+		{ harmony::Buffer::Type::eINDEX_BUFFER, sg_buffer_type::SG_BUFFERTYPE_INDEXBUFFER }
 	};
 	const std::unordered_map<harmony::Buffer::Usage, sg_usage> Buffer::sUSAGE = {
-			{ harmony::Buffer::Usage::eIMMUTABLE, sg_usage::SG_USAGE_IMMUTABLE },
-			{ harmony::Buffer::Usage::eDYNAMIC, sg_usage::SG_USAGE_DYNAMIC },
-			{ harmony::Buffer::Usage::eSTREAM, sg_usage::SG_USAGE_STREAM }
+		{ harmony::Buffer::Usage::eIMMUTABLE, sg_usage::SG_USAGE_IMMUTABLE },
+		{ harmony::Buffer::Usage::eDYNAMIC, sg_usage::SG_USAGE_DYNAMIC },
+		{ harmony::Buffer::Usage::eSTREAM, sg_usage::SG_USAGE_STREAM }
 	};
 
 	const std::unordered_map<harmony::Shader::ConstantType, sg_uniform_type> Pipeline::sCONSTANT_TYPE = {

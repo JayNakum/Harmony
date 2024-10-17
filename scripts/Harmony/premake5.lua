@@ -7,8 +7,6 @@ project "Harmony"
   targetdir (target_dir)
   objdir (obj_dir)
 
-  defines { "SOKOL" } -- Graphics API: SOKOL / DX12
-
   files
   {
     "%{prj_src.Harmony}/**.h",
