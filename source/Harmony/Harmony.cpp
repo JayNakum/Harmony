@@ -93,12 +93,12 @@ harmony::Image::Description Harmony::getImageDescription(const char* imagePath) 
 
 harmony::Image* Harmony::createImage(const harmony::Image::Description& description) const
 {
-	return new Image(description);
+	return nullptr; // new Image(description);
 }
 
 harmony::Sampler* Harmony::createSampler(const harmony::Sampler::Description& description) const
 {
-	return new Sampler(description);
+	return nullptr; // new Sampler(description);
 }
 
 harmony::Shader* Harmony::createShader(const harmony::Shader::Description& description) const

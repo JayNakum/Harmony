@@ -53,7 +53,7 @@ namespace harmony
             Type type = eVERTEX;
             ConstantBlock constantBlocks[4] = { 0 };
             unsigned int constantBlocksCount = 0;
-            Texture textures[1] = { 0 }; // TODO: query the the size of this array
+            Texture textures[1] = { 0 }; // TODO: query the size of this array
             unsigned int texturesCount = 0;
         };
 

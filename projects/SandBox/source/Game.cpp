@@ -37,13 +37,13 @@ public:
 		{
 			visual.label = "visual componenet";
 			visual.mesh.vertices = vertices;
-			visual.mesh.verticesSize = sizeof(vertices);
-			visual.mesh.verticesStride = sizeof(float) * 9;
+			visual.mesh.verticesSize = 168 * sizeof(float);
+			visual.mesh.verticesStride = sizeof(float) * 7;
 			visual.mesh.numElements = 36;
 			visual.mesh.indices = indices;
 			visual.mesh.indicesSize = sizeof(indices);
 
-			harmony::Image::Description imageDescription;
+			/*harmony::Image::Description imageDescription;
 			imageDescription.width = 4;
 			imageDescription.height = 4;
 			imageDescription.memory = pixels;
@@ -59,7 +59,7 @@ public:
 
 			visual.texture1.label = "black and white embedded texture";
 			visual.texture1.image = image;
-			visual.texture1.sampler = sampler;
+			visual.texture1.sampler = sampler;*/
 		}
 		createDesc.visual = visual;
 
@@ -70,7 +70,7 @@ public:
 		createDesc.transform = transform;
 
 		// Physics setup
-		{
+		/*{
 			physics.label = "physics component";
 			physics.shape = harmony::component::Physics::Shape::eBOX;
 			physics.box.halfExtents[0] = 0.5f;
@@ -78,7 +78,7 @@ public:
 			physics.box.halfExtents[2] = 0.5f;
 			physics.type = harmony::component::Physics::Type::eDYNAMIC;
 		}
-		createDesc.physics = physics;
+		createDesc.physics = physics;*/
 
 		mEntity = gameScene->createEntity(createDesc);
 	}
@@ -92,37 +92,37 @@ private:
 	harmony::Entity* mEntity = nullptr;
 
 private:
-	float vertices[216] = {
-		// pos                  color                       uv
-		-1.0f, -1.0f, -1.0f,    1.0f, 0.0f, 0.0f, 1.0f,     0.0f, 0.0f,
-		 1.0f, -1.0f, -1.0f,    1.0f, 0.0f, 0.0f, 1.0f,     1.0f, 0.0f,
-		 1.0f,  1.0f, -1.0f,    1.0f, 0.0f, 0.0f, 1.0f,     1.0f, 1.0f,
-		-1.0f,  1.0f, -1.0f,    1.0f, 0.0f, 0.0f, 1.0f,     0.0f, 1.0f,
+	float vertices[168] = {
+		// pos                  color                  
+		-1.0f, -1.0f, -1.0f,    1.0f, 0.0f, 0.0f, 1.0f,
+		 1.0f, -1.0f, -1.0f,    1.0f, 0.0f, 0.0f, 1.0f,
+		 1.0f,  1.0f, -1.0f,    1.0f, 0.0f, 0.0f, 1.0f,
+		-1.0f,  1.0f, -1.0f,    1.0f, 0.0f, 0.0f, 1.0f,
 
-		-1.0f, -1.0f,  1.0f,    0.0f, 1.0f, 0.0f, 1.0f,     0.0f, 0.0f,
-		 1.0f, -1.0f,  1.0f,    0.0f, 1.0f, 0.0f, 1.0f,     1.0f, 0.0f,
-		 1.0f,  1.0f,  1.0f,    0.0f, 1.0f, 0.0f, 1.0f,     1.0f, 1.0f,
-		-1.0f,  1.0f,  1.0f,    0.0f, 1.0f, 0.0f, 1.0f,     0.0f, 1.0f,
+		-1.0f, -1.0f,  1.0f,    0.0f, 1.0f, 0.0f, 1.0f,
+		 1.0f, -1.0f,  1.0f,    0.0f, 1.0f, 0.0f, 1.0f,
+		 1.0f,  1.0f,  1.0f,    0.0f, 1.0f, 0.0f, 1.0f,
+		-1.0f,  1.0f,  1.0f,    0.0f, 1.0f, 0.0f, 1.0f,
 
-		-1.0f, -1.0f, -1.0f,    0.0f, 0.0f, 1.0f, 1.0f,     0.0f, 0.0f,
-		-1.0f,  1.0f, -1.0f,    0.0f, 0.0f, 1.0f, 1.0f,     1.0f, 0.0f,
-		-1.0f,  1.0f,  1.0f,    0.0f, 0.0f, 1.0f, 1.0f,     1.0f, 1.0f,
-		-1.0f, -1.0f,  1.0f,    0.0f, 0.0f, 1.0f, 1.0f,     0.0f, 1.0f,
+		-1.0f, -1.0f, -1.0f,    0.0f, 0.0f, 1.0f, 1.0f,
+		-1.0f,  1.0f, -1.0f,    0.0f, 0.0f, 1.0f, 1.0f,
+		-1.0f,  1.0f,  1.0f,    0.0f, 0.0f, 1.0f, 1.0f,
+		-1.0f, -1.0f,  1.0f,    0.0f, 0.0f, 1.0f, 1.0f,
 
-		 1.0f, -1.0f, -1.0f,    1.0f, 0.5f, 0.0f, 1.0f,     0.0f, 0.0f,
-		 1.0f,  1.0f, -1.0f,    1.0f, 0.5f, 0.0f, 1.0f,     1.0f, 0.0f,
-		 1.0f,  1.0f,  1.0f,    1.0f, 0.5f, 0.0f, 1.0f,     1.0f, 1.0f,
-		 1.0f, -1.0f,  1.0f,    1.0f, 0.5f, 0.0f, 1.0f,     0.0f, 1.0f,
+		 1.0f, -1.0f, -1.0f,    1.0f, 0.5f, 0.0f, 1.0f,
+		 1.0f,  1.0f, -1.0f,    1.0f, 0.5f, 0.0f, 1.0f,
+		 1.0f,  1.0f,  1.0f,    1.0f, 0.5f, 0.0f, 1.0f,
+		 1.0f, -1.0f,  1.0f,    1.0f, 0.5f, 0.0f, 1.0f,
 
-		-1.0f, -1.0f, -1.0f,    0.0f, 0.5f, 1.0f, 1.0f,     0.0f, 0.0f,
-		-1.0f, -1.0f,  1.0f,    0.0f, 0.5f, 1.0f, 1.0f,     1.0f, 0.0f,
-		 1.0f, -1.0f,  1.0f,    0.0f, 0.5f, 1.0f, 1.0f,     1.0f, 1.0f,
-		 1.0f, -1.0f, -1.0f,    0.0f, 0.5f, 1.0f, 1.0f,     0.0f, 1.0f,
+		-1.0f, -1.0f, -1.0f,    0.0f, 0.5f, 1.0f, 1.0f,
+		-1.0f, -1.0f,  1.0f,    0.0f, 0.5f, 1.0f, 1.0f,
+		 1.0f, -1.0f,  1.0f,    0.0f, 0.5f, 1.0f, 1.0f,
+		 1.0f, -1.0f, -1.0f,    0.0f, 0.5f, 1.0f, 1.0f,
 
-		-1.0f,  1.0f, -1.0f,    1.0f, 0.0f, 0.5f, 1.0f,     0.0f, 0.0f,
-		-1.0f,  1.0f,  1.0f,    1.0f, 0.0f, 0.5f, 1.0f,     1.0f, 0.0f,
-		 1.0f,  1.0f,  1.0f,    1.0f, 0.0f, 0.5f, 1.0f,     1.0f, 1.0f,
-		 1.0f,  1.0f, -1.0f,    1.0f, 0.0f, 0.5f, 1.0f,     0.0f, 1.0f
+		-1.0f,  1.0f, -1.0f,    1.0f, 0.0f, 0.5f, 1.0f,
+		-1.0f,  1.0f,  1.0f,    1.0f, 0.0f, 0.5f, 1.0f,
+		 1.0f,  1.0f,  1.0f,    1.0f, 0.0f, 0.5f, 1.0f,
+		 1.0f,  1.0f, -1.0f,    1.0f, 0.0f, 0.5f, 1.0f
 	};
 	uint16_t indices[36] = {
 		0, 1, 2,  0, 2, 3,
@@ -140,71 +140,6 @@ private:
 	};
 };
 
-//class Game
-//{
-//public:
-//	Game()
-//		: engine(new harmony::Engine())
-//	{
-//		harmony::Window::Description createDesc;
-//		createDesc.title = "SandBox";
-//		harmony::createWindow(createDesc);
-//	}
-//
-//	void initialize()
-//	{
-//		engine->initialize();
-//
-//		setupScene();
-//
-//		// Init sequence
-//		gameScene->initialize();
-//		physicsScene->initialize();
-//		pipeline->initialize();
-//		pass->initialize();
-//	}
-//
-//	void update()
-//	{
-//		engine->update();
-//		physicsScene->update();
-//		cube->update();
-//	}
-//
-//	void render()
-//	{
-//		update();
-//		engine->render();
-//
-//		
-//	}
-//
-//	void deinitialize()
-//	{
-//		delete cube;
-//
-//		physicsScene->deinitialize();
-//		delete physicsScene;
-//
-//		gameScene->deinitialize();
-//		delete gameScene;
-//		
-//		pipeline->deinitialize();
-//		delete pipeline;
-//		
-//		pass->deinitialize();
-//		delete pass;
-//
-//		engine->deinitialize();
-//		delete engine;
-//	}
-//
-//private:
-//	harmony::Engine* engine;
-//
-//	harmony::Scene* physicsScene = nullptr;
-//}game;
-
 class Game
 {
 public:
@@ -217,6 +152,7 @@ public:
 	void initialize()
 	{
 		engine->initialize();
+		setupScene();
 		gameScene->initialize();
 	}
 
@@ -225,42 +161,11 @@ public:
 		engine->update();
 		gameScene->update();
 
-		auto& windowDescription = HARMONY->getWindow()->getDescription();
-		glm::mat4 proj = glm::perspective(90.0f, (float)windowDescription.width / (float)windowDescription.height, 0.01f, 10.0f);
-		glm::mat4 view = glm::lookAt(glm::vec3(0.0f, 3.0f, 5.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-		
-		glm::mat4 vp = proj * view;
-		
-		for (const auto& entity : gameScene->getVisualEntities())
-		{
-			glm::mat4 model(1);
-			auto transform = entity->getDescription().transform;
-			if (transform.has_value())
-			{
-				model *= glm::scale(model, glm::vec3(transform->scale[0], transform->scale[1], transform->scale[2]));
-				model *= glm::rotate(model, glm::radians(transform->rotation[0]), glm::vec3(1.0f, 0.0f, 0.0f));
-				model *= glm::rotate(model, glm::radians(transform->rotation[1]), glm::vec3(0.0f, 1.0f, 0.0f));
-				model *= glm::rotate(model, glm::radians(transform->rotation[2]), glm::vec3(0.0f, 0.0f, 1.0f));
-				model *= glm::translate(model, glm::vec3(transform->position[0], transform->position[1], transform->position[2]));
-			}
-		
-			glm::mat4 mvp = vp * model;
-		
-			auto drawable = entity->getDrawable();
-		
-			
-			pipeline->bind();
-			pipeline->applyConstants(0, &mvp, sizeof(mvp));
-		
-			drawable->bind();
-			drawable->draw();
-			drawable->unbind();
-		}
 	}
 
 	void render()
 	{
-		engine->render();
+		engine->render(gameScene);
 	}
 
 	void deinitialize()
@@ -271,7 +176,7 @@ public:
 
 	~Game()
 	{
-		delete gameScene;
+		//delete gameScene;
 		delete engine;
 	}
 
@@ -282,77 +187,6 @@ public:
 		gameScene = HARMONY->createECSScene(sceneDescription);
 
 		cube = new Entity(gameScene);
-
-		harmony::Shader::Description vShaderDescription;
-		{
-			vShaderDescription.label = "Test Shader Program";
-
-			vShaderDescription.constantBlocksCount = 1;
-			vShaderDescription.constantBlocks[0].size = sizeof(glm::mat4);
-			vShaderDescription.source =
-				"float4x4 mvp;\n"
-				"struct vs_in {\n"
-				"  float4 pos: POSITION;\n"
-				"  float4 color: COLOR1;\n"
-				"  float2 uv: TEXCOORD1;\n"
-				"};\n"
-				"struct vs_out {\n"
-				"  float4 color: COLOR0;\n"
-				"  float2 uv: TEXCOORD0;\n"
-				"  float4 pos: SV_Position;\n"
-				"};\n"
-				"vs_out main(vs_in inp) {\n"
-				"  vs_out outp;\n"
-				"  outp.pos = mul(mvp, inp.pos);\n"
-				"  outp.color = inp.color;\n"
-				"  outp.uv = inp.uv * 5.0;\n"
-				"  return outp;\n"
-				"}\n";
-		}
-		auto vShader = HARMONY->createShader(vShaderDescription);
-
-		harmony::Shader::Description fShaderDescription;
-		{
-			fShaderDescription.texturesCount = 1;
-			fShaderDescription.textures[0].imageSlot = 0;
-			fShaderDescription.textures[0].samplerSlot = 0;
-			fShaderDescription.textures[0].used = true;
-
-			fShaderDescription.source =
-				"Texture2D<float4> tex;\n"
-				"sampler smp;\n"
-				"float4 main(float4 color: COLOR0, float2 uv: TEXCOORD0): SV_Target0 {\n"
-				"  return tex.Sample(smp, uv) * color;\n"
-				"}\n";
-		}
-		auto fShader = HARMONY->createShader(fShaderDescription);
-
-
-		harmony::Pipeline::Description pipelineDescription;
-		{
-			pipelineDescription.label = "Test Pipeline";
-			pipelineDescription.layout.attributesCount = 3;
-
-			pipelineDescription.layout.attributes[0].name = "POSITION";
-			pipelineDescription.layout.attributes[0].format = harmony::Pipeline::VertexFormat::eFLOAT3;
-
-			pipelineDescription.layout.attributes[1].name = "COLOR";
-			pipelineDescription.layout.attributes[1].index = 1;
-			pipelineDescription.layout.attributes[1].format = harmony::Pipeline::VertexFormat::eFLOAT4;
-
-			pipelineDescription.layout.attributes[2].name = "TEXCOORD";
-			pipelineDescription.layout.attributes[2].index = 1;
-			pipelineDescription.layout.attributes[2].format = harmony::Pipeline::VertexFormat::eFLOAT2;
-
-			pipelineDescription.vertexShader = vShader;
-			pipelineDescription.fragmentShader = fShader;
-
-			pipelineDescription.indexType = harmony::Pipeline::IndexType::eUINT16;
-			pipelineDescription.cullMode = harmony::Pipeline::CullMode::eBACK;
-
-			pipelineDescription.depthBufferEnabled = true;
-		}
-		pipeline = HARMONY->createPipeline(pipelineDescription);
 	}
 
 private:
@@ -361,7 +195,6 @@ private:
 
 	Entity* cube = nullptr;
 	
-	harmony::Pipeline* pipeline = nullptr;
 }game;
 
 

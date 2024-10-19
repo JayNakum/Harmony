@@ -10,12 +10,13 @@ namespace harmony
 	{
 	public:
 		void initialize();
-		void render();
+		void render(const harmony::Scene* gameScene);
 		void deinitialize();
 		~Renderer();
 
 	private:
 		harmony::Swapchain* mSwapchain;
 
+		harmony::Pipeline* pipeline = nullptr;
 	};
 }

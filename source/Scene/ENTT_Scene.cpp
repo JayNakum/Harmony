@@ -46,10 +46,6 @@ namespace ENTT
 				drawableDescription.label = mDescription.label;
 				drawableDescription.vertexBuffer = vertexBuffer;
 				drawableDescription.indexBuffer = indexBuffer;
-				drawableDescription.fs.images[0] = mDescription.visual->texture1.image;
-				drawableDescription.fs.imgCount = 1;
-				drawableDescription.fs.samplers[0] = mDescription.visual->texture1.sampler;
-				drawableDescription.fs.smpCount = 1;
 			}
 
 

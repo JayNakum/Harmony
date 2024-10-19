@@ -475,7 +475,7 @@ namespace dx12
 namespace dx12
 {
 	Buffer::Buffer(const harmony::Buffer::Description& description)
-		: mDescription(description), mBuffer{ 0 }, mBufferView{ 0 }
+		: mDescription(description), mBuffer{ 0 }, mVBufferView{ 0 }, mIBufferView{ 0 }
 	{
 		CD3DX12_HEAP_PROPERTIES uploadHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
 		CD3DX12_RESOURCE_DESC bufferDesc = CD3DX12_RESOURCE_DESC::Buffer(mDescription.size);
@@ -494,7 +494,15 @@ namespace dx12
 
 	const void* Buffer::getID() const
 	{
-		return &mBufferView;
+		switch (mDescription.type)
+		{
+		default:
+			HLOG_WARNING("ID requested for unknown buffer type. Assuming Type::eVERTEX_BUFFER.");
+		case harmony::Buffer::Type::eVERTEX_BUFFER:
+			return &mVBufferView;
+		case harmony::Buffer::Type::eINDEX_BUFFER:
+			return &mIBufferView;
+		}
 	}
 
 	const harmony::Buffer::Description& Buffer::getDescription() const
@@ -510,9 +518,18 @@ namespace dx12
 		HASSERT(SUCCEEDED(hResult), "Failed to map buffer %s\n%s", mDescription.label, hrErrorDescription(hResult).get());
 		memcpy(pBufferDataBegin, mDescription.data, mDescription.size);
 
-		mBufferView.BufferLocation = mBuffer->GetGPUVirtualAddress();
-		mBufferView.StrideInBytes = (UINT)mDescription.stride;
-		mBufferView.SizeInBytes = (UINT)mDescription.size;
+		if (mDescription.type == harmony::Buffer::Type::eVERTEX_BUFFER)
+		{
+			mVBufferView.BufferLocation = mBuffer->GetGPUVirtualAddress();
+			mVBufferView.StrideInBytes = (UINT)mDescription.stride;
+			mVBufferView.SizeInBytes = (UINT)mDescription.size;
+		}
+		else if (mDescription.type == harmony::Buffer::Type::eINDEX_BUFFER)
+		{
+			mIBufferView.BufferLocation = mBuffer->GetGPUVirtualAddress();
+			mIBufferView.SizeInBytes = (UINT)mDescription.size;
+			mIBufferView.Format = DXGI_FORMAT_R16_UINT;
+		}
 		mBuffer->Unmap(0, nullptr);
 
 		HLOG_DEBUG("Initialized %s", mDescription.label);
@@ -526,6 +543,8 @@ namespace dx12
 	Buffer::~Buffer()
 	{
 		mBuffer->Release();
+		mVBufferView = { 0 };
+		mIBufferView = { 0 };
 		HLOG_INFO("Destroyed %s", mDescription.label);
 		mDescription = { 0 };
 	}
@@ -555,7 +574,7 @@ namespace dx12
 		if (mDescription.indexBuffer)
 		{
 			const auto& iBufferDesc = mDescription.indexBuffer->getDescription();
-			HSOFT_ASSERT(iBufferDesc.type == harmony::Buffer::Type::eVERTEX_BUFFER, "Buffer type mismatch in %s", iBufferDesc.label);
+			HSOFT_ASSERT(iBufferDesc.type == harmony::Buffer::Type::eINDEX_BUFFER, "Buffer type mismatch in %s", iBufferDesc.label);
 
 			mDescription.indexBuffer->initialize();
 		}
@@ -566,11 +585,22 @@ namespace dx12
 	void Drawable::bind(unsigned int slot) const
 	{
 		gGFXCommandList->IASetVertexBuffers(slot, 1, (D3D12_VERTEX_BUFFER_VIEW*)mDescription.vertexBuffer->getID());
+		if (mDescription.indexBuffer)
+		{
+			gGFXCommandList->IASetIndexBuffer((D3D12_INDEX_BUFFER_VIEW*)mDescription.indexBuffer->getID());
+		}
 	}
 
 	void Drawable::draw() const
 	{
-		gGFXCommandList->DrawInstanced(mDescription.drawDescription.numElements, mDescription.drawDescription.numInstances, mDescription.drawDescription.baseElement, mDescription.drawDescription.baseInstance);
+		if (mDescription.indexBuffer)
+		{
+			gGFXCommandList->DrawIndexedInstanced(mDescription.drawDescription.numElements, mDescription.drawDescription.numInstances, mDescription.drawDescription.baseElement, mDescription.drawDescription.baseInstance, 0);
+		}
+		else
+		{
+			gGFXCommandList->DrawInstanced(mDescription.drawDescription.numElements, mDescription.drawDescription.numInstances, mDescription.drawDescription.baseElement, mDescription.drawDescription.baseInstance);
+		}
 	}
 
 	void Drawable::unbind() const
@@ -690,20 +720,52 @@ namespace dx12
 	Pipeline::Pipeline(const harmony::Pipeline::Description& description)
 		: mDescription(description), mPipelineState(nullptr)
 	{
+		D3D12_FEATURE_DATA_ROOT_SIGNATURE featureData = {};
+
+		featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_1;
+
+		if (FAILED(gDevice->CheckFeatureSupport(D3D12_FEATURE_ROOT_SIGNATURE, &featureData, sizeof(featureData))))
+		{
+			featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_0;
+		}
+
+
 		HRESULT hResult;
 		{
-			CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
-			rootSignatureDesc.Init(0, nullptr, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+			CD3DX12_DESCRIPTOR_RANGE1 ranges[1];
+			CD3DX12_ROOT_PARAMETER1 rootParameters[1];
+
+			ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC);
+			rootParameters[0].InitAsDescriptorTable(1, &ranges[0], D3D12_SHADER_VISIBILITY_VERTEX);
+
+			D3D12_ROOT_SIGNATURE_FLAGS rootSignatureFlags =
+				D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
+				D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
+				D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
+				D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS |
+				D3D12_ROOT_SIGNATURE_FLAG_DENY_PIXEL_SHADER_ROOT_ACCESS;
+
+
+			CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDesc;
+			rootSignatureDesc.Init_1_1(1, rootParameters, 0, nullptr, rootSignatureFlags);
 
 			ComPtr<ID3DBlob> signature;
 			ComPtr<ID3DBlob> error;
 
-			hResult = D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error);
+			hResult = D3DX12SerializeVersionedRootSignature(&rootSignatureDesc, featureData.HighestVersion, &signature, &error);
 			HASSERT(SUCCEEDED(hResult), "Failed to serialize root signature.\n%s", hrErrorDescription(hResult).get());
 
 			hResult = gDevice->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&mRootSignature));
 			HASSERT(SUCCEEDED(hResult), "Failed to create root signature.\n%s", hrErrorDescription(hResult).get());
 		}
+
+		D3D12_DESCRIPTOR_HEAP_DESC cbvHeapDesc = {};
+		cbvHeapDesc.NumDescriptors = 1;
+		cbvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+		cbvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+		hResult = gDevice->CreateDescriptorHeap(&cbvHeapDesc, IID_PPV_ARGS(&mCBVHeap));
+		HASSERT(SUCCEEDED(hResult), "Failed to create descriptor heap for CBV.");
+
 
 		HLOG_INFO("Created %s", mDescription.label);
 	}
@@ -749,7 +811,7 @@ namespace dx12
 		createDesc.PS = CD3DX12_SHADER_BYTECODE((ID3DBlob*)(mDescription.fragmentShader->getID()));
 		
 		createDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-		createDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
+		createDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE; // TODO: use description variable
 		
 		createDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 		
@@ -771,23 +833,66 @@ namespace dx12
 			HASSERT(false, "Provide a fall back");
 		}
 
+
+		const auto& vsDescription = mDescription.vertexShader->getDescription();
+		const auto& fsDescription = mDescription.fragmentShader->getDescription();
+		
+
+		// Create the constant buffer.
+		{
+			unsigned int size = (vsDescription.constantBlocks[0].size + 255) & ~255;
+			// HASSERT(size % 256 == 0, "Constant Buffer size must be 256-byte aligned.");
+
+			CD3DX12_HEAP_PROPERTIES uploadHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+			CD3DX12_RESOURCE_DESC bufferDesc = CD3DX12_RESOURCE_DESC::Buffer(size);
+
+			hResult = gDevice->CreateCommittedResource(
+				&uploadHeapProperties,
+				D3D12_HEAP_FLAG_NONE,
+				&bufferDesc,
+				D3D12_RESOURCE_STATE_GENERIC_READ,
+				nullptr,
+				IID_PPV_ARGS(&mVSConstantBuffer));
+
+			HASSERT(SUCCEEDED(hResult), "Failed to create constant buffer.\n%s", hrErrorDescription(hResult).get());
+
+		}
+
 		HLOG_DEBUG("Initialized %s", mDescription.label);
 	}
 
-	void Pipeline::bind() const
+	void Pipeline::bind()
 	{
 		gGFXCommandList->SetGraphicsRootSignature(mRootSignature.Get());
 		gGFXCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		gGFXCommandList->SetPipelineState(mPipelineState.Get());
+		
+		ID3D12DescriptorHeap* ppHeaps[] = { mCBVHeap.Get() };
+		gGFXCommandList->SetDescriptorHeaps(1, ppHeaps);
+		gGFXCommandList->SetGraphicsRootDescriptorTable(0, mCBVHeap->GetGPUDescriptorHandleForHeapStart());
+
+
 	}
 
-	void Pipeline::applyConstants(unsigned int constantBlockIndex, const void* data, size_t size, const harmony::Pipeline::ShaderStageType type) const
+	void Pipeline::applyConstants(unsigned int constantBlockIndex, const void* data, size_t size, const harmony::Pipeline::ShaderStageType type)
 	{
-		// TODO: implement shader constants
+		CD3DX12_RANGE readRange(0, 0);
+		HRESULT hResult = mVSConstantBuffer->Map(0, &readRange, reinterpret_cast<void**>(&mBufferDataBegin));
+		HASSERT(SUCCEEDED(hResult), "Failed to map resource, constant buffer. %s", hrErrorDescription(hResult).get());
+		memcpy(mBufferDataBegin, data, size);
+		const auto& vsDescription = mDescription.vertexShader->getDescription();
+		unsigned int alignedSize = (vsDescription.constantBlocks[0].size + 255) & ~255;
+
+		mVSConstantBuffer->Unmap(0, nullptr);
+		// Describe and create a constant buffer view.
+		D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
+		cbvDesc.BufferLocation = mVSConstantBuffer->GetGPUVirtualAddress();
+		cbvDesc.SizeInBytes = alignedSize;
+		gDevice->CreateConstantBufferView(&cbvDesc, mCBVHeap->GetCPUDescriptorHandleForHeapStart());
 	}
 
 	void Pipeline::unbind() const
 	{
-
 	}
 
 	void Pipeline::deinitialize()

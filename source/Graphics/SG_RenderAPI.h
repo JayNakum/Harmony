@@ -197,8 +197,8 @@ namespace sokol
         const void* getID() const override;
         const harmony::Pipeline::Description& getDescription() const override;
         void initialize() override;
-        void bind() const override;
-        void applyConstants(unsigned int constantBlockIndex, const void* data, size_t size, const harmony::Pipeline::ShaderStageType type = harmony::Pipeline::ShaderStageType::eVERTEX_SHADER) const override;
+        void bind() override;
+        void applyConstants(unsigned int constantBlockIndex, const void* data, size_t size, const harmony::Pipeline::ShaderStageType type = harmony::Pipeline::ShaderStageType::eVERTEX_SHADER) override;
         void unbind() const override;
         void deinitialize() override;
 

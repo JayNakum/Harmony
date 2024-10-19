@@ -13,7 +13,7 @@ namespace harmony
 	public:
 		void initialize();
 		void update();
-		void render();
+		void render(const harmony::Scene* gameScene);
 		void deinitialize();
 
 		~Engine();

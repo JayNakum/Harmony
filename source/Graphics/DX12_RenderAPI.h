@@ -136,7 +136,8 @@ namespace dx12
 		harmony::Buffer::Description mDescription;
 
 		ComPtr<ID3D12Resource> mBuffer;
-		D3D12_VERTEX_BUFFER_VIEW mBufferView;
+		D3D12_VERTEX_BUFFER_VIEW mVBufferView;
+		D3D12_INDEX_BUFFER_VIEW mIBufferView;
 	};
 }
 
@@ -193,8 +194,8 @@ namespace dx12
 		const void* getID() const override;
 		const harmony::Pipeline::Description& getDescription() const override;
 		void initialize() override;
-		void bind() const override;
-		void applyConstants(unsigned int constantBlockIndex, const void* data, size_t size, const harmony::Pipeline::ShaderStageType type = harmony::Pipeline::ShaderStageType::eVERTEX_SHADER) const override;
+		void bind() override;
+		void applyConstants(unsigned int constantBlockIndex, const void* data, size_t size, const harmony::Pipeline::ShaderStageType type = harmony::Pipeline::ShaderStageType::eVERTEX_SHADER) override;
 		void unbind() const override;
 		void deinitialize() override;
 
@@ -202,6 +203,10 @@ namespace dx12
 		harmony::Pipeline::Description mDescription;
 		ComPtr<ID3D12PipelineState> mPipelineState;
 		ComPtr<ID3D12RootSignature> mRootSignature;
+		ComPtr<ID3D12Resource> mVSConstantBuffer;
+
+		ComPtr<ID3D12DescriptorHeap> mCBVHeap;
+		UINT8* mBufferDataBegin;
 
 	private:
 		static const std::unordered_map<harmony::Pipeline::VertexFormat, DXGI_FORMAT> sVERTEX_FORMAT;

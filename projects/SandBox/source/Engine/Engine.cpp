@@ -17,9 +17,9 @@ namespace harmony
 		HARMONY->getInputSystem()->update();
 	}
 
-	void Engine::render()
+	void Engine::render(const harmony::Scene* gameScene)
 	{
-		mRenderer.render();
+		mRenderer.render(gameScene);
 	}
 
 	void Engine::deinitialize()

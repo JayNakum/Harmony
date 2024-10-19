@@ -133,8 +133,8 @@ namespace harmony
         virtual const Description& getDescription() const = 0;
 
         virtual void initialize() = 0;
-        virtual void bind() const = 0;
-        virtual void applyConstants(unsigned int constantBlockIndex, const void* data, size_t size, const ShaderStageType type = ShaderStageType::eVERTEX_SHADER) const = 0;
+        virtual void bind() = 0;
+        virtual void applyConstants(unsigned int constantBlockIndex, const void* data, size_t size, const ShaderStageType type = ShaderStageType::eVERTEX_SHADER) = 0;
         virtual void unbind() const = 0;
         virtual void deinitialize() = 0;
     };

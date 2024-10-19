@@ -585,12 +585,12 @@ namespace sokol
 		HLOG_DEBUG("Initialized %s", mDescription.label);
 	}
 
-	void Pipeline::bind() const
+	void Pipeline::bind()
 	{
 		sg_apply_pipeline(mPipeline);
 	}
 
-	void Pipeline::applyConstants(unsigned int constantBlockIndex, const void* data, size_t size, const harmony::Pipeline::ShaderStageType type) const
+	void Pipeline::applyConstants(unsigned int constantBlockIndex, const void* data, size_t size, const harmony::Pipeline::ShaderStageType type)
 	{
 		sg_apply_uniforms(sSTAGE_TYPE.at(type), (int)constantBlockIndex, { data, size });
 	}
