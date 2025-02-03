@@ -1,25 +1,31 @@
 include "directories.lua"
 
-workspace "Staff"
-  location "../build/"
-  architecture "x64"
-  configurations {"Debug", "Release"}
-  flags {"MultiProcessorCompile"}
+workspace "Harmony"
+  location "../Build/"
+  startproject "Sandbox"
+  flags { "MultiProcessorCompile" }
   
-  startproject "SandBox"
-  -- startproject "Editor"
+  platforms { "Windows" }
+    configurations { "Debug", "Release" }
+  
+  filter "platforms:Windows"
+    architecture "x64"
+    defines { "WINDOWS" }
+  
+  filter "configurations:Debug"
+    runtime "Debug"
+    symbols "On"
+    defines { "DEBUG" }
+  
+	filter "configurations:Release"
+    runtime "Release"
+    optimize "On"
+    defines { "RELEASE" }
+  
+  language "C++"
+  cppdialect "C++20"
+	staticruntime "on"
+  targetdir (target_dir)
+  objdir (obj_dir)
 
-  defines { "DX12" } -- Graphics API: SOKOL / DX12
-
-group "Core"
-  include "Harmony"
-  include "Interface"
-group "Modules"
-  include "Window"
-  include "Inputs"
-  include "Logger"
-  include "Graphics"
-  include "Scene"
-group "Projects"
-  include "../projects/SandBox"
-  -- include "../projects/Editor"
+include "Sandbox"
