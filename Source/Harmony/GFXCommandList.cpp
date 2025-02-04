@@ -15,20 +15,23 @@ namespace directx
 
 namespace graphics
 {
-	CommandAllocator::CommandAllocator(const Description& createDescription)
-		: mType(createDescription.type)
+	namespace dx12
 	{
-		HRESULT hResult = GFXDevice->CreateCommandAllocator(directx::commandListType.at(mType), IID_PPV_ARGS(&mCommandAllocator));
-		HASSERT_HR(hResult, "Failed to create command allocator.");
+		CommandAllocator::CommandAllocator(const Description & createDescription)
+			: mType(createDescription.type)
+		{
+			HRESULT hResult = GfxDevice()->CreateCommandAllocator(directx::commandListType.at(mType), IID_PPV_ARGS(&mCommandAllocator));
+			HASSERT_HR(hResult, "Failed to create command allocator.");
 #if defined(RELEASE)
-		(void)createDescription.name;
+			(void)createDescription.name;
 #else
-		mCommandAllocator->SetName(utility::toWideString(createDescription.name).c_str());
+			mCommandAllocator->SetName(utility::toWideString(createDescription.name).c_str());
 #endif
-	}
+		}
 
-	CommandAllocator::~CommandAllocator()
-	{
-		mCommandAllocator = nullptr;
+		CommandAllocator::~CommandAllocator()
+		{
+			mCommandAllocator = nullptr;
+		}
 	}
 }

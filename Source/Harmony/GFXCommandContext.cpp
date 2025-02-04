@@ -44,7 +44,7 @@ namespace graphics
 
     void ContextPool::destroyAllContexts()
     {
-        for (unsigned int i = 0; i < CommandListType::Count; ++i) // for each type
+        for (unsigned int i = 0; i < CommandListType::CommandListTypeCount; ++i) // for each type
         {
             for (CommandContext* context : ContextPool::msContextPool[i])
             {

@@ -97,7 +97,7 @@ namespace graphics
     };
 
     /*
-    * Abstraction over descriptor heaps.
+    * A wrapper over ID3D12DescriptorHeap.
     * Descriptor Heaps can be either manually created with fixed size using this class;
     * or can be created using DescriptorHeapPool class.
     * 

@@ -6,6 +6,8 @@ namespace graphics
 {
 	/*
 	* A singleton class that manages the entire graphics system.
+	* All the other systems will access anything inside the graphics project via Manager.
+	* // TODO: Create a separate visual studio project for GFX* files.
 	*/
 	class Manager
 	{
@@ -17,12 +19,23 @@ namespace graphics
 		static Manager* getInstance();
 
 	public:
-		inline const graphics::Device getDevice() const { return mDevice; }
+		inline const graphics::dx12::Device getDevice() const { return mDevice; }
 
 	private:
-		Device mDevice;
+		dx12::Device mDevice;
 	};
 }
 
-#define GFXManager graphics::Manager::getInstance()
-#define GFXDevice graphics::Manager::getInstance()->getDevice()
+/*
+* Bunch of inline helper functions that make the code a bit more clean.
+*/
+
+inline const graphics::Manager* GfxManager()
+{
+	return graphics::Manager::getInstance();
+}
+
+inline const graphics::dx12::Device GfxDevice()
+{
+	return graphics::Manager::getInstance()->getDevice();
+}

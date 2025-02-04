@@ -15,35 +15,41 @@ namespace graphics
 		CommandListTypeCount
 	};
 
-	class CommandAllocator
+	namespace dx12
 	{
-	public:
-		struct Description
+		/*
+		* A wrapper over ID3D12CommandAllocator
+		*/
+		class CommandAllocator
 		{
-			std::string name;
-			CommandListType type;
+		public:
+			struct Description
+			{
+				std::string name;
+				CommandListType type;
+			};
+
+			/*
+			* Creates an ID3D12CommandAllocator of type createDescription.type
+			*/
+			CommandAllocator(const Description& createDescription);
+			~CommandAllocator();
+
+			inline const CommandListType getCommandListType() const { return mType; }
+
+			/*
+			* Operator overload that returns the raw pointer of ID3D12CommandAllocator.
+			*/
+			ID3D12CommandAllocator* operator->() const
+			{
+				return mCommandAllocator.Get();
+			}
+
+		private:
+			const CommandListType mType;
+			Microsoft::WRL::ComPtr<ID3D12CommandAllocator> mCommandAllocator;
 		};
-
-		/*
-		* Creates an ID3D12CommandAllocator of type createDescription.type
-		*/
-		CommandAllocator(const Description& createDescription);
-		~CommandAllocator();
-
-		inline const CommandListType getCommandListType() const { return mType; }
-
-		/*
-		* Operator overload that returns the raw pointer of ID3D12CommandAllocator.
-		*/
-		ID3D12CommandAllocator* operator->() const
-		{
-			return mCommandAllocator.Get();
-		}
-
-	private:
-		const CommandListType mType;
-		Microsoft::WRL::ComPtr<ID3D12CommandAllocator> mCommandAllocator;
-	};
+	}
 
 	class CommandAllocatorPool
 	{
@@ -52,7 +58,7 @@ namespace graphics
 
 	private:
 
-		static std::vector<CommandAllocator> msCmdAllocatorPool;
+		static std::vector<dx12::CommandAllocator> msCmdAllocatorPool;
 
 	};
 
