@@ -16,8 +16,9 @@ def run_command(command: str, exit_on_fail: bool = True) -> None:
 		if exit_on_fail:
 			input()
 			sys.exit(1)
-			
-	print(f"[INFO] {result.stdout.strip()}")
+
+	if result.stdout.strip():
+		print(f"[INFO] {result.stdout.strip()}")
 
 
 # pull from repository
