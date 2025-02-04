@@ -51,4 +51,3 @@ print("[INFO] Pushing changes.")
 run_command("git push")
 
 print("[INFO] Sync completed successfully!")
-input()

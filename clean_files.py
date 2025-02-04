@@ -20,19 +20,20 @@ def clean_file(filename):
     except OSError:
         print('  ***Failed')
 
-if __name__ == "__main__":
-    start_path = '.'
-    if len(sys.argv) > 1:
-        start_path = sys.argv[1]
-    for root, dirs, files in os.walk(start_path):
-        # Clean only files with these extensions
-        for file in files:
-            if file.lower().endswith(('.h', '.cpp', '.hlsl', '.hlsli', '.py')):
-                clean_file(os.path.join(root, file))
-        # Do not walk these subdirectories.  Remove them from the list
-        i = 0
-        while i < len(dirs):
-            if dirs[i].startswith(('3rdParty', 'Tools', 'Build', 'Durango', 'Fonts', 'users')):
-                del dirs[i]
-            else:
-                i += 1
+
+start_path = '.'
+if len(sys.argv) > 1:
+    start_path = sys.argv[1]
+for root, dirs, files in os.walk(start_path):
+    # Clean only files with these extensions
+    for file in files:
+        if file.lower().endswith(('.h', '.cpp', '.c', '.hlsl', '.hlsli', '.py')):
+            clean_file(os.path.join(root, file))
+
+    # Do not walk these subdirectories.  Remove them from the list
+    i = 0
+    while i < len(dirs):
+        if dirs[i].startswith(('Build', 'Vendors')):
+            del dirs[i]
+        else:
+            i += 1
