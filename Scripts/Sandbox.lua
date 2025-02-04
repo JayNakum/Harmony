@@ -6,16 +6,16 @@ project "Sandbox"
     "%{prj_src.Sandbox}/**.*",
     "%{prj_src.Harmony}/**.*"
   }
-  
+
   includedirs
-	{
+    {
     "%{prj_src.Sandbox}/",
     "%{prj_src.Harmony}/",
     "%{include_dirs.DirectX}/",
     "%{include_dirs.DirectX12}/"
-	}
+    }
 
-  libdirs 
+  libdirs
   {
     "%{lib_dirs.DirectX}/"
   }

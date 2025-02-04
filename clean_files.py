@@ -27,7 +27,7 @@ if len(sys.argv) > 1:
 for root, dirs, files in os.walk(start_path):
     # Clean only files with these extensions
     for file in files:
-        if file.lower().endswith(('.h', '.cpp', '.c', '.hlsl', '.hlsli', '.py')):
+        if file.lower().endswith(('.h', '.cpp', '.c', '.hlsl', '.py', '.lua')):
             clean_file(os.path.join(root, file))
 
     # Do not walk these subdirectories.  Remove them from the list
