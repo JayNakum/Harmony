@@ -11,15 +11,15 @@ namespace graphics
     /*
     * Type of resources in the heap.
     */
-	enum DescriptorHeapType
-	{
-		View, // CBV_SRV_UAV
-		Sampler,
-		RenderTarget,
-		DepthStencil,
+    enum DescriptorHeapType
+    {
+        View, // CBV_SRV_UAV
+        Sampler,
+        RenderTarget,
+        DepthStencil,
 
         DescriptorHeapTypeCount
-	};
+    };
 
     /*
     * Descriptor heap visibility.
@@ -100,14 +100,14 @@ namespace graphics
     * A wrapper over ID3D12DescriptorHeap.
     * Descriptor Heaps can be either manually created with fixed size using this class;
     * or can be created using DescriptorHeapPool class.
-    * 
+    *
     * Recommended to use this class directly for smaller heaps for example heaps with type RTV or DSV.
     * Recommended to use this class for CPU only heaps.
     */
-	class DescriptorHeap
-	{
+    class DescriptorHeap
+    {
         friend class DescriptorHeapPool;
-	public:
+    public:
         struct Description
         {
             std::string name;
@@ -120,7 +120,7 @@ namespace graphics
         * Create and initialize the descriptor heap.
         */
         DescriptorHeap(const Description& createDescription);
-        
+
         /*
         * Frees the heap. Since mHeap is a ComPtr the heap is released automatically.
         */
@@ -129,8 +129,8 @@ namespace graphics
         /*
         * Checks for available space inside heap.
         */
-		inline bool canAllocate(const size_t count) const { return count <= mNumFreeDescriptors; }
-        
+        inline bool canAllocate(const size_t count) const { return count <= mNumFreeDescriptors; }
+
         /*
         * Creates space for count number of descriptors inside the heap.
         * Returns the handle that points to the start of the allocation.
@@ -157,7 +157,7 @@ namespace graphics
         void reset();
 
         /*
-        * Checks for three conditions. 
+        * Checks for three conditions.
         * - Whether the handle falls inside the range between firstHandle and heapSize
         * - Whether the handle type matches with the HeapFlag
         * - If descriptor is ShaderVisible then whether the GPU offset and CPU offset matches.
@@ -168,7 +168,7 @@ namespace graphics
         * Return descriptor handle increment size.
         */
         inline const size_t getDescriptorSize() const { return mDescriptorSize; }
-        
+
         /*
         * Operator overload that returns the raw pointer of ID3D12DescriptorHeap.
         */
@@ -184,12 +184,12 @@ namespace graphics
         /*
         * Queried from device via GetDescriptorHandleIncrementSize
         */
-		size_t mDescriptorSize;
+        size_t mDescriptorSize;
 
         /*
         * Keep track of the free spaces available for validation.
         */
-		size_t mNumFreeDescriptors;
+        size_t mNumFreeDescriptors;
 
         /*
         * Heap start handle.
@@ -200,7 +200,7 @@ namespace graphics
         * Handle where the next allocation will be done.
         */
         DescriptorHandle mNextFreeHandle;
-	};
+    };
 
 
     class DescriptorHeapPool
@@ -212,22 +212,22 @@ namespace graphics
     private:
         static const size_t msNumDescriptorsPerHeap = 256;
 
-		/*
+        /*
         * The memory pool containing all the descriptor heaps.
         */
         static std::vector<DescriptorHeap> msDescriptorHeapPool[DescriptorHeapType::DescriptorHeapTypeCount];
-		
+
         /*
         * Once a heap is discarded, it is kept in the used queue.
         */
         static std::queue<std::pair<uint64_t, DescriptorHeap>> msUsedDescriptorHeaps[DescriptorHeapType::DescriptorHeapTypeCount];
-		
+
         /*
         * Once the fence value of a descriptor inside used queue is reached, ie gpu is done with the heap,
         * it is put inside the available queue ready for reuse.
         */
         static std::queue<DescriptorHeap> msAvailableDescriptorHeaps[DescriptorHeapType::DescriptorHeapTypeCount];
-        
+
         /*
         * Prevents incorrect reading and writing of descriptor heap pool, used queue and the available queue.
         */

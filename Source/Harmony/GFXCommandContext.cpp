@@ -19,7 +19,7 @@ namespace graphics
         {
             context = availableQueue.front();
             availableQueue.pop();
-            
+
             context->reset();
         }
         else

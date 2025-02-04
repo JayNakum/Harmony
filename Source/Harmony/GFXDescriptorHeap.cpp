@@ -23,7 +23,7 @@ namespace directx
 namespace graphics
 {
     DescriptorHeap::DescriptorHeap(const Description& createDescription)
-	{
+    {
         mHeapDesc.Type = directx::descriptorHeapType.at(createDescription.type);
         mHeapDesc.NumDescriptors = createDescription.maxDescriptors;
         mHeapDesc.Flags = directx::descriptorHeapFlag.at(createDescription.flag);
@@ -45,7 +45,7 @@ namespace graphics
         default:
         case DescriptorHeapFlag::ShaderVisible:
         {
-            mFirstHandle = DescriptorHandle(mHeap->GetCPUDescriptorHandleForHeapStart(), 
+            mFirstHandle = DescriptorHandle(mHeap->GetCPUDescriptorHandleForHeapStart(),
                                             mHeap->GetGPUDescriptorHandleForHeapStart());
             break;
         }
@@ -57,7 +57,7 @@ namespace graphics
         }
 
         mNextFreeHandle = mFirstHandle;
-	}
+    }
 
     DescriptorHeap::~DescriptorHeap()
     {
@@ -72,7 +72,7 @@ namespace graphics
 
         mNextFreeHandle += count * mDescriptorSize;
         mNumFreeDescriptors -= count;
-        
+
         return allocationHandle;
     }
 
@@ -94,7 +94,7 @@ namespace graphics
         {
             return false;
         }
-        
+
         if (dHandle.isShaderVisible())
         {
             if (dHandle.getGPUPtr() - mFirstHandle.getGPUPtr() !=

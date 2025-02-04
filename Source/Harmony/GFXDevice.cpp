@@ -8,14 +8,14 @@ namespace graphics
 
     namespace dx12
     {
-	    Device::Device(const Configuration& config)
-	    {
+        Device::Device(const Configuration& config)
+        {
             HRESULT hResult = S_OK;
-		    bool useDebugLayers = false;
+            bool useDebugLayers = false;
             ComPtr<ID3D12Device> pDevice;
 
 #if defined(DEBUG)
-		    useDebugLayers = true;
+            useDebugLayers = true;
 #endif
 
             DWORD dxgiFactoryFlags = 0;
@@ -181,11 +181,11 @@ namespace graphics
                     // This occurs when there are uninitialized descriptors in a descriptor table, even when a shader does not access the missing descriptors.
                     D3D12_MESSAGE_ID_INVALID_DESCRIPTOR_HANDLE,
 
-                    // Triggered when a shader does not export all color components of a render target, 
+                    // Triggered when a shader does not export all color components of a render target,
                     // such as when only writing RGB to an R10G10B10A2 buffer, ignoring alpha.
                     D3D12_MESSAGE_ID_CREATEGRAPHICSPIPELINESTATE_PS_OUTPUT_RT_OUTPUT_MISMATCH,
 
-                    // This occurs when a descriptor table is unbound even when a shader does not access the missing descriptors. 
+                    // This occurs when a descriptor table is unbound even when a shader does not access the missing descriptors.
                     // This is common with a root signature shared between disparate shaders that don't all need the same types of resources.
                     D3D12_MESSAGE_ID_COMMAND_LIST_DESCRIPTOR_TABLE_NOT_SET,
 
@@ -212,8 +212,8 @@ namespace graphics
             }
 #endif
 
-            // To support read-modify-write operations on UAVs during post processing, 
-            // need to either have the hardware do typed UAV loads of R11G11B10_FLOAT 
+            // To support read-modify-write operations on UAVs during post processing,
+            // need to either have the hardware do typed UAV loads of R11G11B10_FLOAT
             // or we need to manually decode an R32_UINT representation of the same buffer.  T
             // his code determines if we get the hardware load support.
             D3D12_FEATURE_DATA_D3D12_OPTIONS featureData = {};
@@ -241,7 +241,7 @@ namespace graphics
                     }
                 }
             }
-	    }
+        }
 
         Device::~Device()
         {

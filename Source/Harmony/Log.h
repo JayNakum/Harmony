@@ -19,8 +19,8 @@
 static bool sTriggeredLog = false; \
 if (!sTriggeredLog) \
 { \
-	sTriggeredLog = true; \
-	DEBUGLOG(category, message, ##__VA_ARGS__); \
+    sTriggeredLog = true; \
+    DEBUGLOG(category, message, ##__VA_ARGS__); \
 } \
 }
 
@@ -29,7 +29,7 @@ if (!sTriggeredLog) \
 { \
 if ((bool)(condition)) \
 { \
-	DEBUGLOG(category, message, ##__VA_ARGS__); \
+    DEBUGLOG(category, message, ##__VA_ARGS__); \
 } \
 }
 
@@ -38,7 +38,7 @@ if ((bool)(condition)) \
 { \
 if ((bool)(condition)) \
 { \
-	DEBUGLOG_ONCE(category, message, ##__VA_ARGS__); \
+    DEBUGLOG_ONCE(category, message, ##__VA_ARGS__); \
 } \
 }
 
@@ -55,8 +55,8 @@ if ((bool)(condition)) \
 { \
 if (!(bool)(condition)) \
 { \
-	DEBUGLOG("ASSERT", message, ##__VA_ARGS__); \
-	BREAK; \
+    DEBUGLOG("ASSERT", message, ##__VA_ARGS__); \
+    BREAK; \
 } \
 }
 
@@ -71,7 +71,7 @@ if (!(bool)(condition)) \
 #define DEBUGLOG_IF(condition, category, message, ...) (void)(condition); (void)(category); (void)(message)
 #define DEBUGLOG_ONCE_IF(condition, category, message, ...) (void)(condition); (void)(category); (void)(message)
 
-#define BREAK 
+#define BREAK
 #define BREAK_IF(condition) (void)condition
 
 #define HASSERT(condition, message, ...) (void)(condition); (void)(message); if (!(bool)(condition)) std::abort()

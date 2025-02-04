@@ -72,7 +72,7 @@ namespace graphics
     public:
         /*
         * Allocates a new context for the given command list type.
-        * If an available context exists, it is reset and reused. 
+        * If an available context exists, it is reset and reused.
         * Otherwise, a new one is created and initialized.
         */
         CommandContext* allocateContext(CommandListType type);
