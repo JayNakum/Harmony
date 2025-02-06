@@ -29,7 +29,7 @@ namespace graphics
         mHeapDesc.Flags = directx::descriptorHeapFlag.at(createDescription.flag);
         mHeapDesc.NodeMask = 1;
 
-        HRESULT hResult = GFXDevice->CreateDescriptorHeap(&mHeapDesc, IID_PPV_ARGS(mHeap.ReleaseAndGetAddressOf()));
+        HRESULT hResult = GfxDevice()->CreateDescriptorHeap(&mHeapDesc, IID_PPV_ARGS(mHeap.ReleaseAndGetAddressOf()));
 
 #if defined(RELEASE)
         (void)createDescription.name;
@@ -37,7 +37,7 @@ namespace graphics
         mHeap->SetName(utility::toWideString(createDescription.name).c_str());
 #endif
 
-        mDescriptorSize = GFXDevice->GetDescriptorHandleIncrementSize(mHeapDesc.Type);
+        mDescriptorSize = GfxDevice()->GetDescriptorHandleIncrementSize(mHeapDesc.Type);
         mNumFreeDescriptors = mHeapDesc.NumDescriptors;
 
         switch (createDescription.flag)
