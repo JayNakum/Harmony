@@ -51,17 +51,6 @@ namespace graphics
         };
     }
 
-    class CommandAllocatorPool
-    {
-    public:
-        CommandAllocatorPool();
-
-    private:
-
-        static std::vector<dx12::CommandAllocator> msCmdAllocatorPool;
-
-    };
-
     class CommandQueue
     {};
 

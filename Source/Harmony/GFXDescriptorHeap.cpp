@@ -106,34 +106,4 @@ namespace graphics
 
         return true;
     }
-
-    DescriptorHeap DescriptorHeapPool::requestDescriptorHeap(DescriptorHeapType type)
-    {
-        std::lock_guard<std::mutex> scoppedLockGuard(msHeapAllocattionMutex);
-
-        while (!msUsedDescriptorHeaps[type].empty() && g_CommandManager.IsFenceComplete(msUsedDescriptorHeaps[type].front().first))
-        {
-            msAvailableDescriptorHeaps[type].push(msUsedDescriptorHeaps[type].front().second);
-            msUsedDescriptorHeaps[type].pop();
-        }
-
-        if (!msAvailableDescriptorHeaps[type].empty())
-        {
-            DescriptorHeap* HeapPtr = msAvailableDescriptorHeaps[type].front();
-            msAvailableDescriptorHeaps[type].pop();
-            return HeapPtr;
-        }
-        else
-        {
-            D3D12_DESCRIPTOR_HEAP_DESC HeapDesc = {};
-            HeapDesc.Type = HeapType;
-            HeapDesc.NumDescriptors = kNumDescriptorsPerHeap;
-            HeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-            HeapDesc.NodeMask = 1;
-            Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> HeapPtr;
-            ASSERT_SUCCEEDED(g_Device->CreateDescriptorHeap(&HeapDesc, MY_IID_PPV_ARGS(&HeapPtr)));
-            sm_DescriptorHeapPool[type].emplace_back(HeapPtr);
-            return HeapPtr.Get();
-        }
-    }
 }

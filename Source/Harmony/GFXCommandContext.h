@@ -63,45 +63,5 @@ namespace graphics
 
     };
 
-    /*
-    * Context Manager manages the memory for creating and destroying Command Contexts
-    * It has a pool of contexts and manages its allocation and deallocation.
-    */
-    class ContextPool
-    {
-    public:
-        /*
-        * Allocates a new context for the given command list type.
-        * If an available context exists, it is reset and reused.
-        * Otherwise, a new one is created and initialized.
-        */
-        CommandContext* allocateContext(CommandListType type);
 
-        /*
-        * Puts the context in available queue for future use.
-        * This doesn't delete or reset the context. The context is reset first when requested via allocateContext().
-        */
-        void freeContext(CommandContext* context);
-
-        /*
-        * Destroys all command contexts in the available queue and clears the context pool.
-        */
-        void destroyAllContexts();
-
-    private:
-        /*
-        * The main context pool containing all the contexts of each type.
-        */
-        static std::vector<CommandContext*> msContextPool[CommandListType::CommandListTypeCount];
-
-        /*
-        * A queue of contexts of each type that are available for reuse.
-        */
-        static std::queue<CommandContext*> msAvailableContexts[CommandListType::CommandListTypeCount];
-
-        /*
-        * Prevents incorrect reading and writing of context pool and available queue.
-        */
-        static std::mutex msContextAllocationMutex;
-    };
 }

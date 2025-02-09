@@ -201,36 +201,4 @@ namespace graphics
         */
         DescriptorHandle mNextFreeHandle;
     };
-
-
-    class DescriptorHeapPool
-    {
-    private:
-        static DescriptorHeap requestDescriptorHeap(DescriptorHeapType type);
-        static void discardDescriptorHeaps(DescriptorHeapType type, uint64_t fenceValueForReset, const std::vector<DescriptorHeap>& usedHeaps);
-
-    private:
-        static const size_t msNumDescriptorsPerHeap = 256;
-
-        /*
-        * The memory pool containing all the descriptor heaps.
-        */
-        static std::vector<DescriptorHeap> msDescriptorHeapPool[DescriptorHeapType::DescriptorHeapTypeCount];
-
-        /*
-        * Once a heap is discarded, it is kept in the used queue.
-        */
-        static std::queue<std::pair<uint64_t, DescriptorHeap>> msUsedDescriptorHeaps[DescriptorHeapType::DescriptorHeapTypeCount];
-
-        /*
-        * Once the fence value of a descriptor inside used queue is reached, ie gpu is done with the heap,
-        * it is put inside the available queue ready for reuse.
-        */
-        static std::queue<DescriptorHeap> msAvailableDescriptorHeaps[DescriptorHeapType::DescriptorHeapTypeCount];
-
-        /*
-        * Prevents incorrect reading and writing of descriptor heap pool, used queue and the available queue.
-        */
-        static std::mutex msHeapAllocattionMutex;
-    };
 }
