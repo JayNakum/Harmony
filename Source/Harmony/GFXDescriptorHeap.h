@@ -8,9 +8,7 @@
 
 namespace graphics
 {
-    /*
-    * Type of resources in the heap.
-    */
+    // Type of resources in the heap.
     enum DescriptorHeapType
     {
         View, // CBV_SRV_UAV
@@ -21,9 +19,7 @@ namespace graphics
         DescriptorHeapTypeCount
     };
 
-    /*
-    * Descriptor heap visibility.
-    */
+    // Descriptor heap visibility.
     enum DescriptorHeapFlag
     {
         None, // CPU Only
@@ -49,9 +45,7 @@ namespace graphics
             mGPUHandle.ptr = INVALID_ADDRESS;
         }
 
-        /*
-        * Allows constructing handles that might not be shader visible.
-        */
+        // Allows constructing handles that might not be shader visible.
         DescriptorHandle(const D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle)
             : mCPUHandle(cpuHandle)
         {
@@ -96,109 +90,86 @@ namespace graphics
         D3D12_GPU_DESCRIPTOR_HANDLE mGPUHandle;
     };
 
-    /*
-    * A wrapper over ID3D12DescriptorHeap.
-    * Descriptor Heaps can be either manually created with fixed size using this class;
-    * or can be created using DescriptorHeapPool class.
-    *
-    * Recommended to use this class directly for smaller heaps for example heaps with type RTV or DSV.
-    * Recommended to use this class for CPU only heaps.
-    */
-    class DescriptorHeap
+    namespace dx12
     {
-        friend class DescriptorHeapPool;
-    public:
-        struct Description
+        /*
+        * A wrapper over ID3D12DescriptorHeap.
+        * Descriptor Heaps can be either manually created with fixed size using this class;
+        * or can be created using DescriptorHeapPool class.
+        *
+        * Recommended to use this class directly for smaller heaps (for example heaps with type RTV or DSV).
+        * Recommended to use this class for CPU only heaps.
+        * For other use cases, use the DescriptorHeapPool directly.
+        */
+        class DescriptorHeap
         {
-            std::string name;
-            DescriptorHeapType type;
-            size_t maxDescriptors;
-            DescriptorHeapFlag flag = DescriptorHeapFlag::ShaderVisible;
+            friend class DescriptorHeapPool;
+        public:
+            struct Description
+            {
+                std::string name;
+                DescriptorHeapType type;
+                size_t maxDescriptors;
+                DescriptorHeapFlag flag = DescriptorHeapFlag::ShaderVisible;
+            };
+
+            // Create and initialize the descriptor heap.
+            DescriptorHeap(const Description& createDescription);
+
+            // Frees the heap.
+            // Since mHeap is a ComPtr the heap is released automatically.
+            ~DescriptorHeap();
+
+            // Checks for available space inside heap.
+            inline bool canAllocate(const size_t count) const { return count <= mNumFreeDescriptors; }
+
+            // Creates space for count number of descriptors inside the heap.
+            // Returns the handle that points to the start of the allocation.
+            // The handle will then be used for actual allocation.
+            DescriptorHandle allocate(const size_t count = 1);
+
+            // Operator overload for array like indexing.
+            DescriptorHandle operator[] (size_t index) const { return mFirstHandle + index * mDescriptorSize; }
+
+            // Calculates the heap offset of the handle.
+            inline uint32_t getOffsetOfHandle(const DescriptorHandle& dHandle) const
+            {
+                return (uint32_t)((dHandle.getCPUPtr() - mFirstHandle.getCPUPtr()) / mDescriptorSize);
+            }
+
+            // Resets the heap by setting the allocation handle at start and numFreeDescriptors to maxDescriptors
+            void reset();
+
+            // Checks for three conditions.
+            // - Whether the handle falls inside the range between firstHandle and heapSize
+            // - Whether the handle type matches with the HeapFlag
+            // - If descriptor is ShaderVisible then whether the GPU offset and CPU offset matches.
+            bool validateHandle(const DescriptorHandle& dHandle) const;
+
+            // Return descriptor handle increment size.
+            inline const size_t getDescriptorSize() const { return mDescriptorSize; }
+
+            // Operator overload that returns the raw pointer of ID3D12DescriptorHeap.
+            ID3D12DescriptorHeap* operator->() const
+            {
+                return mHeap.Get();
+            }
+
+        private:
+            Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mHeap;
+            D3D12_DESCRIPTOR_HEAP_DESC mHeapDesc;
+
+            // Queried from device via GetDescriptorHandleIncrementSize
+            size_t mDescriptorSize;
+
+            // Keep track of the free spaces available for validation.
+            size_t mNumFreeDescriptors;
+
+            // Heap start handle.
+            DescriptorHandle mFirstHandle;
+
+            // Handle where the next allocation will be done.
+            DescriptorHandle mNextFreeHandle;
         };
-
-        /*
-        * Create and initialize the descriptor heap.
-        */
-        DescriptorHeap(const Description& createDescription);
-
-        /*
-        * Frees the heap. Since mHeap is a ComPtr the heap is released automatically.
-        */
-        ~DescriptorHeap();
-
-        /*
-        * Checks for available space inside heap.
-        */
-        inline bool canAllocate(const size_t count) const { return count <= mNumFreeDescriptors; }
-
-        /*
-        * Creates space for count number of descriptors inside the heap.
-        * Returns the handle that points to the start of the allocation.
-        * The handle will then be used for actual allocation.
-        */
-        DescriptorHandle allocate(const size_t count = 1);
-
-        /*
-        * Operator overload for array like indexing.
-        */
-        DescriptorHandle operator[] (size_t index) const { return mFirstHandle + index * mDescriptorSize; }
-
-        /*
-        * Calculates the heap offset of the handle.
-        */
-        inline uint32_t getOffsetOfHandle(const DescriptorHandle& dHandle) const
-        {
-            return (uint32_t)((dHandle.getCPUPtr() - mFirstHandle.getCPUPtr()) / mDescriptorSize);
-        }
-
-        /*
-        * Resets the heap by setting the allocation handle at start and numFreeDescriptors to maxDescriptors
-        */
-        void reset();
-
-        /*
-        * Checks for three conditions.
-        * - Whether the handle falls inside the range between firstHandle and heapSize
-        * - Whether the handle type matches with the HeapFlag
-        * - If descriptor is ShaderVisible then whether the GPU offset and CPU offset matches.
-        */
-        bool validateHandle(const DescriptorHandle& dHandle) const;
-
-        /*
-        * Return descriptor handle increment size.
-        */
-        inline const size_t getDescriptorSize() const { return mDescriptorSize; }
-
-        /*
-        * Operator overload that returns the raw pointer of ID3D12DescriptorHeap.
-        */
-        ID3D12DescriptorHeap* operator->() const
-        {
-            return mHeap.Get();
-        }
-
-    private:
-        Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mHeap;
-        D3D12_DESCRIPTOR_HEAP_DESC mHeapDesc;
-
-        /*
-        * Queried from device via GetDescriptorHandleIncrementSize
-        */
-        size_t mDescriptorSize;
-
-        /*
-        * Keep track of the free spaces available for validation.
-        */
-        size_t mNumFreeDescriptors;
-
-        /*
-        * Heap start handle.
-        */
-        DescriptorHandle mFirstHandle;
-
-        /*
-        * Handle where the next allocation will be done.
-        */
-        DescriptorHandle mNextFreeHandle;
-    };
+    }
 }

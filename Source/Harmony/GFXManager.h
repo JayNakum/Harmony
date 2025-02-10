@@ -27,7 +27,8 @@ namespace graphics
 }
 
 /*
-* Bunch of inline helper functions that make the code a bit more clean.
+* Bunch of inline helper functions.
+* Keeping these outside of any namespace with Gfx prefix to make the code a bit more clean.
 */
 
 inline const graphics::Manager* GfxManager()

@@ -7,7 +7,7 @@ namespace graphics
     std::vector<CommandContext*> ContextPool::msContextPool[CommandListType::CommandListTypeCount];
     std::queue<CommandContext*> ContextPool::msAvailableContexts[CommandListType::CommandListTypeCount];
 
-    CommandContext* ContextPool::allocateContext(CommandListType type)
+    CommandContext& ContextPool::allocateContext(CommandListType type)
     {
         std::lock_guard<std::mutex> scoppedLockGuard(msContextAllocationMutex);
 
@@ -29,23 +29,30 @@ namespace graphics
         }
 
         HASSERT(context != nullptr, "Failed to allocate a command context of type %d", type);
-        HASSERT(context->mType == type, "Context created with incorrect type.");
+        HASSERT(context->mType == type, "Context allocated with incorrect type.");
 
-        return context;
+        return *context;
     }
 
-    void ContextPool::freeContext(CommandContext* context)
+    void ContextPool::freeContext(CommandContext& context)
     {
-        HASSERT(context != nullptr, "Trying to free a null context.");
         std::lock_guard<std::mutex> scoppedLockGuard(msContextAllocationMutex);
 
-        ContextPool::msAvailableContexts[context->mType].push(context);
+        ContextPool::msAvailableContexts[context.mType].push(&context);
     }
 
     void ContextPool::destroyAllContexts()
     {
+        std::lock_guard<std::mutex> scoppedLockGuard(msContextAllocationMutex);
+
         for (unsigned int i = 0; i < CommandListType::CommandListTypeCount; ++i) // for each type
         {
+            // clear the queue to prevent dangling pointers
+            while (!msAvailableContexts[i].empty())
+            {	
+                msAvailableContexts[i].pop();
+            }
+
             for (CommandContext* context : ContextPool::msContextPool[i])
             {
                 delete context;

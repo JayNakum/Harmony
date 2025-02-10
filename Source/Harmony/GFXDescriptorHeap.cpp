@@ -22,88 +22,91 @@ namespace directx
 
 namespace graphics
 {
-    DescriptorHeap::DescriptorHeap(const Description& createDescription)
+    namespace dx12
     {
-        mHeapDesc.Type = directx::descriptorHeapType.at(createDescription.type);
-        mHeapDesc.NumDescriptors = createDescription.maxDescriptors;
-        mHeapDesc.Flags = directx::descriptorHeapFlag.at(createDescription.flag);
-        mHeapDesc.NodeMask = 1;
+        DescriptorHeap::DescriptorHeap(const Description & createDescription)
+        {
+            mHeapDesc.Type = directx::descriptorHeapType.at(createDescription.type);
+            mHeapDesc.NumDescriptors = createDescription.maxDescriptors;
+            mHeapDesc.Flags = directx::descriptorHeapFlag.at(createDescription.flag);
+            mHeapDesc.NodeMask = 1;
 
-        HRESULT hResult = GfxDevice()->CreateDescriptorHeap(&mHeapDesc, IID_PPV_ARGS(mHeap.ReleaseAndGetAddressOf()));
+            HRESULT hResult = GfxDevice()->CreateDescriptorHeap(&mHeapDesc, IID_PPV_ARGS(mHeap.ReleaseAndGetAddressOf()));
 
 #if defined(RELEASE)
-        (void)createDescription.name;
+            (void)createDescription.name;
 #else
-        mHeap->SetName(utility::toWideString(createDescription.name).c_str());
+            mHeap->SetName(utility::toWideString(createDescription.name).c_str());
 #endif
 
-        mDescriptorSize = GfxDevice()->GetDescriptorHandleIncrementSize(mHeapDesc.Type);
-        mNumFreeDescriptors = mHeapDesc.NumDescriptors;
+            mDescriptorSize = GfxDevice()->GetDescriptorHandleIncrementSize(mHeapDesc.Type);
+            mNumFreeDescriptors = mHeapDesc.NumDescriptors;
 
-        switch (createDescription.flag)
-        {
-        default:
-        case DescriptorHeapFlag::ShaderVisible:
-        {
-            mFirstHandle = DescriptorHandle(mHeap->GetCPUDescriptorHandleForHeapStart(),
-                                            mHeap->GetGPUDescriptorHandleForHeapStart());
-            break;
-        }
-        case DescriptorHeapFlag::None:
-        {
-            mFirstHandle = DescriptorHandle(mHeap->GetCPUDescriptorHandleForHeapStart());
-            break;
-        }
-        }
+            switch (createDescription.flag)
+            {
+            default:
+            case DescriptorHeapFlag::ShaderVisible:
+            {
+                mFirstHandle = DescriptorHandle(mHeap->GetCPUDescriptorHandleForHeapStart(),
+                    mHeap->GetGPUDescriptorHandleForHeapStart());
+                break;
+            }
+            case DescriptorHeapFlag::None:
+            {
+                mFirstHandle = DescriptorHandle(mHeap->GetCPUDescriptorHandleForHeapStart());
+                break;
+            }
+            }
 
-        mNextFreeHandle = mFirstHandle;
-    }
-
-    DescriptorHeap::~DescriptorHeap()
-    {
-        mHeap = nullptr;
-    }
-
-    DescriptorHandle DescriptorHeap::allocate(const size_t count)
-    {
-        HASSERT(canAllocate(count), "Descriptor Heap out of space.");
-
-        DescriptorHandle allocationHandle = mNextFreeHandle;
-
-        mNextFreeHandle += count * mDescriptorSize;
-        mNumFreeDescriptors -= count;
-
-        return allocationHandle;
-    }
-
-    void DescriptorHeap::reset()
-    {
-        mNumFreeDescriptors = mHeapDesc.NumDescriptors;
-        mNextFreeHandle = mFirstHandle;
-    }
-
-    bool DescriptorHeap::validateHandle(const DescriptorHandle& dHandle) const
-    {
-        if (dHandle.getCPUPtr() < mFirstHandle.getCPUPtr() ||
-            dHandle.getCPUPtr() >= mFirstHandle.getCPUPtr() + mHeapDesc.NumDescriptors * mDescriptorSize)
-        {
-            return false;
+            mNextFreeHandle = mFirstHandle;
         }
 
-        if (dHandle.isShaderVisible() != mFirstHandle.isShaderVisible())
+        DescriptorHeap::~DescriptorHeap()
         {
-            return false;
+            mHeap = nullptr;
         }
 
-        if (dHandle.isShaderVisible())
+        DescriptorHandle DescriptorHeap::allocate(const size_t count)
         {
-            if (dHandle.getGPUPtr() - mFirstHandle.getGPUPtr() !=
-                dHandle.getCPUPtr() - mFirstHandle.getCPUPtr())
+            HASSERT(canAllocate(count), "Descriptor Heap out of space.");
+
+            DescriptorHandle allocationHandle = mNextFreeHandle;
+
+            mNextFreeHandle += count * mDescriptorSize;
+            mNumFreeDescriptors -= count;
+
+            return allocationHandle;
+        }
+
+        void DescriptorHeap::reset()
+        {
+            mNumFreeDescriptors = mHeapDesc.NumDescriptors;
+            mNextFreeHandle = mFirstHandle;
+        }
+
+        bool DescriptorHeap::validateHandle(const DescriptorHandle & dHandle) const
+        {
+            if (dHandle.getCPUPtr() < mFirstHandle.getCPUPtr() ||
+                dHandle.getCPUPtr() >= mFirstHandle.getCPUPtr() + mHeapDesc.NumDescriptors * mDescriptorSize)
             {
                 return false;
             }
-        }
 
-        return true;
+            if (dHandle.isShaderVisible() != mFirstHandle.isShaderVisible())
+            {
+                return false;
+            }
+
+            if (dHandle.isShaderVisible())
+            {
+                if (dHandle.getGPUPtr() - mFirstHandle.getGPUPtr() !=
+                    dHandle.getCPUPtr() - mFirstHandle.getCPUPtr())
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
     }
 }

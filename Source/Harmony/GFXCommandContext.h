@@ -5,10 +5,9 @@
 
 #include "GFXCommandList.h"
 
-/*
-* A union for all the DWord params.
-* Prevents unnecessary function overloads.
-*/
+
+// A union for all the DWord params.
+// Prevents unnecessary function overloads.
 struct DWParam
 {
     DWParam(FLOAT f) : floatValue(f) {}
@@ -48,10 +47,9 @@ namespace graphics
     {
         friend class ContextPool;
     private:
-        /*
-        * Command context is only ever meant to be created, initialized or reset via the Context Manager
-        */
+        // Command context is only ever meant to be created, initialized or reset via the Context Manager
         CommandContext(CommandListType type);
+
         void reset();
 
     public:

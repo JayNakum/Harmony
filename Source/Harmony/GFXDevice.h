@@ -25,22 +25,16 @@ namespace graphics
             static constexpr uint32_t vendorID_Intel = 0x8086;
 
         private:
-            /*
-            * Creates and initializes an ID3D12Device as per the specified Configuration
-            * By default, it searches for the adapter with the most memory.
-            */
+            // Creates and initializes an ID3D12Device as per the specified Configuration
+            // By default, it searches for the adapter with the most memory.
             Device(const Configuration& config);
 
         public:
-            /*
-            * Releases the graphics device.
-            * In debug mode, it also reports if any resources are currently in use.
-            */
+            // Releases the graphics device.
+            // In debug mode, it also reports if any resources are currently in use.
             ~Device();
 
-            /*
-            * Returns the raw pointer of D3D12Device.
-            */
+            // Returns the raw pointer of D3D12Device.
             ID3D12Device* operator->() const
             {
                 return mDevice.Get();
@@ -53,9 +47,7 @@ namespace graphics
         public:
             static uint32_t getVendorIdFromDevice(ID3D12Device* pDevice);
 
-            /*
-            * Check adapter support for DirectX Raytracing.
-            */
+            // Check adapter support for DirectX Raytracing.
             static bool isRaytracingSupported(ID3D12Device* pDevice);
 
         private:
