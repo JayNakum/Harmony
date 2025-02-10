@@ -41,6 +41,7 @@ if not commit_message:
     try:
         with open("changelog.txt", "r", encoding="utf-8") as f:
             commit_message = f.read().strip()
+            print(commit_message)
     except FileNotFoundError:
         commit_message = "Auto commit - No specific changes listed"
 
