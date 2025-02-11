@@ -5,30 +5,27 @@
 #include "Utility.h"
 #include "Log.h"
 
-namespace directx
-{
-    static const std::unordered_map<graphics::DescriptorHeapType, D3D12_DESCRIPTOR_HEAP_TYPE> descriptorHeapType = {
-        { graphics::DescriptorHeapType::View, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV },
-        { graphics::DescriptorHeapType::Sampler, D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER },
-        { graphics::DescriptorHeapType::RenderTarget, D3D12_DESCRIPTOR_HEAP_TYPE_RTV },
-        { graphics::DescriptorHeapType::DepthStencil, D3D12_DESCRIPTOR_HEAP_TYPE_DSV }
-    };
-
-    static const std::unordered_map<graphics::DescriptorHeapFlag, D3D12_DESCRIPTOR_HEAP_FLAGS> descriptorHeapFlag = {
-        { graphics::DescriptorHeapFlag::None, D3D12_DESCRIPTOR_HEAP_FLAG_NONE },
-        { graphics::DescriptorHeapFlag::ShaderVisible, D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE }
-    };
-}
-
 namespace graphics
 {
     namespace dx12
     {
+        const std::unordered_map<graphics::DescriptorHeapType, D3D12_DESCRIPTOR_HEAP_TYPE> DescriptorHeap::descriptorHeapType = {
+            { graphics::DescriptorHeapType::View, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV },
+            { graphics::DescriptorHeapType::Sampler, D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER },
+            { graphics::DescriptorHeapType::RenderTarget, D3D12_DESCRIPTOR_HEAP_TYPE_RTV },
+            { graphics::DescriptorHeapType::DepthStencil, D3D12_DESCRIPTOR_HEAP_TYPE_DSV }
+        };
+
+        const std::unordered_map<graphics::DescriptorHeapFlag, D3D12_DESCRIPTOR_HEAP_FLAGS> DescriptorHeap::descriptorHeapFlag = {
+            { graphics::DescriptorHeapFlag::None, D3D12_DESCRIPTOR_HEAP_FLAG_NONE },
+            { graphics::DescriptorHeapFlag::ShaderVisible, D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE }
+        };
+
         DescriptorHeap::DescriptorHeap(const Description & createDescription)
         {
-            mHeapDesc.Type = directx::descriptorHeapType.at(createDescription.type);
+            mHeapDesc.Type = dx12::DescriptorHeap::descriptorHeapType.at(createDescription.type);
             mHeapDesc.NumDescriptors = createDescription.maxDescriptors;
-            mHeapDesc.Flags = directx::descriptorHeapFlag.at(createDescription.flag);
+            mHeapDesc.Flags = dx12::DescriptorHeap::descriptorHeapFlag.at(createDescription.flag);
             mHeapDesc.NodeMask = 1;
 
             HRESULT hResult = GfxDevice()->CreateDescriptorHeap(&mHeapDesc, IID_PPV_ARGS(mHeap.ReleaseAndGetAddressOf()));

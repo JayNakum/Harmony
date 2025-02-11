@@ -36,7 +36,7 @@ namespace graphics
             inline const CommandListType getCommandListType() const { return mType; }
 
             // Operator overload that returns the raw pointer of ID3D12CommandAllocator.
-            ID3D12CommandAllocator* operator->() const
+            const ID3D12CommandAllocator* operator->() const
             {
                 return mCommandAllocator.Get();
             }
@@ -55,13 +55,29 @@ namespace graphics
         class Fence
         {
         public:
+            // Creates an ID3D12Fence
             Fence(const std::string& name);
 
+            void wait(uint32_t fenceValue, DWORD miliSeconds = INFINITE);
+
+            ~Fence();
+
+            inline ID3D12Fence* get() const { mFence.Get(); }
+
+            // Operator overload that returns the raw pointer of ID3D12Fence.
+            ID3D12Fence* operator->() const
+            {
+                return mFence.Get();
+            }
 
         private:
             Microsoft::WRL::ComPtr<ID3D12Fence> mFence;
+            std::mutex mFenceEventMutex;
         };
+    }
 
+    namespace dx12
+    {
         /*
         * Wrapper over ID3D12CommandQueue
         */
@@ -76,12 +92,19 @@ namespace graphics
 
             // Creates an ID3D12CommandQueue
             CommandQueue(const Description& createDescription);
+
+            uint64_t incrementFence();
+            bool isFenceComplete(uint64_t fenceValue);
+            void waitForFence(uint64_t fenceValue);
+
+            inline void waitForIdle() { waitForFence(incrementFence()); }
+
             ~CommandQueue();
 
             inline const CommandListType getCommandListType() const { return mType; }
 
             // Operator overload that returns the raw pointer of ID3D12CommandQueue.
-            ID3D12CommandQueue* operator->() const
+            const ID3D12CommandQueue* operator->() const
             {
                 return mCommandQueue.Get();
             }
@@ -89,6 +112,11 @@ namespace graphics
         private:
             const CommandListType mType;
             Microsoft::WRL::ComPtr<ID3D12CommandQueue> mCommandQueue;
+
+            Fence mFence;
+            std::mutex mFenceMutex;
+            uint64_t mNextFenceValue;
+            uint64_t mLastCompletedFenceValue;
         };
     }
 

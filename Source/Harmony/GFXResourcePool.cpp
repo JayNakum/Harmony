@@ -1,5 +1,7 @@
 #include "GFXResourcePool.h"
 
+#include "GFXManager.h"
+
 #include "Log.h"
 
 namespace graphics
@@ -65,33 +67,36 @@ namespace graphics
 namespace graphics
 {
 
-    DescriptorHeap DescriptorHeapPool::requestDescriptorHeap(DescriptorHeapType type)
+    dx12::DescriptorHeap& DescriptorHeapPool::requestDescriptorHeap(DescriptorHeapType type)
     {
         std::lock_guard<std::mutex> scoppedLockGuard(msHeapAllocattionMutex);
 
-        while (!msUsedDescriptorHeaps[type].empty() && g_CommandManager.IsFenceComplete(msUsedDescriptorHeaps[type].front().first))
+        while (!msUsedDescriptorHeaps[type].empty() && GfxCommandManager().isFenceComplete(msUsedDescriptorHeaps[type].front().first))
         {
             msAvailableDescriptorHeaps[type].push(msUsedDescriptorHeaps[type].front().second);
             msUsedDescriptorHeaps[type].pop();
         }
 
+        dx12::DescriptorHeap* descriptorHeap = nullptr;
+
         if (!msAvailableDescriptorHeaps[type].empty())
         {
-            DescriptorHeap* HeapPtr = msAvailableDescriptorHeaps[type].front();
+            descriptorHeap = msAvailableDescriptorHeaps[type].front();
             msAvailableDescriptorHeaps[type].pop();
-            return HeapPtr;
         }
         else
         {
-            D3D12_DESCRIPTOR_HEAP_DESC HeapDesc = {};
-            HeapDesc.Type = HeapType;
-            HeapDesc.NumDescriptors = kNumDescriptorsPerHeap;
-            HeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-            HeapDesc.NodeMask = 1;
-            Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> HeapPtr;
-            ASSERT_SUCCEEDED(g_Device->CreateDescriptorHeap(&HeapDesc, MY_IID_PPV_ARGS(&HeapPtr)));
-            sm_DescriptorHeapPool[type].emplace_back(HeapPtr);
-            return HeapPtr.Get();
+
+            dx12::DescriptorHeap::Description createDesc;
+            createDesc.type = type;
+            createDesc.name = ("shader visible descriptor heap" + DescriptorHeapPool::msDescriptorHeapPool[type].size());
+            createDesc.maxDescriptors = msNumDescriptorsPerHeap;
+
+            descriptorHeap = new dx12::DescriptorHeap(createDesc);
+
+            DescriptorHeapPool::msDescriptorHeapPool[type].emplace_back(descriptorHeap);
         }
+
+        return *descriptorHeap;
     }
 }

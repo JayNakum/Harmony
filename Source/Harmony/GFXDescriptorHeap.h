@@ -150,10 +150,17 @@ namespace graphics
             inline const size_t getDescriptorSize() const { return mDescriptorSize; }
 
             // Operator overload that returns the raw pointer of ID3D12DescriptorHeap.
-            ID3D12DescriptorHeap* operator->() const
+            const ID3D12DescriptorHeap* operator->() const
             {
                 return mHeap.Get();
             }
+
+        public:
+            // maps graphics::DescriptorHeapType and D3D12_DESCRIPTOR_HEAP_TYPE
+            static const std::unordered_map<graphics::DescriptorHeapType, D3D12_DESCRIPTOR_HEAP_TYPE> descriptorHeapType;
+
+            // maps graphics::DescriptorHeapFlag and D3D12_DESCRIPTOR_HEAP_FLAGS
+            static const std::unordered_map<graphics::DescriptorHeapFlag, D3D12_DESCRIPTOR_HEAP_FLAGS> descriptorHeapFlag;
 
         private:
             Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mHeap;

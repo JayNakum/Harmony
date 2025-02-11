@@ -68,21 +68,21 @@ namespace graphics
     class DescriptorHeapPool
     {
     private:
-        static dx12::DescriptorHeap requestDescriptorHeap(DescriptorHeapType type);
+        static dx12::DescriptorHeap& requestDescriptorHeap(DescriptorHeapType type);
         static void discardDescriptorHeaps(DescriptorHeapType type, uint64_t fenceValueForReset, const std::vector<DescriptorHeap>& usedHeaps);
 
     private:
         static const size_t msNumDescriptorsPerHeap = 256;
 
         // The memory pool containing all the descriptor heaps.
-        static std::vector<dx12::DescriptorHeap> msDescriptorHeapPool[DescriptorHeapType::DescriptorHeapTypeCount];
+        static std::vector<dx12::DescriptorHeap*> msDescriptorHeapPool[DescriptorHeapType::DescriptorHeapTypeCount];
 
         // Once a heap is discarded, it is kept in the used queue.
-        static std::queue<std::pair<uint64_t, dx12::DescriptorHeap>> msUsedDescriptorHeaps[DescriptorHeapType::DescriptorHeapTypeCount];
+        static std::queue<std::pair<uint64_t, dx12::DescriptorHeap*>> msUsedDescriptorHeaps[DescriptorHeapType::DescriptorHeapTypeCount];
 
         // Once the fence value of a descriptor inside used queue is reached, ie gpu is done with the heap,
         // it is put inside the available queue ready for reuse.
-        static std::queue<dx12::DescriptorHeap> msAvailableDescriptorHeaps[DescriptorHeapType::DescriptorHeapTypeCount];
+        static std::queue<dx12::DescriptorHeap*> msAvailableDescriptorHeaps[DescriptorHeapType::DescriptorHeapTypeCount];
 
         // Prevents incorrect reading and writing of descriptor heap pool, used queue and the available queue.
         static std::mutex msHeapAllocattionMutex;
