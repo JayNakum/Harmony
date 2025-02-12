@@ -55,7 +55,8 @@ namespace graphics
             // Keeping the event handle local allows a fence to have separate handles for each fence value.
             // Which allows multithreaded waits.
             // If thread A requests a wait on fence 100 and thread B requests a wait on fence 99
-            // And the mEventHandle is already waiting for 100 then thread B will automatically need to wait as well
+            // And the global mEventHandle is already waiting for 100 then thread B will automatically need to wait as well
+            // but since the event is local, it solves the problem
             HANDLE eventHandle = CreateEvent(nullptr, FALSE, FALSE, NULL);
             HASSERT(eventHandle != NULL, "Failed to create fence event handle.");
 

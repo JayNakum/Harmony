@@ -2,7 +2,7 @@
 
 #include "Utility.h"
 
-#if !defined(RELEASE)
+#if !defined(RELEASE) // TODO: Remove the ifdef once file logging is implemented because project will support file logging in RELEASE as well.
 
 #define _LOG_FORMAT "[%s] %s | %s | %s:%d | "
 #define _LOG_ARGS utility::timenow().c_str(), utility::removeBasePath(__FILE__).c_str(), __FUNCTION__, __LINE__
@@ -51,12 +51,27 @@ if ((bool)(condition)) \
 
 
 // BREAK and DEBUGLOG IF condition is FALSE
+#define HASSERT_SOFT(condition, message, ...) \
+{ \
+if (!(bool)(condition)) \
+{ \
+    DEBUGLOG("SOFT ASSERT", message, ##__VA_ARGS__); \
+    BREAK; \
+} \
+}
+
+// HASSERT_SOFT if SUCCEEDED(hResult)
+#define HASSERT_SOFT_HR(hResult, message, ...) HASSERT_SOFT(SUCCEEDED((HRESULT)(hResult)), message "%s", ##__VA_ARGS__, utility::translateHResult((HRESULT)(hResult)).get())
+
+
+// BREAK, DEBUGLOG and ABORT IF condition is FALSE
 #define HASSERT(condition, message, ...) \
 { \
 if (!(bool)(condition)) \
 { \
     DEBUGLOG("ASSERT", message, ##__VA_ARGS__); \
     BREAK; \
+    std::abort(); \
 } \
 }
 
@@ -74,7 +89,10 @@ if (!(bool)(condition)) \
 #define BREAK
 #define BREAK_IF(condition) (void)condition
 
+#define HASSERT_SOFT(condition, message, ...) (void)(condition); (void)(message)
+#define HASSERT_SOFT_HR(hResult, message, ...) (void)(hResult); (void)(message)
+
 #define HASSERT(condition, message, ...) (void)(condition); (void)(message); if (!(bool)(condition)) std::abort()
-#define HASSERT_HR(hResult, message, ...) (void)(hResult); (void)(message)
+#define HASSERT_HR(hResult, message, ...) (void)(hResult); (void)(message); if (FAILED((HRESULT)(hResult))) std::abort()
 
 #endif // !defined(RELEASE)

@@ -22,6 +22,7 @@ namespace graphics
         */
         class CommandAllocator
         {
+            friend class CommandAllocatorPool;
         public:
             struct Description
             {
@@ -121,5 +122,7 @@ namespace graphics
     }
 
     class CommandListManager
-    {};
+    {
+
+    };
 }

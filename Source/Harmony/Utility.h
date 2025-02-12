@@ -7,7 +7,10 @@ namespace utility
 {
     inline void print(const char* message)
     {
-        OutputDebugStringA(message); // TODO: support file logging
+#if defined(DEBUG)
+        OutputDebugStringA(message);
+#endif
+        (void)message; // TODO: support file logging
     }
 
     template<typename ... Args>
