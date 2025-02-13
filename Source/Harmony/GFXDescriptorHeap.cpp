@@ -22,6 +22,7 @@ namespace graphics
         };
 
         DescriptorHeap::DescriptorHeap(const Description & createDescription)
+            : mHeap(nullptr), mHeapDesc{}, mDescriptorSize(0), mNumFreeDescriptors(0)
         {
             mHeapDesc.Type = dx12::DescriptorHeap::descriptorHeapType.at(createDescription.type);
             mHeapDesc.NumDescriptors = createDescription.maxDescriptors;

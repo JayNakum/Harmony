@@ -6,7 +6,7 @@
 
 namespace graphics
 {
-    std::vector<CommandContext*> ContextPool::msContextPool[CommandListType::CommandListTypeCount];
+    std::vector<CommandContext> ContextPool::msContextPool[CommandListType::CommandListTypeCount];
     std::queue<CommandContext*> ContextPool::msAvailableContexts[CommandListType::CommandListTypeCount];
 
     CommandContext& ContextPool::requestContext(CommandListType type)
@@ -15,25 +15,17 @@ namespace graphics
 
         std::queue<CommandContext*>& availableQueue = ContextPool::msAvailableContexts[type];
 
-        CommandContext* context = nullptr;
-
         if (!availableQueue.empty())
         {
-            context = availableQueue.front();
+            CommandContext* context = availableQueue.front();
             availableQueue.pop();
-
             context->reset();
-        }
-        else
-        {
-            context = new CommandContext(type);
-            ContextPool::msContextPool[type].emplace_back(context);
+
+            return *context;
         }
 
-        HASSERT(context != nullptr, "Failed to allocate a command context of type %d", type);
-        HASSERT(context->mType == type, "Context allocated with incorrect type.");
-
-        return *context;
+        ContextPool::msContextPool[type].emplace_back(type);
+        return msContextPool[type].back();
     }
 
     void ContextPool::freeContext(CommandContext& context)
@@ -55,10 +47,6 @@ namespace graphics
                 msAvailableContexts[i].pop();
             }
 
-            for (CommandContext* context : ContextPool::msContextPool[i])
-            {
-                delete context;
-            }
             ContextPool::msContextPool[i].clear();
         }
     }
@@ -74,7 +62,7 @@ namespace graphics
     using namespace dx12;
 
     CommandAllocatorPool::CommandAllocatorPool(CommandListType type)
-        : mType(type) {} // TODO: Cache in a couple allocators already and put them in available queue
+        : CommandObject(type) {} // TODO: Cache in a couple allocators already and put them in available queue
 
     CommandAllocator& CommandAllocatorPool::requestCommandAllocator()
     {
@@ -84,26 +72,19 @@ namespace graphics
 
         std::queue<CommandAllocator*>& availableQueue = mAvailableCmdAllocators;
 
-        CommandAllocator* allocator = nullptr;
-
         if (!availableQueue.empty())
         {
-            allocator = availableQueue.front();
+            CommandAllocator* allocator = availableQueue.front();
             availableQueue.pop();
-        }
-        else
-        {
-            CommandAllocator::Description createDesc;
-            createDesc.name = (mCmdAllocatorPool.size() + " type[" + std::to_string(mType) + "] command allocator");
-            createDesc.type = mType;
-            allocator = new CommandAllocator(createDesc);
-            mCmdAllocatorPool.emplace_back(allocator);
+            return *allocator;
         }
 
-        HASSERT(allocator != nullptr, "Failed to allocate a CommandAllocator of type %d", mType);
-        HASSERT(allocator->mType == mType, "CommandAllocator allocated with incorrect type.");
+        CommandAllocator::Description createDesc;
+        createDesc.name = (mCmdAllocatorPool.size() + " type[" + std::to_string(mType) + "] command allocator");
+        createDesc.type = mType;
+        mCmdAllocatorPool.emplace_back(createDesc);
 
-        return *allocator;
+        return mCmdAllocatorPool.back();
     }
 
     void CommandAllocatorPool::discardCommandAllocator(const uint64_t completedFenceValue, CommandAllocator& usedAllocator)
@@ -126,10 +107,6 @@ namespace graphics
             mAvailableCmdAllocators.pop();
         }
 
-        for (CommandAllocator* context : mCmdAllocatorPool)
-        {
-            delete context;
-        }
         mCmdAllocatorPool.clear();
     }
 
@@ -154,30 +131,32 @@ namespace graphics
 
     DescriptorHeap& DescriptorHeapPool::requestDescriptorHeap(const DescriptorHeapType type)
     {
-        std::lock_guard<std::mutex> scoppedLockGuard(msHeapAllocattionMutex);
+        std::lock_guard<std::mutex> scoppedLockGuard(msHeapAllocationMutex);
 
         updateAvailableQueue(type);
 
-        DescriptorHeap* descriptorHeap = nullptr;
-
         if (!msAvailableDescriptorHeaps[type].empty())
         {
-            descriptorHeap = msAvailableDescriptorHeaps[type].front();
+            DescriptorHeap* descriptorHeap = msAvailableDescriptorHeaps[type].front();
             msAvailableDescriptorHeaps[type].pop();
-        }
-        else
-        {
-            DescriptorHeap::Description createDesc;
-            createDesc.type = type;
-            createDesc.name = (DescriptorHeapPool::msDescriptorHeapPool[type].size() + " shader visible descriptor heap");
-            createDesc.maxDescriptors = msNumDescriptorsPerHeap;
-
-            descriptorHeap = new DescriptorHeap(createDesc);
-
-            DescriptorHeapPool::msDescriptorHeapPool[type].emplace_back(descriptorHeap);
+            return *descriptorHeap;
         }
 
-        return *descriptorHeap;
+        DescriptorHeap::Description createDesc;
+        createDesc.type = type;
+        createDesc.name = (DescriptorHeapPool::msDescriptorHeapPool[type].size() + " shader visible descriptor heap");
+        createDesc.maxDescriptors = msNumDescriptorsPerHeap;
+
+        DescriptorHeapPool::msDescriptorHeapPool[type].emplace_back(createDesc);
+
+        return DescriptorHeapPool::msDescriptorHeapPool[type].back();
+    }
+
+    void DescriptorHeapPool::discardDescriptorHeap(const DescriptorHeapType type, uint64_t completedFenceValue, dx12::DescriptorHeap& usedHeaps)
+    {
+        std::lock_guard<std::mutex> scoppedLockGuard(msHeapAllocationMutex);
+
+        msUsedDescriptorHeaps[type].push(std::make_pair(completedFenceValue, &usedHeaps));
     }
 
     void DescriptorHeapPool::updateAvailableQueue(const DescriptorHeapType type)

@@ -31,12 +31,12 @@ namespace graphics
 * Keeping these outside of any namespace with Gfx prefix to make the code a bit more clean.
 */
 
-inline const graphics::Manager* GfxManager()
+inline graphics::Manager* GfxManager()
 {
     return graphics::Manager::getInstance();
 }
 
-inline const graphics::dx12::Device GfxDevice()
+inline graphics::dx12::Device GfxDevice()
 {
     return graphics::Manager::getInstance()->getDevice();
 }

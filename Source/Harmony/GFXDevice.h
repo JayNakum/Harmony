@@ -35,7 +35,7 @@ namespace graphics
             ~Device();
 
             // Returns the raw pointer of D3D12Device.
-            ID3D12Device* operator->() const
+            inline ID3D12Device* operator->()
             {
                 return mDevice.Get();
             }
@@ -52,7 +52,7 @@ namespace graphics
 
         private:
             Microsoft::WRL::ComPtr<ID3D12Device> mDevice;
-            bool mTypedUAVLoadSupport_R11G11B10_FLOAT = false;
+            bool mTypedUAVLoadSupport_R11G11B10_FLOAT;
             bool mTypedUAVLoadSupport_R16G16B16A16_FLOAT = false;
         };
     }

@@ -29,7 +29,7 @@ namespace graphics
 
     private:
         // The main context pool containing all the contexts of each type.
-        static std::vector<CommandContext*> msContextPool[CommandListType::CommandListTypeCount];
+        static std::vector<CommandContext> msContextPool[CommandListType::CommandListTypeCount];
 
         // A queue of contexts of each type that are available for reuse.
         static std::queue<CommandContext*> msAvailableContexts[CommandListType::CommandListTypeCount];
@@ -41,7 +41,7 @@ namespace graphics
 
 namespace graphics
 {
-    class CommandAllocatorPool
+    class CommandAllocatorPool : public CommandObject
     {
     public:
         CommandAllocatorPool(CommandListType type);
@@ -64,11 +64,10 @@ namespace graphics
         void updateAvailableQueue();
 
     private:
-        const CommandListType mType;
         // A non static allocator pool is managed because allocators are local to command queue.
         // We need to have different allocator pools per queue of each CommandListType.
         // Hence, unlike other pools, we do not create an array of vectors. Instead we store a const CommandListType.
-        std::vector<dx12::CommandAllocator*> mCmdAllocatorPool;
+        std::vector<dx12::CommandAllocator> mCmdAllocatorPool;
 
         // Once an allocator is discarded, it is kept in the used queue.
         std::queue<std::pair<uint64_t, dx12::CommandAllocator*>> mUsedCmdAllocators;
@@ -84,11 +83,23 @@ namespace graphics
 
 namespace graphics
 {
+    /*
+    * Contains the CommandQueues and creates a command list on request.
+    * Also has the synchronization functions.
+    */
+    class CommandListManager
+    {
+
+    };
+}
+
+namespace graphics
+{
     class DescriptorHeapPool
     {
     private:
         static dx12::DescriptorHeap& requestDescriptorHeap(const DescriptorHeapType type);
-        static void discardDescriptorHeaps(const DescriptorHeapType type, uint64_t fenceValueForReset, const std::vector<dx12::DescriptorHeap>& usedHeaps);
+        static void discardDescriptorHeap(const DescriptorHeapType type, uint64_t completedFence, dx12::DescriptorHeap& usedHeaps);
 
         // Goes through the used queue and puts all the allocators that have completed their fence into available queue.
         static void updateAvailableQueue(const DescriptorHeapType type);
@@ -97,7 +108,7 @@ namespace graphics
         static const size_t msNumDescriptorsPerHeap = 256;
 
         // The memory pool containing all the descriptor heaps.
-        static std::vector<dx12::DescriptorHeap*> msDescriptorHeapPool[DescriptorHeapType::DescriptorHeapTypeCount];
+        static std::vector<dx12::DescriptorHeap> msDescriptorHeapPool[DescriptorHeapType::DescriptorHeapTypeCount];
 
         // Once a heap is discarded, it is kept in the used queue.
         static std::queue<std::pair<uint64_t, dx12::DescriptorHeap*>> msUsedDescriptorHeaps[DescriptorHeapType::DescriptorHeapTypeCount];
@@ -107,6 +118,6 @@ namespace graphics
         static std::queue<dx12::DescriptorHeap*> msAvailableDescriptorHeaps[DescriptorHeapType::DescriptorHeapTypeCount];
 
         // Prevents incorrect reading and writing of descriptor heap pool, used queue and the available queue.
-        static std::mutex msHeapAllocattionMutex;
+        static std::mutex msHeapAllocationMutex;
     };
 }

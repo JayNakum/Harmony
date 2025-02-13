@@ -43,7 +43,7 @@ namespace graphics
     * Contains the state and resources needed to record and execute commands on the GPU.
     * This parent class is inherited by GraphicsContext class and // TODO: ComputeContext class.
     */
-    class CommandContext : NonCopyable
+    class CommandContext : NonCopyable, public CommandObject
     {
         friend class ContextPool;
     private:
@@ -54,11 +54,6 @@ namespace graphics
 
     public:
         ~CommandContext();
-
-
-    private:
-        CommandListType mType;
-
     };
 
 

@@ -9,6 +9,7 @@ namespace graphics
     namespace dx12
     {
         Device::Device(const Configuration& config)
+            : mDevice(nullptr), mTypedUAVLoadSupport_R11G11B10_FLOAT(false), mTypedUAVLoadSupport_R16G16B16A16_FLOAT(false)
         {
             HRESULT hResult = S_OK;
             bool useDebugLayers = false;
