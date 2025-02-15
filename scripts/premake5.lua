@@ -29,3 +29,8 @@ workspace "Harmony"
   objdir (obj_dir)
 
 include "Sandbox"
+group "Harmony"
+  include "Harmony/Core"
+  include "Harmony/Graphics"
+group "Platform"
+  include "Platform/Windows"

@@ -7,19 +7,7 @@ if not os.path.exists(".git"):
     print("[ERROR] This is not a Git repository. Ensure the script is placed in a repository folder.")
     sys.exit(1)
 
-# Runs a shell command and returns its output
-def run_command(command: str, exit_on_fail: bool = True) -> None:
-    result = subprocess.run(command, capture_output=True, text=True, shell=True)
-
-    if result.returncode != 0:
-        print(f"[ERROR] Command failed: {command}\n{result.stderr.strip()}")
-        if exit_on_fail:
-            input()
-            sys.exit(1)
-
-    if result.stdout.strip():
-        print(f"[INFO] {result.stdout.strip()}")
-
+from terminal import run_command
 
 # pull from repository
 print("[INFO] Pulling latest changes from GitHub.")

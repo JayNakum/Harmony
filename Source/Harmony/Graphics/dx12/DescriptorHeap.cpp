@@ -1,6 +1,6 @@
-#include "GFXDescriptorHeap.h"
+#include "DescriptorHeap.h"
 
-#include "GFXManager.h"
+#include "Renderer.h"
 
 #include "Utility.h"
 #include "Log.h"
@@ -22,25 +22,25 @@ namespace graphics
         };
 
         DescriptorHeap::DescriptorHeap(const Description & createDescription)
-            : mHeap(nullptr), mHeapDesc{}, mDescriptorSize(0), mNumFreeDescriptors(0)
+            : mDescription(createDescription), mHeap(nullptr), mHeapDesc{}, mDescriptorSize(0), mNumFreeDescriptors(0)
         {
-            mHeapDesc.Type = dx12::DescriptorHeap::descriptorHeapType.at(createDescription.type);
-            mHeapDesc.NumDescriptors = createDescription.maxDescriptors;
-            mHeapDesc.Flags = dx12::DescriptorHeap::descriptorHeapFlag.at(createDescription.flag);
+            mHeapDesc.Type = dx12::DescriptorHeap::descriptorHeapType.at(mDescription.type);
+            mHeapDesc.NumDescriptors = mDescription.maxDescriptors;
+            mHeapDesc.Flags = dx12::DescriptorHeap::descriptorHeapFlag.at(mDescription.flag);
             mHeapDesc.NodeMask = 1;
 
             HRESULT hResult = GfxDevice()->CreateDescriptorHeap(&mHeapDesc, IID_PPV_ARGS(mHeap.ReleaseAndGetAddressOf()));
 
 #if defined(RELEASE)
-            (void)createDescription.name;
+            (void)mDescription.name;
 #else
-            mHeap->SetName(utility::toWideString(createDescription.name).c_str());
+            mHeap->SetName(utility::toWideString(mDescription.name).c_str());
 #endif
 
             mDescriptorSize = GfxDevice()->GetDescriptorHandleIncrementSize(mHeapDesc.Type);
             mNumFreeDescriptors = mHeapDesc.NumDescriptors;
 
-            switch (createDescription.flag)
+            switch (mDescription.flag)
             {
             default:
             case DescriptorHeapFlag::ShaderVisible:

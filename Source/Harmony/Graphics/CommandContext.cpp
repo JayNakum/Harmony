@@ -1,4 +1,4 @@
-#include "GFXCommandContext.h"
+#include "CommandContext.h"
 
 namespace graphics
 {

@@ -1,28 +1,26 @@
 #pragma once
 
 #include "common.h"
-#include "win.h"
 
-#include "GFXCommandList.h"
-
+#include "CommandObject.h"
 
 // A union for all the DWord params.
 // Prevents unnecessary function overloads.
 struct DWParam
 {
-    DWParam(FLOAT f) : floatValue(f) {}
-    DWParam(UINT u) : uintValue(u) {}
-    DWParam(INT i) : intValue(i) {}
+    DWParam(float value) : floatValue(value) {}
+    DWParam(uint32_t value) : uintValue(value) {}
+    DWParam(int value) : intValue(value) {}
 
-    void operator= (FLOAT f) { floatValue = f; }
-    void operator= (UINT u) { uintValue = u; }
-    void operator= (INT i) { intValue = i; }
+    void operator= (float value) { floatValue = value; }
+    void operator= (uint32_t value) { uintValue = value; }
+    void operator= (int value) { intValue = value; }
 
     union
     {
-        FLOAT floatValue;
-        UINT uintValue;
-        INT intValue;
+        float floatValue;
+        uint32_t uintValue;
+        int intValue;
     };
 };
 
@@ -45,8 +43,7 @@ namespace graphics
     */
     class CommandContext : NonCopyable, public CommandObject
     {
-        friend class ContextPool;
-    private:
+    public:
         // Command context is only ever meant to be created, initialized or reset via the Context Manager
         CommandContext(CommandListType type);
 
@@ -55,6 +52,4 @@ namespace graphics
     public:
         ~CommandContext();
     };
-
-
 }

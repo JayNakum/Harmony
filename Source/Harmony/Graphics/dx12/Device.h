@@ -11,8 +11,6 @@ namespace graphics
         */
         class Device
         {
-            friend class Manager;
-
         public:
             struct Configuration
             {
@@ -24,16 +22,16 @@ namespace graphics
             static constexpr uint32_t vendorID_AMD = 0x1002;
             static constexpr uint32_t vendorID_Intel = 0x8086;
 
-        private:
+        public:
             // Creates and initializes an ID3D12Device as per the specified Configuration
             // By default, it searches for the adapter with the most memory.
             Device(const Configuration& config);
 
-        public:
             // Releases the graphics device.
             // In debug mode, it also reports if any resources are currently in use.
             ~Device();
 
+        public:
             // Returns the raw pointer of D3D12Device.
             inline ID3D12Device* operator->()
             {

@@ -6,9 +6,12 @@ obj_dir = "%{wks.location}/Bin/Obj/%{cfg.buildcfg}-%{cfg.system}-%{cfg.architect
 prj_src = {}
 prj_src["Sandbox"] = "%{wks.location}/../Source/Sandbox"
 
-prj_src["Harmony"] = "%{wks.location}/../Source/Harmony"
-prj_src["Core"] = "%{wks.location}/../Source/Harmony/Core"
-prj_src["Engine"] = "%{wks.location}/../Source/Harmony/Engine"
+prj_src["Harmony"] = {}
+prj_src["Harmony"]["Core"] = "%{wks.location}/../Source/Harmony/Core"
+prj_src["Harmony"]["Graphics"] = "%{wks.location}/../Source/Harmony/Graphics"
+
+prj_src["Platform"] = {}
+prj_src["Platform"]["Windows"] = "%{wks.location}/../Source/Platform/Windows"
 
 -- LIBRARIES --
 DIRECTX_SDK = os.getenv("DXSDK_DIR")

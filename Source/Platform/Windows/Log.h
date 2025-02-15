@@ -2,6 +2,8 @@
 
 #include "Utility.h"
 
+#include "win.h"
+
 #if !defined(RELEASE) // TODO: Remove the ifdef once file logging is implemented because project will support file logging in RELEASE as well.
 
 #define _LOG_FORMAT "[%s] %s | %s | %s:%d | "
@@ -61,7 +63,7 @@ if (!(bool)(condition)) \
 }
 
 // HASSERT_SOFT if SUCCEEDED(hResult)
-#define HASSERT_SOFT_HR(hResult, message, ...) HASSERT_SOFT(SUCCEEDED((HRESULT)(hResult)), message "%s", ##__VA_ARGS__, utility::translateHResult((HRESULT)(hResult)).get())
+#define HASSERT_SOFT_HR(hResult, message, ...) HASSERT_SOFT(SUCCEEDED((HRESULT)(hResult)), message "%s", ##__VA_ARGS__, utility::translateErrorCode(hResult).get())
 
 
 // BREAK, DEBUGLOG and ABORT IF condition is FALSE
@@ -76,7 +78,7 @@ if (!(bool)(condition)) \
 }
 
 // HASSERT if SUCCEEDED(hResult)
-#define HASSERT_HR(hResult, message, ...) HASSERT(SUCCEEDED((HRESULT)(hResult)), message "%s", ##__VA_ARGS__, utility::translateHResult((HRESULT)(hResult)).get())
+#define HASSERT_HR(hResult, message, ...) HASSERT(SUCCEEDED((HRESULT)(hResult)), message "%s", ##__VA_ARGS__, utility::translateErrorCode(hResult).get())
 
 #else
 

@@ -1,33 +1,12 @@
 #pragma once
 
 #include "common.h"
-
 #include "directx.h"
 
-#include "GFXCommandContext.h"
+#include "DescriptorHeapEnums.h"
 
 namespace graphics
 {
-    // Type of resources in the heap.
-    enum DescriptorHeapType
-    {
-        View, // CBV_SRV_UAV
-        Sampler,
-        RenderTarget,
-        DepthStencil,
-
-        DescriptorHeapTypeCount
-    };
-
-    // Descriptor heap visibility.
-    enum DescriptorHeapFlag
-    {
-        None, // CPU Only
-        ShaderVisible, // CPU and GPU both
-
-        DescriptorHeapFlagCount
-    };
-
     /*
     * This handle refers to a descriptor or a descriptor table(contiguous descriptors)
     * A simple abstraction over CPU and GPU handles with helper functions and operator overloads to use them easily.
@@ -103,7 +82,6 @@ namespace graphics
         */
         class DescriptorHeap
         {
-            friend class DescriptorHeapPool;
         public:
             struct Description
             {
@@ -116,35 +94,39 @@ namespace graphics
             // Create and initialize the descriptor heap.
             DescriptorHeap(const Description& createDescription);
 
-            // Frees the heap.
-            // Since mHeap is a ComPtr the heap is released automatically.
-            ~DescriptorHeap();
-
-            // Checks for available space inside heap.
-            inline bool canAllocate(const size_t count) const { return count <= mNumFreeDescriptors; }
-
             // Creates space for count number of descriptors inside the heap.
             // Returns the handle that points to the start of the allocation.
             // The handle will then be used for actual allocation.
             DescriptorHandle allocate(const size_t count = 1);
 
-            // Operator overload for array like indexing.
-            DescriptorHandle operator[] (size_t index) const { return mFirstHandle + index * mDescriptorSize; }
-
-            // Calculates the heap offset of the handle.
-            inline uint32_t getOffsetOfHandle(const DescriptorHandle& dHandle) const
-            {
-                return (uint32_t)((dHandle.getCPUPtr() - mFirstHandle.getCPUPtr()) / mDescriptorSize);
-            }
-
             // Resets the heap by setting the allocation handle at start and numFreeDescriptors to maxDescriptors
             void reset();
+
+            // Frees the heap.
+            // Since mHeap is a ComPtr the heap is released automatically.
+            ~DescriptorHeap();
+
+        public:
+            inline const DescriptorHeapType getDescriptorHeapType() const { return mDescription.type; }
+            inline const DescriptorHeapFlag getDescriptorHeapFlag() const { return mDescription.flag; }
+
+            // Checks for available space inside heap.
+            inline bool canAllocate(const size_t count) const { return count <= mNumFreeDescriptors; }
 
             // Checks for three conditions.
             // - Whether the handle falls inside the range between firstHandle and heapSize
             // - Whether the handle type matches with the HeapFlag
             // - If descriptor is ShaderVisible then whether the GPU offset and CPU offset matches.
             bool validateHandle(const DescriptorHandle& dHandle) const;
+
+            // Operator overload for array like indexing.
+            inline DescriptorHandle operator[] (size_t index) const { return mFirstHandle + index * mDescriptorSize; }
+
+            // Calculates the heap offset of the handle.
+            inline uint32_t getOffsetOfHandle(const DescriptorHandle& dHandle) const
+            {
+                return (uint32_t)((dHandle.getCPUPtr() - mFirstHandle.getCPUPtr()) / mDescriptorSize);
+            }
 
             // Return descriptor handle increment size.
             inline const size_t getDescriptorSize() const { return mDescriptorSize; }
@@ -163,6 +145,8 @@ namespace graphics
             static const std::unordered_map<graphics::DescriptorHeapFlag, D3D12_DESCRIPTOR_HEAP_FLAGS> descriptorHeapFlag;
 
         private:
+            const Description mDescription;
+
             Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mHeap;
             D3D12_DESCRIPTOR_HEAP_DESC mHeapDesc;
 

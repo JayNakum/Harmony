@@ -1,4 +1,4 @@
-#include "GFXDevice.h"
+#include "Device.h"
 
 #include "Log.h"
 

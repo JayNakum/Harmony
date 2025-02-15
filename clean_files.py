@@ -30,7 +30,7 @@ for root, dirs, files in os.walk(start_path):
         if file.lower().endswith(('.h', '.cpp', '.c', '.hlsl', '.py', '.lua')):
             clean_file(os.path.join(root, file))
 
-    # Do not walk these subdirectories.  Remove them from the list
+    # Do not walk these subdirectories. Remove them from the list
     i = 0
     while i < len(dirs):
         if dirs[i].startswith(('Build', 'Vendors')):
