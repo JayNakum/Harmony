@@ -12,9 +12,7 @@ namespace graphics
     };
 
     DescriptorHeapManager::DescriptorHeapManager()
-        : mCurrentDescriptorHeaps{}
-    {
-    }
+        : mCurrentDescriptorHeaps{} {}
 
     DescriptorHeapManager::~DescriptorHeapManager()
     {
@@ -37,9 +35,9 @@ namespace graphics
     void DescriptorHeapManager::setDescriptorHeap(dx12::DescriptorHeap& setDescriptorHeap)
     {
         dx12::DescriptorHeap* currentDescriptorHeap = mCurrentDescriptorHeaps[setDescriptorHeap.getDescriptorHeapType()];
-        HASSERT_SOFT(currentDescriptorHeap == nullptr, "Descriptor heap of type %d already set. Overwriting the previous one.", setDescriptorHeap.getDescriptorHeapType());
-
-        currentDescriptorHeap = &setDescriptorHeap;
+        if (currentDescriptorHeap != &setDescriptorHeap)
+        {
+            currentDescriptorHeap = &setDescriptorHeap;
+        }
     }
 }
-

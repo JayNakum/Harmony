@@ -22,13 +22,12 @@ namespace graphics
 
             // Returns the raw pointer of ID3D12Fence
             // This is needed because a lot of synchronization functions require the raw pointer.
+            inline const ID3D12Fence* get() const { mFence.Get(); }
             inline ID3D12Fence* get() { mFence.Get(); }
 
             // Operator overload that returns the raw pointer of ID3D12Fence.
-            inline ID3D12Fence* operator->()
-            {
-                return mFence.Get();
-            }
+            inline const ID3D12Fence* operator->() const { return mFence.Get(); }
+            inline ID3D12Fence* operator->() { return mFence.Get(); }
 
         private:
             Microsoft::WRL::ComPtr<ID3D12Fence> mFence;

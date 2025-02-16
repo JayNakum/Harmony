@@ -46,10 +46,8 @@ namespace graphics
             ~CommandQueue();
 
             // Operator overload that returns the raw pointer of ID3D12CommandQueue.
-            inline ID3D12CommandQueue* operator->()
-            {
-                return mCommandQueue.Get();
-            }
+            inline const ID3D12CommandQueue* operator->() const { return mCommandQueue.Get(); }
+            inline ID3D12CommandQueue* operator->() { return mCommandQueue.Get(); }
 
         private:
             // Increments the fence WITHOUT locking the mutex

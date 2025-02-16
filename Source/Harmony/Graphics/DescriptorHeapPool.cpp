@@ -59,6 +59,11 @@ namespace graphics
         mDescriptorHeapPool.clear();
     }
 
+    DescriptorHeapPool::~DescriptorHeapPool()
+    {
+        destroyPool();
+    }
+
     void DescriptorHeapPool::updateAvailableQueue()
     {
         while (!mUsedQueue.empty() && GfxCommandListManager().isFenceComplete(mUsedQueue.front().first))

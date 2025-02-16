@@ -28,13 +28,12 @@ namespace graphics
             ~CommandAllocator();
 
             // Returns the raw pointer on ID3D12CommandAllocator
+            inline const ID3D12CommandAllocator* get() const { return mCommandAllocator.Get(); }
             inline ID3D12CommandAllocator* get() { return mCommandAllocator.Get(); }
 
             // Operator overload that returns the raw pointer of ID3D12CommandAllocator.
-            inline ID3D12CommandAllocator* operator->()
-            {
-                return mCommandAllocator.Get();
-            }
+            inline const ID3D12CommandAllocator* operator->() const { return mCommandAllocator.Get(); }
+            inline ID3D12CommandAllocator* operator->() { return mCommandAllocator.Get(); }
 
         private:
             Microsoft::WRL::ComPtr<ID3D12CommandAllocator> mCommandAllocator;

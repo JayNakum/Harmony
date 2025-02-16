@@ -33,10 +33,8 @@ namespace graphics
 
         public:
             // Returns the raw pointer of D3D12Device.
-            inline ID3D12Device* operator->()
-            {
-                return mDevice.Get();
-            }
+            inline const ID3D12Device* operator->() const { return mDevice.Get(); }
+            inline ID3D12Device* operator->() { return mDevice.Get(); }
 
             inline bool isDeviceNvidia() const { return Device::getVendorIdFromDevice(mDevice.Get()) == vendorID_Nvidia; }
             inline bool isDeviceAMD() const { return Device::getVendorIdFromDevice(mDevice.Get()) == vendorID_AMD; }
