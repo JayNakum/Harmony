@@ -3,6 +3,8 @@
 #include "dx12/Device.h"
 #include "CommandAllocatorManager.h"
 #include "CommandListManager.h"
+#include "DescriptorHeapManager.h"
+#include "CommandContextManager.h"
 
 namespace graphics
 {
@@ -23,11 +25,15 @@ namespace graphics
         inline const dx12::Device getDevice() const { return mDevice; }
         inline CommandAllocatorManager& getCommandAllocatorManager() { return mCommandAllocatorManager; }
         inline CommandListManager& getCommandListManager() { return mCommandListManager; }
+        inline DescriptorHeapManager& getDescriptorHeapManager() { return mDescriptorHeapManager; }
+        inline CommandContextManager& getCommandContextManager() { return mCommandContextManager; }
 
     private:
         dx12::Device mDevice;
         CommandAllocatorManager mCommandAllocatorManager;
         CommandListManager mCommandListManager;
+        DescriptorHeapManager mDescriptorHeapManager;
+        CommandContextManager mCommandContextManager;
     };
 }
 
@@ -36,7 +42,7 @@ namespace graphics
 * Keeping these outside of any namespace with Gfx prefix to make the code a bit more clean.
 */
 
-inline graphics::Renderer* GfxManager()
+inline graphics::Renderer* GfxRenderer()
 {
     return graphics::Renderer::getInstance();
 }
@@ -54,4 +60,14 @@ inline graphics::CommandAllocatorManager& GfxCommandAllocatorManager()
 inline graphics::CommandListManager& GfxCommandListManager()
 {
     return graphics::Renderer::getInstance()->getCommandListManager();
+}
+
+inline graphics::DescriptorHeapManager& GfxDescriptorHeapManager()
+{
+    return graphics::Renderer::getInstance()->getDescriptorHeapManager();
+}
+
+inline graphics::CommandContextManager& GfxCommandContextManager()
+{
+    return graphics::Renderer::getInstance()->getCommandContextManager();
 }

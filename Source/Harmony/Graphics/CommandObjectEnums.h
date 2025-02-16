@@ -8,7 +8,7 @@ namespace graphics
         Compute,
         Copy,
         // TODO: add support for Bundle type command lists
-    
+
         CommandListTypeCount
     };
 }

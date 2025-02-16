@@ -8,6 +8,11 @@ namespace graphics
         : mGraphicsQueue({"main graphics queue", CommandListType::Direct})
     {}
 
+    CommandListManager::~CommandListManager()
+    {
+        msCommandListPool.destroyPool(); // We need to explicitely call this because the msCommandListPool is static
+    }
+
     dx12::CommandQueue& CommandListManager::getCommandQueue(const CommandListType type)
     {
         switch (type)
@@ -20,10 +25,10 @@ namespace graphics
         }
     }
 
-    void CommandListManager::createNewCommandList(const CommandListType type, dx12::CommandList* outCommandList, dx12::CommandAllocator* outCommandAllocator)
+    void CommandListManager::createNewCommandList(const CommandListType type, dx12::CommandList*& outCommandList, dx12::CommandAllocator*& outCommandAllocator)
     {
         outCommandAllocator = &(GfxCommandAllocatorManager().requestAllocator(type));
-        outCommandList = &(mCommandListPool.requestCommandList(*outCommandAllocator));
+        outCommandList = &(msCommandListPool.requestCommandList(*outCommandAllocator));
     }
 
 }

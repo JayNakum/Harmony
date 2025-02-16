@@ -20,6 +20,8 @@ namespace graphics
         // TODO: Add compute and copy queue support.
         CommandListManager();
 
+        ~CommandListManager();
+
     public:
         // Returns the CommandQueue if the specified type.
         dx12::CommandQueue& getCommandQueue(const CommandListType type);
@@ -27,7 +29,7 @@ namespace graphics
         inline dx12::CommandQueue& getGraphicsQueue() { return getCommandQueue(CommandListType::Direct); }
 
     public:
-        void createNewCommandList(const CommandListType type, dx12::CommandList* outCommandList, dx12::CommandAllocator* outCommandAllocator);
+        void createNewCommandList(const CommandListType type, dx12::CommandList*& outCommandList, dx12::CommandAllocator*& outCommandAllocator);
 
         // Test to see if a fence has already been reached
         inline bool isFenceComplete(uint64_t fenceValue)
@@ -49,6 +51,6 @@ namespace graphics
     private:
         dx12::CommandQueue mGraphicsQueue;
 
-        CommandListPool mCommandListPool;
+        static CommandListPool msCommandListPool;
     };
 }

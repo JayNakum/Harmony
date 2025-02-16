@@ -131,6 +131,10 @@ namespace graphics
             // Return descriptor handle increment size.
             inline const size_t getDescriptorSize() const { return mDescriptorSize; }
 
+
+            // Returns the raw pointer of ID3D12DescriptorHeap.
+            inline ID3D12DescriptorHeap* get() { return mHeap.Get(); }
+
             // Operator overload that returns the raw pointer of ID3D12DescriptorHeap.
             inline ID3D12DescriptorHeap* operator->()
             {

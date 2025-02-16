@@ -4,6 +4,9 @@
 
 #include "CommandObject.h"
 
+#include "dx12/CommandList.h"
+#include "dx12/DescriptorHeap.h"
+
 // A union for all the DWord params.
 // Prevents unnecessary function overloads.
 struct DWParam
@@ -30,8 +33,9 @@ namespace graphics
     * Deletes the copy constructor and = operator.
     * Used to make the code clean.
     */
-    struct NonCopyable
+    class NonCopyable
     {
+    protected:
         NonCopyable() = default;
         NonCopyable(const NonCopyable&) = delete;
         NonCopyable& operator=(const NonCopyable&) = delete;
@@ -39,17 +43,25 @@ namespace graphics
 
     /*
     * Contains the state and resources needed to record and execute commands on the GPU.
-    * This parent class is inherited by GraphicsContext class and // TODO: ComputeContext class.
+    * This parent class is inherited by GraphicsContext and // TODO: ComputeContext.
     */
-    class CommandContext : NonCopyable, public CommandObject
+    class CommandContext : public CommandObject, NonCopyable
     {
-    public:
+    protected:
         // Command context is only ever meant to be created, initialized or reset via the Context Manager
-        CommandContext(CommandListType type);
+        CommandContext(const CommandListType type);
 
+        void bindDescriptorHeaps() const;
+    public:
+        inline dx12::CommandList& getCommandList() const { return *mCommandList; }
+
+        void setDescriptorHeap(dx12::DescriptorHeap& descriptorHeap);
         void reset();
 
-    public:
-        ~CommandContext();
+        virtual ~CommandContext();
+
+    private:
+        dx12::CommandList* mCommandList;
+        dx12::CommandAllocator* mCurrentCommandAllocator;
     };
 }

@@ -22,6 +22,8 @@ namespace graphics
         dx12::CommandList& requestCommandList(dx12::CommandAllocator& allocator);
 
         // Clears the pool. Doing which closes each command list and destroys it.
+        void destroyPool();
+
         ~CommandListPool();
 
     private:

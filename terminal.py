@@ -10,7 +10,7 @@ def run_command(command: str, exit_on_fail: bool = True) -> None:
 
     if result.stderr.strip():
         print(result.stderr.strip())
-        
+
     # If the command fails
     if result.returncode != 0:
         print(f"[ERROR] Command failed: {command}")

@@ -21,10 +21,15 @@ namespace graphics
         return mCommandListPool.back();
     }
 
-    CommandListPool::~CommandListPool()
+    void CommandListPool::destroyPool()
     {
         std::lock_guard<std::mutex> scoppedLockGuard(mPoolMutex);
 
         mCommandListPool.clear();
+    }
+
+    CommandListPool::~CommandListPool()
+    {
+        destroyPool();
     }
 }

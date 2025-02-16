@@ -1,5 +1,7 @@
 #pragma once
 
+#include "common.h"
+
 #include "CommandObjectEnums.h"
 #include "CommandAllocatorPool.h"
 
@@ -14,8 +16,8 @@ namespace graphics
         friend class Renderer;
 
     private:
-        // Creates and initializes allocatorPool for each CommandListType
-        CommandAllocatorManager();
+        CommandAllocatorManager() = default;
+        ~CommandAllocatorManager();
 
     public:
         dx12::CommandAllocator& requestAllocator(const CommandListType type);
@@ -23,6 +25,6 @@ namespace graphics
         void discardAllocator(const uint64_t completedFence, dx12::CommandAllocator& usedAllocator);
 
     private:
-        std::array<CommandAllocatorPool, CommandListType::CommandListTypeCount> mCommandAllocatorPool;
+        static std::array<CommandAllocatorPool, CommandListType::CommandListTypeCount> msCommandAllocatorPool;
     };
 }
