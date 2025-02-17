@@ -12,7 +12,7 @@ namespace graphics
         * A Committed resource in UPLOAD_HEAP.
         * The reason why it is a committed resource because usually we only using UploadBuffer as an
         * intermediate before we copy the data to a DEFAULT_HEAP.
-        * If for some reason we nead a placed resource in UPLOAD_HEAP then will // TODO: implement it.
+        * In future if, for some reason, we nead a placed resource in UPLOAD_HEAP then will // TODO: implement it.
         */
         class UploadBuffer : public GPUResource
         {
