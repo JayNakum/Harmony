@@ -27,7 +27,7 @@ namespace graphics
         inline const dx12::Device getDevice() const { return mDevice; }
         inline CommandListManager& getCommandListManager() { return mCommandListManager; }
         inline CommandContextPool& getCommandContextPool() { return mCommandContextPool; }
-        inline dx12::DescriptorHandle allocateDescriptor(DescriptorHeapType type, const size_t count = 1) { return mDescriptorHeapPool.requestDescriptorHeap(type).allocate(count); }
+        inline dx12::DescriptorHandle allocateDescriptor(const DescriptorHeapType type, const size_t count = 1) { return mDescriptorHeapPool.requestDescriptorHeap(type).allocate(count); }
 
     private:
         dx12::Device mDevice;
@@ -67,4 +67,9 @@ inline graphics::dx12::CommandContext& GfxContextBegin(const std::string& name =
     graphics::dx12::CommandContext& newContext = graphics::Renderer::getInstance()->getCommandContextPool().requestContext(graphics::CommandListType::Direct);
     newContext.setID(name);
     return newContext;
+}
+
+inline graphics::dx12::DescriptorHandle GfxAllocateDescriptor(const graphics::DescriptorHeapType type = graphics::DescriptorHeapType::View, const size_t count = 1)
+{
+    graphics::Renderer::getInstance()->allocateDescriptor(type, count);
 }

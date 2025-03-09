@@ -4,6 +4,8 @@
 #include "CommandContext.h"
 
 #include "UploadBuffer.h"
+
+#include "DescriptorHeap.h"
 #include "Heap.h"
 
 #include "Math.h"
@@ -135,7 +137,7 @@ namespace graphics
             createViews();
         }
 
-        DescriptorHandle GPUBuffer::createConstantBufferView(uint32_t offset, size_t size, DescriptorHeap& cbvHeap) const
+        DescriptorHandle GPUBuffer::createConstantBufferView(uint32_t offset, size_t size) const
         {
             HASSERT(offset + size <= mBufferSize, "offset(%d) + size(%d) is more than total buffer size(%d).", offset, size, mBufferSize);
 
@@ -145,7 +147,7 @@ namespace graphics
             cbvDesc.BufferLocation = mGPUVirtualAddress + (size_t)offset;
             cbvDesc.SizeInBytes = size;
 
-            DescriptorHandle hCBV = cbvHeap.allocate();
+            DescriptorHandle hCBV = GfxAllocateDescriptor();
             GfxDevice()->CreateConstantBufferView(&cbvDesc, hCBV);
             return hCBV;
         }
@@ -198,6 +200,25 @@ namespace graphics
             mElementSize = createDescription.elementSize;
             mBufferSize = mElementCount * mElementSize;
             mUsageState = GPUResourceState::Common;
+        }
+    }
+
+    namespace dx12
+    {
+        void ByteAddressBuffer::createViews()
+        {
+            D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
+            srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
+            srvDesc.Format = DXGI_FORMAT_R32_TYPELESS;
+            srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+            srvDesc.Buffer.NumElements = (UINT)mBufferSize / 4;
+            srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_RAW;
+
+            if (mSRV.getGPUPtr() == GPUResource::INVALID_ADDRESS)
+            {
+                mSRV = GfxAllocateDescriptor();
+            }
+            GfxDevice()->CreateShaderResourceView(mResource.Get(), &srvDesc, mSRV);
         }
     }
 }

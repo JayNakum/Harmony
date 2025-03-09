@@ -7,24 +7,26 @@
 
 namespace graphics
 {
+    struct VertexBuffer
+    {
+        uint64_t bufferLocation;
+        size_t sizeInBytes;
+        size_t strideInBytes;
+    };
+
+    struct IndexBuffer
+    {
+        uint64_t bufferLocation;
+        size_t sizeInBytes;
+        bool is32Bit = false;
+    };
+
     namespace dx12
     {
         class UploadBuffer;
+        class DescriptorHeap;
         class Heap;
 
-        struct VertexBuffer
-        {
-            uint64_t bufferLocation;
-            size_t sizeInBytes;
-            size_t strideInBytes;
-        };
-
-        struct IndexBuffer
-        {
-            uint64_t bufferLocation;
-            size_t sizeInBytes;
-            bool is32Bit = false;
-        };
 
         class GPUBuffer : public GPUResource
         {
@@ -71,7 +73,7 @@ namespace graphics
 
             inline D3D12_GPU_VIRTUAL_ADDRESS rootConstantBufferView() const { return getGPUVirtualAddress(); }
 
-            DescriptorHandle createConstantBufferView(uint32_t offset, size_t size, DescriptorHeap& cbvHeap) const;
+            DescriptorHandle createConstantBufferView(uint32_t offset, size_t size) const;
 
             const VertexBuffer vertexBufferView(size_t offset, size_t size, size_t stride) const;
             inline const VertexBuffer vertexBufferView(size_t baseVertexIndex = 0) const
@@ -106,6 +108,15 @@ namespace graphics
             uint32_t mElementCount;
             uint32_t mElementSize;
             GPUResourceFlags mResourceFlags;
+        };
+    }
+
+    namespace dx12
+    {
+        class ByteAddressBuffer : public GPUBuffer
+        {
+        public:
+            virtual void createViews() override;
         };
     }
 }

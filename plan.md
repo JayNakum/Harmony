@@ -4,7 +4,6 @@
 
 ## Graphics
 #### Low level abstraction of api classes
-* GPU buffers
 * GPU resources
 * Root Signatures
 * PSO
