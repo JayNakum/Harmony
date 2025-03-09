@@ -2,15 +2,15 @@
 
 namespace graphics
 {
-    CommandContext& CommandContextPool::requestContext(const CommandListType type)
+    dx12::CommandContext& CommandContextPool::requestContext(const CommandListType type)
     {
         std::lock_guard<std::mutex> scoppedLockGuard(msPoolMutex[type]);
 
-        std::queue<CommandContext*>& availableQueue = msAvailableQueue[type];
+        std::queue<dx12::CommandContext*>& availableQueue = msAvailableQueue[type];
 
         if (!availableQueue.empty())
         {
-            CommandContext* context = availableQueue.front();
+            dx12::CommandContext* context = availableQueue.front();
             availableQueue.pop();
             context->reset();
 
@@ -21,7 +21,7 @@ namespace graphics
         return msCommandContextPool[type].back();
     }
 
-    void CommandContextPool::discardContext(CommandContext& context)
+    void CommandContextPool::discardContext(dx12::CommandContext& context)
     {
         const CommandListType type = context.getCommandListType();
         std::lock_guard<std::mutex> scoppedLockGuard(msPoolMutex[type]);

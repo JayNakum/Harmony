@@ -1,8 +1,12 @@
 #pragma once
 
 #include "dx12/Device.h"
+
 #include "CommandListManager.h"
 #include "CommandContextPool.h"
+#include "CommandContext.h"
+
+#include "DescriptorHeapPool.h"
 
 namespace graphics
 {
@@ -22,12 +26,14 @@ namespace graphics
     public:
         inline const dx12::Device getDevice() const { return mDevice; }
         inline CommandListManager& getCommandListManager() { return mCommandListManager; }
-        inline CommandContextPool& getCommandContextPool() { return mCommandContextPool; } // TODO: Instead of returning an instance, maybe allow to create a context directly? OR abstract in Renderer::Begin() and Renderer::End()
+        inline CommandContextPool& getCommandContextPool() { return mCommandContextPool; }
+        inline dx12::DescriptorHandle allocateDescriptor(DescriptorHeapType type, const size_t count = 1) { return mDescriptorHeapPool.requestDescriptorHeap(type).allocate(count); }
 
     private:
         dx12::Device mDevice;
         CommandListManager mCommandListManager;
         CommandContextPool mCommandContextPool;
+        DescriptorHeapPool mDescriptorHeapPool;
     };
 }
 
@@ -54,4 +60,11 @@ inline graphics::CommandListManager& GfxCommandListManager()
 inline graphics::CommandContextPool& GfxCommandContextPool()
 {
     return graphics::Renderer::getInstance()->getCommandContextPool();
+}
+
+inline graphics::dx12::CommandContext& GfxContextBegin(const std::string& name = "DEFAULT")
+{
+    graphics::dx12::CommandContext& newContext = graphics::Renderer::getInstance()->getCommandContextPool().requestContext(graphics::CommandListType::Direct);
+    newContext.setID(name);
+    return newContext;
 }

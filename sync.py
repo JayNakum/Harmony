@@ -1,5 +1,4 @@
 import os
-import subprocess
 import sys
 
 # Ensure script is running inside a Git repository

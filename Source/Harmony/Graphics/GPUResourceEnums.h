@@ -16,4 +16,13 @@ namespace graphics
         // VideoEncodeReferenceOnly,
         // RayTracingAccelerationStructure
     };
+
+    enum GPUResourceState
+    {
+        Invalid,
+        Common,
+        CopyDest,
+        GenericRead
+        // TODO: Add more resource states
+    };
 }

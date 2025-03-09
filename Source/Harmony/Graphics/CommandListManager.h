@@ -28,6 +28,7 @@ namespace graphics
         inline dx12::CommandQueue& getGraphicsQueue() { return getCommandQueue(CommandListType::Direct); }
 
         inline dx12::CommandAllocator& requestAllocator(const CommandListType type) { return msCommandAllocatorPool.requestCommandAllocator(type); }
+        inline void discardAllocator(uint64_t fence, dx12::CommandAllocator& usedAllocator) { msCommandAllocatorPool.discardCommandAllocator(fence, usedAllocator); }
 
     public:
         void createNewCommandList(const CommandListType type, dx12::CommandList*& outCommandList, dx12::CommandAllocator*& outCommandAllocator);

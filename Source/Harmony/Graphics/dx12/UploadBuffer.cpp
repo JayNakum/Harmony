@@ -2,6 +2,8 @@
 
 #include "Renderer.h"
 
+#include "GPUResourceStates.h"
+
 #include "Utility.h"
 #include "Log.h"
 
@@ -36,9 +38,11 @@ namespace graphics
             createDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
             createDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
 
+            mUsageState = GPUResourceState::GenericRead;
+
             HRESULT hResult = GfxDevice()->CreateCommittedResource(
                 &heapProps, D3D12_HEAP_FLAG_NONE, &createDesc,
-                D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&mResource));
+                gpuResourceStates.at(mUsageState), nullptr, IID_PPV_ARGS(&mResource));
 
             HASSERT_HR(hResult, "Failed to create upload buffer %s", createDescription.name);
 
@@ -54,7 +58,8 @@ namespace graphics
         void* UploadBuffer::map()
         {
             void* memory = nullptr;
-            mResource->Map(0, &CD3DX12_RANGE(0, mBufferSize), &memory);
+            HRESULT hResult = mResource->Map(0, &CD3DX12_RANGE(0, mBufferSize), &memory);
+            HASSERT_HR(hResult, "Failed to map upload buffer resource.");
             return memory;
         }
 

@@ -4,6 +4,8 @@
 #include "directx.h"
 
 #include "GPUResourceEnums.h"
+#include "GPUResourceStates.h"
+#include "GPUResourceFlags.h"
 
 namespace graphics
 {
@@ -21,19 +23,25 @@ namespace graphics
 
             GPUResource()
                 : mGPUVirtualAddress(NULL_ADDRESS),
-                mUsageState(D3D12_RESOURCE_STATE_COMMON),
-                mTransitioningState((D3D12_RESOURCE_STATES)-1) {}
+                mUsageState(GPUResourceState::Common),
+                mTransitioningState(GPUResourceState::Invalid) {}
 
-            GPUResource(ID3D12Resource* resource, const D3D12_RESOURCE_STATES currentUsageState)
+            GPUResource(ID3D12Resource* resource, const GPUResourceState currentUsageState)
                 : mGPUVirtualAddress(NULL_ADDRESS),
                 mResource(resource),
                 mUsageState(currentUsageState),
-                mTransitioningState((D3D12_RESOURCE_STATES)-1) {}
+                mTransitioningState(GPUResourceState::Invalid) {}
 
             ~GPUResource()
             {
                 destroy();
             }
+
+            inline const GPUResourceState getUsageState() const { return mUsageState; }
+            inline void setUsageState(const GPUResourceState newState) { mUsageState = newState; }
+
+            inline const GPUResourceState getTransitioningState() const { return mTransitioningState; }
+            inline void setTransitioningState(const GPUResourceState newState) { mTransitioningState = newState; }
 
             // Sets the ComPtr to null
             virtual void destroy()
@@ -57,8 +65,8 @@ namespace graphics
 
         protected:
             Microsoft::WRL::ComPtr<ID3D12Resource> mResource;
-            D3D12_RESOURCE_STATES mUsageState;
-            D3D12_RESOURCE_STATES mTransitioningState;
+            GPUResourceState mUsageState;
+            GPUResourceState mTransitioningState;
             D3D12_GPU_VIRTUAL_ADDRESS mGPUVirtualAddress;
         };
     }
