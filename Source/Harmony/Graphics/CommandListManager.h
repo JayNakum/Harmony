@@ -1,6 +1,6 @@
 #pragma once
 
-#include "CommandObjectEnums.h"
+#include "CommandAllocatorPool.h"
 #include "CommandListPool.h"
 
 #include "dx12/CommandQueue.h"
@@ -25,8 +25,9 @@ namespace graphics
     public:
         // Returns the CommandQueue if the specified type.
         dx12::CommandQueue& getCommandQueue(const CommandListType type);
-
         inline dx12::CommandQueue& getGraphicsQueue() { return getCommandQueue(CommandListType::Direct); }
+        
+        inline dx12::CommandAllocator& requestAllocator(const CommandListType type) { return msCommandAllocatorPool.requestCommandAllocator(type); }
 
     public:
         void createNewCommandList(const CommandListType type, dx12::CommandList*& outCommandList, dx12::CommandAllocator*& outCommandAllocator);
@@ -51,6 +52,15 @@ namespace graphics
     private:
         dx12::CommandQueue mGraphicsQueue;
 
-        static CommandListPool msCommandListPool;
+        // The CommandAllocatorPool is NOT thread_local
+        // because if each thread has its own pool, one thread may have free allocators while another runs out.
+        static CommandAllocatorPool msCommandAllocatorPool;
+
+        // Command Lists are thread local.
+        // This allows us to have multiple threads writing commands in parallel.
+        // We can still achieve that with some mutex locks inside the Pool (similar to CommandAllocator)
+        // but command lists are not meant to be destroyed frequently to cause inefficient usage of them
+        // since their will be ideally only one command list per thread, having this thread local makes more sense.
+        thread_local static CommandListPool msCommandListPool;
     };
 }

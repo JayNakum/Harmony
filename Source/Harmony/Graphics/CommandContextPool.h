@@ -1,6 +1,5 @@
 #pragma once
 
-#include "CommandObject.h"
 #include "CommandContext.h"
 
 namespace graphics
@@ -9,15 +8,15 @@ namespace graphics
     * Context Pool manages the memory for creating and destroying Command Contexts
     * It has a pool of contexts and manages its allocation and deallocation.
     */
-    class CommandContextPool : public CommandObject
+    class CommandContextPool
     {
     public:
-        CommandContextPool(const CommandListType type);
+        CommandContextPool() = default;
 
         // Allocates a new context for the given command list type.
         // If an available context exists, it is reset and reused.
         // Otherwise, a new one is created and initialized.
-        CommandContext& requestContext();
+        CommandContext& requestContext(const CommandListType type);
 
         // Puts the context in available queue for future use.
         // This doesn't delete or reset the context. The context is reset first when requested via allocateContext().
@@ -30,12 +29,12 @@ namespace graphics
 
     private:
         // The main context pool containing all the contexts of each type.
-        std::vector<CommandContext> mCommandContextPool;
+        static std::array<std::vector<CommandContext>, CommandListType::CommandListTypeCount> msCommandContextPool;
 
         // A queue of contexts of each type that are available for reuse.
-        std::queue<CommandContext*> mAvailableQueue;
+        static std::array<std::queue<CommandContext*>, CommandListType::CommandListTypeCount> msAvailableQueue;
 
         // Prevents incorrect reading and writing of context pool and available queue.
-        std::mutex mPoolMutex;
+        static std::array<std::mutex, CommandListType::CommandListTypeCount> msPoolMutex;
     };
 }

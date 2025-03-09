@@ -1,10 +1,8 @@
 #pragma once
 
 #include "dx12/Device.h"
-#include "CommandAllocatorManager.h"
 #include "CommandListManager.h"
-#include "DescriptorHeapManager.h"
-#include "CommandContextManager.h"
+#include "CommandContextPool.h"
 
 namespace graphics
 {
@@ -23,17 +21,13 @@ namespace graphics
 
     public:
         inline const dx12::Device getDevice() const { return mDevice; }
-        inline CommandAllocatorManager& getCommandAllocatorManager() { return mCommandAllocatorManager; }
         inline CommandListManager& getCommandListManager() { return mCommandListManager; }
-        inline DescriptorHeapManager& getDescriptorHeapManager() { return mDescriptorHeapManager; }
-        inline CommandContextManager& getCommandContextManager() { return mCommandContextManager; }
+        inline CommandContextPool& getCommandContextPool() { return mCommandContextPool; } // TODO: Instead of returning an instance, maybe allow to create a context directly? OR abstract in Renderer::Begin() and Renderer::End()
 
     private:
         dx12::Device mDevice;
-        CommandAllocatorManager mCommandAllocatorManager;
         CommandListManager mCommandListManager;
-        DescriptorHeapManager mDescriptorHeapManager;
-        CommandContextManager mCommandContextManager;
+        CommandContextPool mCommandContextPool;
     };
 }
 
@@ -52,22 +46,12 @@ inline graphics::dx12::Device GfxDevice()
     return graphics::Renderer::getInstance()->getDevice();
 }
 
-inline graphics::CommandAllocatorManager& GfxCommandAllocatorManager()
-{
-    return graphics::Renderer::getInstance()->getCommandAllocatorManager();
-}
-
 inline graphics::CommandListManager& GfxCommandListManager()
 {
     return graphics::Renderer::getInstance()->getCommandListManager();
 }
 
-inline graphics::DescriptorHeapManager& GfxDescriptorHeapManager()
+inline graphics::CommandContextPool& GfxCommandContextPool()
 {
-    return graphics::Renderer::getInstance()->getDescriptorHeapManager();
-}
-
-inline graphics::CommandContextManager& GfxCommandContextManager()
-{
-    return graphics::Renderer::getInstance()->getCommandContextManager();
+    return graphics::Renderer::getInstance()->getCommandContextPool();
 }

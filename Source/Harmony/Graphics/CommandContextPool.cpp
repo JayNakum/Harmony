@@ -2,15 +2,11 @@
 
 namespace graphics
 {
-    CommandContextPool::CommandContextPool(const CommandListType type)
-        : CommandObject(type)
-    {}
-
-    CommandContext& CommandContextPool::requestContext()
+    CommandContext& CommandContextPool::requestContext(const CommandListType type)
     {
-        std::lock_guard<std::mutex> scoppedLockGuard(mPoolMutex);
+        std::lock_guard<std::mutex> scoppedLockGuard(msPoolMutex[type]);
 
-        std::queue<CommandContext*>& availableQueue = mAvailableQueue;
+        std::queue<CommandContext*>& availableQueue = msAvailableQueue[type];
 
         if (!availableQueue.empty())
         {
@@ -21,28 +17,32 @@ namespace graphics
             return *context;
         }
 
-        mCommandContextPool.emplace_back();
-        return mCommandContextPool.back();
+        msCommandContextPool[type].emplace_back();
+        return msCommandContextPool[type].back();
     }
 
     void CommandContextPool::discardContext(CommandContext& context)
     {
-        std::lock_guard<std::mutex> scoppedLockGuard(mPoolMutex);
+        const CommandListType type = context.getCommandListType();
+        std::lock_guard<std::mutex> scoppedLockGuard(msPoolMutex[type]);
 
-        CommandContextPool::mAvailableQueue.push(&context);
+        CommandContextPool::msAvailableQueue[type].push(&context);
     }
 
     void CommandContextPool::destroyPool()
     {
-        std::lock_guard<std::mutex> scoppedLockGuard(mPoolMutex);
+        for (size_t type = 0; type < CommandListType::CommandListTypeCount; ++type)
+        {
+            std::lock_guard<std::mutex> scoppedLockGuard(msPoolMutex[type]);
 
-        // clear the queue to prevent dangling pointers
-        while (!mAvailableQueue.empty())
-        {	
-            mAvailableQueue.pop();
+            // clear the queue to prevent dangling pointers
+            while (!msAvailableQueue[type].empty())
+            {	
+                msAvailableQueue[type].pop();
+            }
+
+            CommandContextPool::msCommandContextPool[type].clear();
         }
-
-        CommandContextPool::mCommandContextPool.clear();
     }
 
     CommandContextPool::~CommandContextPool()

@@ -9,54 +9,59 @@ namespace graphics
 {
     using namespace dx12;
 
-    DescriptorHeapPool::DescriptorHeapPool(const Description& createDescription)
-        : mDescription(createDescription)
+    DescriptorHeapPool::DescriptorHeapPool(const size_t numDescriptorsPerHeap)
+        : mNumDescriptorsPerHeap(numDescriptorsPerHeap)
     {}
 
-    DescriptorHeap& DescriptorHeapPool::requestDescriptorHeap()
+    DescriptorHeap& DescriptorHeapPool::requestDescriptorHeap(const DescriptorHeapType type)
     {
-        std::lock_guard<std::mutex> scoppedLockGuard(mPoolMutex);
+        std::lock_guard<std::mutex> scoppedLockGuard(msPoolMutex[type]);
 
-        updateAvailableQueue();
+        updateAvailableQueue(type);
 
-        if (!mAvailableQueue.empty())
+        if (!msAvailableQueue[type].empty())
         {
-            DescriptorHeap* descriptorHeap = mAvailableQueue.front();
-            mAvailableQueue.pop();
+            DescriptorHeap* descriptorHeap = msAvailableQueue[type].front();
+            msAvailableQueue[type].pop();
             return *descriptorHeap;
         }
 
         DescriptorHeap::Description createDesc;
-        createDesc.type = mDescription.type;
-        createDesc.name = (mDescriptorHeapPool.size() + " shader visible descriptor heap");
-        createDesc.maxDescriptors = mDescription.numDescriptorsPerHeap;
+        createDesc.type = type;
+        createDesc.name = (msDescriptorHeapPool[type].size() + " shader visible descriptor heap");
+        createDesc.maxDescriptors = mNumDescriptorsPerHeap;
 
-        mDescriptorHeapPool.emplace_back(createDesc);
+        msDescriptorHeapPool[type].emplace_back(createDesc);
 
-        return mDescriptorHeapPool.back();
+        return msDescriptorHeapPool[type].back();
     }
 
     void DescriptorHeapPool::discardDescriptorHeap(const uint64_t completedFenceValue, dx12::DescriptorHeap& usedHeaps)
     {
-        std::lock_guard<std::mutex> scoppedLockGuard(mPoolMutex);
+        const DescriptorHeapType type = usedHeaps.getDescriptorHeapType();
 
-        mUsedQueue.push(std::make_pair(completedFenceValue, &usedHeaps));
+        std::lock_guard<std::mutex> scoppedLockGuard(msPoolMutex[type]);
+
+        msUsedQueue[type].push(std::make_pair(completedFenceValue, &usedHeaps));
     }
 
     void DescriptorHeapPool::destroyPool()
     {
-        std::lock_guard<std::mutex> scoppedLockGuard(mPoolMutex);
-
-        updateAvailableQueue();
-        HASSERT(mUsedQueue.empty(), "Trying to destroy descriptor heap pool %d while %d heaps are being used.", mDescription.type, mUsedQueue.size());
-
-        // clear the queues to prevent dangling pointers
-        while (!mAvailableQueue.empty())
+        for (size_t type = 0; type < DescriptorHeapType::DescriptorHeapTypeCount; ++type)
         {
-            mAvailableQueue.pop();
-        }
+            std::lock_guard<std::mutex> scoppedLockGuard(msPoolMutex[type]);
 
-        mDescriptorHeapPool.clear();
+            updateAvailableQueue(DescriptorHeapType(type));
+            HASSERT(msUsedQueue[type].empty(), "Trying to destroy descriptor heap pool %d while %d heaps are being used.", type, msUsedQueue[type].size());
+
+            // clear the queues to prevent dangling pointers
+            while (!msAvailableQueue[type].empty())
+            {
+                msAvailableQueue[type].pop();
+            }
+
+            msDescriptorHeapPool[type].clear();
+        }
     }
 
     DescriptorHeapPool::~DescriptorHeapPool()
@@ -64,12 +69,12 @@ namespace graphics
         destroyPool();
     }
 
-    void DescriptorHeapPool::updateAvailableQueue()
+    void DescriptorHeapPool::updateAvailableQueue(const DescriptorHeapType type)
     {
-        while (!mUsedQueue.empty() && GfxCommandListManager().isFenceComplete(mUsedQueue.front().first))
+        while (!msUsedQueue[type].empty() && GfxCommandListManager().isFenceComplete(msUsedQueue[type].front().first))
         {
-            mAvailableQueue.push(mUsedQueue.front().second);
-            mUsedQueue.pop();
+            msAvailableQueue[type].push(msUsedQueue[type].front().second);
+            msUsedQueue[type].pop();
         }
     }
 }

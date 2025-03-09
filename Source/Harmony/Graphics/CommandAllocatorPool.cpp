@@ -9,16 +9,13 @@ namespace graphics
 {
     using namespace dx12;
 
-    CommandAllocatorPool::CommandAllocatorPool(CommandListType type)
-        : CommandObject(type) {}
-
-    CommandAllocator& CommandAllocatorPool::requestCommandAllocator()
+    CommandAllocator& CommandAllocatorPool::requestCommandAllocator(const CommandListType type)
     {
-        std::lock_guard<std::mutex> scoppedLockGuard(mPoolMutex);
+        std::lock_guard<std::mutex> scoppedLockGuard(msPoolMutex[type]);
 
-        updateAvailableQueue();
+        updateAvailableQueue(type);
 
-        std::queue<CommandAllocator*>& availableQueue = mAvailableQueue;
+        std::queue<CommandAllocator*>& availableQueue = msAvailableQueue[type];
 
         if (!availableQueue.empty())
         {
@@ -28,34 +25,39 @@ namespace graphics
         }
 
         CommandAllocator::Description createDesc;
-        createDesc.name = (mCmdAllocatorPool.size() + " type[" + std::to_string(mType) + "] command allocator");
-        createDesc.type = mType;
-        mCmdAllocatorPool.emplace_back(createDesc);
+        createDesc.name = (msCmdAllocatorPool.size() + " type[" + std::to_string(type) + "] command allocator");
+        createDesc.type = type;
+        msCmdAllocatorPool[type].emplace_back(createDesc);
 
-        return mCmdAllocatorPool.back();
+        return msCmdAllocatorPool[type].back();
     }
 
     void CommandAllocatorPool::discardCommandAllocator(const uint64_t completedFenceValue, CommandAllocator& usedAllocator)
     {
-        std::lock_guard<std::mutex> scoppedLockGuard(mPoolMutex);
+        const CommandListType type = usedAllocator.getCommandListType();
+        
+        std::lock_guard<std::mutex> scoppedLockGuard(msPoolMutex[type]);
 
-        mUsedQueue.push(std::make_pair(completedFenceValue, &usedAllocator));
+        msUsedQueue[type].push(std::make_pair(completedFenceValue, &usedAllocator));
     }
 
     void CommandAllocatorPool::destroyPool()
     {
-        std::lock_guard<std::mutex> scoppedLockGuard(mPoolMutex);
-
-        updateAvailableQueue();
-        HASSERT(mUsedQueue.empty(), "Trying to destroy pool %d while %d allocators are still in used.", mType, mUsedQueue.size());
-
-        // clear the queues to prevent dangling pointers
-        while (!mAvailableQueue.empty())
+        for (size_t type = 0; type < CommandListType::CommandListTypeCount; ++type)
         {
-            mAvailableQueue.pop();
-        }
+            std::lock_guard<std::mutex> scoppedLockGuard(msPoolMutex[type]);
 
-        mCmdAllocatorPool.clear();
+            updateAvailableQueue(CommandListType(type));
+            HASSERT(msUsedQueue[type].empty(), "Trying to destroy pool %d while %d allocators are still in used.", type, msUsedQueue[type].size());
+
+            // clear the queues to prevent dangling pointers
+            while (!msAvailableQueue[type].empty())
+            {
+                msAvailableQueue[type].pop();
+            }
+
+            msCmdAllocatorPool[type].clear();
+        }
     }
 
     CommandAllocatorPool::~CommandAllocatorPool()
@@ -63,12 +65,12 @@ namespace graphics
         destroyPool();
     }
 
-    void CommandAllocatorPool::updateAvailableQueue()
+    void CommandAllocatorPool::updateAvailableQueue(const CommandListType type)
     {
-        while (!mUsedQueue.empty() && GfxCommandListManager().isFenceComplete(mUsedQueue.front().first))
+        while (!msUsedQueue[type].empty() && GfxCommandListManager().isFenceComplete(msUsedQueue[type].front().first))
         {
-            mAvailableQueue.push(mUsedQueue.front().second);
-            mUsedQueue.pop();
+            msAvailableQueue[type].push(msUsedQueue[type].front().second);
+            msUsedQueue[type].pop();
         }
     }
 }

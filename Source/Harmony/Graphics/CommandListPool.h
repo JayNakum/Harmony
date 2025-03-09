@@ -28,8 +28,5 @@ namespace graphics
 
     private:
         std::vector<dx12::CommandList> mCommandListPool;
-
-        // Prevents incorrect read and write of the pool and queue
-        std::mutex mPoolMutex;
     };
 }

@@ -27,8 +27,7 @@ namespace graphics
 
     void CommandListManager::createNewCommandList(const CommandListType type, dx12::CommandList*& outCommandList, dx12::CommandAllocator*& outCommandAllocator)
     {
-        outCommandAllocator = &(GfxCommandAllocatorManager().requestAllocator(type));
+        outCommandAllocator = &msCommandAllocatorPool.requestCommandAllocator(type));
         outCommandList = &(msCommandListPool.requestCommandList(*outCommandAllocator));
     }
-
 }

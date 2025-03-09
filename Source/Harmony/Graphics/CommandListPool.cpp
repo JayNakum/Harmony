@@ -8,8 +8,6 @@ namespace graphics
 
     dx12::CommandList& CommandListPool::requestCommandList(dx12::CommandAllocator& allocator)
     {
-        std::lock_guard<std::mutex> scoppedLockGuard(mPoolMutex);
-
         dx12::CommandList::Description createDesc{
             mCommandListPool.size() + " command list",
             mType,
@@ -23,8 +21,6 @@ namespace graphics
 
     void CommandListPool::destroyPool()
     {
-        std::lock_guard<std::mutex> scoppedLockGuard(mPoolMutex);
-
         mCommandListPool.clear();
     }
 
