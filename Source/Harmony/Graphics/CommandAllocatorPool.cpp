@@ -35,7 +35,7 @@ namespace graphics
     void CommandAllocatorPool::discardCommandAllocator(const uint64_t completedFenceValue, CommandAllocator& usedAllocator)
     {
         const CommandListType type = usedAllocator.getCommandListType();
-        
+
         std::lock_guard<std::mutex> scoppedLockGuard(msPoolMutex[type]);
 
         msUsedQueue[type].push(std::make_pair(completedFenceValue, &usedAllocator));

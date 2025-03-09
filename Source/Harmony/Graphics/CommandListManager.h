@@ -26,7 +26,7 @@ namespace graphics
         // Returns the CommandQueue if the specified type.
         dx12::CommandQueue& getCommandQueue(const CommandListType type);
         inline dx12::CommandQueue& getGraphicsQueue() { return getCommandQueue(CommandListType::Direct); }
-        
+
         inline dx12::CommandAllocator& requestAllocator(const CommandListType type) { return msCommandAllocatorPool.requestCommandAllocator(type); }
 
     public:

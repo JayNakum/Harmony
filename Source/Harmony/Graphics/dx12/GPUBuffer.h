@@ -30,7 +30,7 @@ namespace graphics
             {
                 destroy();
             }
-            
+
             // Create a buffer.
             // If initial data is provided, it will be copied into the buffer using the default command context.
             void createCommitted(const Description& createDescription, const void* initialData = nullptr);
@@ -38,11 +38,11 @@ namespace graphics
             // Create a buffer.
             // Data from the sourceUploadBuffer will be copied into the buffer using the default command context.
             void createCommitted(const Description& createDescription, const UploadBuffer& sourceData, uint32_t sourceOffset = 0);
-            
+
             // Sub-Allocate a buffer out of a pre-allocated heap.
             // If initial data is provided, it will be copied into the buffer using the default command context.
             void createPlaced(const Description& createDescription, Heap& backingHeap, uint64_t heapOffset, const void* initialData = nullptr);
-            
+
             // Sub-Allocate a buffer out of a pre-allocated heap.
             // Data from the sourceUploadBuffer will be copied into the buffer using the default command context.
             void createPlaced(const Description& createDescription, Heap& backingHeap, uint64_t heapOffset, const UploadBuffer& sourceData, uint32_t sourceOffset = 0);
@@ -54,14 +54,14 @@ namespace graphics
             virtual void createViews() = 0;
 
         private:
-			// Initializes the local variables.
-			// This is called inside the create method.
-			void initialize(const Description& createDescription);
+            // Initializes the local variables.
+            // This is called inside the create method.
+            void initialize(const Description& createDescription);
 
         protected:
             DescriptorHandle mSRV;
             // TODO: DescriptorHandle mUAV;
-            
+
             size_t mBufferSize;
             uint32_t mElementCount;
             uint32_t mElementSize;

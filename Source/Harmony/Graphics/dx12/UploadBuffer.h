@@ -22,7 +22,7 @@ namespace graphics
                 std::string name;
                 size_t bufferSize;
             };
-            
+
             // Creates a committed buffer of size Description::bufferSize
             UploadBuffer(const Description& createDescription);
 

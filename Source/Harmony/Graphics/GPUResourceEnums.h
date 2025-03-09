@@ -2,7 +2,7 @@
 
 namespace graphics
 {
-	enum GPUResourceFlags
+    enum GPUResourceFlags
     {
         None,
         AllowRenderTarget,

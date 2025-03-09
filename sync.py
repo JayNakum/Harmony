@@ -8,6 +8,9 @@ if not os.path.exists(".git"):
     sys.exit(1)
 
 from terminal import run_command
+import clean_files as cleaner
+
+cleaner.clean_files()
 
 # pull from repository
 print("[INFO] Pulling latest changes from GitHub.")
