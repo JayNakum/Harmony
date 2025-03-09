@@ -11,14 +11,13 @@ def clean_line(line):
 
 # Cleans the white space in a file
 def clean_file(filename):
-    print('processing ' + filename)
     try:
         lines = open(filename, 'r').readlines()
         with open(filename, 'w') as outfile:
             for line in lines:
                 outfile.write(clean_line(line))
     except OSError:
-        print('  ***Failed')
+        print(f'[ERROR] Cleanup for {filename} failed.')
 
 def clean_files(start_path = '.'):
     if len(sys.argv) > 1:

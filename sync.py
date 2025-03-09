@@ -10,6 +10,8 @@ if not os.path.exists(".git"):
 from terminal import run_command
 import clean_files as cleaner
 
+# cleanup files
+print("[INFO] Preparing files.")
 cleaner.clean_files()
 
 # pull from repository
