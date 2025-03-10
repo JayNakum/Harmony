@@ -7,14 +7,13 @@
 #include "dx12/CommandList.h"
 #include "dx12/DescriptorHeap.h"
 
-#include "dx12/GPUBuffer.h"
-#include "dx12/UploadBuffer.h"
+#include "GPUBuffer.h"
+#include "UploadBuffer.h"
 
 namespace graphics
 {
     /*
     * This is the classes that connects graphics classes with DX12.
-    * TODO: Move to DX12 folder when we have multiple APIs.
     */
     namespace dx12
     {

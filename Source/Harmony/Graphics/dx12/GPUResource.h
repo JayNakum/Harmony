@@ -21,6 +21,9 @@ namespace graphics
             static constexpr D3D12_GPU_VIRTUAL_ADDRESS NULL_ADDRESS = (D3D12_GPU_VIRTUAL_ADDRESS)0;
             static constexpr D3D12_GPU_VIRTUAL_ADDRESS INVALID_ADDRESS = (D3D12_GPU_VIRTUAL_ADDRESS)-1;
 
+            struct Description
+            {};
+
             GPUResource()
                 : mGPUVirtualAddress(NULL_ADDRESS),
                 mUsageState(GPUResourceState::Common),

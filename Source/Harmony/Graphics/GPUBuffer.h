@@ -24,7 +24,6 @@ namespace graphics
     namespace dx12
     {
         class UploadBuffer;
-        class DescriptorHeap;
         class Heap;
 
 
@@ -71,7 +70,7 @@ namespace graphics
         public:
             inline const DescriptorHandle& getSRV() const { return mSRV; }
 
-            inline D3D12_GPU_VIRTUAL_ADDRESS rootConstantBufferView() const { return getGPUVirtualAddress(); }
+            inline uint64_t rootConstantBufferView() const { return getGPUVirtualAddress(); }
 
             DescriptorHandle createConstantBufferView(uint32_t offset, size_t size) const;
 
