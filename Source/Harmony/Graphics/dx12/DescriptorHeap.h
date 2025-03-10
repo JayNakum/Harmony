@@ -27,7 +27,7 @@ namespace graphics
                 std::string name;
                 DescriptorHeapType type;
                 size_t maxDescriptors;
-                DescriptorHeapFlag flag = DescriptorHeapFlag::ShaderVisible;
+                DescriptorHeapFlag flag = DescriptorHeapFlag::GPUVisible;
             };
 
             // Create and initialize the descriptor heap.
@@ -55,11 +55,11 @@ namespace graphics
             // Checks for three conditions.
             // - Whether the handle falls inside the range between firstHandle and heapSize
             // - Whether the handle type matches with the HeapFlag
-            // - If descriptor is ShaderVisible then whether the GPU offset and CPU offset matches.
+            // - If descriptor is GPUVisible then whether the GPU offset and CPU offset matches.
             bool validateHandle(const DescriptorHandle& dHandle) const;
 
             // Operator overload for array like indexing.
-            inline DescriptorHandle operator[] (size_t index) const { return mFirstHandle + index * mDescriptorSize; }
+            inline DescriptorHandle operator[] (size_t index) const { return mFirstHandle + (INT)index * (INT)mDescriptorSize; }
 
             // Calculates the heap offset of the handle.
             inline uint32_t getOffsetOfHandle(const DescriptorHandle& dHandle) const

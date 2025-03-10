@@ -2,7 +2,7 @@
 
 #include "Renderer.h"
 
-#include "GPUResourceStates.h"
+#include "dx12/GPUResourceStates.h"
 
 #include "Utility.h"
 #include "Log.h"

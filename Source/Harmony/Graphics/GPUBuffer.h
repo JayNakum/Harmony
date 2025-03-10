@@ -2,8 +2,8 @@
 
 #include "common.h"
 
-#include "GPUResource.h"
-#include "DescriptorHandle.h"
+#include "dx12/GPUResource.h"
+#include "dx12/DescriptorHandle.h"
 
 namespace graphics
 {

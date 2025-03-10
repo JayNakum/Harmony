@@ -7,6 +7,6 @@ namespace graphics
 {
     namespace dx12
     {
-        
+
     }
 }

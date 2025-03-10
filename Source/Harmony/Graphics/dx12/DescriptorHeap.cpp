@@ -17,15 +17,15 @@ namespace graphics
         };
 
         const std::unordered_map<graphics::DescriptorHeapFlag, D3D12_DESCRIPTOR_HEAP_FLAGS> DescriptorHeap::descriptorHeapFlag = {
-            { graphics::DescriptorHeapFlag::None, D3D12_DESCRIPTOR_HEAP_FLAG_NONE },
-            { graphics::DescriptorHeapFlag::ShaderVisible, D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE }
+            { graphics::DescriptorHeapFlag::CPUVisible, D3D12_DESCRIPTOR_HEAP_FLAG_NONE },
+            { graphics::DescriptorHeapFlag::GPUVisible, D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE }
         };
 
         DescriptorHeap::DescriptorHeap(const Description & createDescription)
             : mDescription(createDescription), mHeap(nullptr), mHeapDesc{}, mDescriptorSize(0), mNumFreeDescriptors(0)
         {
             mHeapDesc.Type = dx12::DescriptorHeap::descriptorHeapType.at(mDescription.type);
-            mHeapDesc.NumDescriptors = mDescription.maxDescriptors;
+            mHeapDesc.NumDescriptors = (UINT)mDescription.maxDescriptors;
             mHeapDesc.Flags = dx12::DescriptorHeap::descriptorHeapFlag.at(mDescription.flag);
             mHeapDesc.NodeMask = 1;
 
@@ -43,13 +43,13 @@ namespace graphics
             switch (mDescription.flag)
             {
             default:
-            case DescriptorHeapFlag::ShaderVisible:
+            case DescriptorHeapFlag::GPUVisible:
             {
                 mFirstHandle = DescriptorHandle(mHeap->GetCPUDescriptorHandleForHeapStart(),
                     mHeap->GetGPUDescriptorHandleForHeapStart());
                 break;
             }
-            case DescriptorHeapFlag::None:
+            case DescriptorHeapFlag::CPUVisible:
             {
                 mFirstHandle = DescriptorHandle(mHeap->GetCPUDescriptorHandleForHeapStart());
                 break;
@@ -70,7 +70,7 @@ namespace graphics
 
             DescriptorHandle allocationHandle = mNextFreeHandle;
 
-            mNextFreeHandle += count * mDescriptorSize;
+            mNextFreeHandle += (INT)(count * mDescriptorSize);
             mNumFreeDescriptors -= count;
 
             return allocationHandle;
@@ -90,12 +90,12 @@ namespace graphics
                 return false;
             }
 
-            if (dHandle.isShaderVisible() != mFirstHandle.isShaderVisible())
+            if (dHandle.isGPUVisible() != mFirstHandle.isGPUVisible())
             {
                 return false;
             }
 
-            if (dHandle.isShaderVisible())
+            if (dHandle.isGPUVisible())
             {
                 if (dHandle.getGPUPtr() - mFirstHandle.getGPUPtr() !=
                     dHandle.getCPUPtr() - mFirstHandle.getCPUPtr())

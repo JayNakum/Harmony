@@ -5,10 +5,10 @@
 
 #include "UploadBuffer.h"
 
-#include "DescriptorHeap.h"
-#include "Heap.h"
+#include "dx12/DescriptorHeap.h"
+#include "dx12/Heap.h"
 
-#include "Math.h"
+#include "Maths.h"
 
 #include "Utility.h"
 #include "Log.h"
@@ -141,11 +141,11 @@ namespace graphics
         {
             HASSERT(offset + size <= mBufferSize, "offset(%d) + size(%d) is more than total buffer size(%d).", offset, size, mBufferSize);
 
-            size = math::alignUp(size, 16);
+            size = maths::alignUp(size, 16);
 
             D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc{};
             cbvDesc.BufferLocation = mGPUVirtualAddress + (size_t)offset;
-            cbvDesc.SizeInBytes = size;
+            cbvDesc.SizeInBytes = (UINT)size;
 
             DescriptorHandle hCBV = GfxAllocateDescriptor();
             GfxDevice()->CreateConstantBufferView(&cbvDesc, hCBV);

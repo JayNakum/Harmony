@@ -23,7 +23,7 @@ namespace graphics
             // Returns the raw pointer of ID3D12Fence
             // This is needed because a lot of synchronization functions require the raw pointer.
             inline const ID3D12Fence* get() const { mFence.Get(); }
-            inline ID3D12Fence* get() { mFence.Get(); }
+            inline ID3D12Fence* get() { return mFence.Get(); }
 
             // Operator overload that returns the raw pointer of ID3D12Fence.
             inline const ID3D12Fence* operator->() const { return mFence.Get(); }

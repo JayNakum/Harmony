@@ -2,7 +2,7 @@
 
 #include "common.h"
 
-namespace math
+namespace maths
 {
     template <typename T> inline T alignUpWithMask(T value, size_t mask)
     {

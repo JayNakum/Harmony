@@ -36,7 +36,7 @@ namespace graphics
         // Test to see if a fence has already been reached
         inline bool isFenceComplete(uint64_t fenceValue)
         {
-            getCommandQueue(CommandListType(fenceValue >> 56)).isFenceComplete(fenceValue);
+            return getCommandQueue(CommandListType(fenceValue >> 56)).isFenceComplete(fenceValue);
         }
 
         // The CPU will wait for a fence to reach a specified value

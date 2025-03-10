@@ -69,7 +69,7 @@ namespace graphics
             // Obtain the DXGI factory
             ComPtr<IDXGIFactory6> dxgiFactory;
             hResult = CreateDXGIFactory2(dxgiFactoryFlags, IID_PPV_ARGS(&dxgiFactory));
-            HASSERT_HR(hResult, "Failed to create DXGI Factory");
+            HASSERT_SOFT_HR(hResult, "Failed to create DXGI Factory");
 
             // Create the D3D graphics device
             ComPtr<IDXGIAdapter1> pAdapter;

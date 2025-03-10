@@ -15,6 +15,7 @@
 
 #include <mutex>
 
+#include <cmath>
 #include <ctime>
 
 /*

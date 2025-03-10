@@ -63,7 +63,7 @@ if (!(bool)(condition)) \
 }
 
 // HASSERT_SOFT if SUCCEEDED(hResult)
-#define HASSERT_SOFT_HR(hResult, message, ...) HASSERT_SOFT(SUCCEEDED((HRESULT)(hResult)), message "%s", ##__VA_ARGS__, utility::translateErrorCode(hResult).get())
+#define HASSERT_SOFT_HR(hResult, message, ...) HASSERT_SOFT(SUCCEEDED((HRESULT)(hResult)), message, ##__VA_ARGS__); if(FAILED((HRESULT)(hResult))) DEBUGLOG("ASSERT", "%s", utility::translateErrorCode(hResult).get())
 
 
 // BREAK, DEBUGLOG and ABORT IF condition is FALSE
@@ -78,7 +78,7 @@ if (!(bool)(condition)) \
 }
 
 // HASSERT if SUCCEEDED(hResult)
-#define HASSERT_HR(hResult, message, ...) HASSERT(SUCCEEDED((HRESULT)(hResult)), message "%s", ##__VA_ARGS__, utility::translateErrorCode(hResult).get())
+#define HASSERT_HR(hResult, message, ...) HASSERT(SUCCEEDED((HRESULT)(hResult)), message, ##__VA_ARGS__); if(FAILED((HRESULT)(hResult))) DEBUGLOG("ASSERT", "%s", utility::translateErrorCode(hResult).get())
 
 #else
 

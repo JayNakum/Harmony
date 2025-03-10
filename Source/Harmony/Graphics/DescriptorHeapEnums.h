@@ -16,8 +16,8 @@ namespace graphics
     // Descriptor heap visibility.
     enum DescriptorHeapFlag
     {
-        None, // CPU Only
-        ShaderVisible, // CPU and GPU both
+        CPUVisible, // CPU Only
+        GPUVisible, // CPU and GPU both
 
         DescriptorHeapFlagCount
     };

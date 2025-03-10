@@ -71,5 +71,5 @@ inline graphics::dx12::CommandContext& GfxContextBegin(const std::string& name =
 
 inline graphics::dx12::DescriptorHandle GfxAllocateDescriptor(const graphics::DescriptorHeapType type = graphics::DescriptorHeapType::View, const size_t count = 1)
 {
-    graphics::Renderer::getInstance()->allocateDescriptor(type, count);
+    return graphics::Renderer::getInstance()->allocateDescriptor(type, count);
 }

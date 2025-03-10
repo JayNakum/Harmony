@@ -62,7 +62,7 @@ namespace graphics
             inline size_t getCPUPtr() const { return mCPUHandle.ptr; }
             inline uint64_t getGPUPtr() const { return mGPUHandle.ptr; }
             inline bool isNull() const { return mCPUHandle.ptr == INVALID_ADDRESS; }
-            inline bool isShaderVisible() const { return mGPUHandle.ptr != INVALID_ADDRESS; }
+            inline bool isGPUVisible() const { return mGPUHandle.ptr != INVALID_ADDRESS; }
 
         private:
             D3D12_CPU_DESCRIPTOR_HANDLE mCPUHandle;
