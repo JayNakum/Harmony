@@ -2,7 +2,7 @@
 
 namespace graphics
 {
-    dx12::CommandContext& CommandContextPool::requestContext(const CommandListType type)
+    dx12::CommandContext* CommandContextPool::requestContext(const CommandListType type)
     {
         std::lock_guard<std::mutex> scoppedLockGuard(msPoolMutex[type]);
 
@@ -14,11 +14,17 @@ namespace graphics
             availableQueue.pop();
             context->reset();
 
-            return *context;
+            return context;
         }
-
-        msCommandContextPool[type].emplace_back();
-        return msCommandContextPool[type].back();
+        switch (type)
+        {
+        default:
+        case CommandListType::Direct:
+        {
+            msGraphicContextPool[type].emplace_back();
+            return &(msGraphicContextPool[type].back());
+        }
+        }
     }
 
     void CommandContextPool::discardContext(dx12::CommandContext& context)
@@ -41,8 +47,8 @@ namespace graphics
                 msAvailableQueue[type].pop();
             }
 
-            CommandContextPool::msCommandContextPool[type].clear();
         }
+        CommandContextPool::msGraphicContextPool.clear();
     }
 
     CommandContextPool::~CommandContextPool()

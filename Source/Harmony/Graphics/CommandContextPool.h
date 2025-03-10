@@ -16,7 +16,7 @@ namespace graphics
         // Allocates a new context for the given command list type.
         // If an available context exists, it is reset and reused.
         // Otherwise, a new one is created and initialized.
-        dx12::CommandContext& requestContext(const CommandListType type);
+        dx12::CommandContext* requestContext(const CommandListType type);
 
         // Puts the context in available queue for future use.
         // This doesn't delete or reset the context. The context is reset first when requested via allocateContext().
@@ -29,7 +29,7 @@ namespace graphics
 
     private:
         // The main context pool containing all the contexts of each type.
-        static std::array<std::vector<dx12::CommandContext>, CommandListType::CommandListTypeCount> msCommandContextPool;
+        static std::vector<dx12::GraphicCommandContext> msGraphicContextPool;
 
         // A queue of contexts of each type that are available for reuse.
         static std::array<std::queue<dx12::CommandContext*>, CommandListType::CommandListTypeCount> msAvailableQueue;

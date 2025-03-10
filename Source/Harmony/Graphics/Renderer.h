@@ -64,7 +64,7 @@ inline graphics::CommandContextPool& GfxCommandContextPool()
 
 inline graphics::dx12::CommandContext& GfxContextBegin(const std::string& name = "DEFAULT")
 {
-    graphics::dx12::CommandContext& newContext = graphics::Renderer::getInstance()->getCommandContextPool().requestContext(graphics::CommandListType::Direct);
+    graphics::dx12::CommandContext& newContext = *(graphics::Renderer::getInstance()->getCommandContextPool().requestContext(graphics::CommandListType::Direct));
     newContext.setID(name);
     return newContext;
 }
