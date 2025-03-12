@@ -27,10 +27,10 @@ namespace graphics
         class Heap;
 
 
-        class GPUBuffer : public GPUResource
+        class GPUMemory : public GPUResource
         {
         protected:
-            GPUBuffer()
+            GPUMemory()
                 : mBufferSize(0), mElementCount(0), mElementSize(0),
                 mResourceFlags(GPUResourceFlags::None) {}
 
@@ -46,7 +46,7 @@ namespace graphics
             inline const uint32_t getElementCount() const { return mElementCount; }
             inline const uint32_t getElementSize() const { return mElementSize; }
 
-            virtual ~GPUBuffer()
+            virtual ~GPUMemory()
             {
                 destroy();
             }
@@ -112,7 +112,7 @@ namespace graphics
 
     namespace dx12
     {
-        class ByteAddressBuffer : public GPUBuffer
+        class ByteAddressBuffer : public GPUMemory
         {
         public:
             virtual void createViews() override;

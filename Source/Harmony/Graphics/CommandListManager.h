@@ -47,15 +47,15 @@ namespace graphics
 
         inline void idleGPU()
         {
-            mGraphicsQueue.waitForIdle();
+            msGraphicsQueue.waitForIdle();
         }
 
     private:
-        dx12::CommandQueue mGraphicsQueue;
+        static dx12::CommandQueue msGraphicsQueue;
 
         // The CommandAllocatorPool is NOT thread_local
         // because if each thread has its own pool, one thread may have free allocators while another runs out.
-        static CommandAllocatorPool msCommandAllocatorPool;
+        static CommandAllocatorPool msGraphicsCommandAllocatorPool;
 
         // Command Lists are thread local.
         // This allows us to have multiple threads writing commands in parallel.

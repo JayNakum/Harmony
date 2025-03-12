@@ -2,6 +2,8 @@
 
 #include "common.h"
 
+#include <type_traits>
+
 namespace utility
 {
     // The platform specific implementation are in their respective project
@@ -50,4 +52,10 @@ namespace utility
 
         return std::string(buffer);
     }
+}
+
+template <typename Enum>
+constexpr auto enum_cast(Enum e) noexcept -> std::underlying_type_t<Enum>
+{
+    return static_cast<std::underlying_type_t<Enum>>(e);
 }

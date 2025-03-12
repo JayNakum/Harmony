@@ -1,4 +1,4 @@
-#include "GPUBuffer.h"
+#include "GPUMemory.h"
 
 #include "Renderer.h"
 #include "CommandContext.h"
@@ -17,16 +17,15 @@ namespace graphics
 {
     namespace dx12
     {
-        void GPUBuffer::createCommitted(const Description& createDescription, const void* initialData)
+        void GPUMemory::createCommitted(const Description& createDescription, const void* initialData)
         {
             initialize(createDescription);
 
-            static D3D12_HEAP_PROPERTIES heapProperties;
-            heapProperties.Type = D3D12_HEAP_TYPE_DEFAULT;
-            heapProperties.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
-            heapProperties.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
-            heapProperties.CreationNodeMask = 1;
-            heapProperties.VisibleNodeMask = 1;
+            static Heap::Description description{};
+            description.name = "temp default heap description";
+            description.sizeInBytes = 0;
+            description.type = HeapType::Default;
+            static auto heapProperties = Heap::toHeapProperties(description);
 
             D3D12_RESOURCE_DESC resourceDescription = describeBuffer();
 
@@ -52,7 +51,7 @@ namespace graphics
             createViews();
         }
 
-        void GPUBuffer::createCommitted(const Description& createDescription, const UploadBuffer& sourceData, uint32_t sourceOffset)
+        void GPUMemory::createCommitted(const Description& createDescription, const UploadBuffer& sourceData, uint32_t sourceOffset)
         {
             initialize(createDescription);
 
@@ -84,7 +83,7 @@ namespace graphics
             createViews();
         }
 
-        void GPUBuffer::createPlaced(const Description& createDescription, Heap& backingHeap, uint64_t heapOffset, const void* initialData)
+        void GPUMemory::createPlaced(const Description& createDescription, Heap& backingHeap, uint64_t heapOffset, const void* initialData)
         {
             initialize(createDescription);
 
@@ -112,7 +111,7 @@ namespace graphics
             createViews();
         }
 
-        void GPUBuffer::createPlaced(const Description& createDescription, Heap& backingHeap, uint64_t heapOffset, const UploadBuffer& sourceData, uint32_t sourceOffset)
+        void GPUMemory::createPlaced(const Description& createDescription, Heap& backingHeap, uint64_t heapOffset, const UploadBuffer& sourceData, uint32_t sourceOffset)
         {
             initialize(createDescription);
 
@@ -137,7 +136,7 @@ namespace graphics
             createViews();
         }
 
-        DescriptorHandle GPUBuffer::createConstantBufferView(uint32_t offset, size_t size) const
+        DescriptorHandle GPUMemory::createConstantBufferView(uint32_t offset, size_t size) const
         {
             HASSERT(offset + size <= mBufferSize, "offset(%d) + size(%d) is more than total buffer size(%d).", offset, size, mBufferSize);
 
@@ -152,7 +151,7 @@ namespace graphics
             return hCBV;
         }
 
-        const VertexBuffer GPUBuffer::vertexBufferView(size_t offset, size_t size, size_t stride) const
+        const VertexBuffer GPUMemory::vertexBufferView(size_t offset, size_t size, size_t stride) const
         {
             VertexBuffer bufferView{};
 
@@ -163,7 +162,7 @@ namespace graphics
             return bufferView;
         }
 
-        const IndexBuffer GPUBuffer::indexBufferView(size_t offset, size_t size, bool is32Bit) const
+        const IndexBuffer GPUMemory::indexBufferView(size_t offset, size_t size, bool is32Bit) const
         {
             IndexBuffer bufferView{};
 
@@ -174,7 +173,7 @@ namespace graphics
             return bufferView;
         }
 
-        D3D12_RESOURCE_DESC GPUBuffer::describeBuffer() const
+        D3D12_RESOURCE_DESC GPUMemory::describeBuffer() const
         {
             HASSERT(mBufferSize != 0, "Trying to create a buffer with size 0.");
 
@@ -193,7 +192,7 @@ namespace graphics
             return createDesc;
         }
 
-        void GPUBuffer::initialize(const Description& createDescription)
+        void GPUMemory::initialize(const Description& createDescription)
         {
             destroy();
             mElementCount = createDescription.elementCount;

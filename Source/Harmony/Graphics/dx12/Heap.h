@@ -40,6 +40,7 @@ namespace graphics
 
         public:
             inline const HeapType getHeapType() const { return mDescription.type; }
+            inline const Description& getDescription() const { return mDescription; }
 
             // Checks for available space inside heap.
             inline bool canAllocate(const uint64_t sizeInBytes) const { return sizeInBytes <= mFreeSpace; }
@@ -54,6 +55,8 @@ namespace graphics
             // Operator overload that returns the raw pointer of ID3D12Heap.
             inline const ID3D12Heap* operator->() const { return mHeap.Get(); }
             inline ID3D12Heap* operator->() { return mHeap.Get(); }
+
+            static D3D12_HEAP_PROPERTIES toHeapProperties(const Description& description);
 
         private:
             const Description mDescription;

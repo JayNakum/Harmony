@@ -7,57 +7,52 @@
 
 namespace graphics
 {
-    using namespace dx12;
+    CommandAllocatorPool::CommandAllocatorPool(const CommandListType type)
+        : CommandObject(type)
+    {}
 
-    CommandAllocator& CommandAllocatorPool::requestCommandAllocator(const CommandListType type)
+    dx12::CommandAllocator& CommandAllocatorPool::requestCommandAllocator()
     {
-        std::lock_guard<std::mutex> scoppedLockGuard(msPoolMutex[type]);
+        std::lock_guard<std::mutex> scoppedLockGuard(msPoolMutex);
 
-        updateAvailableQueue(type);
+        updateAvailableQueue();
 
-        std::queue<CommandAllocator*>& availableQueue = msAvailableQueue[type];
-
-        if (!availableQueue.empty())
+        if (!msAvailableQueue.empty())
         {
-            CommandAllocator* allocator = availableQueue.front();
-            availableQueue.pop();
+            dx12::CommandAllocator* allocator = msAvailableQueue.front();
+            msAvailableQueue.pop();
             return *allocator;
         }
 
-        CommandAllocator::Description createDesc;
-        createDesc.name = (msCmdAllocatorPool.size() + " type[" + std::to_string(type) + "] command allocator");
-        createDesc.type = type;
-        msCmdAllocatorPool[type].emplace_back(createDesc);
+        dx12::CommandAllocator::Description createDesc;
+        createDesc.name = (msCmdAllocatorPool.size() + " " + toString(mType) + "type command allocator");
+        createDesc.type = mType;
+        msCmdAllocatorPool.emplace_back(createDesc);
 
-        return msCmdAllocatorPool[type].back();
+        return msCmdAllocatorPool.back();
     }
 
-    void CommandAllocatorPool::discardCommandAllocator(const uint64_t completedFenceValue, CommandAllocator& usedAllocator)
+    void CommandAllocatorPool::discardCommandAllocator(const uint64_t completedFenceValue, dx12::CommandAllocator& usedAllocator)
     {
-        const CommandListType type = usedAllocator.getCommandListType();
+        std::lock_guard<std::mutex> scoppedLockGuard(msPoolMutex);
 
-        std::lock_guard<std::mutex> scoppedLockGuard(msPoolMutex[type]);
-
-        msUsedQueue[type].push(std::make_pair(completedFenceValue, &usedAllocator));
+        msUsedQueue.push(std::make_pair(completedFenceValue, &usedAllocator));
     }
 
     void CommandAllocatorPool::destroyPool()
     {
-        for (size_t type = 0; type < CommandListType::CommandListTypeCount; ++type)
+        std::lock_guard<std::mutex> scoppedLockGuard(msPoolMutex);
+
+        updateAvailableQueue();
+        HASSERT(msUsedQueue.empty(), "Trying to destroy %s type pool while %d allocators are still in used.", toString(mType), msUsedQueue.size());
+
+        // clear the queues to prevent dangling pointers
+        while (!msAvailableQueue.empty())
         {
-            std::lock_guard<std::mutex> scoppedLockGuard(msPoolMutex[type]);
-
-            updateAvailableQueue(CommandListType(type));
-            HASSERT(msUsedQueue[type].empty(), "Trying to destroy pool %d while %d allocators are still in used.", type, msUsedQueue[type].size());
-
-            // clear the queues to prevent dangling pointers
-            while (!msAvailableQueue[type].empty())
-            {
-                msAvailableQueue[type].pop();
-            }
-
-            msCmdAllocatorPool[type].clear();
+            msAvailableQueue.pop();
         }
+
+        msCmdAllocatorPool.clear();
     }
 
     CommandAllocatorPool::~CommandAllocatorPool()
@@ -65,12 +60,12 @@ namespace graphics
         destroyPool();
     }
 
-    void CommandAllocatorPool::updateAvailableQueue(const CommandListType type)
+    void CommandAllocatorPool::updateAvailableQueue()
     {
-        while (!msUsedQueue[type].empty() && GfxCommandListManager().isFenceComplete(msUsedQueue[type].front().first))
+        while (!msUsedQueue.empty() && GfxCommandListManager().isFenceComplete(msUsedQueue.front().first))
         {
-            msAvailableQueue[type].push(msUsedQueue[type].front().second);
-            msUsedQueue[type].pop();
+            msAvailableQueue.push(msUsedQueue.front().second);
+            msUsedQueue.pop();
         }
     }
 }

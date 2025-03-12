@@ -2,11 +2,15 @@
 
 namespace graphics
 {
-    dx12::CommandContext* CommandContextPool::requestContext(const CommandListType type)
-    {
-        std::lock_guard<std::mutex> scoppedLockGuard(msPoolMutex[type]);
+    CommandContextPool::CommandContextPool(const CommandListType type)
+        : CommandObject(type)
+    {}
 
-        std::queue<dx12::CommandContext*>& availableQueue = msAvailableQueue[type];
+    dx12::CommandContext* CommandContextPool::requestContext()
+    {
+        std::lock_guard<std::mutex> scoppedLockGuard(msPoolMutex);
+
+        std::queue<dx12::CommandContext*>& availableQueue = msAvailableQueue;
 
         if (!availableQueue.empty())
         {
@@ -21,8 +25,8 @@ namespace graphics
         default:
         case CommandListType::Direct:
         {
-            msGraphicContextPool[type].emplace_back();
-            return &(msGraphicContextPool[type].back());
+            msGraphicContextPool.emplace_back();
+            return &(msGraphicContextPool.back());
         }
         }
     }
@@ -30,21 +34,21 @@ namespace graphics
     void CommandContextPool::discardContext(dx12::CommandContext& context)
     {
         const CommandListType type = context.getCommandListType();
-        std::lock_guard<std::mutex> scoppedLockGuard(msPoolMutex[type]);
+        std::lock_guard<std::mutex> scoppedLockGuard(msPoolMutex);
 
-        CommandContextPool::msAvailableQueue[type].push(&context);
+        CommandContextPool::msAvailableQueue.push(&context);
     }
 
     void CommandContextPool::destroyPool()
     {
         for (size_t type = 0; type < CommandListType::CommandListTypeCount; ++type)
         {
-            std::lock_guard<std::mutex> scoppedLockGuard(msPoolMutex[type]);
+            std::lock_guard<std::mutex> scoppedLockGuard(msPoolMutex);
 
             // clear the queue to prevent dangling pointers
-            while (!msAvailableQueue[type].empty())
+            while (!msAvailableQueue.empty())
             {	
-                msAvailableQueue[type].pop();
+                msAvailableQueue.pop();
             }
 
         }

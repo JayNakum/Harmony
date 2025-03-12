@@ -3,6 +3,8 @@
 #include "Utility.h"
 #include "Log.h"
 
+#include "HeapType.h"
+
 namespace graphics
 {
     namespace dx12
@@ -31,6 +33,19 @@ namespace graphics
         Heap::~Heap()
         {
             mHeap = nullptr;
+        }
+
+        D3D12_HEAP_PROPERTIES Heap::toHeapProperties(const Description& description)
+        {
+            D3D12_HEAP_PROPERTIES heapProperties{};
+
+            heapProperties.Type = heapType.at(description.type);
+            heapProperties.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+            heapProperties.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+            heapProperties.CreationNodeMask = 1;
+            heapProperties.VisibleNodeMask = 1;
+
+            return heapProperties;
         }
     }
 }

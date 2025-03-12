@@ -22,7 +22,12 @@ namespace graphics
             static constexpr D3D12_GPU_VIRTUAL_ADDRESS INVALID_ADDRESS = (D3D12_GPU_VIRTUAL_ADDRESS)-1;
 
             struct Description
-            {};
+            {
+                D3D12_RESOURCE_DIMENSION dimension;
+                uint64_t alignment;
+                uint64_t width;
+                unsigned int height;
+            };
 
             GPUResource()
                 : mGPUVirtualAddress(NULL_ADDRESS),
