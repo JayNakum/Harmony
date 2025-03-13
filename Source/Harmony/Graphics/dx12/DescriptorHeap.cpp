@@ -2,6 +2,9 @@
 
 #include "Renderer.h"
 
+#include "DescriptorHeapType.h"
+#include "DescriptorHeapFlag.h"
+
 #include "Utility.h"
 #include "Log.h"
 
@@ -9,24 +12,12 @@ namespace graphics
 {
     namespace dx12
     {
-        const std::unordered_map<graphics::DescriptorHeapType, D3D12_DESCRIPTOR_HEAP_TYPE> DescriptorHeap::descriptorHeapType = {
-            { graphics::DescriptorHeapType::View,         D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV },
-            { graphics::DescriptorHeapType::Sampler,      D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER },
-            { graphics::DescriptorHeapType::RenderTarget, D3D12_DESCRIPTOR_HEAP_TYPE_RTV },
-            { graphics::DescriptorHeapType::DepthStencil, D3D12_DESCRIPTOR_HEAP_TYPE_DSV }
-        };
-
-        const std::unordered_map<graphics::DescriptorHeapFlag, D3D12_DESCRIPTOR_HEAP_FLAGS> DescriptorHeap::descriptorHeapFlag = {
-            { graphics::DescriptorHeapFlag::CPUVisible, D3D12_DESCRIPTOR_HEAP_FLAG_NONE },
-            { graphics::DescriptorHeapFlag::GPUVisible, D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE }
-        };
-
         DescriptorHeap::DescriptorHeap(const Description & createDescription)
             : mDescription(createDescription), mHeap(nullptr), mHeapDesc{}, mDescriptorSize(0), mNumFreeDescriptors(0)
         {
-            mHeapDesc.Type = dx12::DescriptorHeap::descriptorHeapType.at(mDescription.type);
+            mHeapDesc.Type = descriptorHeapType.at(mDescription.type);
             mHeapDesc.NumDescriptors = (UINT)mDescription.maxDescriptors;
-            mHeapDesc.Flags = dx12::DescriptorHeap::descriptorHeapFlag.at(mDescription.flag);
+            mHeapDesc.Flags = descriptorHeapFlag.at(mDescription.flag);
             mHeapDesc.NodeMask = 1;
 
             HRESULT hResult = GfxDevice()->CreateDescriptorHeap(&mHeapDesc, IID_PPV_ARGS(mHeap.ReleaseAndGetAddressOf()));

@@ -13,46 +13,46 @@ namespace graphics
 
     dx12::CommandAllocator& CommandAllocatorPool::requestCommandAllocator()
     {
-        std::lock_guard<std::mutex> scoppedLockGuard(msPoolMutex);
+        std::lock_guard<std::mutex> scoppedLockGuard(mPoolMutex);
 
         updateAvailableQueue();
 
-        if (!msAvailableQueue.empty())
+        if (!mAvailableQueue.empty())
         {
-            dx12::CommandAllocator* allocator = msAvailableQueue.front();
-            msAvailableQueue.pop();
+            dx12::CommandAllocator* allocator = mAvailableQueue.front();
+            mAvailableQueue.pop();
             return *allocator;
         }
 
         dx12::CommandAllocator::Description createDesc;
-        createDesc.name = (msCmdAllocatorPool.size() + " " + toString(mType) + "type command allocator");
+        createDesc.name = (mCmdAllocatorPool.size() + " " + toString(mType) + "type command allocator");
         createDesc.type = mType;
-        msCmdAllocatorPool.emplace_back(createDesc);
+        mCmdAllocatorPool.emplace_back(createDesc);
 
-        return msCmdAllocatorPool.back();
+        return mCmdAllocatorPool.back();
     }
 
     void CommandAllocatorPool::discardCommandAllocator(const uint64_t completedFenceValue, dx12::CommandAllocator& usedAllocator)
     {
-        std::lock_guard<std::mutex> scoppedLockGuard(msPoolMutex);
+        std::lock_guard<std::mutex> scoppedLockGuard(mPoolMutex);
 
-        msUsedQueue.push(std::make_pair(completedFenceValue, &usedAllocator));
+        mUsedQueue.push(std::make_pair(completedFenceValue, &usedAllocator));
     }
 
     void CommandAllocatorPool::destroyPool()
     {
-        std::lock_guard<std::mutex> scoppedLockGuard(msPoolMutex);
+        std::lock_guard<std::mutex> scoppedLockGuard(mPoolMutex);
 
         updateAvailableQueue();
-        HASSERT(msUsedQueue.empty(), "Trying to destroy %s type pool while %d allocators are still in used.", toString(mType), msUsedQueue.size());
+        HASSERT(mUsedQueue.empty(), "Trying to destroy %s type pool while %d allocators are still in used.", toString(mType), mUsedQueue.size());
 
         // clear the queues to prevent dangling pointers
-        while (!msAvailableQueue.empty())
+        while (!mAvailableQueue.empty())
         {
-            msAvailableQueue.pop();
+            mAvailableQueue.pop();
         }
 
-        msCmdAllocatorPool.clear();
+        mCmdAllocatorPool.clear();
     }
 
     CommandAllocatorPool::~CommandAllocatorPool()
@@ -62,10 +62,10 @@ namespace graphics
 
     void CommandAllocatorPool::updateAvailableQueue()
     {
-        while (!msUsedQueue.empty() && GfxCommandListManager().isFenceComplete(msUsedQueue.front().first))
+        while (!mUsedQueue.empty() && GfxCommandListManager().isFenceComplete(mUsedQueue.front().first))
         {
-            msAvailableQueue.push(msUsedQueue.front().second);
-            msUsedQueue.pop();
+            mAvailableQueue.push(mUsedQueue.front().second);
+            mUsedQueue.pop();
         }
     }
 }

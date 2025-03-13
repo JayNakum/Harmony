@@ -2,60 +2,49 @@
 
 namespace graphics
 {
-    CommandContextPool::CommandContextPool(const CommandListType type)
+    GraphicContextPool::GraphicContextPool(const CommandListType type)
         : CommandObject(type)
     {}
 
-    dx12::CommandContext* CommandContextPool::requestContext()
+    GraphicContext* GraphicContextPool::requestContext()
     {
-        std::lock_guard<std::mutex> scoppedLockGuard(msPoolMutex);
+        std::lock_guard<std::mutex> scoppedLockGuard(mPoolMutex);
 
-        std::queue<dx12::CommandContext*>& availableQueue = msAvailableQueue;
-
-        if (!availableQueue.empty())
+        if (!mAvailableQueue.empty())
         {
-            dx12::CommandContext* context = availableQueue.front();
-            availableQueue.pop();
+            GraphicContext* context = mAvailableQueue.front();
+            mAvailableQueue.pop();
             context->reset();
 
             return context;
         }
-        switch (type)
-        {
-        default:
-        case CommandListType::Direct:
-        {
-            msGraphicContextPool.emplace_back();
-            return &(msGraphicContextPool.back());
-        }
-        }
+
+        msGraphicContextPool.emplace_back();
+        return &(msGraphicContextPool.back());
     }
 
-    void CommandContextPool::discardContext(dx12::CommandContext& context)
+    void GraphicContextPool::discardContext(GraphicContext& context)
     {
         const CommandListType type = context.getCommandListType();
-        std::lock_guard<std::mutex> scoppedLockGuard(msPoolMutex);
+        std::lock_guard<std::mutex> scoppedLockGuard(mPoolMutex);
 
-        CommandContextPool::msAvailableQueue.push(&context);
+        mAvailableQueue.push(&context);
     }
 
-    void CommandContextPool::destroyPool()
+    void GraphicContextPool::destroyPool()
     {
-        for (size_t type = 0; type < CommandListType::CommandListTypeCount; ++type)
-        {
-            std::lock_guard<std::mutex> scoppedLockGuard(msPoolMutex);
+        std::lock_guard<std::mutex> scoppedLockGuard(mPoolMutex);
 
-            // clear the queue to prevent dangling pointers
-            while (!msAvailableQueue.empty())
-            {	
-                msAvailableQueue.pop();
-            }
-
+        // clear the queue to prevent dangling pointers
+        while (!mAvailableQueue.empty())
+        {	
+            mAvailableQueue.pop();
         }
-        CommandContextPool::msGraphicContextPool.clear();
+
+        GraphicContextPool::msGraphicContextPool.clear();
     }
 
-    CommandContextPool::~CommandContextPool()
+    GraphicContextPool::~GraphicContextPool()
     {
         destroyPool();
     }

@@ -6,8 +6,8 @@ namespace graphics
 {
     enum class HeapType
     {
-        Default,
-        Upload,
+        Default, // Local
+        Upload, // Host visible
         // TODO: Add support for D3D12_HEAP_TYPE_READBACK, D3D12_HEAP_TYPE_CUSTOM, D3D12_HEAP_TYPE_GPU_UPLOAD
     };
 

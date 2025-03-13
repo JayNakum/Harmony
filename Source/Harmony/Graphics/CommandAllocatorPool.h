@@ -2,6 +2,7 @@
 
 #include "common.h"
 
+#include "CommandObject.h"
 #include "dx12/CommandAllocator.h"
 
 namespace graphics
@@ -34,16 +35,16 @@ namespace graphics
 
     private:
         // The memory pool containing all the CommandAllocators for each type.
-        std::vector<dx12::CommandAllocator> msCmdAllocatorPool;
+        std::vector<dx12::CommandAllocator> mCmdAllocatorPool;
 
         // Once an allocator is discarded, it is kept in the used queue.
-        std::queue<std::pair<uint64_t, dx12::CommandAllocator*>> msUsedQueue;
+        std::queue<std::pair<uint64_t, dx12::CommandAllocator*>> mUsedQueue;
 
         // Once the fence value of an allocator inside used queue is reached, ie gpu is done with the allocator,
         // it is put inside the available queue ready for reuse.
-        std::queue<dx12::CommandAllocator*> msAvailableQueue;
+        std::queue<dx12::CommandAllocator*> mAvailableQueue;
 
         // Prevents incorrect read and write of the pool and queue
-        std::mutex msPoolMutex;
+        std::mutex mPoolMutex;
     };
 }

@@ -8,6 +8,8 @@
 
 #include "DescriptorHeapPool.h"
 
+#include "Utility.h"
+
 namespace graphics
 {
     /*
@@ -18,22 +20,20 @@ namespace graphics
     {
     private:
         static Renderer* msInstance;
-        Renderer();
+        Renderer() = default;
 
     public:
         static Renderer* getInstance();
 
     public:
-        inline const dx12::Device getDevice() const { return mDevice; }
-        inline CommandListManager& getCommandListManager() { return mCommandListManager; }
-        inline CommandContextPool& getCommandContextPool() { return mCommandContextPool; }
-        inline dx12::DescriptorHandle allocateDescriptor(const DescriptorHeapType type, const size_t count = 1) { return mDescriptorHeapPool.requestDescriptorHeap(type).allocate(count); }
+        inline const dx12::Device getDevice() const { return msDevice; }
+        inline CommandListManager& getCommandListManager() { return msCommandListManager; }
+        inline dx12::DescriptorHandle allocateDescriptor(const DescriptorHeapType type, const size_t count = 1) { return Renderer::msDescriptorHeapPool[enum_cast(type)].requestDescriptorHeap().allocate(count); }
 
     private:
-        dx12::Device mDevice;
-        CommandListManager mCommandListManager;
-        CommandContextPool mCommandContextPool;
-        DescriptorHeapPool mDescriptorHeapPool;
+        static dx12::Device msDevice;
+        static CommandListManager msCommandListManager;
+        static std::array<DescriptorHeapPool, descriptorHeapTypeCount> msDescriptorHeapPool;
     };
 }
 
@@ -55,18 +55,6 @@ inline graphics::dx12::Device GfxDevice()
 inline graphics::CommandListManager& GfxCommandListManager()
 {
     return graphics::Renderer::getInstance()->getCommandListManager();
-}
-
-inline graphics::CommandContextPool& GfxCommandContextPool()
-{
-    return graphics::Renderer::getInstance()->getCommandContextPool();
-}
-
-inline graphics::dx12::CommandContext& GfxContextBegin(const std::string& name = "DEFAULT")
-{
-    graphics::dx12::CommandContext& newContext = *(graphics::Renderer::getInstance()->getCommandContextPool().requestContext(graphics::CommandListType::Direct));
-    newContext.setID(name);
-    return newContext;
 }
 
 inline graphics::dx12::DescriptorHandle GfxAllocateDescriptor(const graphics::DescriptorHeapType type = graphics::DescriptorHeapType::View, const size_t count = 1)

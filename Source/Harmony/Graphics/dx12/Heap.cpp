@@ -1,9 +1,9 @@
 #include "Heap.h"
 
+#include "HeapType.h"
+
 #include "Utility.h"
 #include "Log.h"
-
-#include "HeapType.h"
 
 namespace graphics
 {

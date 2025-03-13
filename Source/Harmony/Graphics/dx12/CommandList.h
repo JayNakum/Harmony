@@ -21,7 +21,7 @@ namespace graphics
             {
                 std::string name;
                 CommandListType type;
-                CommandAllocator allocator;
+                CommandAllocator& allocator;
             };
 
             // Creates an ID3D12CommandList.

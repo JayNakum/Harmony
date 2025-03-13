@@ -9,7 +9,7 @@ namespace graphics
     dx12::CommandList& CommandListPool::requestCommandList(dx12::CommandAllocator& allocator)
     {
         dx12::CommandList::Description createDesc{
-            mCommandListPool.size() + " command list",
+            mCommandListPool.size() + " " + toString(mType) + " type command list",
             mType,
             allocator
         };

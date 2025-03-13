@@ -3,6 +3,8 @@
 #include "CommandAllocatorPool.h"
 #include "CommandListPool.h"
 
+#include "dx12/CommandList.h"
+#include "dx12/CommandAllocator.h"
 #include "dx12/CommandQueue.h"
 
 namespace graphics
@@ -24,11 +26,11 @@ namespace graphics
 
     public:
         // Returns the CommandQueue if the specified type.
-        dx12::CommandQueue& getCommandQueue(const CommandListType type);
+        inline dx12::CommandQueue& getCommandQueue(const CommandListType type) { return getQueue(type).commandQueue }
         inline dx12::CommandQueue& getGraphicsQueue() { return getCommandQueue(CommandListType::Direct); }
 
-        inline dx12::CommandAllocator& requestAllocator(const CommandListType type) { return msCommandAllocatorPool.requestCommandAllocator(type); }
-        inline void discardAllocator(uint64_t fence, dx12::CommandAllocator& usedAllocator) { msCommandAllocatorPool.discardCommandAllocator(fence, usedAllocator); }
+        inline dx12::CommandAllocator& requestAllocator(const CommandListType type) { return getQueue(type).commandAllocatorPool.requestCommandAllocator(); }
+        inline void discardAllocator(uint64_t fence, dx12::CommandAllocator& usedAllocator) { getQueue(usedAllocator.getCommandListType()).commandAllocatorPool.discardCommandAllocator(fence, usedAllocator); }
 
     public:
         void createNewCommandList(const CommandListType type, dx12::CommandList*& outCommandList, dx12::CommandAllocator*& outCommandAllocator);
@@ -47,15 +49,22 @@ namespace graphics
 
         inline void idleGPU()
         {
-            msGraphicsQueue.waitForIdle();
+            mGraphicsQueue.commandQueue.waitForIdle();
         }
 
     private:
-        static dx12::CommandQueue msGraphicsQueue;
+        struct Queue
+        {
+            dx12::CommandQueue commandQueue;
 
-        // The CommandAllocatorPool is NOT thread_local
-        // because if each thread has its own pool, one thread may have free allocators while another runs out.
-        static CommandAllocatorPool msGraphicsCommandAllocatorPool;
+            // The CommandAllocatorPool is NOT thread_local
+            // because if each thread has its own pool, one thread may have free allocators while another runs out.
+            CommandAllocatorPool commandAllocatorPool;
+        };
+
+        Queue& getQueue(const CommandListType type);
+
+        Queue mGraphicsQueue;
 
         // Command Lists are thread local.
         // This allows us to have multiple threads writing commands in parallel.

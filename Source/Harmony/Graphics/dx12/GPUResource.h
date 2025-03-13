@@ -6,6 +6,7 @@
 #include "GPUResourceEnums.h"
 #include "GPUResourceStates.h"
 #include "GPUResourceFlags.h"
+#include "GPUResourceDimension.h"
 
 namespace graphics
 {
@@ -23,10 +24,11 @@ namespace graphics
 
             struct Description
             {
-                D3D12_RESOURCE_DIMENSION dimension;
-                uint64_t alignment;
                 uint64_t width;
-                unsigned int height;
+                GPUResourceDimension dimension;
+                GPUResourceFlags resourceFlags = GPUResourceFlags::None;
+                uint64_t alignment = 0;
+                unsigned int height = 1;
             };
 
             GPUResource()
@@ -70,6 +72,23 @@ namespace graphics
             ID3D12Resource** getAddressOf() { return mResource.GetAddressOf(); }
 
             D3D12_GPU_VIRTUAL_ADDRESS getGPUVirtualAddress() const { return mGPUVirtualAddress; }
+
+            static D3D12_RESOURCE_DESC toResourceDesc(const Description& description)
+            {
+                D3D12_RESOURCE_DESC createDesc{};
+                createDesc.Alignment = description.alignment;
+                createDesc.DepthOrArraySize = 1;
+                createDesc.Dimension = gpuResourceDimension.at(description.dimension);
+                createDesc.Flags = gpuResourceFlags.at(description.resourceFlags);
+                createDesc.Format = DXGI_FORMAT_UNKNOWN;
+                createDesc.Height = description.height;
+                createDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+                createDesc.MipLevels = 1;
+                createDesc.SampleDesc.Count = 1;
+                createDesc.SampleDesc.Quality = 0;
+                createDesc.Width = (UINT64)description.width;
+                return createDesc;
+            }
 
         protected:
             Microsoft::WRL::ComPtr<ID3D12Resource> mResource;

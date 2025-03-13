@@ -78,13 +78,6 @@ namespace graphics
             inline const ID3D12DescriptorHeap* operator->() const { return mHeap.Get(); }
             inline ID3D12DescriptorHeap* operator->() { return mHeap.Get(); }
 
-        public:
-            // maps graphics::DescriptorHeapType and D3D12_DESCRIPTOR_HEAP_TYPE
-            static const std::unordered_map<graphics::DescriptorHeapType, D3D12_DESCRIPTOR_HEAP_TYPE> descriptorHeapType;
-
-            // maps graphics::DescriptorHeapFlag and D3D12_DESCRIPTOR_HEAP_FLAGS
-            static const std::unordered_map<graphics::DescriptorHeapFlag, D3D12_DESCRIPTOR_HEAP_FLAGS> descriptorHeapFlag;
-
         private:
             const Description mDescription;
 

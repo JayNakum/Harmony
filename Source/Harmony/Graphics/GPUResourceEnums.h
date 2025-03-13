@@ -1,5 +1,7 @@
 #pragma once
 
+#include "common.h"
+
 namespace graphics
 {
     enum class GPUResourceFlags

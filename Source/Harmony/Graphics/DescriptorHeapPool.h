@@ -1,7 +1,9 @@
 #pragma once
 
 #include "common.h"
+
 #include "DescriptorHeapEnums.h"
+
 #include "dx12/DescriptorHeap.h"
 
 namespace graphics
@@ -9,11 +11,18 @@ namespace graphics
     class DescriptorHeapPool
     {
     public:
-        DescriptorHeapPool(const size_t numDescriptorsPerHeap = 256);
+        struct Description
+        {
+            DescriptorHeapType type;
+            const size_t numDescriptorsPerHeap = 256;
+            const DescriptorHeapFlag flag = DescriptorHeapFlag::GPUVisible;
+        };
+        DescriptorHeapPool(const Description& description);
 
-        inline const size_t getNumDescriptors() const { return mNumDescriptorsPerHeap; }
+        inline const size_t getNumDescriptors() const { return mDescription.numDescriptorsPerHeap; }
+        inline const DescriptorHeapType getDescriptorType() const { return mDescription.type; }
 
-        dx12::DescriptorHeap& requestDescriptorHeap(const DescriptorHeapType type);
+        dx12::DescriptorHeap& requestDescriptorHeap();
         void discardDescriptorHeap(const uint64_t completedFence, dx12::DescriptorHeap& usedHeaps);
         void destroyPool();
 
@@ -21,22 +30,22 @@ namespace graphics
 
     private:
         // Goes through the used queue and puts all the allocators that have completed their fence into available queue.
-        void updateAvailableQueue(const DescriptorHeapType type);
+        void updateAvailableQueue();
 
     private:
-        const size_t mNumDescriptorsPerHeap;
+        const Description mDescription;
 
         // The memory pool containing all the descriptor heaps.
-        static std::array<std::vector<dx12::DescriptorHeap>, DescriptorHeapType::DescriptorHeapTypeCount> msDescriptorHeapPool;
+        std::vector<dx12::DescriptorHeap> mDescriptorHeapPool;
 
         // Once a heap is discarded, it is kept in the used queue.
-        static std::array<std::queue<std::pair<uint64_t, dx12::DescriptorHeap*>>, DescriptorHeapType::DescriptorHeapTypeCount> msUsedQueue;
+        std::queue<std::pair<uint64_t, dx12::DescriptorHeap*>> mUsedQueue;
 
         // Once the fence value of a descriptor inside used queue is reached, ie gpu is done with the heap,
         // it is put inside the available queue ready for reuse.
-        static std::array<std::queue<dx12::DescriptorHeap*>, DescriptorHeapType::DescriptorHeapTypeCount> msAvailableQueue;
+        std::queue<dx12::DescriptorHeap*> mAvailableQueue;
 
         // Prevents incorrect reading and writing of descriptor heap pool, used queue and the available queue.
-        static std::array<std::mutex, DescriptorHeapType::DescriptorHeapTypeCount> msPoolMutex;
+        std::mutex mPoolMutex;
     };
 }
