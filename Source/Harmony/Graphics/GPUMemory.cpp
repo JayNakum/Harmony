@@ -165,7 +165,7 @@ namespace graphics
 
         return bufferView;
     }
-    
+
     dx12::GPUResource::Description GPUMemory::describeBuffer() const
     {
         dx12::GPUResource::Description description{};

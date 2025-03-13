@@ -5,7 +5,7 @@
 namespace graphics
 {
     CommandListManager::CommandListManager()
-        : mGraphicsQueue({ {"main graphics queue", CommandListType::Direct}, {} })
+        : mGraphicsQueue(CommandListType::Direct)
     {}
 
     CommandListManager::~CommandListManager()

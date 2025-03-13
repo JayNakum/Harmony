@@ -26,7 +26,7 @@ namespace graphics
 
     public:
         // Returns the CommandQueue if the specified type.
-        inline dx12::CommandQueue& getCommandQueue(const CommandListType type) { return getQueue(type).commandQueue }
+        inline dx12::CommandQueue& getCommandQueue(const CommandListType type) { return getQueue(type).commandQueue; }
         inline dx12::CommandQueue& getGraphicsQueue() { return getCommandQueue(CommandListType::Direct); }
 
         inline dx12::CommandAllocator& requestAllocator(const CommandListType type) { return getQueue(type).commandAllocatorPool.requestCommandAllocator(); }
@@ -55,6 +55,10 @@ namespace graphics
     private:
         struct Queue
         {
+            Queue(const CommandListType type)
+                : commandQueue({"global " + toString(type) + " command queue", type}),
+                commandAllocatorPool(type) {}
+
             dx12::CommandQueue commandQueue;
 
             // The CommandAllocatorPool is NOT thread_local
