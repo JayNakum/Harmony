@@ -4,6 +4,9 @@
 #include "directx.h"
 
 #include "DescriptorHeapEnums.h"
+
+#include "DescriptorHeapType.h"
+
 #include "DescriptorHandle.h"
 
 namespace graphics
@@ -13,11 +16,7 @@ namespace graphics
         /*
         * A wrapper over ID3D12DescriptorHeap.
         * Descriptor Heaps can be either manually created with fixed size using this class;
-        * or can be created using DescriptorHeapPool class.
-        *
-        * Recommended to use this class directly for smaller heaps (for example heaps with type RTV or DSV).
-        * Recommended to use this class for CPU only heaps.
-        * For other use cases, use the DescriptorHeapPool directly.
+        * or can be dynamically created using DescriptorAllocator class.
         */
         class DescriptorHeap
         {
@@ -27,7 +26,7 @@ namespace graphics
                 std::string name;
                 DescriptorHeapType type;
                 size_t maxDescriptors;
-                DescriptorHeapFlag flag = DescriptorHeapFlag::GPUVisible;
+                DescriptorHeapFlag flag;
             };
 
             // Create and initialize the descriptor heap.

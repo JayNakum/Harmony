@@ -28,11 +28,12 @@ namespace graphics
     public:
         inline const dx12::Device getDevice() const { return msDevice; }
         inline CommandListManager& getCommandListManager() { return msCommandListManager; }
-        inline dx12::DescriptorHandle allocateDescriptor(const DescriptorHeapType type, const size_t count = 1) { return Renderer::msDescriptorHeapPool[enum_cast(type)].requestDescriptorHeap().allocate(count); }
+
 
     private:
         static dx12::Device msDevice;
         static CommandListManager msCommandListManager;
+        static std::array<dx12::DescriptorHeap, descriptorHeapTypeCount> msActiveDescriptorHeap;
         static std::array<DescriptorHeapPool, descriptorHeapTypeCount> msDescriptorHeapPool;
     };
 }

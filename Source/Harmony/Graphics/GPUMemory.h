@@ -24,13 +24,18 @@ namespace graphics
         bool is32Bit = false;
     };
 
+    struct ConstantBuffer
+    {
+        uint64_t bufferLocation;
+        size_t sizeInBytes;
+    };
+
     class GPUMemory : public dx12::GPUResource
     {
     protected:
         GPUMemory()
             : mBufferSize(0), mElementCount(0), mElementSize(0),
-            mResourceFlags(GPUResourceFlags::None) {
-        }
+            mResourceFlags(GPUResourceFlags::None) {}
 
     public:
         struct Description

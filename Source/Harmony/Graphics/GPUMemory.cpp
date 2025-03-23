@@ -48,12 +48,11 @@ namespace graphics
     {
         initialize(createDescription);
 
-        static D3D12_HEAP_PROPERTIES heapProperties;
-        heapProperties.Type = D3D12_HEAP_TYPE_DEFAULT;
-        heapProperties.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
-        heapProperties.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
-        heapProperties.CreationNodeMask = 1;
-        heapProperties.VisibleNodeMask = 1;
+        static dx12::Heap::Description description{};
+        description.name = "temp default heap description";
+        description.sizeInBytes = 0;
+        description.type = HeapType::Default;
+        static auto heapProperties = dx12::Heap::toHeapProperties(description);
 
         auto resourceDescription = dx12::GPUResource::toResourceDesc(describeBuffer());
 
