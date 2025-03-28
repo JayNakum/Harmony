@@ -3,6 +3,8 @@
 #include "common.h"
 #include "directx.h"
 
+#include "RootSignatureEnums.h"
+
 #include "Log.h"
 
 namespace graphics
@@ -12,7 +14,6 @@ namespace graphics
         class RootParameter
         {
         public:
-
             RootParameter()
             {
                 clear();

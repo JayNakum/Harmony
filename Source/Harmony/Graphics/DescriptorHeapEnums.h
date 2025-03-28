@@ -7,7 +7,7 @@ namespace graphics
     // Type of resources in the heap.
     enum class DescriptorHeapType
     {
-        View, // CBV_SRV_UAV
+        ShaderViews, // CBV_SRV_UAV
         Sampler,
         RenderTarget,
         DepthStencil
@@ -20,8 +20,8 @@ namespace graphics
         {
         default:
             return "";
-        case DescriptorHeapType::View:
-            return "View";
+        case DescriptorHeapType::ShaderViews:
+            return "ShaderViews";
         case DescriptorHeapType::Sampler:
             return "Sampler";
         case DescriptorHeapType::RenderTarget:
