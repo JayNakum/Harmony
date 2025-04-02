@@ -9,6 +9,7 @@ namespace graphics
 {
     namespace dx12
     {
+        // maps graphics::GPUResourceFlags and D3D12_RESOURCE_FLAGS
         static const std::unordered_map<graphics::GPUResourceFlags, D3D12_RESOURCE_FLAGS> gpuResourceFlags = {
             { GPUResourceFlags::None, D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE },
             { GPUResourceFlags::AllowRenderTarget, D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET },

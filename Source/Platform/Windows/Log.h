@@ -62,9 +62,22 @@ if (!(bool)(condition)) \
 } \
 }
 
+// BREAK and DEBUGLOG_ONCE IF condition is FALSE
+#define HASSERT_SOFT_ONCE(category, message, ...) \
+{ \
+static bool sTriggeredLog = false; \
+if (!sTriggeredLog) \
+{ \
+    sTriggeredLog = true; \
+    HASSERT_SOFT(category, message, ##__VA_ARGS__); \
+} \
+}
+
 // HASSERT_SOFT if SUCCEEDED(hResult)
 #define HASSERT_SOFT_HR(hResult, message, ...) HASSERT_SOFT(SUCCEEDED((HRESULT)(hResult)), message, ##__VA_ARGS__); if(FAILED((HRESULT)(hResult))) DEBUGLOG("ASSERT", "%s", utility::translateErrorCode(hResult).get())
 
+// HASSERT_SOFT_ONCE if SUCCEEDED(hResult)
+#define HASSERT_SOFT_HR_ONCE(hResult, message, ...) HASSERT_SOFT_ONCE(SUCCEEDED((HRESULT)(hResult)), message, ##__VA_ARGS__); if(FAILED((HRESULT)(hResult))) DEBUGLOG("ASSERT", "%s", utility::translateErrorCode(hResult).get())
 
 // BREAK, DEBUGLOG and ABORT IF condition is FALSE
 #define HASSERT(condition, message, ...) \

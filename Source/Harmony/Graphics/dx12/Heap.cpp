@@ -11,7 +11,9 @@ namespace graphics
     {
         Heap::Heap(const Description& createDescription)
             : mDescription(createDescription), mNextAllocationOffset(0), mFreeSpace(createDescription.sizeInBytes)
-        {}
+        {
+            // TODO: Implement heap creation
+        }
 
         uint64_t Heap::allocate(const uint64_t sizeInBytes)
         {

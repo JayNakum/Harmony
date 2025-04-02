@@ -5,81 +5,73 @@
 
 #include "RootSignatureEnums.h"
 
+#include "RootParameterType.h"
+#include "ShaderVisibility.h"
+#include "DescriptorRangeType.h"
+
 #include "Log.h"
 
 namespace graphics
 {
     namespace dx12
     {
+        /*
+        * Wrapper over D3D12_ROOT_PARAMETER
+        * The class is responsible for initializing each parameter.
+        * Theoretically it is possible to reuse a parameter, but don't.
+        */
         class RootParameter
         {
         public:
             RootParameter()
             {
-                clear();
-            }
-
-            ~RootParameter()
-            {
-                clear();
-            }
-
-            void clear()
-            {
-                mDescriptorRanges.clear();
                 mRootParam.ParameterType = (D3D12_ROOT_PARAMETER_TYPE)0xFFFFFFFF;
             }
 
-            void initAsConstants(unsigned int shaderRegister, unsigned int dwordsCount, D3D12_SHADER_VISIBILITY shaderVisibility = D3D12_SHADER_VISIBILITY_ALL, unsigned int registerSpace = 0)
+            // Initialize as 32 bit constants.
+            void initAsConstants(unsigned int shaderRegister, unsigned int dwordsCount, const ShaderVisibility visibility = ShaderVisibility::All, unsigned int registerSpace = 0)
             {
                 mRootParam.ParameterType = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
-                mRootParam.ShaderVisibility = shaderVisibility;
+                mRootParam.ShaderVisibility = shaderVisibility.at(visibility);
                 mRootParam.Constants.Num32BitValues = dwordsCount;
                 mRootParam.Constants.ShaderRegister = shaderRegister;
                 mRootParam.Constants.RegisterSpace = registerSpace;
             }
 
-            void initAsCBV(unsigned int shaderRegister, D3D12_SHADER_VISIBILITY shaderVisibility = D3D12_SHADER_VISIBILITY_ALL, unsigned int registerSpace = 0)
+            // A generic method for all type of ShaderViews (CBV, SRV, UAV)
+            // Calling this method with RootParameterType::DescriptorTable is not allowed.
+            void initAsShaderView(const RootParameterType type, unsigned int shaderRegister, const ShaderVisibility visibility = ShaderVisibility::All, unsigned int registerSpace = 0)
             {
-                mRootParam.ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
-                mRootParam.ShaderVisibility = shaderVisibility;
+                HASSERT(type != RootParameterType::DescriptorTable, "Invalid root parameter type. Please use initAsDescriptorTable() instead.");
+
+                mRootParam.ParameterType = rootParameterType.at(type);
+                mRootParam.ShaderVisibility = shaderVisibility.at(visibility);
                 mRootParam.Descriptor.ShaderRegister = shaderRegister;
                 mRootParam.Descriptor.RegisterSpace = registerSpace;
             }
 
-            void initAsSRV(unsigned int shaderRegister, D3D12_SHADER_VISIBILITY shaderVisibility = D3D12_SHADER_VISIBILITY_ALL, unsigned int registerSpace = 0)
-            {
-                mRootParam.ParameterType = D3D12_ROOT_PARAMETER_TYPE_SRV;
-                mRootParam.ShaderVisibility = shaderVisibility;
-                mRootParam.Descriptor.ShaderRegister = shaderRegister;
-                mRootParam.Descriptor.RegisterSpace = registerSpace;
-            }
-
-            void initAsUAV(unsigned int shaderRegister, D3D12_SHADER_VISIBILITY shaderVisibility = D3D12_SHADER_VISIBILITY_ALL, unsigned int registerSpace = 0)
-            {
-                mRootParam.ParameterType = D3D12_ROOT_PARAMETER_TYPE_UAV;
-                mRootParam.ShaderVisibility = shaderVisibility;
-                mRootParam.Descriptor.ShaderRegister = shaderRegister;
-                mRootParam.Descriptor.RegisterSpace = registerSpace;
-            }
-
-            void initAsDescriptorTable(unsigned int rangeCount, D3D12_SHADER_VISIBILITY shaderVisibility = D3D12_SHADER_VISIBILITY_ALL)
+            // Initializes the parameter as descriptor table with rangeCount entries.
+            // Each entry in the table is a descriptor range, which are initialized via setTableRange().
+            void initAsDescriptorTable(size_t rangeCount, const ShaderVisibility visibility = ShaderVisibility::All)
             {
                 mRootParam.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-                mRootParam.ShaderVisibility = shaderVisibility;
-                mRootParam.DescriptorTable.NumDescriptorRanges = rangeCount;
+                mRootParam.ShaderVisibility = shaderVisibility.at(visibility);
+                mRootParam.DescriptorTable.NumDescriptorRanges = (UINT)rangeCount;
 
                 mDescriptorRanges.resize(rangeCount);
+                mDescriptorRanges.shrink_to_fit();
 
                 mRootParam.DescriptorTable.pDescriptorRanges = mDescriptorRanges.data();
             }
 
-            void setTableRange(unsigned int rangeIndex, D3D12_DESCRIPTOR_RANGE_TYPE rangeType, unsigned int shaderRegister, unsigned int count, unsigned int registerSpace = 0)
+            // Initializes each entry of the descriptor table.
+            // It is mandatory to initialize the root parameter as descriptor table first.
+            void setTableRange(unsigned int rangeIndex, const DescriptorRangeType type, unsigned int shaderRegister, unsigned int count, unsigned int registerSpace = 0)
             {
-                HASSERT(rangeIndex < mDescriptorRanges.size(), "Descriptor table range out of bounds.");
+                HASSERT(rangeIndex < mDescriptorRanges.size(), "Descriptor table range out of bounds. Did you call init?");
 
                 D3D12_DESCRIPTOR_RANGE& range = mDescriptorRanges[rangeIndex];
-                range.RangeType = rangeType;
+                range.RangeType = descriptorRangeType.at(type);
                 range.NumDescriptors = count;
                 range.BaseShaderRegister = shaderRegister;
                 range.RegisterSpace = registerSpace;

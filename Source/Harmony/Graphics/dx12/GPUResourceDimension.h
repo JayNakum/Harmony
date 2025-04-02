@@ -9,6 +9,7 @@ namespace graphics
 {
     namespace dx12
     {
+        // maps graphics::GPUResourceDimension and D3D12_RESOURCE_DIMENSION
         static const std::unordered_map<graphics::GPUResourceDimension, D3D12_RESOURCE_DIMENSION> gpuResourceDimension = {
             { GPUResourceDimension::Unknown, D3D12_RESOURCE_DIMENSION::D3D12_RESOURCE_DIMENSION_UNKNOWN },
             { GPUResourceDimension::Buffer, D3D12_RESOURCE_DIMENSION::D3D12_RESOURCE_DIMENSION_BUFFER },

@@ -14,9 +14,8 @@ namespace graphics
     namespace dx12
     {
         /*
-        * A wrapper over ID3D12DescriptorHeap.
-        * Descriptor Heaps can be either manually created with fixed size using this class;
-        * or can be dynamically created using DescriptorAllocator class.
+        * A wrapper over ID3D12DescriptorHeap with a ring allocator.
+        * It starts overwriting descriptors from beginning once the heap is full.
         */
         class DescriptorHeap
         {
@@ -32,12 +31,13 @@ namespace graphics
             // Create and initialize the descriptor heap.
             DescriptorHeap(const Description& createDescription);
 
-            // Creates space for count number of descriptors inside the heap.
+            // Creates space for count number of descriptors inside the heap. Using ring allocation.
             // Returns the handle that points to the start of the allocation.
             // The handle will then be used for actual allocation.
             DescriptorHandle allocate(const size_t count = 1);
 
-            // Resets the heap by setting the allocation handle at start and numFreeDescriptors to maxDescriptors
+            // Sets the allocation handle at start and numFreeDescriptors to maxDescriptors.
+            // It doesn't invalidate descriptors.
             void reset();
 
             // Frees the heap.

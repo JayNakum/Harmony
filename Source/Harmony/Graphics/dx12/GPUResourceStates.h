@@ -9,6 +9,7 @@ namespace graphics
 {
     namespace dx12
     {
+        // maps graphics::GPUResourceState and D3D12_RESOURCE_STATES
         static const std::unordered_map<graphics::GPUResourceState, D3D12_RESOURCE_STATES> gpuResourceStates = {
             { GPUResourceState::Invalid, D3D12_RESOURCE_STATES(-1)},
             { GPUResourceState::Common, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_COMMON },

@@ -56,7 +56,14 @@ namespace graphics
 
         DescriptorHandle DescriptorHeap::allocate(const size_t count)
         {
-            HASSERT(canAllocate(count), "%s Descriptor Heap out of space. Trying to allocate %d descriptors but available space is %d.", mDescription.name, count, mNumFreeDescriptors);
+            HASSERT_SOFT(canAllocate(count), "%s Descriptor Heap out of space. Trying to allocate %d descriptors but available space is %d. Overwriting from the beginning.", mDescription.name, count, mNumFreeDescriptors);
+
+            if (!canAllocate(count)) // Ring allocation
+            {
+                // It is possible that there is (some space < count) available but we do not care about it.
+                // TODO: IF NEEDED implement a better allocation strategy.
+                reset();
+            }
 
             DescriptorHandle allocationHandle = mNextFreeHandle;
 
