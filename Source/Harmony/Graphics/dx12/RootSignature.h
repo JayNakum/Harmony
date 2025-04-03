@@ -29,6 +29,8 @@ namespace graphics
                 mStaticSamplers.shrink_to_fit();
             }
 
+            // StaticSamplerDescription with default values.
+            // The default values are as per CD3DX12_STATIC_SAMPLER_DESC
             struct StaticSamplerDescription
             {
                 sampler::Filter filter = sampler::Filter::Anisotropic;
@@ -41,12 +43,11 @@ namespace graphics
                 sampler::StaticBorderColor borderColor = sampler::StaticBorderColor::OpaqueWhite;
                 float minLOD = 0.0f;
                 float maxLOD = FLT_MAX;
-                ShaderVisibility visibility = ShaderVisibility::All;
             };
-            void initStaticSampler(unsigned int shaderRegister, const StaticSamplerDescription& samplerDesc = {}, unsigned int registerSpace = 0);
+            void initStaticSampler(unsigned int shaderRegister, const StaticSamplerDescription& sampler = {}, const ShaderVisibility visibility = ShaderVisibility::All, unsigned int registerSpace = 0);
 
             // create and/or serialize root signature
-            void finalize();
+            void finalize(const RootSignatureFlag flags, const std::string name);
 
             // Returns the raw pointer of ID3D12RootSignature.
             inline ID3D12RootSignature* get() { mRootSignature.Get(); }

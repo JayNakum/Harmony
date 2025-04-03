@@ -4,7 +4,6 @@
 
 ## Graphics
 #### Low level abstraction of api classes
-* Root Signatures
 * GPU resources
 * PSO
 * complete all TODOs

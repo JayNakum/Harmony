@@ -94,6 +94,77 @@ namespace graphics
         }
     }
 
+    enum class RootSignatureFlag
+    {
+        None = 0,
+        AllowInputAssemblerInputLayout = 1 << 0,
+        DenyVertexShaderRootAccess = 1 << 1,
+        DenyHullShaderRootAccess = 1 << 2,
+        DenyDomainShaderRootAccess = 1 << 3,
+        DenyGeometryShaderRootAccess = 1 << 4,
+        DenyPixelShaderRootAccess = 1 << 5,
+        AllowStreamOutput = 1 << 6,
+        LocalRootSignature = 1 << 7,
+        DenyAmplificationShaderRootAccess = 1 << 8,
+        DenyMeshShaderRootAccess = 1 << 9,
+        ShaderViewHeapDirectlyIndexed = 1 << 10,
+        SamplerHeapDirectlyIndexed = 1 << 11,
+    };
+
+    inline static const RootSignatureFlag operator|(RootSignatureFlag a, RootSignatureFlag b)
+    {
+        return static_cast<RootSignatureFlag>(static_cast<uint32_t>(a) | static_cast<uint32_t>(b));
+    }
+    inline static const RootSignatureFlag& operator|=(RootSignatureFlag& a, RootSignatureFlag b)
+    {
+        a = a | b;
+        return a;
+    }
+    inline static const RootSignatureFlag operator&(RootSignatureFlag a, RootSignatureFlag b)
+    {
+        return static_cast<RootSignatureFlag>(static_cast<uint32_t>(a) & static_cast<uint32_t>(b));
+    }
+
+    inline static const bool hasFlag(RootSignatureFlag flags, RootSignatureFlag check)
+    {
+        return (flags & check) != RootSignatureFlag::None;
+    }
+
+    inline static const std::string toString(const RootSignatureFlag e)
+    {
+        switch (e)
+        {
+        default:
+            return "";
+        case RootSignatureFlag::None:
+            return "None";
+        case RootSignatureFlag::AllowInputAssemblerInputLayout:
+            return "AllowInputAssemblerInputLayout";
+        case RootSignatureFlag::DenyVertexShaderRootAccess:
+            return "DenyVertexShaderRootAccess";
+        case RootSignatureFlag::DenyHullShaderRootAccess:
+            return "DenyHullShaderRootAccess";
+        case RootSignatureFlag::DenyDomainShaderRootAccess:
+            return "DenyDomainShaderRootAccess";
+        case RootSignatureFlag::DenyGeometryShaderRootAccess:
+            return "DenyGeometryShaderRootAccess";
+        case RootSignatureFlag::DenyPixelShaderRootAccess:
+            return "DenyPixelShaderRootAccess";
+        case RootSignatureFlag::AllowStreamOutput:
+            return "AllowStreamOutput";
+        case RootSignatureFlag::LocalRootSignature:
+            return "LocalRootSignature";
+        case RootSignatureFlag::DenyAmplificationShaderRootAccess:
+            return "DenyAmplificationShaderRootAccess";
+        case RootSignatureFlag::DenyMeshShaderRootAccess:
+            return "DenyMeshShaderRootAccess";
+        case RootSignatureFlag::ShaderViewHeapDirectlyIndexed:
+            return "ShaderViewHeapDirectlyIndexed";
+        case RootSignatureFlag::SamplerHeapDirectlyIndexed:
+            return "SamplerHeapDirectlyIndexed";
+        }
+    }
+
     namespace sampler
     {
         enum class Filter
@@ -234,6 +305,8 @@ namespace graphics
             TransparentBlack,
             OpaqueBlack,
             OpaqueWhite,
+            OpaqueBlackUint,
+            OpaqueWhiteUint
         };
     }
 
@@ -249,6 +322,10 @@ namespace graphics
             return "OpaqueBlack";
         case sampler::StaticBorderColor::OpaqueWhite:
             return "OpaqueWhite";
+        case sampler::StaticBorderColor::OpaqueBlackUint:
+            return "OpaqueBlackUint";
+        case sampler::StaticBorderColor::OpaqueWhiteUint:
+            return "OpaqueWhiteUint";
         }
     }
 }
