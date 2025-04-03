@@ -19,12 +19,33 @@ namespace graphics
                 reset(parametersCount, staticSamplersCount);
             }
 
+            // Reset the root parameters list.
             void reset(const size_t parametersCount, const size_t staticSamplersCount = 0)
             {
                 mRootParameters.resize(parametersCount);
                 mRootParameters.shrink_to_fit();
+
+                mStaticSamplers.resize(staticSamplersCount);
+                mStaticSamplers.shrink_to_fit();
             }
 
+            struct StaticSamplerDescription
+            {
+                sampler::Filter filter = sampler::Filter::Anisotropic;
+                sampler::TextureAddressMode addressU = sampler::TextureAddressMode::Wrap;
+                sampler::TextureAddressMode addressV = addressU;
+                sampler::TextureAddressMode addressW = addressV;
+                float mipLODBias = 0;
+                unsigned int maxAnisotropy = 16;
+                sampler::ComparisionFunction comparisonFunc = sampler::ComparisionFunction::LessEqual;
+                sampler::StaticBorderColor borderColor = sampler::StaticBorderColor::OpaqueWhite;
+                float minLOD = 0.0f;
+                float maxLOD = FLT_MAX;
+                ShaderVisibility visibility = ShaderVisibility::All;
+            };
+            void initStaticSampler(unsigned int shaderRegister, const StaticSamplerDescription& samplerDesc = {}, unsigned int registerSpace = 0);
+
+            // create and/or serialize root signature
             void finalize();
 
             // Returns the raw pointer of ID3D12RootSignature.
@@ -38,9 +59,14 @@ namespace graphics
         private:
             Microsoft::WRL::ComPtr<ID3D12RootSignature> mRootSignature;
 
+            // Array of root parameters
             std::vector<RootParameter> mRootParameters;
+            // Array of static samplers
+            std::vector<D3D12_STATIC_SAMPLER_DESC> mStaticSamplers;
+            unsigned int initializedSamplers = 0;
 
-            static const std::array<const CD3DX12_STATIC_SAMPLER_DESC, 6> staticSamplers()
+            // Six static samplers that are bound to all the root signatures.
+            static const std::array<const CD3DX12_STATIC_SAMPLER_DESC, 6> defaultStaticSamplers()
             {
                 static const CD3DX12_STATIC_SAMPLER_DESC pointWrap(
                     0, // shaderRegister
@@ -93,7 +119,7 @@ namespace graphics
                     linearWrap, linearClamp,
                     anisotropicWrap, anisotropicClamp
                 };
-            }		
+            }
         };
     }
 }

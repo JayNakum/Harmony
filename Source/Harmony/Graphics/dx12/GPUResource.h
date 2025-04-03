@@ -4,9 +4,9 @@
 #include "directx.h"
 
 #include "GPUResourceEnums.h"
-#include "GPUResourceStates.h"
-#include "GPUResourceFlags.h"
-#include "GPUResourceDimension.h"
+#include "types/GPUResourceStates.h"
+#include "types/GPUResourceFlags.h"
+#include "types/GPUResourceDimension.h"
 
 namespace graphics
 {

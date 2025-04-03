@@ -11,7 +11,7 @@ namespace graphics
         // TODO: Add support for D3D12_HEAP_TYPE_READBACK, D3D12_HEAP_TYPE_CUSTOM, D3D12_HEAP_TYPE_GPU_UPLOAD
     };
 
-    const std::string toString(const HeapType e)
+    inline static const std::string toString(const HeapType e)
     {
         switch (e)
         {

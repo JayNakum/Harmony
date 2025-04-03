@@ -1,6 +1,6 @@
 #include "Heap.h"
 
-#include "HeapType.h"
+#include "types/HeapType.h"
 
 #include "Utility.h"
 #include "Log.h"

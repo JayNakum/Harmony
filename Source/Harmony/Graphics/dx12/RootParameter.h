@@ -5,9 +5,9 @@
 
 #include "RootSignatureEnums.h"
 
-#include "RootParameterType.h"
-#include "ShaderVisibility.h"
-#include "DescriptorRangeType.h"
+#include "types/RootParameterType.h"
+#include "types/ShaderVisibility.h"
+#include "types/DescriptorRangeType.h"
 
 #include "Log.h"
 

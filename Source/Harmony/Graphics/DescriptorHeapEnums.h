@@ -14,7 +14,7 @@ namespace graphics
     };
     constexpr size_t descriptorHeapTypeCount = 4;
 
-    const std::string toString(const DescriptorHeapType e)
+    inline static const std::string toString(const DescriptorHeapType e)
     {
         switch (e)
         {
@@ -38,7 +38,7 @@ namespace graphics
         GPUVisible // CPU and GPU both
     };
 
-    const std::string toString(const DescriptorHeapFlag e)
+    inline static const std::string toString(const DescriptorHeapFlag e)
     {
         switch (e)
         {

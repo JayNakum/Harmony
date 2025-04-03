@@ -19,7 +19,7 @@ namespace graphics
         // RayTracingAccelerationStructure
     };
 
-    const std::string toString(const GPUResourceFlags e)
+    inline static const std::string toString(const GPUResourceFlags e)
     {
         switch (e)
         {
@@ -45,7 +45,7 @@ namespace graphics
         // TODO: Add more resource states
     };
 
-    const std::string toString(const GPUResourceState e)
+    inline static const std::string toString(const GPUResourceState e)
     {
         switch (e)
         {
@@ -71,7 +71,7 @@ namespace graphics
         Texture3D
     };
 
-    const std::string toString(const GPUResourceDimension e)
+    inline static const std::string toString(const GPUResourceDimension e)
     {
         switch (e)
         {

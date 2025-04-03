@@ -12,7 +12,7 @@ namespace graphics
         // TODO: add support for Bundle type command lists
     };
 
-    const std::string toString(const CommandListType e)
+    inline static const std::string toString(const CommandListType e)
     {
         switch (e)
         {

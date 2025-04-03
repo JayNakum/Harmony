@@ -9,7 +9,7 @@
 * PSO
 * complete all TODOs
 * Remove operator-> (and maybe the get() as well) from API classes and create generic functions with API specific implementations
-
+* put toString() inside ifdefs
 ## Core
 #### Engine Settings
 * Memory Budgets
