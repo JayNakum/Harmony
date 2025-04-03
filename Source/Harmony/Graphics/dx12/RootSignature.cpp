@@ -17,8 +17,8 @@ namespace graphics
     {
         void RootSignature::initStaticSampler(unsigned int shaderRegister, const StaticSamplerDescription& sampler, const ShaderVisibility visibility, unsigned int registerSpace)
         {
-            HASSERT(initializedSamplers < mStaticSamplers.size(), "Trying to initialize more than initial specified size (%d) samplers.", mStaticSamplers.size());
-            D3D12_STATIC_SAMPLER_DESC& staticSampler = mStaticSamplers.at(initializedSamplers++);
+            HASSERT(mInitializedSamplers < mStaticSamplers.size(), "Trying to initialize more than initial specified size (%d) samplers.", mStaticSamplers.size());
+            D3D12_STATIC_SAMPLER_DESC& staticSampler = mStaticSamplers.at(mInitializedSamplers++);
 
             staticSampler.ShaderRegister = shaderRegister;
             staticSampler.RegisterSpace = registerSpace;
@@ -36,9 +36,9 @@ namespace graphics
             staticSampler.MaxLOD = sampler.maxLOD;
         }
 
-        void RootSignature::finalize(const RootSignatureFlag flags, const std::string name)
+        void RootSignature::finalize(const RootSignatureFlags flags, const std::string name)
         {
-            HASSERT(initializedSamplers == mStaticSamplers.size(), "%d static samplers are not initialized.", (mStaticSamplers.size() - initializedSamplers));
+            HASSERT(mInitializedSamplers == mStaticSamplers.size(), "%d static samplers are not initialized.", (mStaticSamplers.size() - mInitializedSamplers));
 
             D3D12_ROOT_SIGNATURE_DESC rootSignatureDesc{};
             rootSignatureDesc.NumParameters = (UINT)mRootParameters.size();
@@ -49,19 +49,23 @@ namespace graphics
 
             Microsoft::WRL::ComPtr<ID3DBlob> serializedRootSig = nullptr;
             Microsoft::WRL::ComPtr<ID3DBlob> errorBlob = nullptr;
-            HRESULT hResult = D3D12SerializeRootSignature(
-                &rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1,
-                serializedRootSig.GetAddressOf(), errorBlob.GetAddressOf());
 
-            HASSERT_HR(hResult, "Failed to serialize root signature.\n%s", errorBlob ? (char*)errorBlob->GetBufferPointer() : "Unknown error");
+            {// Serialize root signature
+                HRESULT hResult = D3D12SerializeRootSignature(
+                    &rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1,
+                    serializedRootSig.GetAddressOf(), errorBlob.GetAddressOf());
 
-            hResult = GfxDevice()->CreateRootSignature(
-                0,
-                serializedRootSig->GetBufferPointer(),
-                serializedRootSig->GetBufferSize(),
-                IID_PPV_ARGS(&mRootSignature));
+                HASSERT_HR(hResult, "Failed to serialize root signature %s.\n%s", name, errorBlob ? (char*)errorBlob->GetBufferPointer() : "Unknown error");
+            }
+            {// Create root signature
+                HRESULT hResult = GfxDevice()->CreateRootSignature(
+                    0,
+                    serializedRootSig->GetBufferPointer(),
+                    serializedRootSig->GetBufferSize(),
+                    IID_PPV_ARGS(&mRootSignature));
 
-            HASSERT_HR(hResult, "Failed to create root signature.");
+                HASSERT_HR(hResult, "Failed to create root signature %s.", name);
+            }
 
 #if defined(RELEASE)
             (void)name;

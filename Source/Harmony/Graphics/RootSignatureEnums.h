@@ -94,7 +94,7 @@ namespace graphics
         }
     }
 
-    enum class RootSignatureFlag
+    enum class RootSignatureFlags
     {
         None = 0,
         AllowInputAssemblerInputLayout = 1 << 0,
@@ -111,56 +111,56 @@ namespace graphics
         SamplerHeapDirectlyIndexed = 1 << 11,
     };
 
-    inline static const RootSignatureFlag operator|(RootSignatureFlag a, RootSignatureFlag b)
+    inline static const RootSignatureFlags operator|(RootSignatureFlags a, RootSignatureFlags b)
     {
-        return static_cast<RootSignatureFlag>(static_cast<uint32_t>(a) | static_cast<uint32_t>(b));
+        return static_cast<RootSignatureFlags>(static_cast<uint32_t>(a) | static_cast<uint32_t>(b));
     }
-    inline static const RootSignatureFlag& operator|=(RootSignatureFlag& a, RootSignatureFlag b)
+    inline static const RootSignatureFlags& operator|=(RootSignatureFlags& a, RootSignatureFlags b)
     {
         a = a | b;
         return a;
     }
-    inline static const RootSignatureFlag operator&(RootSignatureFlag a, RootSignatureFlag b)
+    inline static const RootSignatureFlags operator&(RootSignatureFlags a, RootSignatureFlags b)
     {
-        return static_cast<RootSignatureFlag>(static_cast<uint32_t>(a) & static_cast<uint32_t>(b));
+        return static_cast<RootSignatureFlags>(static_cast<uint32_t>(a) & static_cast<uint32_t>(b));
     }
 
-    inline static const bool hasFlag(RootSignatureFlag flags, RootSignatureFlag check)
+    inline static const bool hasFlag(RootSignatureFlags flags, RootSignatureFlags check)
     {
-        return (flags & check) != RootSignatureFlag::None;
+        return (flags & check) != RootSignatureFlags::None;
     }
 
-    inline static const std::string toString(const RootSignatureFlag e)
+    inline static const std::string toString(const RootSignatureFlags e)
     {
         switch (e)
         {
         default:
             return "";
-        case RootSignatureFlag::None:
+        case RootSignatureFlags::None:
             return "None";
-        case RootSignatureFlag::AllowInputAssemblerInputLayout:
+        case RootSignatureFlags::AllowInputAssemblerInputLayout:
             return "AllowInputAssemblerInputLayout";
-        case RootSignatureFlag::DenyVertexShaderRootAccess:
+        case RootSignatureFlags::DenyVertexShaderRootAccess:
             return "DenyVertexShaderRootAccess";
-        case RootSignatureFlag::DenyHullShaderRootAccess:
+        case RootSignatureFlags::DenyHullShaderRootAccess:
             return "DenyHullShaderRootAccess";
-        case RootSignatureFlag::DenyDomainShaderRootAccess:
+        case RootSignatureFlags::DenyDomainShaderRootAccess:
             return "DenyDomainShaderRootAccess";
-        case RootSignatureFlag::DenyGeometryShaderRootAccess:
+        case RootSignatureFlags::DenyGeometryShaderRootAccess:
             return "DenyGeometryShaderRootAccess";
-        case RootSignatureFlag::DenyPixelShaderRootAccess:
+        case RootSignatureFlags::DenyPixelShaderRootAccess:
             return "DenyPixelShaderRootAccess";
-        case RootSignatureFlag::AllowStreamOutput:
+        case RootSignatureFlags::AllowStreamOutput:
             return "AllowStreamOutput";
-        case RootSignatureFlag::LocalRootSignature:
+        case RootSignatureFlags::LocalRootSignature:
             return "LocalRootSignature";
-        case RootSignatureFlag::DenyAmplificationShaderRootAccess:
+        case RootSignatureFlags::DenyAmplificationShaderRootAccess:
             return "DenyAmplificationShaderRootAccess";
-        case RootSignatureFlag::DenyMeshShaderRootAccess:
+        case RootSignatureFlags::DenyMeshShaderRootAccess:
             return "DenyMeshShaderRootAccess";
-        case RootSignatureFlag::ShaderViewHeapDirectlyIndexed:
+        case RootSignatureFlags::ShaderViewHeapDirectlyIndexed:
             return "ShaderViewHeapDirectlyIndexed";
-        case RootSignatureFlag::SamplerHeapDirectlyIndexed:
+        case RootSignatureFlags::SamplerHeapDirectlyIndexed:
             return "SamplerHeapDirectlyIndexed";
         }
     }

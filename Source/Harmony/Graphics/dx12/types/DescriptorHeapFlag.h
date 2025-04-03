@@ -9,13 +9,13 @@ namespace graphics
 {
     namespace dx12
     {
-        // maps graphics::DescriptorHeapFlag and D3D12_DESCRIPTOR_HEAP_FLAGS
-        static const std::unordered_map<graphics::DescriptorHeapFlag, D3D12_DESCRIPTOR_HEAP_FLAGS> descriptorHeapFlag = {
-            { graphics::DescriptorHeapFlag::None, D3D12_DESCRIPTOR_HEAP_FLAG_NONE },
-            { graphics::DescriptorHeapFlag::GPUVisible, D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE }
+        // maps graphics::DescriptorHeapFlags and D3D12_DESCRIPTOR_HEAP_FLAGS
+        static const std::unordered_map<graphics::DescriptorHeapFlags, D3D12_DESCRIPTOR_HEAP_FLAGS> descriptorHeapFlag = {
+            { graphics::DescriptorHeapFlags::None, D3D12_DESCRIPTOR_HEAP_FLAG_NONE },
+            { graphics::DescriptorHeapFlags::GPUVisible, D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE }
         };
 
-        inline static const D3D12_DESCRIPTOR_HEAP_FLAGS toD3DFlags(const graphics::DescriptorHeapFlag flags)
+        inline static const D3D12_DESCRIPTOR_HEAP_FLAGS toD3DFlags(const graphics::DescriptorHeapFlags flags)
         {
             D3D12_DESCRIPTOR_HEAP_FLAGS d3dFlags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 

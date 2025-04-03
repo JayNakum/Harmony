@@ -11,7 +11,7 @@ namespace graphics
         * This handle refers to a descriptor or a descriptor table(contiguous descriptors)
         * A simple abstraction over CPU and GPU handles with helper functions and operator overloads to use them easily.
         * The handle can be None(CPU Only) and Shader Visible(CPU and GPU both).
-        * And just like DescriptorHeapFlag, handles can never be GPU only.
+        * And just like DescriptorHeapFlags, handles can never be GPU only.
         */
         class DescriptorHandle
         {

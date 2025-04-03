@@ -2,7 +2,7 @@
 
 #include "Renderer.h"
 
-#include "DescriptorHeapFlag.h"
+#include "DescriptorHeapFlags.h"
 
 #include "Utility.h"
 #include "Log.h"
@@ -33,13 +33,13 @@ namespace graphics
             switch (mDescription.flag)
             {
             default:
-            case DescriptorHeapFlag::GPUVisible:
+            case DescriptorHeapFlags::GPUVisible:
             {
                 mFirstHandle = DescriptorHandle(mHeap->GetCPUDescriptorHandleForHeapStart(),
                     mHeap->GetGPUDescriptorHandleForHeapStart());
                 break;
             }
-            case DescriptorHeapFlag::CPUVisible:
+            case DescriptorHeapFlags::None:
             {
                 mFirstHandle = DescriptorHandle(mHeap->GetCPUDescriptorHandleForHeapStart());
                 break;

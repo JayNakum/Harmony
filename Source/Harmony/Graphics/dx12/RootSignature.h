@@ -15,6 +15,7 @@ namespace graphics
         {
         public:
             RootSignature(const size_t parametersCount, const size_t staticSamplersCount = 0)
+                : mInitializedSamplers(0)
             {
                 reset(parametersCount, staticSamplersCount);
             }
@@ -27,6 +28,7 @@ namespace graphics
 
                 mStaticSamplers.resize(staticSamplersCount);
                 mStaticSamplers.shrink_to_fit();
+                mInitializedSamplers = 0;
             }
 
             // StaticSamplerDescription with default values.
@@ -47,7 +49,7 @@ namespace graphics
             void initStaticSampler(unsigned int shaderRegister, const StaticSamplerDescription& sampler = {}, const ShaderVisibility visibility = ShaderVisibility::All, unsigned int registerSpace = 0);
 
             // create and/or serialize root signature
-            void finalize(const RootSignatureFlag flags, const std::string name);
+            void finalize(const RootSignatureFlags flags, const std::string name);
 
             // Returns the raw pointer of ID3D12RootSignature.
             inline ID3D12RootSignature* get() { mRootSignature.Get(); }
@@ -64,63 +66,7 @@ namespace graphics
             std::vector<RootParameter> mRootParameters;
             // Array of static samplers
             std::vector<D3D12_STATIC_SAMPLER_DESC> mStaticSamplers;
-            unsigned int initializedSamplers = 0;
-
-            // Six static samplers that are bound to all the root signatures.
-            static const std::array<const CD3DX12_STATIC_SAMPLER_DESC, 6> defaultStaticSamplers()
-            {
-                static const CD3DX12_STATIC_SAMPLER_DESC pointWrap(
-                    0, // shaderRegister
-                    D3D12_FILTER_MIN_MAG_MIP_POINT, // filter
-                    D3D12_TEXTURE_ADDRESS_MODE_WRAP, // addressU
-                    D3D12_TEXTURE_ADDRESS_MODE_WRAP, // addressV
-                    D3D12_TEXTURE_ADDRESS_MODE_WRAP); // addressW
-
-                static const CD3DX12_STATIC_SAMPLER_DESC pointClamp(
-                    1, // shaderRegister
-                    D3D12_FILTER_MIN_MAG_MIP_POINT, // filter
-                    D3D12_TEXTURE_ADDRESS_MODE_CLAMP, // addressU
-                    D3D12_TEXTURE_ADDRESS_MODE_CLAMP, // addressV
-                    D3D12_TEXTURE_ADDRESS_MODE_CLAMP); // addressW
-
-                static const CD3DX12_STATIC_SAMPLER_DESC linearWrap(
-                    2, // shaderRegister
-                    D3D12_FILTER_MIN_MAG_MIP_LINEAR, // filter
-                    D3D12_TEXTURE_ADDRESS_MODE_WRAP, // addressU
-                    D3D12_TEXTURE_ADDRESS_MODE_WRAP, // addressV
-                    D3D12_TEXTURE_ADDRESS_MODE_WRAP); // addressW
-
-                static const CD3DX12_STATIC_SAMPLER_DESC linearClamp(
-                    3, // shaderRegister
-                    D3D12_FILTER_MIN_MAG_MIP_LINEAR, // filter
-                    D3D12_TEXTURE_ADDRESS_MODE_CLAMP, // addressU
-                    D3D12_TEXTURE_ADDRESS_MODE_CLAMP, // addressV
-                    D3D12_TEXTURE_ADDRESS_MODE_CLAMP); // addressW
-
-                static const CD3DX12_STATIC_SAMPLER_DESC anisotropicWrap(
-                    4, // shaderRegister
-                    D3D12_FILTER_ANISOTROPIC, // filter
-                    D3D12_TEXTURE_ADDRESS_MODE_WRAP, // addressU
-                    D3D12_TEXTURE_ADDRESS_MODE_WRAP, // addressV
-                    D3D12_TEXTURE_ADDRESS_MODE_WRAP, // addressW
-                    0.0f, // mipLODBias
-                    8); // maxAnisotropy
-
-                static const CD3DX12_STATIC_SAMPLER_DESC anisotropicClamp(
-                    5, // shaderRegister
-                    D3D12_FILTER_ANISOTROPIC, // filter
-                    D3D12_TEXTURE_ADDRESS_MODE_CLAMP, // addressU
-                    D3D12_TEXTURE_ADDRESS_MODE_CLAMP, // addressV
-                    D3D12_TEXTURE_ADDRESS_MODE_CLAMP, // addressW
-                    0.0f, // mipLODBias
-                    8); // maxAnisotropy
-
-                return {
-                    pointWrap, pointClamp,
-                    linearWrap, linearClamp,
-                    anisotropicWrap, anisotropicClamp
-                };
-            }
+            unsigned int mInitializedSamplers;
         };
     }
 }

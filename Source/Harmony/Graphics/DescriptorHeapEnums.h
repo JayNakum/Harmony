@@ -32,40 +32,40 @@ namespace graphics
     }
 
     // Descriptor heap visibility.
-    enum class DescriptorHeapFlag
+    enum class DescriptorHeapFlags
     {
         None = 0, // CPU Only
         GPUVisible = 1 << 0 // shader visible
     };
 
-    inline static const DescriptorHeapFlag operator|(DescriptorHeapFlag a, DescriptorHeapFlag b)
+    inline static const DescriptorHeapFlags operator|(DescriptorHeapFlags a, DescriptorHeapFlags b)
     {
-        return static_cast<DescriptorHeapFlag>(static_cast<uint32_t>(a) | static_cast<uint32_t>(b));
+        return static_cast<DescriptorHeapFlags>(static_cast<uint32_t>(a) | static_cast<uint32_t>(b));
     }
-    inline static const DescriptorHeapFlag& operator|=(DescriptorHeapFlag& a, DescriptorHeapFlag b)
+    inline static const DescriptorHeapFlags& operator|=(DescriptorHeapFlags& a, DescriptorHeapFlags b)
     {
         a = a | b;
         return a;
     }
-    inline static const DescriptorHeapFlag operator&(DescriptorHeapFlag a, DescriptorHeapFlag b)
+    inline static const DescriptorHeapFlags operator&(DescriptorHeapFlags a, DescriptorHeapFlags b)
     {
-        return static_cast<DescriptorHeapFlag>(static_cast<uint32_t>(a) & static_cast<uint32_t>(b));
+        return static_cast<DescriptorHeapFlags>(static_cast<uint32_t>(a) & static_cast<uint32_t>(b));
     }
 
-    inline static const bool hasFlag(DescriptorHeapFlag flags, DescriptorHeapFlag check)
+    inline static const bool hasFlag(DescriptorHeapFlags flags, DescriptorHeapFlags check)
     {
-        return (flags & check) != DescriptorHeapFlag::None;
+        return (flags & check) != DescriptorHeapFlags::None;
     }
 
-    inline static const std::string toString(const DescriptorHeapFlag e)
+    inline static const std::string toString(const DescriptorHeapFlags e)
     {
         switch (e)
         {
         default:
             return "";
-        case DescriptorHeapFlag::None:
+        case DescriptorHeapFlags::None:
             return "None";
-        case DescriptorHeapFlag::GPUVisible:
+        case DescriptorHeapFlags::GPUVisible:
             return "GPUVisible";
         }
     }

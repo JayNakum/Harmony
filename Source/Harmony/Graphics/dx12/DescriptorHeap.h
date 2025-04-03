@@ -25,7 +25,7 @@ namespace graphics
                 std::string name;
                 DescriptorHeapType type;
                 size_t maxDescriptors;
-                DescriptorHeapFlag flag;
+                DescriptorHeapFlags flag;
             };
 
             // Create and initialize the descriptor heap.
@@ -46,7 +46,7 @@ namespace graphics
 
         public:
             inline const DescriptorHeapType getDescriptorHeapType() const { return mDescription.type; }
-            inline const DescriptorHeapFlag getDescriptorHeapFlag() const { return mDescription.flag; }
+            inline const DescriptorHeapFlags getDescriptorHeapFlags() const { return mDescription.flag; }
 
             // Checks for available space inside heap.
             inline bool canAllocate(const size_t count) const { return count <= mNumFreeDescriptors; }
