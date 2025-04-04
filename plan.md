@@ -6,7 +6,6 @@
 #### Low level abstraction of api classes
 * GPU resources
 * PSO
-* Add a profile mode
 * ShaderInputManager
 * complete all TODOs
 * Remove operator-> (and maybe the get() as well) from API classes and create generic functions with API specific implementations

@@ -6,7 +6,7 @@ workspace "Harmony"
   flags { "MultiProcessorCompile" }
 
   platforms { "Windows" }
-    configurations { "Debug", "Release" }
+    configurations { "Debug", "Profile", "Release" }
 
   filter "platforms:Windows"
     architecture "x64"
@@ -17,14 +17,19 @@ workspace "Harmony"
     symbols "On"
     defines { "DEBUG" }
 
-    filter "configurations:Release"
+  filter "configurations:Profile"
+    runtime "Release"
+    optimize "On"
+    defines { "PROFILE" }
+
+  filter "configurations:Release"
     runtime "Release"
     optimize "On"
     defines { "RELEASE" }
 
   language "C++"
   cppdialect "C++20"
-    staticruntime "on"
+  staticruntime "on"
   targetdir (target_dir)
   objdir (obj_dir)
 
