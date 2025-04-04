@@ -4,7 +4,6 @@
 
 ## Graphics
 #### Low level abstraction of api classes
-* DescriptorHeapWithAllocator
 * GPU resources
 * PSO
 * Add a profile mode
