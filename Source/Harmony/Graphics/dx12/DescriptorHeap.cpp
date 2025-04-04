@@ -13,14 +13,15 @@ namespace graphics
     namespace dx12
     {
         DescriptorHeap::DescriptorHeap(const Description & createDescription)
-            : mDescription(createDescription), mHeap(nullptr), mHeapDesc{}, mDescriptorSize(0), mNumFreeDescriptors(0)
+            : mDescription(createDescription), mHeap(nullptr), mDescriptorSize(0), mNumFreeDescriptors(0)
         {
-            mHeapDesc.Type = descriptorHeapType.at(mDescription.type);
-            mHeapDesc.NumDescriptors = (UINT)mDescription.maxDescriptors;
-            mHeapDesc.Flags = descriptorHeapFlag.at(mDescription.flag);
-            mHeapDesc.NodeMask = 1;
+            D3D12_DESCRIPTOR_HEAP_DESC heapDesc{};
+            heapDesc.Type = descriptorHeapType.at(mDescription.type);
+            heapDesc.NumDescriptors = (UINT)mDescription.maxDescriptors;
+            heapDesc.Flags = descriptorHeapFlag.at(mDescription.flag);
+            heapDesc.NodeMask = 1;
 
-            HRESULT hResult = GfxDevice()->CreateDescriptorHeap(&mHeapDesc, IID_PPV_ARGS(mHeap.ReleaseAndGetAddressOf()));
+            HRESULT hResult = GfxDevice()->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(mHeap.ReleaseAndGetAddressOf()));
 
 #if defined(RELEASE)
             (void)mDescription.name;
@@ -28,26 +29,23 @@ namespace graphics
             mHeap->SetName(utility::toWideString(mDescription.name).c_str());
 #endif
 
-            mDescriptorSize = GfxDevice()->GetDescriptorHandleIncrementSize(mHeapDesc.Type);
-            mNumFreeDescriptors = mHeapDesc.NumDescriptors;
+            mDescriptorSize = GfxDevice()->GetDescriptorHandleIncrementSize(heapDesc.Type);
 
             switch (mDescription.flag)
             {
             default:
             case DescriptorHeapFlags::GPUVisible:
             {
-                mFirstHandle = DescriptorHandle(mHeap->GetCPUDescriptorHandleForHeapStart(),
+                mHeapStart = DescriptorHandle(mHeap->GetCPUDescriptorHandleForHeapStart(),
                     mHeap->GetGPUDescriptorHandleForHeapStart());
                 break;
             }
             case DescriptorHeapFlags::None:
             {
-                mFirstHandle = DescriptorHandle(mHeap->GetCPUDescriptorHandleForHeapStart());
+                mHeapStart = DescriptorHandle(mHeap->GetCPUDescriptorHandleForHeapStart());
                 break;
             }
             }
-
-            mNextFreeHandle = mFirstHandle;
         }
 
         DescriptorHeap::~DescriptorHeap()
@@ -55,48 +53,25 @@ namespace graphics
             mHeap = nullptr;
         }
 
-        DescriptorHandle DescriptorHeap::allocate(const size_t count)
+
+
+        bool DescriptorHeap::validateHandle(const DescriptorHandle& dHandle) const
         {
-            HASSERT_SOFT(canAllocate(count), "%s Descriptor Heap out of space. Trying to allocate %d descriptors but available space is %d. Overwriting from the beginning.", mDescription.name, count, mNumFreeDescriptors);
-
-            if (!canAllocate(count)) // Ring allocation
-            {
-                // It is possible that there is (some space < count) available but we do not care about it.
-                // TODO: IF NEEDED implement a better allocation strategy.
-                reset();
-            }
-
-            DescriptorHandle allocationHandle = mNextFreeHandle;
-
-            mNextFreeHandle += (INT)(count * mDescriptorSize);
-            mNumFreeDescriptors -= count;
-
-            return allocationHandle;
-        }
-
-        void DescriptorHeap::reset()
-        {
-            mNumFreeDescriptors = mHeapDesc.NumDescriptors;
-            mNextFreeHandle = mFirstHandle;
-        }
-
-        bool DescriptorHeap::validateHandle(const DescriptorHandle & dHandle) const
-        {
-            if (dHandle.getCPUPtr() < mFirstHandle.getCPUPtr() ||
-                dHandle.getCPUPtr() >= mFirstHandle.getCPUPtr() + mHeapDesc.NumDescriptors * mDescriptorSize)
+            if (dHandle.getCPUPtr() < mHeapStart.getCPUPtr() ||
+                dHandle.getCPUPtr() >= mHeapStart.getCPUPtr() + mDescription.maxDescriptors * mDescriptorSize)
             {
                 return false;
             }
 
-            if (dHandle.isGPUVisible() != mFirstHandle.isGPUVisible())
+            if (dHandle.isGPUVisible() != mHeapStart.isGPUVisible())
             {
                 return false;
             }
 
             if (dHandle.isGPUVisible())
             {
-                if (dHandle.getGPUPtr() - mFirstHandle.getGPUPtr() !=
-                    dHandle.getCPUPtr() - mFirstHandle.getCPUPtr())
+                if (dHandle.getGPUPtr() - mHeapStart.getGPUPtr() !=
+                    dHandle.getCPUPtr() - mHeapStart.getCPUPtr())
                 {
                     return false;
                 }

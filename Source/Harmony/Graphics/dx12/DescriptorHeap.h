@@ -12,8 +12,7 @@ namespace graphics
     namespace dx12
     {
         /*
-        * A wrapper over ID3D12DescriptorHeap with a ring allocator.
-        * It starts overwriting descriptors from beginning once the heap is full.
+        * A wrapper over ID3D12DescriptorHeap.
         */
         class DescriptorHeap
         {
@@ -29,25 +28,17 @@ namespace graphics
             // Create and initialize the descriptor heap.
             DescriptorHeap(const Description& createDescription);
 
-            // Creates space for count number of descriptors inside the heap. Using ring allocation.
-            // Returns the handle that points to the start of the allocation.
-            // The handle will then be used for actual allocation.
-            DescriptorHandle allocate(const size_t count = 1);
+            // Get the heap start handle
+            inline DescriptorHandle getHeapStart() const { return mHeapStart; }
 
-            // Sets the allocation handle at start and numFreeDescriptors to maxDescriptors.
-            // It doesn't invalidate descriptors.
-            void reset();
+            // Operator overload for array like indexing.
+            inline DescriptorHandle operator[] (size_t index) const { return mHeapStart + (INT)index * (INT)mDescriptorSize; }
 
-            // Frees the heap.
-            // Since mHeap is a ComPtr the heap is released automatically.
-            ~DescriptorHeap();
-
-        public:
-            inline const DescriptorHeapType getDescriptorHeapType() const { return mDescription.type; }
-            inline const DescriptorHeapFlags getDescriptorHeapFlags() const { return mDescription.flag; }
-
-            // Checks for available space inside heap.
-            inline bool canAllocate(const size_t count) const { return count <= mNumFreeDescriptors; }
+            // Calculates the heap offset of the handle.
+            inline uint32_t getOffsetOfHandle(const DescriptorHandle& dHandle) const
+            {
+                return (uint32_t)((dHandle.getCPUPtr() - mHeapStart.getCPUPtr()) / mDescriptorSize);
+            }
 
             // Checks for three conditions.
             // - Whether the handle falls inside the range between firstHandle and heapSize
@@ -55,14 +46,13 @@ namespace graphics
             // - If descriptor is GPUVisible then whether the GPU offset and CPU offset matches.
             bool validateHandle(const DescriptorHandle& dHandle) const;
 
-            // Operator overload for array like indexing.
-            inline DescriptorHandle operator[] (size_t index) const { return mFirstHandle + (INT)index * (INT)mDescriptorSize; }
+            // Frees the heap.
+            // Since mHeap is a ComPtr the heap is released automatically.
+            virtual ~DescriptorHeap();
 
-            // Calculates the heap offset of the handle.
-            inline uint32_t getOffsetOfHandle(const DescriptorHandle& dHandle) const
-            {
-                return (uint32_t)((dHandle.getCPUPtr() - mFirstHandle.getCPUPtr()) / mDescriptorSize);
-            }
+        public:
+            inline const DescriptorHeapType getDescriptorHeapType() const { return mDescription.type; }
+            inline const DescriptorHeapFlags getDescriptorHeapFlags() const { return mDescription.flag; }
 
             // Return descriptor handle increment size.
             inline const size_t getDescriptorSize() const { return mDescriptorSize; }
@@ -75,23 +65,17 @@ namespace graphics
             inline const ID3D12DescriptorHeap* operator->() const { return mHeap.Get(); }
             inline ID3D12DescriptorHeap* operator->() { return mHeap.Get(); }
 
-        private:
+        protected:
             const Description mDescription;
-
-            Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mHeap;
-            D3D12_DESCRIPTOR_HEAP_DESC mHeapDesc;
 
             // Queried from device via GetDescriptorHandleIncrementSize
             size_t mDescriptorSize;
 
-            // Keep track of the free spaces available for validation.
-            size_t mNumFreeDescriptors;
-
             // Heap start handle.
-            DescriptorHandle mFirstHandle;
+            dx12::DescriptorHandle mHeapStart;
 
-            // Handle where the next allocation will be done.
-            DescriptorHandle mNextFreeHandle;
+        private:
+            Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mHeap;
         };
     }
 }

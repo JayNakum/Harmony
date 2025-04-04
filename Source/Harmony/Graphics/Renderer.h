@@ -6,8 +6,6 @@
 #include "CommandContextPool.h"
 #include "CommandContext.h"
 
-#include "DescriptorHeapPool.h"
-
 #include "Utility.h"
 
 namespace graphics
@@ -34,7 +32,6 @@ namespace graphics
         static dx12::Device msDevice;
         static CommandListManager msCommandListManager;
         static std::array<dx12::DescriptorHeap, descriptorHeapTypeCount> msActiveDescriptorHeap;
-        static std::array<DescriptorHeapPool, descriptorHeapTypeCount> msDescriptorHeapPool;
     };
 }
 
@@ -56,9 +53,4 @@ inline graphics::dx12::Device GfxDevice()
 inline graphics::CommandListManager& GfxCommandListManager()
 {
     return graphics::Renderer::getInstance()->getCommandListManager();
-}
-
-inline graphics::dx12::DescriptorHandle GfxAllocateDescriptor(const graphics::DescriptorHeapType type = graphics::DescriptorHeapType::View, const size_t count = 1)
-{
-    return graphics::Renderer::getInstance()->allocateDescriptor(type, count);
 }
