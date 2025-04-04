@@ -4,18 +4,6 @@
 
 namespace graphics
 {
-    enum class ColorWriteMask : uint8_t
-    {
-        None = (0 << 0),
-        R = (1 << 0),
-        G = (1 << 1),
-        B = (1 << 2),
-        A = (1 << 3),
-        RG = R | G,
-        RGB = RG | B,
-        All = A | RGB
-    };
-
     enum class FillMode
     {
         Solid,
