@@ -1,5 +1,7 @@
 #pragma once
 
+#include "common.h"
+
 #include "dx12/DescriptorHeap.h"
 
 namespace graphics

@@ -5,9 +5,6 @@
 #include "types/DescriptorHeapFlags.h"
 #include "types/DescriptorHeapType.h"
 
-#include "Utility.h"
-#include "Log.h"
-
 namespace graphics
 {
     namespace dx12
@@ -40,7 +37,7 @@ namespace graphics
                     mHeap->GetGPUDescriptorHandleForHeapStart());
                 break;
             }
-            case DescriptorHeapFlags::None:
+            case DescriptorHeapFlags::CPUVisible:
             {
                 mHeapStart = DescriptorHandle(mHeap->GetCPUDescriptorHandleForHeapStart());
                 break;

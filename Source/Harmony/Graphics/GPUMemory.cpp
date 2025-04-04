@@ -5,9 +5,6 @@
 
 #include "Maths.h"
 
-#include "Utility.h"
-#include "Log.h"
-
 namespace graphics
 {
     void GPUMemory::createCommitted(const Description& createDescription, const void* initialData)

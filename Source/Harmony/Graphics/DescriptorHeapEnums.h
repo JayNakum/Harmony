@@ -34,28 +34,9 @@ namespace graphics
     // Descriptor heap visibility.
     enum class DescriptorHeapFlags
     {
-        None = 0, // CPU Only
-        GPUVisible = 1 << 0 // shader visible
+        CPUVisible, // CPU Only
+        GPUVisible // shader visible
     };
-
-    inline static const DescriptorHeapFlags operator|(DescriptorHeapFlags a, DescriptorHeapFlags b)
-    {
-        return static_cast<DescriptorHeapFlags>(static_cast<uint32_t>(a) | static_cast<uint32_t>(b));
-    }
-    inline static const DescriptorHeapFlags& operator|=(DescriptorHeapFlags& a, DescriptorHeapFlags b)
-    {
-        a = a | b;
-        return a;
-    }
-    inline static const DescriptorHeapFlags operator&(DescriptorHeapFlags a, DescriptorHeapFlags b)
-    {
-        return static_cast<DescriptorHeapFlags>(static_cast<uint32_t>(a) & static_cast<uint32_t>(b));
-    }
-
-    inline static const bool hasFlag(DescriptorHeapFlags flags, DescriptorHeapFlags check)
-    {
-        return (flags & check) != DescriptorHeapFlags::None;
-    }
 
     inline static const std::string toString(const DescriptorHeapFlags e)
     {
@@ -63,8 +44,8 @@ namespace graphics
         {
         default:
             return "";
-        case DescriptorHeapFlags::None:
-            return "None";
+        case DescriptorHeapFlags::CPUVisible:
+            return "CPUVisible";
         case DescriptorHeapFlags::GPUVisible:
             return "GPUVisible";
         }

@@ -18,14 +18,4 @@
 #include <cmath>
 #include <ctime>
 
-/*
-* Deletes the copy constructor and = operator.
-* Used to make the code clean.
-*/
-class NonCopyable
-{
-protected:
-    NonCopyable() = default;
-    NonCopyable(const NonCopyable&) = delete;
-    NonCopyable& operator=(const NonCopyable&) = delete;
-};
+#include "Utility.h"

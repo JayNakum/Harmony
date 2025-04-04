@@ -3,6 +3,8 @@
 #include "common.h"
 #include "directx.h"
 
+#include "Log.h"
+
 namespace graphics
 {
     namespace dx12

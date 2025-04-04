@@ -7,8 +7,6 @@
 
 #include "dx12/CommandList.h"
 
-#include "Log.h"
-
 namespace graphics
 {
     CommandContext::CommandContext(const CommandListType type)

@@ -7,6 +7,8 @@
 
 #include "CommandAllocator.h"
 
+#include "Log.h"
+
 namespace graphics
 {
     namespace dx12

@@ -1,8 +1,5 @@
 #include "Device.h"
 
-#include "Utility.h"
-#include "Log.h"
-
 namespace graphics
 {
     using namespace Microsoft::WRL;

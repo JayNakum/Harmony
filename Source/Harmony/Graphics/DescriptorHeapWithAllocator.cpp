@@ -2,8 +2,6 @@
 
 #include "Renderer.h"
 
-#include "Log.h"
-
 namespace graphics
 {
     DescriptorHeapWithAllocator::DescriptorHeapWithAllocator(const Description& createDescription)

@@ -2,10 +2,7 @@
 
 #include "Renderer.h"
 
-#include "CommandListType.h"
-
-#include "Utility.h"
-#include "Log.h"
+#include "types/CommandListType.h"
 
 namespace graphics
 {

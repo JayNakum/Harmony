@@ -2,9 +2,6 @@
 
 #include "Renderer.h"
 
-#include "Utility.h"
-#include "Log.h"
-
 namespace graphics
 {
     CommandAllocatorPool::CommandAllocatorPool(const CommandListType type)
