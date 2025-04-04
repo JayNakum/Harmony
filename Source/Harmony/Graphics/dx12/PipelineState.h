@@ -66,6 +66,7 @@ namespace graphics
             {
                 MemoryBlob vertexShader;
                 MemoryBlob pixelShader;
+                FillMode fillMode;
                 CullMode cullMode;
                 D3D12_DEPTH_STENCIL_DESC DepthStencilState;
                 D3D12_INPUT_LAYOUT_DESC InputLayout;
