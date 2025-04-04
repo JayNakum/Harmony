@@ -46,7 +46,7 @@ namespace graphics
 
     uint64_t CommandContext::finish(bool waitForCompletion)
     {
-        flushResourceBarriers();
+        getCommandList().flushResourceBarriers();
 
         HASSERT(mCurrentCommandAllocator != nullptr, "Command allocator not found.");
 
@@ -63,37 +63,6 @@ namespace graphics
         deallocate();
 
         return fence;
-    }
-
-    void CommandContext::transitionResource(dx12::GPUResource& resource, const GPUResourceState newState, bool flushImmediate)
-    {
-        GPUResourceState oldState = resource.getUsageState();
-        if (oldState != newState)
-        {
-            HASSERT(mNumBarriersToFlush < CommandContext::MAX_RESOURCE_BARRIERS, "Exeeded maximum limit on buffered barriers.");
-            D3D12_RESOURCE_BARRIER& barrier = mResourceBarrierBuffer[mNumBarriersToFlush++];
-
-            barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-            barrier.Transition.pResource = resource.get();
-            barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-            barrier.Transition.StateBefore = dx12::gpuResourceStates.at(oldState);
-            barrier.Transition.StateAfter = dx12::gpuResourceStates.at(newState);
-            // Check to see if we already started the transition
-            if (newState == resource.getTransitioningState())
-            {
-                barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_END_ONLY;
-                resource.setTransitioningState(GPUResourceState::Invalid);
-            }
-            else
-                barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-
-            resource.setUsageState(newState);
-        }
-
-        if (flushImmediate || mNumBarriersToFlush == CommandContext::MAX_RESOURCE_BARRIERS)
-        {
-            flushResourceBarriers();
-        }
     }
 
     void CommandContext::initializeBuffer(GPUMemory& dest, const void* data, size_t numBytes, size_t destOffset)
@@ -119,9 +88,9 @@ namespace graphics
         CommandContext& initContext = GraphicContext::begin(); // TODO: Check if it is faster to switch to copy context.
 
         // Schedule a copy from the upload heap to the default heap.
-        initContext.transitionResource(dest, GPUResourceState::CopyDest, true);
+        initContext.getCommandList().transitionResource(dest, GPUResourceState::CopyDest, true);
         initContext.getCommandList()->CopyBufferRegion(dest.get(), destOffset, (ID3D12Resource*)src.get(), 0, numBytes);
-        initContext.transitionResource(dest, GPUResourceState::GenericRead, true);
+        initContext.getCommandList().transitionResource(dest, GPUResourceState::GenericRead, true);
 
         // Execute the command list and wait for it to finish so we can release the intermediate buffer.
         initContext.finish(true);

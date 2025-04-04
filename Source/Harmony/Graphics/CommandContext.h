@@ -21,7 +21,6 @@ namespace graphics
     */
     class CommandContext : public CommandObject, NonCopyable
     {
-        static constexpr unsigned int MAX_RESOURCE_BARRIERS = 16;
 
     protected:
         // Command context is only ever meant to be created, initialized or reset via the Context Manager
@@ -41,17 +40,6 @@ namespace graphics
         uint64_t finish(bool waitForCompletion = false);
         void reset();
 
-        void transitionResource(dx12::GPUResource& resource, const GPUResourceState newState, bool flushImmediate = false);
-
-        inline void flushResourceBarriers()
-        {
-            if (mNumBarriersToFlush > 0)
-            {
-                getCommandList()->ResourceBarrier(mNumBarriersToFlush, mResourceBarrierBuffer);
-                mNumBarriersToFlush = 0;
-            }
-        }
-
         virtual void deallocate() = 0;
         virtual ~CommandContext();
 
@@ -61,15 +49,10 @@ namespace graphics
         static void initializeBuffer(GPUMemory& dest, const void* data, size_t numBytes, size_t destOffset = 0);
         static void initializeBuffer(GPUMemory& dest, UploadBuffer& src, size_t srcOffset = 0, size_t numBytes = -1, size_t destOffset = 0);
 
-
     private:
+        std::string mID;
         dx12::CommandList* mCommandList;
         dx12::CommandAllocator* mCurrentCommandAllocator;
-
-        D3D12_RESOURCE_BARRIER mResourceBarrierBuffer[MAX_RESOURCE_BARRIERS];
-        UINT mNumBarriersToFlush;
-
-        std::string mID;
 
         std::array<dx12::DescriptorHeap*, descriptorHeapTypeCount> mCurrentDescriptorHeaps;
     };

@@ -1,7 +1,4 @@
-#pragma once
-
-#include "common.h"
-#include "directx.h"
+#include "PipelineState.h"
 
 namespace graphics
 {

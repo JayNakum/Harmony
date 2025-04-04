@@ -16,6 +16,7 @@ namespace graphics
         */
         class CommandList : public CommandObject
         {
+            static constexpr unsigned int MAX_RESOURCE_BARRIERS = 16;
         public:
             struct Description
             {
@@ -26,6 +27,17 @@ namespace graphics
 
             // Creates an ID3D12CommandList.
             CommandList(Description& createDesc);
+
+            inline void flushResourceBarriers()
+            {
+                if (mNumBarriersToFlush > 0)
+                {
+                    mCommandList->ResourceBarrier(mNumBarriersToFlush, mResourceBarrierBuffer);
+                    mNumBarriersToFlush = 0;
+                }
+            }
+
+            void transitionResource(GPUResource& resource, const GPUResourceState newState, bool flushImmediate = false);
 
             // Closes and destroys the command list.
             ~CommandList();
@@ -40,6 +52,9 @@ namespace graphics
 
         private:
             Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> mCommandList;
+
+            D3D12_RESOURCE_BARRIER mResourceBarrierBuffer[MAX_RESOURCE_BARRIERS];
+            UINT mNumBarriersToFlush;
         };
     }
 }
