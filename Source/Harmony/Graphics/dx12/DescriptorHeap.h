@@ -5,8 +5,6 @@
 
 #include "DescriptorHeapEnums.h"
 
-#include "DescriptorHeapType.h"
-
 #include "DescriptorHandle.h"
 
 namespace graphics

@@ -2,7 +2,8 @@
 
 #include "Renderer.h"
 
-#include "DescriptorHeapFlags.h"
+#include "types/DescriptorHeapFlags.h"
+#include "types/DescriptorHeapType.h"
 
 #include "Utility.h"
 #include "Log.h"
