@@ -10,13 +10,13 @@ namespace graphics
 
     CommandListManager::~CommandListManager()
     {
-        msCommandListPool.destroyPool(); // We need to explicitely call this because the msCommandListPool is static
+        msCommandListPool.destroyPool(); // We need to explicitly call this because the msCommandListPool is static
     }
 
     void CommandListManager::createNewCommandList(const CommandListType type, dx12::CommandList*& outCommandList, dx12::CommandAllocator*& outCommandAllocator)
     {
-        outCommandAllocator = &mGraphicsQueue.commandAllocatorPool.requestCommandAllocator();
-        outCommandList = &(msCommandListPool.requestCommandList(*outCommandAllocator));
+        outCommandAllocator = &(getQueue(type).commandAllocatorPool.requestCommandAllocator());
+        outCommandList = &(msCommandListPool.requestCommandList(type, *outCommandAllocator));
     }
 
     CommandListManager::Queue& CommandListManager::getQueue(const CommandListType type)

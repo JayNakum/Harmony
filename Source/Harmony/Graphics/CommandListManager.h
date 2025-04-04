@@ -72,9 +72,9 @@ namespace graphics
 
         // Command Lists are thread local.
         // This allows us to have multiple threads writing commands in parallel.
-        // We can still achieve that with some mutex locks inside the Pool (similar to CommandAllocator)
-        // but command lists are not meant to be destroyed frequently to cause inefficient usage of them
-        // since their will be ideally only one command list per thread, having this thread local makes more sense.
+        // We can still achieve that with some mutex locks inside the Pool
+        // but command lists are not meant to be destroyed frequently
+        // since there will be ideally only one command list per thread, having this thread local makes more sense.
         thread_local static CommandListPool msCommandListPool;
     };
 }
