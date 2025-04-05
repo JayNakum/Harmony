@@ -11,14 +11,22 @@ namespace graphics
     {
         namespace dx12
         {
-            // maps graphics::StaticBorderColor and D3D12_STATIC_BORDER_COLOR
-            static const std::unordered_map<StaticBorderColor, D3D12_STATIC_BORDER_COLOR> staticBorderColor = {
-                { StaticBorderColor::TransparentBlack, D3D12_STATIC_BORDER_COLOR::D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK },
-                { StaticBorderColor::OpaqueBlack, D3D12_STATIC_BORDER_COLOR::D3D12_STATIC_BORDER_COLOR_OPAQUE_BLACK },
-                { StaticBorderColor::OpaqueWhite, D3D12_STATIC_BORDER_COLOR::D3D12_STATIC_BORDER_COLOR_OPAQUE_WHITE },
-                { StaticBorderColor::OpaqueBlackUint, D3D12_STATIC_BORDER_COLOR::D3D12_STATIC_BORDER_COLOR_OPAQUE_BLACK_UINT },
-                { StaticBorderColor::OpaqueWhiteUint, D3D12_STATIC_BORDER_COLOR::D3D12_STATIC_BORDER_COLOR_OPAQUE_WHITE_UINT }
-            };
+            inline static const D3D12_STATIC_BORDER_COLOR toD3DStaticBorderColor(const StaticBorderColor color)
+            {
+                switch (color)
+                {
+                case StaticBorderColor::TransparentBlack:
+                    return D3D12_STATIC_BORDER_COLOR::D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK;
+                case StaticBorderColor::OpaqueBlack:
+                    return D3D12_STATIC_BORDER_COLOR::D3D12_STATIC_BORDER_COLOR_OPAQUE_BLACK;
+                case StaticBorderColor::OpaqueWhite:
+                    return D3D12_STATIC_BORDER_COLOR::D3D12_STATIC_BORDER_COLOR_OPAQUE_WHITE;
+                case StaticBorderColor::OpaqueBlackUint:
+                    return D3D12_STATIC_BORDER_COLOR::D3D12_STATIC_BORDER_COLOR_OPAQUE_BLACK_UINT;
+                case StaticBorderColor::OpaqueWhiteUint:
+                    return D3D12_STATIC_BORDER_COLOR::D3D12_STATIC_BORDER_COLOR_OPAQUE_WHITE_UINT;
+                }
+            }
         }
     }
 }

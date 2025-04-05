@@ -3,6 +3,7 @@
 #include "Renderer.h"
 
 #include "types/CommandListType.h"
+#include "types/GPUResourceStates.h"
 
 namespace graphics
 {
@@ -12,7 +13,7 @@ namespace graphics
             : CommandObject(createDesc.type), mCommandList(nullptr)
         {
             HRESULT hResult = GfxDevice()->CreateCommandList(
-                1, commandListType.at(createDesc.type),
+                1, toD3DCommandListType(createDesc.type),
                 (createDesc.allocator).get(), nullptr, IID_PPV_ARGS(&mCommandList));
 
             HASSERT_HR(hResult, "Failed to create command list %s", createDesc.name);
@@ -35,8 +36,8 @@ namespace graphics
                 barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
                 barrier.Transition.pResource = resource.get();
                 barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-                barrier.Transition.StateBefore = dx12::gpuResourceStates.at(oldState);
-                barrier.Transition.StateAfter = dx12::gpuResourceStates.at(newState);
+                barrier.Transition.StateBefore = toD3DResourceState(oldState);
+                barrier.Transition.StateAfter = toD3DResourceState(newState);
                 // Check to see if we already started the transition
                 if (newState == resource.getTransitioningState())
                 {

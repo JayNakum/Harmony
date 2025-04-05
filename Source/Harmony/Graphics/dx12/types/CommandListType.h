@@ -9,10 +9,18 @@ namespace graphics
 {
     namespace dx12
     {
-        static const std::unordered_map<graphics::CommandListType, D3D12_COMMAND_LIST_TYPE> commandListType = {
-            { graphics::CommandListType::Direct, D3D12_COMMAND_LIST_TYPE_DIRECT },
-            { graphics::CommandListType::Compute, D3D12_COMMAND_LIST_TYPE_COMPUTE },
-            { graphics::CommandListType::Copy, D3D12_COMMAND_LIST_TYPE_COPY }
-        };
+        inline static const D3D12_COMMAND_LIST_TYPE toD3DCommandListType(const CommandListType type)
+        {
+            switch (type)
+            {
+            case CommandListType::Direct:
+                return D3D12_COMMAND_LIST_TYPE::D3D12_COMMAND_LIST_TYPE_DIRECT;
+            case CommandListType::Compute:
+                return D3D12_COMMAND_LIST_TYPE::D3D12_COMMAND_LIST_TYPE_COMPUTE;
+            case CommandListType::Copy:
+                return D3D12_COMMAND_LIST_TYPE::D3D12_COMMAND_LIST_TYPE_COPY;
+            }
+        }
+
     }
 }

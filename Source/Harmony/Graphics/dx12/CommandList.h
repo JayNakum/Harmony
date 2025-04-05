@@ -6,6 +6,7 @@
 #include "CommandObject.h"
 
 #include "CommandAllocator.h"
+#include "GPUResource.h"
 
 #include "Log.h"
 

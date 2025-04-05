@@ -78,8 +78,8 @@ namespace graphics
                 D3D12_RESOURCE_DESC createDesc{};
                 createDesc.Alignment = description.alignment;
                 createDesc.DepthOrArraySize = 1;
-                createDesc.Dimension = gpuResourceDimension.at(description.dimension);
-                createDesc.Flags = gpuResourceFlags.at(description.resourceFlags);
+                createDesc.Dimension = toD3DResourceDimension(description.dimension);
+                createDesc.Flags = toD3DResourceFlags(description.resourceFlags);
                 createDesc.Format = DXGI_FORMAT_UNKNOWN;
                 createDesc.Height = description.height;
                 createDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;

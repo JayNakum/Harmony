@@ -3,10 +3,10 @@
 namespace graphics
 {
     GraphicContextPool::GraphicContextPool(const CommandListType type)
-        : CommandObject(type)
+        : CommandContextPool(type)
     {}
 
-    GraphicContext* GraphicContextPool::requestContext()
+    GraphicContext& GraphicContextPool::requestContext()
     {
         std::lock_guard<std::mutex> scoppedLockGuard(mPoolMutex);
 
@@ -16,11 +16,11 @@ namespace graphics
             mAvailableQueue.pop();
             context->reset();
 
-            return context;
+            return *context;
         }
 
         msGraphicContextPool.emplace_back();
-        return &(msGraphicContextPool.back());
+        return (msGraphicContextPool.back());
     }
 
     void GraphicContextPool::discardContext(GraphicContext& context)

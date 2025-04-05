@@ -9,10 +9,15 @@ namespace graphics
 {
     namespace dx12
     {
-        // maps graphics::HeapType and D3D12_HEAP_TYPE
-        static const std::unordered_map<graphics::HeapType, D3D12_HEAP_TYPE> heapType = {
-            { graphics::HeapType::Default, D3D12_HEAP_TYPE::D3D12_HEAP_TYPE_DEFAULT },
-            { graphics::HeapType::Upload, D3D12_HEAP_TYPE::D3D12_HEAP_TYPE_UPLOAD }
-        };
+        inline static const D3D12_HEAP_TYPE toD3DHeapType(const HeapType type)
+        {
+            switch (type)
+            {
+            case HeapType::Default:
+                return D3D12_HEAP_TYPE::D3D12_HEAP_TYPE_DEFAULT;
+            case HeapType::Upload:
+                return D3D12_HEAP_TYPE::D3D12_HEAP_TYPE_UPLOAD;
+            }
+        }
     }
 }

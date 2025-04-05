@@ -37,7 +37,7 @@ namespace graphics
 
         HRESULT hResult = GfxDevice()->CreateCommittedResource(
             &heapProps, D3D12_HEAP_FLAG_NONE, &createDesc,
-            dx12::gpuResourceStates.at(mUsageState), nullptr, IID_PPV_ARGS(&mResource));
+            dx12::toD3DResourceStates(mUsageState), nullptr, IID_PPV_ARGS(&mResource));
 
         HASSERT_HR(hResult, "Failed to create upload buffer %s", createDescription.name);
 

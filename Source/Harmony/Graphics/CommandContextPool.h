@@ -11,6 +11,8 @@ namespace graphics
     class CommandContextPool : public CommandObject
     {
     public:
+        CommandContextPool(const CommandListType type)
+            : CommandObject(type) {}
         virtual void destroyPool() = 0;
         virtual ~CommandContextPool() { destroyPool(); }
     };

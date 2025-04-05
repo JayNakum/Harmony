@@ -36,7 +36,7 @@ namespace graphics
             inline void initAsConstants(unsigned int shaderRegister, unsigned int dwordsCount, const ShaderVisibility visibility = ShaderVisibility::All, unsigned int registerSpace = 0)
             {
                 mRootParam.ParameterType = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
-                mRootParam.ShaderVisibility = shaderVisibility.at(visibility);
+                mRootParam.ShaderVisibility = toD3DShaderVisibility(visibility);
                 mRootParam.Constants.Num32BitValues = dwordsCount;
                 mRootParam.Constants.ShaderRegister = shaderRegister;
                 mRootParam.Constants.RegisterSpace = registerSpace;
@@ -48,8 +48,8 @@ namespace graphics
             {
                 HASSERT(type != RootParameterType::DescriptorTable, "Invalid root parameter type. Please use initAsDescriptorTable() instead.");
 
-                mRootParam.ParameterType = rootParameterType.at(type);
-                mRootParam.ShaderVisibility = shaderVisibility.at(visibility);
+                mRootParam.ParameterType = toD3DRootParameterType(type);
+                mRootParam.ShaderVisibility = toD3DShaderVisibility(visibility);
                 mRootParam.Descriptor.ShaderRegister = shaderRegister;
                 mRootParam.Descriptor.RegisterSpace = registerSpace;
             }
@@ -59,7 +59,7 @@ namespace graphics
             inline void initAsDescriptorTable(size_t rangeCount, const ShaderVisibility visibility = ShaderVisibility::All)
             {
                 mRootParam.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-                mRootParam.ShaderVisibility = shaderVisibility.at(visibility);
+                mRootParam.ShaderVisibility = toD3DShaderVisibility(visibility);
                 mRootParam.DescriptorTable.NumDescriptorRanges = (UINT)rangeCount;
 
                 mDescriptorRanges.resize(rangeCount);
@@ -75,7 +75,7 @@ namespace graphics
                 HASSERT(rangeIndex < mDescriptorRanges.size(), "Descriptor table range out of bounds. Did you call init?");
 
                 D3D12_DESCRIPTOR_RANGE& range = mDescriptorRanges[rangeIndex];
-                range.RangeType = descriptorRangeType.at(type);
+                range.RangeType = toD3DDescriptorRangeType(type);
                 range.NumDescriptors = count;
                 range.BaseShaderRegister = shaderRegister;
                 range.RegisterSpace = registerSpace;
@@ -118,16 +118,16 @@ namespace graphics
             {
                 mStaticSampler.ShaderRegister = shaderRegister;
                 mStaticSampler.RegisterSpace = registerSpace;
-                mStaticSampler.ShaderVisibility = shaderVisibility.at(visibility);
+                mStaticSampler.ShaderVisibility = toD3DShaderVisibility(visibility);
 
-                mStaticSampler.Filter = sampler::dx12::filter.at(description.filter);
-                mStaticSampler.AddressU = sampler::dx12::textureAddressMode.at(description.addressU);
-                mStaticSampler.AddressV = sampler::dx12::textureAddressMode.at(description.addressV);
-                mStaticSampler.AddressW = sampler::dx12::textureAddressMode.at(description.addressW);
+                mStaticSampler.Filter = sampler::dx12::toD3DFilter(description.filter);
+                mStaticSampler.AddressU = sampler::dx12::toD3DTextureAddressMode(description.addressU);
+                mStaticSampler.AddressV = sampler::dx12::toD3DTextureAddressMode(description.addressV);
+                mStaticSampler.AddressW = sampler::dx12::toD3DTextureAddressMode(description.addressW);
                 mStaticSampler.MipLODBias = description.mipLODBias;
                 mStaticSampler.MaxAnisotropy = description.maxAnisotropy;
-                mStaticSampler.ComparisonFunc = sampler::dx12::comparisionFunction.at(description.comparisonFunc);
-                mStaticSampler.BorderColor = sampler::dx12::staticBorderColor.at(description.borderColor);
+                mStaticSampler.ComparisonFunc = sampler::dx12::toD3DComparisonFunc(description.comparisonFunc);
+                mStaticSampler.BorderColor = sampler::dx12::toD3DStaticBorderColor(description.borderColor);
                 mStaticSampler.MinLOD = description.minLOD;
                 mStaticSampler.MaxLOD = description.maxLOD;
             }

@@ -38,7 +38,7 @@ namespace graphics
         {
             D3D12_HEAP_PROPERTIES heapProperties{};
 
-            heapProperties.Type = heapType.at(description.type);
+            heapProperties.Type = toD3DHeapType(description.type);
             heapProperties.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
             heapProperties.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
             heapProperties.CreationNodeMask = 1;

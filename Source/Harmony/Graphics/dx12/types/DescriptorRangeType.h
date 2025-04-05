@@ -9,12 +9,19 @@ namespace graphics
 {
     namespace dx12
     {
-        // maps graphics::DescriptorRangeType and D3D12_DESCRIPTOR_RANGE_TYPE
-        static const std::unordered_map<graphics::DescriptorRangeType, D3D12_DESCRIPTOR_RANGE_TYPE> descriptorRangeType = {
-            { graphics::DescriptorRangeType::CBV, D3D12_DESCRIPTOR_RANGE_TYPE_CBV },
-            { graphics::DescriptorRangeType::SRV, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },
-            { graphics::DescriptorRangeType::UAV, D3D12_DESCRIPTOR_RANGE_TYPE_UAV },
-            { graphics::DescriptorRangeType::Sampler, D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER }
-        };
+        inline static const D3D12_DESCRIPTOR_RANGE_TYPE toD3DDescriptorRangeType(const DescriptorRangeType type)
+        {
+            switch (type)
+            {
+            case DescriptorRangeType::CBV:
+                return D3D12_DESCRIPTOR_RANGE_TYPE::D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
+            case DescriptorRangeType::SRV:
+                return D3D12_DESCRIPTOR_RANGE_TYPE::D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+            case DescriptorRangeType::UAV:
+                return D3D12_DESCRIPTOR_RANGE_TYPE::D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
+            case DescriptorRangeType::Sampler:
+                return D3D12_DESCRIPTOR_RANGE_TYPE::D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER;
+            }
+        }
     }
 }

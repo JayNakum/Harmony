@@ -11,18 +11,30 @@ namespace graphics
     {
         namespace dx12
         {
-            // maps graphics::ComparisionFunction and D3D12_COMPARISON_FUNC
-            static const std::unordered_map<ComparisionFunction, D3D12_COMPARISON_FUNC> comparisionFunction = {
-                { ComparisionFunction::None, D3D12_COMPARISON_FUNC::D3D12_COMPARISON_FUNC_NONE },
-                { ComparisionFunction::Never, D3D12_COMPARISON_FUNC::D3D12_COMPARISON_FUNC_NEVER },
-                { ComparisionFunction::Less, D3D12_COMPARISON_FUNC::D3D12_COMPARISON_FUNC_LESS },
-                { ComparisionFunction::Equal, D3D12_COMPARISON_FUNC::D3D12_COMPARISON_FUNC_EQUAL },
-                { ComparisionFunction::LessEqual, D3D12_COMPARISON_FUNC::D3D12_COMPARISON_FUNC_LESS_EQUAL },
-                { ComparisionFunction::Greater, D3D12_COMPARISON_FUNC::D3D12_COMPARISON_FUNC_GREATER },
-                { ComparisionFunction::NotEqual, D3D12_COMPARISON_FUNC::D3D12_COMPARISON_FUNC_NOT_EQUAL },
-                { ComparisionFunction::GreaterEqual, D3D12_COMPARISON_FUNC::D3D12_COMPARISON_FUNC_GREATER_EQUAL },
-                { ComparisionFunction::Always, D3D12_COMPARISON_FUNC::D3D12_COMPARISON_FUNC_ALWAYS }
-            };
+            inline static const D3D12_COMPARISON_FUNC toD3DComparisonFunc(const ComparisionFunction function)
+            {
+                switch (function)
+                {
+                case ComparisionFunction::None:
+                    return D3D12_COMPARISON_FUNC::D3D12_COMPARISON_FUNC_NONE;
+                case ComparisionFunction::Never:
+                    return D3D12_COMPARISON_FUNC::D3D12_COMPARISON_FUNC_NEVER;
+                case ComparisionFunction::Less:
+                    return D3D12_COMPARISON_FUNC::D3D12_COMPARISON_FUNC_LESS;
+                case ComparisionFunction::Equal:
+                    return D3D12_COMPARISON_FUNC::D3D12_COMPARISON_FUNC_EQUAL;
+                case ComparisionFunction::LessEqual:
+                    return D3D12_COMPARISON_FUNC::D3D12_COMPARISON_FUNC_LESS_EQUAL;
+                case ComparisionFunction::Greater:
+                    return D3D12_COMPARISON_FUNC::D3D12_COMPARISON_FUNC_GREATER;
+                case ComparisionFunction::NotEqual:
+                    return D3D12_COMPARISON_FUNC::D3D12_COMPARISON_FUNC_NOT_EQUAL;
+                case ComparisionFunction::GreaterEqual:
+                    return D3D12_COMPARISON_FUNC::D3D12_COMPARISON_FUNC_GREATER_EQUAL;
+                case ComparisionFunction::Always:
+                    return D3D12_COMPARISON_FUNC::D3D12_COMPARISON_FUNC_ALWAYS;
+                }
+            }
         }
     }
 }

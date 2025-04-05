@@ -4,6 +4,7 @@
 #include "directx.h"
 
 #include "PipelineStateEnums.h"
+#include "Format.h"
 
 #include "RootSignature.h"
 
@@ -14,8 +15,8 @@ namespace graphics
     namespace dx12
     {
         /*
-        * Wrapper over ID3D12PipelineState
-        * This is the parent class for the graphics and compute pipeline states
+        * Wrapper over ID3D12PipelineState.
+        * This is the parent class for the graphics and compute pipeline states.
         */
         class PipelineState
         {
@@ -60,31 +61,62 @@ namespace graphics
     {
         class GraphicsPipelineState : public PipelineState
         {
-        public:
+            static constexpr unsigned int MAX_RENDER_TARGETS = 8; // Same as the maximum amount supported in dx12.
 
-            struct Description
+        public:
+            struct InputElementsDescription
             {
-                MemoryBlob vertexShader;
-                MemoryBlob pixelShader;
-                FillMode fillMode;
-                CullMode cullMode;
-                D3D12_DEPTH_STENCIL_DESC DepthStencilState;
-                D3D12_INPUT_LAYOUT_DESC InputLayout;
-                D3D12_INDEX_BUFFER_STRIP_CUT_VALUE IBStripCutValue;
-                D3D12_PRIMITIVE_TOPOLOGY_TYPE PrimitiveTopologyType;
-                unsigned int numRenderTargets;
-                DXGI_FORMAT RTVFormats[8];
-                DXGI_FORMAT DSVFormat;
-                DXGI_SAMPLE_DESC SampleDesc;
-                unsigned int nodeMask;
-                D3D12_CACHED_PIPELINE_STATE CachedPSO;
-                D3D12_PIPELINE_STATE_FLAGS Flags;
+                std::string name;
+                Format format;
+                unsigned int alignedByteOffset;
+                InputClassification inputSlotClassification;
             };
 
-            GraphicsPipelineState(const std::string& name);
+            // Blend Description with default values.
+            // Default values are as per CD3DX12_BLEND_DESC.
+            struct BlendDescription
+            {
+                struct RenderTargetBlendDescription
+                {
+                    bool blendEnable = false;
+                    bool logicOpEnable = false;
+                    Blend srcBlend = Blend::One;
+                    Blend destBlend = Blend::Zero;
+                    BlendOperator blendOp = BlendOperator::Add;
+                    Blend srcBlendAlpha = Blend::One;
+                    Blend destBlendAlpha = Blend::Zero;
+                    BlendOperator blendOpAlpha = BlendOperator::Add;
+                    BlendLogicOperator logicOp = BlendLogicOperator::NOOP;
+                    uint8_t renderTargetWriteMask = (uint8_t)ColorWriteMask::All; // Note: this works directly because the values of ColorWriteMask are same as D3D12_COLOR_WRITE_ENABLE
+                };
 
-        private:
-            D3D12_GRAPHICS_PIPELINE_STATE_DESC mPSODesc;
+                bool alphaToCoverageEnable = false;
+                bool independentBlendEnable = false;
+                std::array<RenderTargetBlendDescription, MAX_RENDER_TARGETS> renderTarget = {};
+            };
+
+            // Graphics PSO create description.
+            struct Description
+            {
+                std::string name;
+                std::vector<InputElementsDescription> inputLayout;
+                MemoryBlob vertexShader;
+                MemoryBlob pixelShader;
+                // TODO: Add more shaders as needed.
+
+                FillMode fillMode = FillMode::Solid;
+                CullMode cullMode = CullMode::None;
+                BlendDescription blendDescription{};
+                PrimitiveTopology primitiveTopologyType = PrimitiveTopology::Triangle;
+                unsigned int numRenderTargets = 1;
+                std::array<Format, MAX_RENDER_TARGETS> rtvFormats = { DefaultFormats::R8G8B8A8_UNORM };
+                Format dsvFormat = DefaultFormats::D24_UNORM_S8_UINT;
+                bool m4xMsaaState = false;
+            };
+
+            GraphicsPipelineState(const Description& description);
+
+            static D3D12_GRAPHICS_PIPELINE_STATE_DESC toD3DDescription(const Description& description);
         };
     }
 }

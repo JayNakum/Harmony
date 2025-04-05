@@ -10,12 +10,12 @@ namespace graphics
     namespace dx12
     {
         DescriptorHeap::DescriptorHeap(const Description & createDescription)
-            : mDescription(createDescription), mHeap(nullptr), mDescriptorSize(0), mNumFreeDescriptors(0)
+            : mDescription(createDescription), mHeap(nullptr), mDescriptorSize(0)
         {
             D3D12_DESCRIPTOR_HEAP_DESC heapDesc{};
-            heapDesc.Type = descriptorHeapType.at(mDescription.type);
+            heapDesc.Type = toD3DDescriptorHeapType(mDescription.type);
             heapDesc.NumDescriptors = (UINT)mDescription.maxDescriptors;
-            heapDesc.Flags = descriptorHeapFlag.at(mDescription.flag);
+            heapDesc.Flags = toD3DDescriptorHeapFlags(mDescription.flag);
             heapDesc.NodeMask = 1;
 
             HRESULT hResult = GfxDevice()->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(mHeap.ReleaseAndGetAddressOf()));

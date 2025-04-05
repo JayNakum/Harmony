@@ -2,7 +2,7 @@
 
 #include "Renderer.h"
 
-#include "CommandListType.h"
+#include "types/CommandListType.h"
 
 namespace graphics
 {
@@ -16,7 +16,7 @@ namespace graphics
             mLastCompletedFenceValue((uint64_t)mType << 56)
         {
             D3D12_COMMAND_QUEUE_DESC createDesc{};
-            createDesc.Type = commandListType.at(mType);
+            createDesc.Type = toD3DCommandListType(mType);
             createDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
 
             HRESULT hResult = GfxDevice()->CreateCommandQueue(&createDesc, IID_PPV_ARGS(&mCommandQueue));

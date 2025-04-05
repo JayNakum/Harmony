@@ -12,8 +12,10 @@
 #include "UploadBuffer.h"
 #include "GPUMemory.h"
 
+
 namespace graphics
 {
+
     /*
     * This is the classes that connects graphics classes with DX12.
     * Contains the state and resources needed to record and execute commands on the GPU.
@@ -60,6 +62,8 @@ namespace graphics
 
 namespace graphics
 {
+    class GraphicContextPool;
+
     class GraphicContext : public CommandContext
     {
     public:

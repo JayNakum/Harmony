@@ -11,12 +11,18 @@ namespace graphics
     {
         namespace dx12
         {
-            // maps graphics::filter and D3D12_FILTER
-            static const std::unordered_map<Filter, D3D12_FILTER> filter = {
-                { Filter::MinMagMipPoint, D3D12_FILTER::D3D12_FILTER_MIN_MAG_MIP_POINT },
-                { Filter::MinMagMipLinear, D3D12_FILTER::D3D12_FILTER_MIN_MAG_MIP_LINEAR },
-                { Filter::Anisotropic, D3D12_FILTER::D3D12_FILTER_ANISOTROPIC }
-            };
+            inline static const D3D12_FILTER toD3DFilter(const Filter filter)
+            {
+                switch (filter)
+                {
+                case Filter::MinMagMipPoint:
+                    return D3D12_FILTER::D3D12_FILTER_MIN_MAG_MIP_POINT;
+                case Filter::MinMagMipLinear:
+                    return D3D12_FILTER::D3D12_FILTER_MIN_MAG_MIP_LINEAR;
+                case Filter::Anisotropic:
+                    return D3D12_FILTER::D3D12_FILTER_ANISOTROPIC;
+                }
+            }
         }
     }
 }

@@ -11,14 +11,22 @@ namespace graphics
     {
         namespace dx12
         {
-            // maps graphics::TextureAddressMode and D3D12_TEXTURE_ADDRESS_MODE
-            static const std::unordered_map<TextureAddressMode, D3D12_TEXTURE_ADDRESS_MODE> textureAddressMode = {
-                { TextureAddressMode::Wrap, D3D12_TEXTURE_ADDRESS_MODE::D3D12_TEXTURE_ADDRESS_MODE_WRAP },
-                { TextureAddressMode::Mirror, D3D12_TEXTURE_ADDRESS_MODE::D3D12_TEXTURE_ADDRESS_MODE_MIRROR },
-                { TextureAddressMode::Clamp, D3D12_TEXTURE_ADDRESS_MODE::D3D12_TEXTURE_ADDRESS_MODE_CLAMP },
-                { TextureAddressMode::Border, D3D12_TEXTURE_ADDRESS_MODE::D3D12_TEXTURE_ADDRESS_MODE_BORDER },
-                { TextureAddressMode::MirrorOnce, D3D12_TEXTURE_ADDRESS_MODE::D3D12_TEXTURE_ADDRESS_MODE_MIRROR_ONCE },
-            };
+            inline static const D3D12_TEXTURE_ADDRESS_MODE toD3DTextureAddressMode(const TextureAddressMode mode)
+            {
+                switch (mode)
+                {
+                case TextureAddressMode::Wrap:
+                    return D3D12_TEXTURE_ADDRESS_MODE::D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+                case TextureAddressMode::Mirror:
+                    return D3D12_TEXTURE_ADDRESS_MODE::D3D12_TEXTURE_ADDRESS_MODE_MIRROR;
+                case TextureAddressMode::Clamp:
+                    return D3D12_TEXTURE_ADDRESS_MODE::D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
+                case TextureAddressMode::Border:
+                    return D3D12_TEXTURE_ADDRESS_MODE::D3D12_TEXTURE_ADDRESS_MODE_BORDER;
+                case TextureAddressMode::MirrorOnce:
+                    return D3D12_TEXTURE_ADDRESS_MODE::D3D12_TEXTURE_ADDRESS_MODE_MIRROR_ONCE;
+                }
+            }
         }
     }
 }

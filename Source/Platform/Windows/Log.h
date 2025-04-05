@@ -62,22 +62,41 @@ if (!(bool)(condition)) \
 } \
 }
 
-// BREAK and DEBUGLOG_ONCE IF condition is FALSE
-#define HASSERT_SOFT_ONCE(category, message, ...) \
+// BREAK and DEBUGLOG if FAILED(hResult)
+#define HASSERT_SOFT_HR(hResult, message, ...) \
 { \
-static bool sTriggeredLog = false; \
-if (!sTriggeredLog) \
+if (FAILED((HRESULT)(hResult))) \
 { \
-    sTriggeredLog = true; \
-    HASSERT_SOFT(category, message, ##__VA_ARGS__); \
+    DEBUGLOG("SOFT ASSERT", message, ##__VA_ARGS__); \
+    DEBUGLOG("ERROR", "%s", utility::translateErrorCode((HRESULT)(hResult)).get()); \
+    BREAK; \
 } \
 }
 
-// HASSERT_SOFT if SUCCEEDED(hResult)
-#define HASSERT_SOFT_HR(hResult, message, ...) HASSERT_SOFT(SUCCEEDED((HRESULT)(hResult)), message, ##__VA_ARGS__); if(FAILED((HRESULT)(hResult))) DEBUGLOG("ASSERT", "%s", utility::translateErrorCode(hResult).get())
+// BREAK and DEBUGLOG ONCE IF condition is FALSE
+#define HASSERT_SOFT_ONCE(category, message, ...) \
+{ \
+static bool sTriggeredLog = false; \
+if (!(bool)(condition) && !sTriggeredLog) \
+{ \
+    sTriggeredLog = true; \
+    DEBUGLOG("SOFT ASSERT", message, ##__VA_ARGS__); \
+    BREAK; \
+} \
+}
 
-// HASSERT_SOFT_ONCE if SUCCEEDED(hResult)
-#define HASSERT_SOFT_HR_ONCE(hResult, message, ...) HASSERT_SOFT_ONCE(SUCCEEDED((HRESULT)(hResult)), message, ##__VA_ARGS__); if(FAILED((HRESULT)(hResult))) DEBUGLOG("ASSERT", "%s", utility::translateErrorCode(hResult).get())
+// BREAK and DEBUGLOG ONCE if FAILED(hResult)
+#define HASSERT_SOFT_HR_ONCE(hResult, message, ...) \
+{ \
+static bool sTriggeredLog = false; \
+if (FAILED((HRESULT)(hResult)) && !sTriggeredLog) \
+{ \
+    sTriggeredLog = true; \
+    DEBUGLOG("SOFT ASSERT", message, ##__VA_ARGS__); \
+    DEBUGLOG("ERROR", "%s", utility::translateErrorCode((HRESULT)(hResult)).get()); \
+    BREAK; \
+} \
+}
 
 // BREAK, DEBUGLOG and ABORT IF condition is FALSE
 #define HASSERT(condition, message, ...) \
@@ -90,8 +109,17 @@ if (!(bool)(condition)) \
 } \
 }
 
-// HASSERT if SUCCEEDED(hResult)
-#define HASSERT_HR(hResult, message, ...) HASSERT(SUCCEEDED((HRESULT)(hResult)), message, ##__VA_ARGS__); if(FAILED((HRESULT)(hResult))) DEBUGLOG("ASSERT", "%s", utility::translateErrorCode(hResult).get())
+// BREAK, DEBUGLOG and ABORT if FAILED(hResult)
+#define HASSERT_HR(hResult, message, ...) \
+{ \
+if (FAILED((HRESULT)(hResult))) \
+{ \
+    DEBUGLOG("ASSERT", message, ##__VA_ARGS__); \
+    DEBUGLOG("ERROR", "%s", utility::translateErrorCode((HRESULT)(hResult)).get()); \
+    BREAK; \
+    std::abort(); \
+} \
+}
 
 #else
 

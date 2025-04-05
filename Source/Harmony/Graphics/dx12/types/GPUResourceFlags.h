@@ -9,19 +9,33 @@ namespace graphics
 {
     namespace dx12
     {
-        // maps graphics::GPUResourceFlags and D3D12_RESOURCE_FLAGS
-        static const std::unordered_map<graphics::GPUResourceFlags, D3D12_RESOURCE_FLAGS> gpuResourceFlags = {
-            { GPUResourceFlags::None, D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE },
-            { GPUResourceFlags::AllowRenderTarget, D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET },
-            { GPUResourceFlags::AllowDepthStencil, D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL },
-            { GPUResourceFlags::AllowUnorderedAccess, D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS }
-            // TODO: Add support for the following flags
-            // { GPUResourceFlags::DenyShaderResource, D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE },
-            // { GPUResourceFlags::AllowCrossAdapter, D3D12_RESOURCE_FLAG_ALLOW_CROSS_ADAPTER },
-            // { GPUResourceFlags::AllowSimultaneousAccess, D3D12_RESOURCE_FLAG_ALLOW_SIMULTANEOUS_ACCESS },
-            // { GPUResourceFlags::VideoDecodeReferenceOnly, D3D12_RESOURCE_FLAG_VIDEO_DECODE_REFERENCE_ONLY },
-            // { GPUResourceFlags::VideoEncodeReferenceOnly, D3D12_RESOURCE_FLAG_VIDEO_ENCODE_REFERENCE_ONLY },
-            // { GPUResourceFlags::RayTracingAccelerationStructure, D3D12_RESOURCE_FLAG_RAYTRACING_ACCELERATION_STRUCTURE }
-        };
+        inline static const D3D12_RESOURCE_FLAGS toD3DResourceFlags(const GPUResourceFlags flags)
+        {
+            switch (flags)
+            {
+            case GPUResourceFlags::None:
+                return D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE;
+            case GPUResourceFlags::AllowRenderTarget:
+                return D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+            case GPUResourceFlags::AllowDepthStencil:
+                return D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+            case GPUResourceFlags::AllowUnorderedAccess:
+                return D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
+            // TODO: Add support for the following flags when implemented in GPUResourceFlags
+            // case GPUResourceFlags::DenyShaderResource:
+            //     return D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE;
+            // case GPUResourceFlags::AllowCrossAdapter:
+            //     return D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_ALLOW_CROSS_ADAPTER;
+            // case GPUResourceFlags::AllowSimultaneousAccess:
+            //     return D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_ALLOW_SIMULTANEOUS_ACCESS;
+            // case GPUResourceFlags::VideoDecodeReferenceOnly:
+            //     return D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_VIDEO_DECODE_REFERENCE_ONLY;
+            // case GPUResourceFlags::VideoEncodeReferenceOnly:
+            //     return D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_VIDEO_ENCODE_REFERENCE_ONLY;
+            // case GPUResourceFlags::RayTracingAccelerationStructure:
+            //     return D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_RAYTRACING_ACCELERATION_STRUCTURE;
+            }
+        }
+
     }
 }

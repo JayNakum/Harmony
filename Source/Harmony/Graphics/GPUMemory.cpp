@@ -21,7 +21,7 @@ namespace graphics
 
         HRESULT hResult = GfxDevice()->CreateCommittedResource(
             &heapProperties, D3D12_HEAP_FLAG_NONE, &resourceDescription,
-            dx12::gpuResourceStates.at(mUsageState), nullptr, IID_PPV_ARGS(getAddressOf())
+            dx12::toD3DResourceStates(mUsageState), nullptr, IID_PPV_ARGS(getAddressOf())
         );
         HASSERT_HR(hResult, "Failed to create committed resource %s.", createDescription.name);
 
@@ -55,7 +55,7 @@ namespace graphics
 
         HRESULT hResult = GfxDevice()->CreateCommittedResource(
             &heapProperties, D3D12_HEAP_FLAG_NONE, &resourceDescription,
-            dx12::gpuResourceStates.at(mUsageState), nullptr, IID_PPV_ARGS(getAddressOf())
+            dx12::toD3DResourceStates(mUsageState), nullptr, IID_PPV_ARGS(getAddressOf())
         );
         HASSERT_HR(hResult, "Failed to create committed resource %s.", createDescription.name);
 
@@ -80,7 +80,7 @@ namespace graphics
 
         HRESULT hResult = GfxDevice()->CreatePlacedResource(
             (backingHeap.get()), heapOffset, &resourceDescription,
-            dx12::gpuResourceStates.at(mUsageState), nullptr, IID_PPV_ARGS(getAddressOf())
+            dx12::toD3DResourceStates(mUsageState), nullptr, IID_PPV_ARGS(getAddressOf())
         );
         HASSERT_HR(hResult, "Failed to create placed resource %s.", createDescription.name);
 
@@ -108,7 +108,7 @@ namespace graphics
 
         HRESULT hResult = GfxDevice()->CreatePlacedResource(
             (backingHeap.get()), heapOffset, &resourceDescription,
-            dx12::gpuResourceStates.at(mUsageState), nullptr, IID_PPV_ARGS(getAddressOf())
+            dx12::toD3DResourceStates(mUsageState), nullptr, IID_PPV_ARGS(getAddressOf())
         );
         HASSERT_HR(hResult, "Failed to create placed resource %s.", createDescription.name);
 
