@@ -31,7 +31,7 @@ def clean_files(start_path = '.'):
         # Do not walk these subdirectories. Remove them from the list
         i = 0
         while i < len(dirs):
-            if dirs[i].startswith(('Build', 'Vendors')):
+            if dirs[i].startswith(('.git', '.vscode', '__pycache__', 'Build', 'Vendors')):
                 del dirs[i]
             else:
                 i += 1

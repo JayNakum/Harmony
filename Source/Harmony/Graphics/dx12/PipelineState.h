@@ -75,7 +75,6 @@ namespace graphics
                 static D3D12_INPUT_ELEMENT_DESC toD3DInputElementDesc(const InputElementsDescription& description);
             };
 
-
             // Blend Description with default values.
             // Default values are as per CD3DX12_BLEND_DESC.
             struct BlendDescription
