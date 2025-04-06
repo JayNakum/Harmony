@@ -32,8 +32,29 @@ namespace graphics
             inline ID3D12Fence* operator->() { return mFence.Get(); }
 
         private:
+            HANDLE acquireEventHandle();
+
+            void releaseEventHandle(HANDLE& handle, uint64_t fenceValue);
+
+            void destroyAllEventHandles();
+
+        private:
             Microsoft::WRL::ComPtr<ID3D12Fence> mFence;
             std::mutex mFenceEventMutex;
+
+            struct FenceEventCompare
+            {
+                bool operator()(const std::pair<uint64_t, HANDLE>& a, const std::pair<uint64_t, HANDLE>& b)
+                {
+                    return a.first > b.first; // Smaller fence value gets higher priority
+                }
+            };
+
+            std::priority_queue<
+                std::pair<uint64_t, HANDLE>,
+                std::vector<std::pair<uint64_t, HANDLE>>,
+                FenceEventCompare
+            > mAvailableEvents;
         };
     }
 }

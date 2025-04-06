@@ -91,6 +91,34 @@ namespace graphics
             Format::Uncompressed uncompressed;
             Format::Compressed compressed;
         };
+
+        bool operator==(const Format& other) const
+        {
+            if (kind != other.kind)
+                return false;
+
+            if (kind == Kind::Uncompressed)
+            {
+                return (uncompressed.channels == other.uncompressed.channels) &&
+                    (uncompressed.type == other.uncompressed.type) &&
+                    (uncompressed.bits[0] == other.uncompressed.bits[0]) &&
+                    (uncompressed.bits[1] == other.uncompressed.bits[1]) &&
+                    (uncompressed.bits[2] == other.uncompressed.bits[2]) &&
+                    (uncompressed.bits[3] == other.uncompressed.bits[3]);
+            }
+            else // Kind::Compressed
+            {
+                return (compressed.blockWidth == other.compressed.blockWidth) &&
+                    (compressed.blockHeight == other.compressed.blockHeight) &&
+                    (compressed.blockSizeBytes == other.compressed.blockSizeBytes) &&
+                    (compressed.type == other.compressed.type);
+            }
+        }
+
+        bool operator!=(const Format& other) const
+        {
+            return !(*this == other);
+        }
     };
 
     namespace DefaultFormats

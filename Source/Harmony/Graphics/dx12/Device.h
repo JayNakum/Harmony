@@ -53,6 +53,9 @@ namespace graphics
             Microsoft::WRL::ComPtr<ID3D12Device> mDevice;
             bool mTypedUAVLoadSupport_R11G11B10_FLOAT;
             bool mTypedUAVLoadSupport_R16G16B16A16_FLOAT = false;
+
+            bool m4xMSAAState = false;
+            unsigned int m4xMSAAQuality = 0;
         };
     }
 }

@@ -21,24 +21,56 @@ namespace graphics
         void Fence::wait(uint64_t fenceValue, DWORD miliSeconds)
         {
             std::lock_guard<std::mutex> scoppedLockGuard(mFenceEventMutex);
+            HANDLE eventHandle = acquireEventHandle();
 
-            // Keeping the event handle local allows a fence to have separate handles for each fence value.
-            // Which allows multithreaded waits.
-            // If thread A requests a wait on fence 100 and thread B requests a wait on fence 99
-            // And the global mEventHandle is already waiting for 100 then thread B will automatically need to wait as well
-            // but since the event is local, it solves the problem
-            HANDLE eventHandle = CreateEvent(nullptr, FALSE, FALSE, NULL);
-            HASSERT(eventHandle != NULL, "Failed to create fence event handle.");
+            HRESULT hResult = mFence->SetEventOnCompletion(fenceValue, eventHandle);
+            if (FAILED(hResult))
+            {
+                releaseEventHandle(eventHandle, fenceValue);
+                HASSERT(false, "Failed to set event on fence completion");
+            }
 
-            mFence->SetEventOnCompletion(fenceValue, eventHandle);
             WaitForSingleObject(eventHandle, miliSeconds);
-
-            CloseHandle(eventHandle);
+            releaseEventHandle(eventHandle, fenceValue);
         }
 
         Fence::~Fence()
         {
+            std::lock_guard<std::mutex> scoppedLockGuard(mFenceEventMutex);
+            destroyAllEventHandles();
             mFence = nullptr;
+        }
+
+        HANDLE Fence::acquireEventHandle()
+        {
+            if (!mAvailableEvents.empty())
+            {
+                const auto& top = mAvailableEvents.top();
+                if (mFence->GetCompletedValue() >= top.first)
+                {
+                    HANDLE reusedHandle = top.second;
+                    mAvailableEvents.pop();
+                    return reusedHandle;
+                }
+            }
+
+            HANDLE newHandle = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+            HASSERT(newHandle != NULL, "Failed to create fence event handle");
+            return newHandle;
+        }
+
+        void Fence::releaseEventHandle(HANDLE& handle, uint64_t fenceValue)
+        {
+            mAvailableEvents.emplace(fenceValue, &handle);
+        }
+
+        void Fence::destroyAllEventHandles()
+        {
+            while (!mAvailableEvents.empty())
+            {
+                CloseHandle(mAvailableEvents.top().second);
+                mAvailableEvents.pop();
+            }
         }
     }
 }

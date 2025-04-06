@@ -6,6 +6,7 @@
 #include "PipelineStateEnums.h"
 #include "Format.h"
 
+#include "Blob.h"
 #include "RootSignature.h"
 
 #include "Log.h"
@@ -70,7 +71,10 @@ namespace graphics
                 Format format;
                 unsigned int alignedByteOffset;
                 InputClassification inputSlotClassification;
+
+                static D3D12_INPUT_ELEMENT_DESC toD3DInputElementDesc(const InputElementsDescription& description);
             };
+
 
             // Blend Description with default values.
             // Default values are as per CD3DX12_BLEND_DESC.
@@ -88,11 +92,15 @@ namespace graphics
                     BlendOperator blendOpAlpha = BlendOperator::Add;
                     BlendLogicOperator logicOp = BlendLogicOperator::NOOP;
                     uint8_t renderTargetWriteMask = (uint8_t)ColorWriteMask::All; // Note: this works directly because the values of ColorWriteMask are same as D3D12_COLOR_WRITE_ENABLE
+
+                    static D3D12_RENDER_TARGET_BLEND_DESC toD3DRenderTargetBlendDesc(const RenderTargetBlendDescription& description);
                 };
 
                 bool alphaToCoverageEnable = false;
                 bool independentBlendEnable = false;
                 std::array<RenderTargetBlendDescription, MAX_RENDER_TARGETS> renderTarget = {};
+
+                static D3D12_BLEND_DESC toD3DBlendDesc(const BlendDescription& description);
             };
 
             // Graphics PSO create description.
@@ -100,8 +108,8 @@ namespace graphics
             {
                 std::string name;
                 std::vector<InputElementsDescription> inputLayout;
-                MemoryBlob vertexShader;
-                MemoryBlob pixelShader;
+                Blob vertexShader;
+                Blob pixelShader;
                 // TODO: Add more shaders as needed.
 
                 FillMode fillMode = FillMode::Solid;
@@ -112,11 +120,14 @@ namespace graphics
                 std::array<Format, MAX_RENDER_TARGETS> rtvFormats = { DefaultFormats::R8G8B8A8_UNORM };
                 Format dsvFormat = DefaultFormats::D24_UNORM_S8_UINT;
                 bool m4xMsaaState = false;
+                unsigned int m4xMsaaQuality = 0;
             };
 
-            GraphicsPipelineState(const Description& description);
+            GraphicsPipelineState(Description& description);
+            ~GraphicsPipelineState();
 
-            static D3D12_GRAPHICS_PIPELINE_STATE_DESC toD3DDescription(const Description& description);
+        private:
+            std::vector<D3D12_INPUT_ELEMENT_DESC> mInputElements;
         };
     }
 }

@@ -158,7 +158,7 @@ namespace graphics
                 if (sysDeveloperModeEnabled)
                     mDevice->SetStablePowerState(TRUE);
             }
-#endif	
+#endif
 
 #if defined(DEBUG)
             ID3D12InfoQueue* infoQueue = nullptr;

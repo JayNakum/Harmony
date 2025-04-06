@@ -54,7 +54,6 @@ namespace graphics
             {
                 return;
             }
-            		
             mFence.wait(fenceValue);
             mLastCompletedFenceValue = fenceValue;
         }

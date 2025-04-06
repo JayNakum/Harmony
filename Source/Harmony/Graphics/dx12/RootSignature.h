@@ -33,7 +33,9 @@ namespace graphics
 
             // Returns the raw pointer of ID3D12RootSignature.
             inline ID3D12RootSignature* get() { mRootSignature.Get(); }
-            inline const ID3D12RootSignature* get() const { mRootSignature.Get(); }
+            inline ID3D12RootSignature* get() const { mRootSignature.Get(); }
+
+            const Microsoft::WRL::ComPtr<ID3D12RootSignature>& operator()() const { return mRootSignature; }
 
         private:
             Microsoft::WRL::ComPtr<ID3D12RootSignature> mRootSignature;

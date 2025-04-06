@@ -4,7 +4,6 @@
 
 ## Graphics
 #### Low level abstraction of api classes
-* PSO
 * ShaderInputManager
 * GPU resources
 * put toString() inside ifdefs

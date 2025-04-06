@@ -187,5 +187,10 @@ namespace graphics
             { DefaultFormats::Y410, DXGI_FORMAT_Y410 },
             { DefaultFormats::Y416, DXGI_FORMAT_Y416 },
         };
+
+        inline static const DXGI_FORMAT toDXGIFormat(const Format& format)
+        {
+            return defaultFormats.at(format);
+        }
     }
 }
