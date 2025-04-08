@@ -71,11 +71,9 @@ namespace graphics
         void createPlaced(const Description& createDescription, dx12::Heap& backingHeap, uint64_t heapOffset, UploadBuffer& sourceData, uint32_t sourceOffset = 0);
 
     public:
-        inline const dx12::DescriptorHandle& getSRV() const { return mSRV; }
-
         inline uint64_t rootConstantBufferView() const { return getGPUVirtualAddress(); }
 
-        dx12::DescriptorHandle createConstantBufferView(uint32_t offset, size_t size) const;
+        void createConstantBufferView(uint32_t offset, size_t size, dx12::DescriptorHandle& cbvHandle) const;
 
         const VertexBuffer vertexBufferView(size_t offset, size_t size, size_t stride) const;
         inline const VertexBuffer vertexBufferView(size_t baseVertexIndex = 0) const
@@ -95,7 +93,7 @@ namespace graphics
         // Creates a GPUResource::Description based on the initData
         dx12::GPUResource::Description describeBuffer() const;
 
-        virtual void createViews() = 0;
+        virtual void createViews(dx12::DescriptorHandle& srvHandle) = 0;
 
     private:
         // Initializes the local variables.
@@ -103,9 +101,6 @@ namespace graphics
         void initialize(const Description& createDescription);
 
     protected:
-        dx12::DescriptorHandle mSRV;
-        // TODO: DescriptorHandle mUAV;
-
         size_t mBufferSize;
         uint32_t mElementCount;
         uint32_t mElementSize;
@@ -118,6 +113,6 @@ namespace graphics
     class ByteAddressBuffer : public GPUMemory
     {
     public:
-        virtual void createViews() override;
+        virtual void createViews(dx12::DescriptorHandle& srvHandle) override;
     };
 }

@@ -125,7 +125,7 @@ namespace graphics
         createViews();
     }
 
-    dx12::DescriptorHandle GPUMemory::createConstantBufferView(uint32_t offset, size_t size) const
+    void GPUMemory::createConstantBufferView(uint32_t offset, size_t size, dx12::DescriptorHandle& cbvHandle) const
     {
         HASSERT(offset + size <= mBufferSize, "offset(%d) + size(%d) is more than total buffer size(%d).", offset, size, mBufferSize);
 
@@ -135,9 +135,7 @@ namespace graphics
         cbvDesc.BufferLocation = mGPUVirtualAddress + (size_t)offset;
         cbvDesc.SizeInBytes = (UINT)size;
 
-        dx12::DescriptorHandle hCBV = GfxAllocateDescriptor();
-        GfxDevice()->CreateConstantBufferView(&cbvDesc, hCBV);
-        return hCBV;
+        GfxDevice()->CreateConstantBufferView(&cbvDesc, cbvHandle);
     }
 
     const VertexBuffer GPUMemory::vertexBufferView(size_t offset, size_t size, size_t stride) const
@@ -183,7 +181,7 @@ namespace graphics
 
 namespace graphics
 {
-    void ByteAddressBuffer::createViews()
+    void ByteAddressBuffer::createViews(dx12::DescriptorHandle& srvHandle)
     {
         D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
         srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
@@ -192,10 +190,6 @@ namespace graphics
         srvDesc.Buffer.NumElements = (UINT)mBufferSize / 4;
         srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_RAW;
 
-        if (mSRV.getGPUPtr() == GPUResource::INVALID_ADDRESS)
-        {
-            mSRV = GfxAllocateDescriptor();
-        }
-        GfxDevice()->CreateShaderResourceView(mResource.Get(), &srvDesc, mSRV);
+        GfxDevice()->CreateShaderResourceView(mResource.Get(), &srvDesc, srvHandle);
     }
 }
