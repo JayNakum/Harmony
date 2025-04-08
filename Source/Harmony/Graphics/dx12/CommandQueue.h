@@ -1,0 +1,70 @@
+#pragma once
+
+#include "common.h"
+#include "directx.h"
+
+#include "CommandObject.h"
+
+#include "CommandList.h"
+#include "Fence.h"
+
+#include "Log.h"
+
+namespace graphics
+{
+    namespace dx12
+    {
+        /*
+        * Wrapper over ID3D12CommandQueue
+        */
+        class CommandQueue : public CommandObject
+        {
+        public:
+            struct Description
+            {
+                std::string name;
+                CommandListType type;
+            };
+
+            // Creates an ID3D12CommandQueue of createDescription.type.
+            CommandQueue(const Description& createDescription);
+
+            // Executes the commandlist and returns the incremented fence.
+            uint64_t executeCommandList(dx12::CommandList& commandList);
+
+            // Signals the command queue and returns the incremented fence value.
+            uint64_t incrementFence();
+
+            // Checks if the fenceValue is reached or not.
+            bool isFenceComplete(uint64_t fenceValue);
+
+            // Waits for the passed fence value.
+            void waitForFence(uint64_t fenceValue);
+
+            // Flushes the entire command queue.
+            inline void waitForIdle() { waitForFence(incrementFence()); }
+
+            // Flushes the queueu and destroys the ID3D12CommadQueue.
+            ~CommandQueue();
+
+            // Operator overload that returns the raw pointer of ID3D12CommandQueue.
+            inline const ID3D12CommandQueue* operator->() const { return mCommandQueue.Get(); }
+            inline ID3D12CommandQueue* operator->() { return mCommandQueue.Get(); }
+
+        private:
+            // Increments the fence WITHOUT locking the mutex
+            // This method is used internally to prevent double locking the mutex.
+            // Locking the mutex twice leads to a deadlock.
+            uint64_t incrementFenceNoMutex();
+
+        private:
+            Microsoft::WRL::ComPtr<ID3D12CommandQueue> mCommandQueue;
+
+            // For CPU-GPU synchronization
+            Fence mFence;
+            uint64_t mNextFenceValue;
+            uint64_t mLastCompletedFenceValue;
+            std::mutex mFenceMutex;
+        };
+    }
+}
