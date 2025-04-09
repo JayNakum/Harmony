@@ -1,4 +1,4 @@
-#include "GPUMemory.h"
+#include "GPUBuffer.h"
 
 #include "Renderer.h"
 #include "CommandContext.h"
@@ -7,7 +7,7 @@
 
 namespace graphics
 {
-    void GPUMemory::createCommitted(const Description& createDescription, const void* initialData)
+    void GPUBuffer::createCommitted(const Description& createDescription)
     {
         initialize(createDescription);
 
@@ -32,47 +32,9 @@ namespace graphics
 #endif
 
         mGPUVirtualAddress = mResource->GetGPUVirtualAddress();
-
-        if (initialData)
-        {
-            CommandContext::initializeBuffer(*this, initialData, mBufferSize);
-        }
-
-        createViews();
     }
 
-    void GPUMemory::createCommitted(const Description& createDescription, UploadBuffer& sourceData, uint32_t sourceOffset)
-    {
-        initialize(createDescription);
-
-        static dx12::Heap::Description description{};
-        description.name = "temp default heap description";
-        description.sizeInBytes = 0;
-        description.type = HeapType::Default;
-        static auto heapProperties = dx12::Heap::toHeapProperties(description);
-
-        auto resourceDescription = dx12::GPUResource::toResourceDesc(describeBuffer());
-
-        HRESULT hResult = GfxDevice()->CreateCommittedResource(
-            &heapProperties, D3D12_HEAP_FLAG_NONE, &resourceDescription,
-            dx12::toD3DResourceStates(mUsageState), nullptr, IID_PPV_ARGS(getAddressOf())
-        );
-        HASSERT_HR(hResult, "Failed to create committed resource %s.", createDescription.name);
-
-#if defined(RELEASE)
-        (void)createDescription.name;
-#else
-        mResource->SetName(utility::toWideString(createDescription.name).c_str());
-#endif
-
-        mGPUVirtualAddress = mResource->GetGPUVirtualAddress();
-
-        CommandContext::initializeBuffer(*this, sourceData, sourceOffset, mBufferSize);
-
-        createViews();
-    }
-
-    void GPUMemory::createPlaced(const Description& createDescription, dx12::Heap& backingHeap, uint64_t heapOffset, const void* initialData)
+    void GPUBuffer::createPlaced(const Description& createDescription, dx12::Heap& backingHeap, uint64_t heapOffset)
     {
         initialize(createDescription);
 
@@ -91,41 +53,9 @@ namespace graphics
 #endif
 
         mGPUVirtualAddress = mResource->GetGPUVirtualAddress();
-
-        if (initialData)
-        {
-            CommandContext::initializeBuffer(*this, initialData, mBufferSize);
-        }
-
-        createViews();
     }
 
-    void GPUMemory::createPlaced(const Description& createDescription, dx12::Heap& backingHeap, uint64_t heapOffset, UploadBuffer& sourceData, uint32_t sourceOffset)
-    {
-        initialize(createDescription);
-
-        auto resourceDescription = dx12::GPUResource::toResourceDesc(describeBuffer());
-
-        HRESULT hResult = GfxDevice()->CreatePlacedResource(
-            (backingHeap.get()), heapOffset, &resourceDescription,
-            dx12::toD3DResourceStates(mUsageState), nullptr, IID_PPV_ARGS(getAddressOf())
-        );
-        HASSERT_HR(hResult, "Failed to create placed resource %s.", createDescription.name);
-
-#if defined(RELEASE)
-        (void)createDescription.name;
-#else
-        mResource->SetName(utility::toWideString(createDescription.name).c_str());
-#endif
-
-        mGPUVirtualAddress = mResource->GetGPUVirtualAddress();
-
-        CommandContext::initializeBuffer(*this, sourceData, sourceOffset, mBufferSize);
-
-        createViews();
-    }
-
-    void GPUMemory::createConstantBufferView(uint32_t offset, size_t size, dx12::DescriptorHandle& cbvHandle) const
+    const ConstantBufferView GPUBuffer::createConstantBufferView(dx12::DescriptorHandle& cbvHandle, uint32_t offset, size_t size) const
     {
         HASSERT(offset + size <= mBufferSize, "offset(%d) + size(%d) is more than total buffer size(%d).", offset, size, mBufferSize);
 
@@ -135,12 +65,18 @@ namespace graphics
         cbvDesc.BufferLocation = mGPUVirtualAddress + (size_t)offset;
         cbvDesc.SizeInBytes = (UINT)size;
 
+        ConstantBufferView cbv{};
+        cbv.bufferLocation = cbvDesc.BufferLocation;
+        cbv.sizeInBytes = cbvDesc.SizeInBytes;
+
         GfxDevice()->CreateConstantBufferView(&cbvDesc, cbvHandle);
+
+        return cbv;
     }
 
-    const VertexBuffer GPUMemory::vertexBufferView(size_t offset, size_t size, size_t stride) const
+    const VertexBufferView GPUBuffer::vertexBufferView(size_t offset, size_t size, size_t stride) const
     {
-        VertexBuffer bufferView{};
+        VertexBufferView bufferView{};
 
         bufferView.bufferLocation = mGPUVirtualAddress + offset;
         bufferView.sizeInBytes = size;
@@ -149,9 +85,9 @@ namespace graphics
         return bufferView;
     }
 
-    const IndexBuffer GPUMemory::indexBufferView(size_t offset, size_t size, bool is32Bit) const
+    const IndexBufferView GPUBuffer::indexBufferView(size_t offset, size_t size, bool is32Bit) const
     {
-        IndexBuffer bufferView{};
+        IndexBufferView bufferView{};
 
         bufferView.bufferLocation = mGPUVirtualAddress + offset;
         bufferView.sizeInBytes = size;
@@ -160,7 +96,7 @@ namespace graphics
         return bufferView;
     }
 
-    dx12::GPUResource::Description GPUMemory::describeBuffer() const
+    dx12::GPUResource::Description GPUBuffer::describeBuffer() const
     {
         dx12::GPUResource::Description description{};
         description.width = mBufferSize;
@@ -169,7 +105,7 @@ namespace graphics
         return description;
     }
 
-    void GPUMemory::initialize(const Description& createDescription)
+    void GPUBuffer::initialize(const Description& createDescription)
     {
         destroy();
         mElementCount = createDescription.elementCount;
@@ -181,13 +117,16 @@ namespace graphics
 
 namespace graphics
 {
-    void ByteAddressBuffer::createViews(dx12::DescriptorHandle& srvHandle)
+    void ByteAddressBuffer::createShaderResourceView(dx12::DescriptorHandle& srvHandle, unsigned int sizeInBytes, unsigned int offsetInBytes) const
     {
         D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
         srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
         srvDesc.Format = DXGI_FORMAT_R32_TYPELESS;
         srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-        srvDesc.Buffer.NumElements = (UINT)mBufferSize / 4;
+
+        srvDesc.Buffer.FirstElement = offsetInBytes / 4;
+        srvDesc.Buffer.NumElements = sizeInBytes / 4;
+
         srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_RAW;
 
         GfxDevice()->CreateShaderResourceView(mResource.Get(), &srvDesc, srvHandle);

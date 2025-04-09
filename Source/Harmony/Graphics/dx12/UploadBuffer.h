@@ -2,7 +2,7 @@
 
 #include "common.h"
 
-#include "dx12/GPUResource.h"
+#include "GPUResource.h"
 
 namespace graphics
 {

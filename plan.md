@@ -1,6 +1,11 @@
-* GPU resources
+* GPUResource
+	* GPUBuffer
+	* GPUTexture
+	* RenderTarget and Pixel Buffers
 * Window
 * Swapchain
+* Main Loop
+* Input Handling
 * Get a triangle with the new rewrite
 * ShaderInputManager
 * Render the old fog scene

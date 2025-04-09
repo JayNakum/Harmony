@@ -2,11 +2,6 @@
 
 #include "Renderer.h"
 
-#include "GPUMemory.h"
-#include "UploadBuffer.h"
-
-#include "dx12/CommandList.h"
-
 namespace graphics
 {
     CommandContext::CommandContext(const CommandListType type)
@@ -63,7 +58,7 @@ namespace graphics
         return fence;
     }
 
-    void CommandContext::initializeBuffer(GPUMemory& dest, const void* data, size_t numBytes, size_t destOffset)
+    void CommandContext::initializeBuffer(GPUBuffer& dest, const void* data, size_t numBytes, size_t destOffset)
     {
         // Copy data to an intermediate upload heap.
         UploadBuffer intermediateBuffer({ "Intermediate Buffer", numBytes });
@@ -76,7 +71,7 @@ namespace graphics
         initializeBuffer(dest, intermediateBuffer, numBytes);
     }
 
-    void CommandContext::initializeBuffer(GPUMemory& dest, UploadBuffer& src, size_t srcOffset, size_t numBytes, size_t destOffset)
+    void CommandContext::initializeBuffer(GPUBuffer& dest, UploadBuffer& src, size_t srcOffset, size_t numBytes, size_t destOffset)
     {
         // Safety check for maximum available bytes
         size_t maxBytes = std::min<size_t>(dest.getSize() - destOffset, src.getSize() - srcOffset);
