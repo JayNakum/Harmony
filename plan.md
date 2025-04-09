@@ -1,5 +1,4 @@
 * GPUResource
-	* GPUBuffer
 	* GPUTexture
 	* RenderTarget and Pixel Buffers
 * Window
