@@ -21,7 +21,7 @@ namespace graphics
 
         HRESULT hResult = GfxDevice()->CreateCommittedResource(
             &heapProperties, D3D12_HEAP_FLAG_NONE, &resourceDescription,
-            dx12::toD3DResourceStates(mUsageState), nullptr, IID_PPV_ARGS(getAddressOf())
+            dx12::toD3DResourceState(mUsageState), nullptr, IID_PPV_ARGS(getAddressOf())
         );
         HASSERT_HR(hResult, "Failed to create committed resource %s.", createDescription.name);
 
@@ -42,7 +42,7 @@ namespace graphics
 
         HRESULT hResult = GfxDevice()->CreatePlacedResource(
             (backingHeap.get()), heapOffset, &resourceDescription,
-            dx12::toD3DResourceStates(mUsageState), nullptr, IID_PPV_ARGS(getAddressOf())
+            dx12::toD3DResourceState(mUsageState), nullptr, IID_PPV_ARGS(getAddressOf())
         );
         HASSERT_HR(hResult, "Failed to create placed resource %s.", createDescription.name);
 
@@ -119,6 +119,10 @@ namespace graphics
 {
     void ByteAddressBuffer::createShaderResourceView(dx12::DescriptorHandle& srvHandle, unsigned int sizeInBytes, unsigned int offsetInBytes) const
     {
+        HASSERT(offsetInBytes + sizeInBytes <= mBufferSize, "offset(%d) + size(%d) is more than total buffer size(%d).", offsetInBytes, sizeInBytes, mBufferSize);
+        HASSERT(maths::isAligned(offsetInBytes, ByteAddressBuffer::DEFAULT_ALIGNMENT), "Byte offset must be %d-byte aligned.", ByteAddressBuffer::DEFAULT_ALIGNMENT);
+        HASSERT(maths::isAligned(sizeInBytes, ByteAddressBuffer::DEFAULT_ALIGNMENT), "Byte size must be %d-byte aligned.", ByteAddressBuffer::DEFAULT_ALIGNMENT);
+
         D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
         srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
         srvDesc.Format = DXGI_FORMAT_R32_TYPELESS;

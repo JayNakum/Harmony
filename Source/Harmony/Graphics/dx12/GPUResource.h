@@ -4,7 +4,7 @@
 #include "directx.h"
 
 #include "GPUResourceEnums.h"
-#include "types/GPUResourceStates.h"
+#include "types/GPUResourceState.h"
 #include "types/GPUResourceFlags.h"
 #include "types/GPUResourceDimension.h"
 

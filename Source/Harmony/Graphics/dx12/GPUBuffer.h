@@ -113,11 +113,13 @@ namespace graphics
     */
     class ByteAddressBuffer : public GPUBuffer
     {
+        static constexpr unsigned int DEFAULT_ALIGNMENT = 4;
     public:
         // Creates an SRV of the entire buffer.
         // Requires a pre allocated descriptorHandle& from a descriptor heap.
         inline void createShaderResourceView(dx12::DescriptorHandle& srvHandle) const
         {
+            HASSERT(maths::isAligned(mBufferSize, ByteAddressBuffer::DEFAULT_ALIGNMENT), "ByteAddressBuffer size must be %d-byte aligned.", ByteAddressBuffer::DEFAULT_ALIGNMENT);
             createShaderResourceView(srvHandle, 0, mBufferSize);
         }
 

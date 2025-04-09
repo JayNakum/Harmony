@@ -9,7 +9,7 @@ namespace graphics
 {
     namespace dx12
     {
-        inline static const D3D12_RESOURCE_STATES toD3DResourceStates(const GPUResourceState state)
+        inline static const D3D12_RESOURCE_STATES toD3DResourceState(const GPUResourceState state)
         {
             switch (state)
             {

@@ -2,7 +2,7 @@
 
 #include "Renderer.h"
 
-#include "dx12/types/GPUResourceStates.h"
+#include "dx12/types/GPUResourceState.h"
 
 namespace graphics
 {
@@ -37,7 +37,7 @@ namespace graphics
 
         HRESULT hResult = GfxDevice()->CreateCommittedResource(
             &heapProps, D3D12_HEAP_FLAG_NONE, &createDesc,
-            dx12::toD3DResourceStates(mUsageState), nullptr, IID_PPV_ARGS(&mResource));
+            dx12::toD3DResourceState(mUsageState), nullptr, IID_PPV_ARGS(&mResource));
 
         HASSERT_HR(hResult, "Failed to create upload buffer %s", createDescription.name);
 

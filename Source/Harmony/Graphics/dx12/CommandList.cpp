@@ -3,7 +3,7 @@
 #include "Renderer.h"
 
 #include "types/CommandListType.h"
-#include "types/GPUResourceStates.h"
+#include "types/GPUResourceState.h"
 
 namespace graphics
 {
