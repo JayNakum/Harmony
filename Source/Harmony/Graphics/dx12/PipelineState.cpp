@@ -39,14 +39,16 @@ namespace graphics
             d3dDescription.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
 
             // Input Layout
+
+            std::vector<D3D12_INPUT_ELEMENT_DESC> d3dInputElements;
             for (const InputElementsDescription& element : (description.inputLayout))
             {
-                mInputElements.emplace_back(
+                d3dInputElements.emplace_back(
                     InputElementsDescription::toD3DInputElementDesc(element)
                 );
             }
-            d3dDescription.InputLayout.NumElements = mInputElements.size();
-            d3dDescription.InputLayout.pInputElementDescs = mInputElements.data();
+            d3dDescription.InputLayout.NumElements = d3dInputElements.size();
+            d3dDescription.InputLayout.pInputElementDescs = d3dInputElements.data();
 
             // TODO: IB Strip Cut Value
 
@@ -87,10 +89,7 @@ namespace graphics
 #endif
         }
 
-        GraphicsPipelineState::~GraphicsPipelineState()
-        {
-            mInputElements.clear();
-        }
+        GraphicsPipelineState::~GraphicsPipelineState() {}
 
         D3D12_INPUT_ELEMENT_DESC GraphicsPipelineState::InputElementsDescription::toD3DInputElementDesc(const InputElementsDescription& description)
         {

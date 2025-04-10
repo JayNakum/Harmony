@@ -2,5 +2,8 @@
 
 namespace graphics
 {
+    class ShaderInputLayout
+    {
 
+    };
 }

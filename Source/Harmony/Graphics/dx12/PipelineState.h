@@ -60,11 +60,15 @@ namespace graphics
 
     namespace dx12
     {
+        /*
+        * Graphic pipeline.
+        */
         class GraphicsPipelineState : public PipelineState
         {
             static constexpr unsigned int MAX_RENDER_TARGETS = 8; // Same as the maximum amount supported in dx12.
 
         public:
+            // VS_INPUT
             struct InputElementsDescription
             {
                 std::string name;
@@ -124,9 +128,6 @@ namespace graphics
 
             GraphicsPipelineState(Description& description);
             ~GraphicsPipelineState();
-
-        private:
-            std::vector<D3D12_INPUT_ELEMENT_DESC> mInputElements;
         };
     }
 }
