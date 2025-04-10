@@ -73,7 +73,7 @@ namespace graphics
 
             D3D12_GPU_VIRTUAL_ADDRESS getGPUVirtualAddress() const { return mGPUVirtualAddress; }
 
-            static D3D12_RESOURCE_DESC toResourceDesc(const Description& description)
+            static D3D12_RESOURCE_DESC toD3DResourceDesc(const Description& description)
             {
                 D3D12_RESOURCE_DESC createDesc{};
                 createDesc.Alignment = description.alignment;

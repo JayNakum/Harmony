@@ -58,7 +58,7 @@ namespace graphics
         return fence;
     }
 
-    void CommandContext::initializeBuffer(GPUBuffer& dest, const void* data, size_t numBytes, size_t destOffset)
+    void CommandContext::initializeBuffer(dx12::GPUBuffer& dest, const void* data, size_t numBytes, size_t destOffset)
     {
         // Copy data to an intermediate upload heap.
         UploadBuffer intermediateBuffer({ "Intermediate Buffer", numBytes });
@@ -71,7 +71,7 @@ namespace graphics
         initializeBuffer(dest, intermediateBuffer, numBytes);
     }
 
-    void CommandContext::initializeBuffer(GPUBuffer& dest, UploadBuffer& src, size_t srcOffset, size_t numBytes, size_t destOffset)
+    void CommandContext::initializeBuffer(dx12::GPUBuffer& dest, UploadBuffer& src, size_t srcOffset, size_t numBytes, size_t destOffset)
     {
         // Safety check for maximum available bytes
         size_t maxBytes = std::min<size_t>(dest.getSize() - destOffset, src.getSize() - srcOffset);

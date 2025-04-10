@@ -2,129 +2,126 @@
 
 #include "common.h"
 
-#include "UploadBuffer.h"
-
 #include "GPUResource.h"
 #include "DescriptorHandle.h"
 #include "Heap.h"
 
+#include "UploadBuffer.h"
+
 namespace graphics
 {
-    struct ConstantBufferView
+    namespace dx12
     {
-        uint64_t bufferLocation;
-        size_t sizeInBytes;
-    };
-
-    struct VertexBufferView
-    {
-        uint64_t bufferLocation;
-        size_t sizeInBytes;
-        size_t strideInBytes;
-    };
-
-    struct IndexBufferView
-    {
-        uint64_t bufferLocation;
-        size_t sizeInBytes;
-        bool is32Bit = false;
-    };
-
-    class GPUBuffer : public dx12::GPUResource
-    {
-    protected:
-        GPUBuffer()
-            : mBufferSize(0), mElementCount(0), mElementSize(0),
-            mResourceFlags(GPUResourceFlags::None) {}
-
-    public:
-        struct Description
+        struct BufferView
         {
-            std::string name;
-            uint32_t elementCount;
-            uint32_t elementSize;
+            uint64_t bufferLocation;
+            size_t sizeInBytes;
+            union
+            {
+                size_t strideInBytes;
+                size_t elementSizeInBytes = 32;
+            };
         };
 
-        inline const size_t getSize() const { return mBufferSize; }
-        inline const uint32_t getElementCount() const { return mElementCount; }
-        inline const uint32_t getElementSize() const { return mElementSize; }
-
-        virtual ~GPUBuffer()
+        class GPUBuffer : public GPUResource
         {
-            destroy();
-        }
+        protected:
+            GPUBuffer()
+                : mBufferSize(0), mElementCount(0), mElementSizeInBytes(0),
+                mResourceFlags(GPUResourceFlags::None) {}
 
-        // Create a committed resource.
-        void createCommitted(const Description& createDescription);
+        public:
+            struct Description
+            {
+                std::string name;
+                uint32_t elementCount;
+                uint32_t elementSizeInBytes;
+            };
 
-        // Sub-Allocate a buffer out of a pre-allocated heap.
-        void createPlaced(const Description& createDescription, dx12::Heap& backingHeap, uint64_t heapOffset);
+            inline const size_t getSize() const { return mBufferSize; }
+            inline const uint32_t getElementCount() const { return mElementCount; }
+            inline const uint32_t getElementSize() const { return mElementSizeInBytes; }
 
-    public:
-        // For direct root32Consts
-        inline uint64_t rootConstantBufferView() const { return getGPUVirtualAddress(); }
+            virtual ~GPUBuffer()
+            {
+                destroy();
+            }
 
-        // Creates a CBV based on buffer description.
-        // Requires a pre allocated descriptorHandle& from a descriptor heap.
-        const ConstantBufferView createConstantBufferView(dx12::DescriptorHandle& cbvHandle, uint32_t offset, size_t size) const;
+            // Create a committed resource.
+            void createCommitted(const Description& createDescription);
 
-        // Creates an vertex buffer view with custom offset, size and stride
-        const VertexBufferView vertexBufferView(size_t offset, size_t size, size_t stride) const;
+            // Sub-Allocate a buffer out of a pre-allocated heap.
+            void createPlaced(const Description& createDescription, Heap& backingHeap, uint64_t heapOffset);
 
-        // Creates a vertex buffer view of the entire buffer.
-        inline const VertexBufferView vertexBufferView(size_t baseVertexIndex = 0) const
-        {
-            size_t offset = baseVertexIndex * mElementSize;
-            return vertexBufferView(offset, (uint32_t)(mBufferSize - offset), mElementSize);
-        }
+        public:
+            // For direct root32Consts
+            inline uint64_t rootConstantBufferView() const { return getGPUVirtualAddress(); }
 
-        // Creates an index buffer view with custom offset, size and bits
-        const IndexBufferView indexBufferView(size_t offset, size_t size, bool is32Bit = false) const;
+            // Creates a CBV based on buffer description.
+            // Requires a pre-allocated descriptorHandle& from a descriptor heap.
+            void createConstantBufferView(DescriptorHandle& cbvHandle, uint32_t offset, size_t size) const;
 
-        // Creates an index buffer view of the entire buffer.
-        inline const IndexBufferView indexBufferView(size_t startIndex = 0) const
-        {
-            size_t offset = startIndex * mElementSize;
-            return indexBufferView(offset, (uint32_t)(mBufferSize - offset), mElementSize == 4);
-        }
+            // Creates an vertex buffer view with custom offset, size and stride
+            const BufferView vertexBufferView(size_t offset, size_t size, size_t stride) const;
 
-    protected:
-        // Creates a GPUResource::Description based on the initData
-        dx12::GPUResource::Description describeBuffer() const;
+            // Creates a vertex buffer view of the entire buffer with stride = elementSizeInBytes.
+            inline const BufferView vertexBufferView(size_t baseVertexIndex = 0) const
+            {
+                size_t offset = baseVertexIndex * mElementSizeInBytes;
+                return vertexBufferView(offset, (uint32_t)(mBufferSize - offset), mElementSizeInBytes);
+            }
 
-    private:
-        // Initializes the local variables.
-        // This is called inside the create method.
-        void initialize(const Description& createDescription);
+            // Creates an index buffer view with custom offset, size and bits
+            const BufferView indexBufferView(size_t offset, size_t size, size_t elementSizeInBytes) const;
 
-    protected:
-        size_t mBufferSize;
-        uint32_t mElementCount;
-        uint32_t mElementSize;
-        GPUResourceFlags mResourceFlags;
-    };
+            // Creates an index buffer view of the entire buffer.
+            inline const BufferView indexBufferView(size_t startIndex = 0) const
+            {
+                size_t offset = startIndex * mElementSizeInBytes;
+                return indexBufferView(offset, (uint32_t)(mBufferSize - offset), mElementSizeInBytes);
+            }
+
+        protected:
+            // Creates a GPUResource::Description based on the initData
+            const GPUResource::Description describeBuffer() const;
+
+        private:
+            // Initializes the local variables.
+            // This is called inside the create method.
+            void initialize(const Description& createDescription);
+
+        protected:
+            size_t mBufferSize;
+            uint32_t mElementCount;
+            uint32_t mElementSizeInBytes;
+            GPUResourceFlags mResourceFlags;
+        };
+    }
 }
 
 namespace graphics
 {
-    /*
-    * A ByteAddressBuffer is accessed per byte.
-    * Dividing by 4 because GPU SRV views into a ByteAddressBuffer are in units of 4 bytes.
-    */
-    class ByteAddressBuffer : public GPUBuffer
+    namespace dx12
     {
-        static constexpr unsigned int DEFAULT_ALIGNMENT = 4;
-    public:
-        // Creates an SRV of the entire buffer.
-        // Requires a pre allocated descriptorHandle& from a descriptor heap.
-        inline void createShaderResourceView(dx12::DescriptorHandle& srvHandle) const
+        /*
+        * A ByteAddressBuffer is accessed per byte.
+        * Dividing by 4 because GPU SRV views into a ByteAddressBuffer are in units of 4 bytes.
+        */
+        class ByteAddressBuffer : public GPUBuffer
         {
-            HASSERT(maths::isAligned(mBufferSize, ByteAddressBuffer::DEFAULT_ALIGNMENT), "ByteAddressBuffer size must be %d-byte aligned.", ByteAddressBuffer::DEFAULT_ALIGNMENT);
-            createShaderResourceView(srvHandle, 0, mBufferSize);
-        }
+            static constexpr unsigned int DEFAULT_ALIGNMENT = 4;
+        public:
+            // Creates an SRV of the entire buffer.
+            // Requires a pre allocated descriptorHandle& from a descriptor heap.
+            inline void createShaderResourceView(DescriptorHandle& srvHandle) const
+            {
+                HASSERT(maths::isAligned(mBufferSize, ByteAddressBuffer::DEFAULT_ALIGNMENT), "ByteAddressBuffer size must be %d-byte aligned.", ByteAddressBuffer::DEFAULT_ALIGNMENT);
+                createShaderResourceView(srvHandle, 0, mBufferSize);
+            }
 
-        // Creates an SRV with custom size and offset.
-        // Requires a pre allocated descriptorHandle& from a descriptor heap.
-        void createShaderResourceView(dx12::DescriptorHandle& srvHandle, unsigned int sizeInBytes, unsigned int offsetInBytes = 0) const;
-    };
+            // Creates an SRV with custom size and offset.
+            // Requires a pre allocated descriptorHandle& from a descriptor heap.
+            void createShaderResourceView(DescriptorHandle& srvHandle, unsigned int sizeInBytes, unsigned int offsetInBytes = 0) const;
+        };
+    }
 }

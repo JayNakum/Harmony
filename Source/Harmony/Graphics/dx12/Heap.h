@@ -58,7 +58,7 @@ namespace graphics
             inline const ID3D12Heap* operator->() const { return mHeap.Get(); }
             inline ID3D12Heap* operator->() { return mHeap.Get(); }
 
-            static D3D12_HEAP_PROPERTIES toHeapProperties(const Description& description);
+            static D3D12_HEAP_PROPERTIES toD3DHeapProperties(const Description& description);
 
         private:
             const Description mDescription;

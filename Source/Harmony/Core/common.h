@@ -16,7 +16,7 @@
 
 #include <mutex>
 
-#include <cmath>
 #include <ctime>
 
 #include "Utility.h"
+#include "Maths.h"

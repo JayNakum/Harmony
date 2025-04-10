@@ -45,8 +45,8 @@ namespace graphics
     public:
         // Static methods that use the default command context.
 
-        static void initializeBuffer(GPUBuffer& dest, const void* data, size_t numBytes, size_t destOffset = 0);
-        static void initializeBuffer(GPUBuffer& dest, UploadBuffer& src, size_t srcOffset = 0, size_t numBytes = -1, size_t destOffset = 0);
+        static void initializeBuffer(dx12::GPUBuffer& dest, const void* data, size_t numBytes, size_t destOffset = 0);
+        static void initializeBuffer(dx12::GPUBuffer& dest, UploadBuffer& src, size_t srcOffset = 0, size_t numBytes = -1, size_t destOffset = 0);
 
     private:
         std::string mID;

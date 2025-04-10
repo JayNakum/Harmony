@@ -34,7 +34,7 @@ namespace graphics
             mHeap = nullptr;
         }
 
-        D3D12_HEAP_PROPERTIES Heap::toHeapProperties(const Description& description)
+        D3D12_HEAP_PROPERTIES Heap::toD3DHeapProperties(const Description& description)
         {
             D3D12_HEAP_PROPERTIES heapProperties{};
 

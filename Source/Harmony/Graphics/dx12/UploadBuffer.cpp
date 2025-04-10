@@ -2,65 +2,67 @@
 
 #include "Renderer.h"
 
+#include "dx12/Heap.h"
 #include "dx12/types/GPUResourceState.h"
 
 namespace graphics
 {
-    UploadBuffer::UploadBuffer(const Description& createDescription)
-        : mBufferSize(createDescription.bufferSize)
+    namespace dx12
     {
-        destroy();
+        UploadBuffer::UploadBuffer(const Description& createDescription)
+            : mBufferSize(createDescription.bufferSize)
+        {
+            destroy();
 
-        // Create an upload buffer. This is CPU-visible, but it's write combined memory,
-        // so avoid reading back from it.
-        D3D12_HEAP_PROPERTIES heapProps{};
-        heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
-        heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
-        heapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
-        heapProps.CreationNodeMask = 1;
-        heapProps.VisibleNodeMask = 1;
+            // Create an upload buffer. This is CPU-visible, but it's write combined memory,
+            // so avoid reading back from it.
+            static Heap::Description description{};
+            description.name = "temp upload heap description";
+            description.sizeInBytes = 0;
+            description.type = HeapType::Upload;
+            static D3D12_HEAP_PROPERTIES heapProperties = Heap::toD3DHeapProperties(description);
 
-        // Upload buffers must be 1-dimensional
-        D3D12_RESOURCE_DESC createDesc {};
-        createDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-        createDesc.Width = mBufferSize;
-        createDesc.Height = 1;
-        createDesc.DepthOrArraySize = 1;
-        createDesc.MipLevels = 1;
-        createDesc.Format = DXGI_FORMAT_UNKNOWN;
-        createDesc.SampleDesc.Count = 1;
-        createDesc.SampleDesc.Quality = 0;
-        createDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-        createDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+            // Upload buffers must be 1-dimensional
+            D3D12_RESOURCE_DESC createDesc = GPUResource::toD3DResourceDesc(describeBuffer());
 
-        mUsageState = GPUResourceState::GenericRead;
+            mUsageState = GPUResourceState::GenericRead;
 
-        HRESULT hResult = GfxDevice()->CreateCommittedResource(
-            &heapProps, D3D12_HEAP_FLAG_NONE, &createDesc,
-            dx12::toD3DResourceState(mUsageState), nullptr, IID_PPV_ARGS(&mResource));
+            HRESULT hResult = GfxDevice()->CreateCommittedResource(
+                &heapProperties, D3D12_HEAP_FLAG_NONE, &createDesc,
+                dx12::toD3DResourceState(mUsageState), nullptr, IID_PPV_ARGS(&mResource));
 
-        HASSERT_HR(hResult, "Failed to create upload buffer %s", createDescription.name);
+            HASSERT_HR(hResult, "Failed to create upload buffer %s", createDescription.name);
 
-        mGPUVirtualAddress = mResource->GetGPUVirtualAddress();
+            mGPUVirtualAddress = mResource->GetGPUVirtualAddress();
 
 #if defined(RELEASE)
-        (void)(name);
+            (void)(name);
 #else
-        mResource->SetName(utility::toWideString(createDescription.name).c_str());
+            mResource->SetName(utility::toWideString(createDescription.name).c_str());
 #endif
-    }
+        }
 
-    void* UploadBuffer::map()
-    {
-        void* memory = nullptr;
-        HRESULT hResult = mResource->Map(0, &CD3DX12_RANGE(0, mBufferSize), &memory);
-        HASSERT_HR(hResult, "Failed to map upload buffer resource.");
-        return memory;
-    }
+        void* UploadBuffer::map()
+        {
+            void* memory = nullptr;
+            HRESULT hResult = mResource->Map(0, &CD3DX12_RANGE(0, mBufferSize), &memory);
+            HASSERT_HR(hResult, "Failed to map upload buffer resource.");
+            return memory;
+        }
 
-    void UploadBuffer::unmap(size_t begin, size_t end)
-    {
-        mResource->Unmap(0, &CD3DX12_RANGE(begin, std::min(end, mBufferSize)));
+        void UploadBuffer::unmap(size_t begin, size_t end)
+        {
+            mResource->Unmap(0, &CD3DX12_RANGE(begin, std::min(end, mBufferSize)));
+        }
+
+        const GPUResource::Description UploadBuffer::describeBuffer() const
+        {
+            GPUResource::Description description{};
+            description.width = mBufferSize;
+            description.dimension = GPUResourceDimension::Buffer;
+
+            return description;
+        }
     }
 }
 
