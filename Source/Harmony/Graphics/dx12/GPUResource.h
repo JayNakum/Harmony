@@ -41,6 +41,7 @@ namespace graphics
                 uint64_t width;
                 uint64_t height = 1;
                 uint64_t depth = 1;
+                uint16_t mipLevels = 1;
                 GPUResourceDimension dimension;
                 Format format = DefaultFormats::UNKNOWN;
                 GPUResourceFlags resourceFlags = GPUResourceFlags::None;

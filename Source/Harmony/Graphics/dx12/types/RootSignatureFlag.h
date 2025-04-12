@@ -9,7 +9,7 @@ namespace graphics
 {
     namespace dx12
     {
-        inline static const D3D12_ROOT_SIGNATURE_FLAGS toD3DFlags(const RootSignatureFlags flags)
+        inline static const D3D12_ROOT_SIGNATURE_FLAGS toD3DRootSignatureFlags(const RootSignatureFlags flags)
         {
             D3D12_ROOT_SIGNATURE_FLAGS d3dFlags = D3D12_ROOT_SIGNATURE_FLAG_NONE;
 

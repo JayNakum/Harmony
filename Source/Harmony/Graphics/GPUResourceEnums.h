@@ -6,10 +6,10 @@ namespace graphics
 {
     enum class GPUResourceFlags
     {
-        None,
-        AllowRenderTarget,
-        AllowDepthStencil,
-        AllowUnorderedAccess
+        None = 0,
+        AllowRenderTarget = 1 << 0,
+        AllowDepthStencil = 1 << 1,
+        AllowUnorderedAccess = 1 << 2
         // TODO: Add support for the following flags
         // DenyShaderResource,
         // AllowCrossAdapter,
@@ -18,6 +18,25 @@ namespace graphics
         // VideoEncodeReferenceOnly,
         // RayTracingAccelerationStructure
     };
+
+    inline static const GPUResourceFlags operator|(GPUResourceFlags a, GPUResourceFlags b)
+    {
+        return static_cast<GPUResourceFlags>(static_cast<uint32_t>(a) | static_cast<uint32_t>(b));
+    }
+    inline static const GPUResourceFlags& operator|=(GPUResourceFlags& a, GPUResourceFlags b)
+    {
+        a = a | b;
+        return a;
+    }
+    inline static const GPUResourceFlags operator&(GPUResourceFlags a, GPUResourceFlags b)
+    {
+        return static_cast<GPUResourceFlags>(static_cast<uint32_t>(a) & static_cast<uint32_t>(b));
+    }
+
+    inline static const bool hasFlag(GPUResourceFlags flags, GPUResourceFlags check)
+    {
+        return (flags & check) != GPUResourceFlags::None;
+    }
 
     inline static const std::string toString(const GPUResourceFlags e)
     {
@@ -68,7 +87,10 @@ namespace graphics
         Buffer,
         Texture1D,
         Texture2D,
-        Texture3D
+        Texture3D,
+
+        Texture1DArray,
+        Texture2DArray
     };
 
     inline static const std::string toString(const GPUResourceDimension e)
@@ -87,6 +109,10 @@ namespace graphics
             return "Texture2D";
         case GPUResourceDimension::Texture3D:
             return "Texture3D";
+        case GPUResourceDimension::Texture1DArray:
+            return "Texture1DArray";
+        case GPUResourceDimension::Texture2DArray:
+            return "Texture2DArray";
         }
     }
 }
