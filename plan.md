@@ -1,7 +1,6 @@
 * GPUResource
 	* GPUTexture
 	* RenderTarget and Pixel Buffers
-	* Remove multiple createCommitted and createPlaced
 * Window
 * Swapchain
 * Main Loop
