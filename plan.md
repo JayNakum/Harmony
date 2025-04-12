@@ -5,8 +5,14 @@
 * Swapchain
 * Main Loop
 * Input Handling
-* Use as much forward declarations as possible
 * Code Cleanup
+	* Use as much forward declarations as possible
+	* Consistent #includes
+	* Code comments
+	* Function order
+	* Function name
+	* const correctness
+	* Function parameters order
 * Get a triangle with the new rewrite
 * ShaderInputManager
 * Render the old fog scene
