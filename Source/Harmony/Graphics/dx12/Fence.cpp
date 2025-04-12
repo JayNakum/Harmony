@@ -18,59 +18,17 @@ namespace graphics
 #endif
         }
 
-        void Fence::wait(uint64_t fenceValue, DWORD miliSeconds)
+        void Fence::wait(uint64_t fenceValue)
         {
-            std::lock_guard<std::mutex> scoppedLockGuard(mFenceEventMutex);
-            HANDLE eventHandle = acquireEventHandle();
-
-            HRESULT hResult = mFence->SetEventOnCompletion(fenceValue, eventHandle);
-            if (FAILED(hResult))
-            {
-                releaseEventHandle(eventHandle, fenceValue);
-                HASSERT(false, "Failed to set event on fence completion");
-            }
-
-            WaitForSingleObject(eventHandle, miliSeconds);
-            releaseEventHandle(eventHandle, fenceValue);
+            // Passing NULL is thread safe and doesn't require complex fenceEvent management.
+            // Especially for this case where we need to wait immediately.
+            HRESULT hResult = mFence->SetEventOnCompletion(fenceValue, NULL);
+            HASSERT_HR(hResult, "Failed to set event on fence completion and wait.");
         }
 
         Fence::~Fence()
         {
-            std::lock_guard<std::mutex> scoppedLockGuard(mFenceEventMutex);
-            destroyAllEventHandles();
             mFence = nullptr;
-        }
-
-        HANDLE Fence::acquireEventHandle()
-        {
-            if (!mAvailableEvents.empty())
-            {
-                const auto& top = mAvailableEvents.top();
-                if (mFence->GetCompletedValue() >= top.first)
-                {
-                    HANDLE reusedHandle = top.second;
-                    mAvailableEvents.pop();
-                    return reusedHandle;
-                }
-            }
-
-            HANDLE newHandle = CreateEvent(nullptr, FALSE, FALSE, nullptr);
-            HASSERT(newHandle != NULL, "Failed to create fence event handle");
-            return newHandle;
-        }
-
-        void Fence::releaseEventHandle(HANDLE& handle, uint64_t fenceValue)
-        {
-            mAvailableEvents.emplace(fenceValue, &handle);
-        }
-
-        void Fence::destroyAllEventHandles()
-        {
-            while (!mAvailableEvents.empty())
-            {
-                CloseHandle(mAvailableEvents.top().second);
-                mAvailableEvents.pop();
-            }
         }
     }
 }

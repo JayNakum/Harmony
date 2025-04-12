@@ -1,10 +1,13 @@
 * GPUResource
 	* GPUTexture
 	* RenderTarget and Pixel Buffers
+	* Remove multiple createCommitted and createPlaced
 * Window
 * Swapchain
 * Main Loop
 * Input Handling
+* Use as much forward declarations as possible
+* Code Cleanup
 * Get a triangle with the new rewrite
 * ShaderInputManager
 * Render the old fog scene

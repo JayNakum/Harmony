@@ -7,105 +7,54 @@ namespace graphics
 {
     namespace dx12
     {
-        void GPUBuffer::createCommitted(const Description& createDescription)
+        GPUBuffer::GPUBuffer(const Description& createDescription)
+            : mDescription(createDescription)
         {
-            initialize(createDescription);
-
-            static Heap::Description description{};
-            description.name = "temp default heap description";
-            description.sizeInBytes = 0;
-            description.type = HeapType::Default;
-            static D3D12_HEAP_PROPERTIES heapProperties = Heap::toD3DHeapProperties(description);
-
-            D3D12_RESOURCE_DESC resourceDescription = GPUResource::toD3DResourceDesc(describeBuffer());
-
-            HRESULT hResult = GfxDevice()->CreateCommittedResource(
-                &heapProperties, D3D12_HEAP_FLAG_NONE, &resourceDescription,
-                toD3DResourceState(mUsageState), nullptr, IID_PPV_ARGS(getAddressOf())
-            );
-            HASSERT_HR(hResult, "Failed to create committed resource %s.", createDescription.name);
-
-#if defined(RELEASE)
-            (void)createDescription.name;
-#else
-            mResource->SetName(utility::toWideString(createDescription.name).c_str());
-#endif
-
-            mGPUVirtualAddress = mResource->GetGPUVirtualAddress();
-        }
-
-        void GPUBuffer::createPlaced(const Description& createDescription, Heap& backingHeap, uint64_t heapOffset)
-        {
-            initialize(createDescription);
-
-            D3D12_RESOURCE_DESC resourceDescription = GPUResource::toD3DResourceDesc(describeBuffer());
-
-            HRESULT hResult = GfxDevice()->CreatePlacedResource(
-                (backingHeap.get()), heapOffset, &resourceDescription,
-                toD3DResourceState(mUsageState), nullptr, IID_PPV_ARGS(getAddressOf())
-            );
-            HASSERT_HR(hResult, "Failed to create placed resource %s.", createDescription.name);
-
-#if defined(RELEASE)
-            (void)createDescription.name;
-#else
-            mResource->SetName(utility::toWideString(createDescription.name).c_str());
-#endif
-
-            mGPUVirtualAddress = mResource->GetGPUVirtualAddress();
+            destroy();
+            mUsageState = GPUResourceState::CopyDest; // Since the resource is created on default heap, it expects some data to be copied to.
         }
 
         void GPUBuffer::createConstantBufferView(DescriptorHandle& cbvHandle, uint32_t offset, size_t size) const
         {
-            HASSERT(offset + size <= mBufferSize, "offset(%d) + size(%d) is more than total buffer size(%d).", offset, size, mBufferSize);
+            HASSERT(offset + size <= mDescription.width, "offset(%d) + size(%d) is more than total buffer size(%d).", offset, size, mDescription.width);
 
             size = maths::alignUp(size, 16);
 
             D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc{};
-            cbvDesc.BufferLocation = mGPUVirtualAddress + (size_t)offset;
+            cbvDesc.BufferLocation = getGPUVirtualAddress() + (size_t)offset;
             cbvDesc.SizeInBytes = (UINT)size;
 
             GfxDevice()->CreateConstantBufferView(&cbvDesc, cbvHandle);
         }
 
-        const BufferView GPUBuffer::vertexBufferView(size_t offset, size_t size, size_t stride) const
+        const BufferView GPUBuffer::vertexBufferView(size_t stride, size_t size, size_t offset) const
         {
             BufferView bufferView{};
 
-            bufferView.bufferLocation = mGPUVirtualAddress + offset;
-            bufferView.sizeInBytes = size;
+            bufferView.bufferLocation = getGPUVirtualAddress() + offset;
             bufferView.strideInBytes = stride;
+            bufferView.sizeInBytes = size;
 
             return bufferView;
         }
 
-        const BufferView GPUBuffer::indexBufferView(size_t offset, size_t size, size_t elementSizeInBytes) const
+        const BufferView GPUBuffer::indexBufferView(size_t elementSizeInBytes, size_t size, size_t offset) const
         {
             BufferView bufferView{};
 
-            bufferView.bufferLocation = mGPUVirtualAddress + offset;
+            bufferView.bufferLocation = getGPUVirtualAddress() + offset;
             bufferView.sizeInBytes = size;
             bufferView.elementSizeInBytes = elementSizeInBytes;
 
             return bufferView;
         }
 
-        const GPUResource::Description GPUBuffer::describeBuffer() const
+        const GPUResource::Description GPUBuffer::describeResource() const
         {
             GPUResource::Description description{};
-            description.width = mBufferSize;
+            description.width = mDescription.width;
             description.dimension = GPUResourceDimension::Buffer;
-            description.resourceFlags = mResourceFlags;
             return description;
-        }
-
-        void GPUBuffer::initialize(const Description& createDescription)
-        {
-            destroy();
-            mElementCount = createDescription.elementCount;
-            mElementSizeInBytes = createDescription.elementSizeInBytes;
-            mBufferSize = mElementCount * mElementSizeInBytes;
-            mUsageState = GPUResourceState::Common;
         }
     }
 }
@@ -116,7 +65,7 @@ namespace graphics
     {
         void ByteAddressBuffer::createShaderResourceView(DescriptorHandle& srvHandle, unsigned int sizeInBytes, unsigned int offsetInBytes) const
         {
-            HASSERT(offsetInBytes + sizeInBytes <= mBufferSize, "offset(%d) + size(%d) is more than total buffer size(%d).", offsetInBytes, sizeInBytes, mBufferSize);
+            HASSERT(offsetInBytes + sizeInBytes <= mDescription.width, "offset(%d) + size(%d) is more than total buffer size(%d).", offsetInBytes, sizeInBytes, mDescription.width);
             HASSERT(maths::isAligned(offsetInBytes, ByteAddressBuffer::DEFAULT_ALIGNMENT), "Byte offset must be %d-byte aligned.", ByteAddressBuffer::DEFAULT_ALIGNMENT);
             HASSERT(maths::isAligned(sizeInBytes, ByteAddressBuffer::DEFAULT_ALIGNMENT), "Byte size must be %d-byte aligned.", ByteAddressBuffer::DEFAULT_ALIGNMENT);
 

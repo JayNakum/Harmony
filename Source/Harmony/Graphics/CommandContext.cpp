@@ -58,20 +58,20 @@ namespace graphics
         return fence;
     }
 
-    void CommandContext::initializeBuffer(dx12::GPUBuffer& dest, const void* data, size_t numBytes, size_t destOffset)
+    void CommandContext::initializeBuffer(dx12::GPUBuffer& dest, const void* data, size_t numBytes, size_t destOffset, GPUResourceState newState = GPUResourceState::GenericRead)
     {
         // Copy data to an intermediate upload heap.
-        UploadBuffer intermediateBuffer({ "Intermediate Buffer", numBytes });
+        dx12::UploadBuffer intermediateBuffer({"Intermediate Buffer", numBytes});
         {
             void* intermediateDst = intermediateBuffer.map();
             memcpy(intermediateDst, data, numBytes);
             intermediateBuffer.unmap();
         }
 
-        initializeBuffer(dest, intermediateBuffer, numBytes);
+        initializeBuffer(dest, intermediateBuffer, 0, numBytes, 0, newState);
     }
 
-    void CommandContext::initializeBuffer(dx12::GPUBuffer& dest, UploadBuffer& src, size_t srcOffset, size_t numBytes, size_t destOffset)
+    void CommandContext::initializeBuffer(dx12::GPUBuffer& dest, dx12::UploadBuffer& src, size_t srcOffset, size_t numBytes, size_t destOffset, GPUResourceState newState)
     {
         // Safety check for maximum available bytes
         size_t maxBytes = std::min<size_t>(dest.getSize() - destOffset, src.getSize() - srcOffset);
@@ -82,8 +82,8 @@ namespace graphics
 
         // Schedule a copy from the upload heap to the default heap.
         initContext.getCommandList().transitionResource(dest, GPUResourceState::CopyDest, true);
-        initContext.getCommandList()->CopyBufferRegion(dest.get(), destOffset, (ID3D12Resource*)src.get(), 0, numBytes);
-        initContext.getCommandList().transitionResource(dest, GPUResourceState::GenericRead, true);
+        initContext.getCommandList()->CopyBufferRegion(dest.get(), destOffset, (ID3D12Resource*)src.get(), srcOffset, numBytes);
+        initContext.getCommandList().transitionResource(dest, newState, true);
 
         // Execute the command list and wait for it to finish so we can release the intermediate buffer.
         initContext.finish(true);

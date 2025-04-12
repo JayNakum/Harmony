@@ -72,20 +72,7 @@ namespace graphics
             : kind(Kind::Compressed), compressed(fmt)
         {}
 
-        Format(const Format& copy)
-            : kind(copy.kind)
-        {
-            if (kind == Kind::Compressed)
-            {
-                compressed = copy.compressed;
-            }
-            else
-            {
-                uncompressed = copy.uncompressed;
-            }
-        }
-
-        const Kind kind;
+        Kind kind;
         union
         {
             Format::Uncompressed uncompressed;

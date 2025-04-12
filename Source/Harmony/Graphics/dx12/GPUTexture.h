@@ -15,51 +15,26 @@ namespace graphics
         class Texture : public GPUResource
         {
         public:
-            Texture()
-                : mWidth(0), mHeight(0), mDepth(0), mTextureType(GPUResourceDimension::Unknown)
-            { }
+            Texture(const Description& createDescription);
 
             virtual ~Texture()
             {
                 destroy();
             }
 
-            struct Description
-            {
-                std::string name;
-
-                size_t rowPitchBytes;
-                size_t width;
-                size_t height;
-                Format format;
-
-                GPUResourceDimension textureType = GPUResourceDimension::Texture2D;
-            };
-
-            // Create a committed resource.
-            void createCommitted(const Description& createDescription);
-
-            // Sub-Allocate a buffer out of a pre-allocated heap.
-            void createPlaced(const Description& createDescription, Heap& backingHeap, uint64_t heapOffset);
-
         public:
-            inline const size_t getWidth() const {}
-            inline const size_t getHeight() const {}
-            inline const size_t getDepth() const {}
-
+            inline const Description& getDescription() const { return mDescription; }
 
             // Creates an SRV with custom mip level, mip count, arraySlice and arraySize.
             // Requires a pre allocated descriptorHandle& from a descriptor heap.
             void createShaderResourceView(DescriptorHandle& srvHandle, unsigned int mipLevel, unsigned int mipCount, unsigned int arraySlice, unsigned int arraySize) const;
 
-        private:
-            void initialize(const Description& createDescription);
+        protected:
+            // Creates a filtered and valid GPUResource::Description based on the initData
+            const GPUResource::Description describeResource() const override;
 
         private:
-            size_t mWidth;
-            size_t mHeight;
-            size_t mDepth;
-            GPUResourceDimension mTextureType;
+            const Description mDescription;
         };
     }
 }

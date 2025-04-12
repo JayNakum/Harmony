@@ -1,32 +1,34 @@
 #include "GPUTexture.h"
 
+#include "Renderer.h"
+
 namespace graphics
 {
     namespace dx12
     {
-        void Texture::createCommitted(const Description& createDescription)
+        Texture::Texture(const Description& createDescription)
+            : mDescription(createDescription)
         {
-            initialize(createDescription);
+            destroy();
+            mUsageState = GPUResourceState::CopyDest; // Since the resource is created on default heap, it expects some data to be copied to.
+        }
+
+        void Texture::createShaderResourceView(DescriptorHandle& srvHandle, unsigned int mipLevel, unsigned int mipCount, unsigned int arraySlice, unsigned int arraySize) const
+        {
 
         }
 
-        void Texture::createPlaced(const Description& createDescription, Heap& backingHeap, uint64_t heapOffset)
+        const GPUResource::Description Texture::describeResource() const
         {
+            GPUResource::Description description{};
 
-        }
+            description.dimension = mDescription.dimension;
+            description.width = mDescription.width;
+            description.height = mDescription.height;
+            description.depth = mDescription.depth;
+            description.format = mDescription.format;
 
-        void Texture::initialize(const Description& createDescription)
-        {
-            mWidth = createDescription.width;
-            mHeight = createDescription.height;
-            mDepth = createDescription.textureType == GPUResourceDimension::Texture3D ? 6 : 1;
-
-            mTextureType = createDescription.textureType;
-            if (createDescription.textureType == GPUResourceDimension::Buffer)
-            {
-                HASSERT_SOFT(false, "Buffer is an invalid texture type. Using Texture1D instead.");
-                mTextureType = GPUResourceDimension::Texture1D;
-            }
+            return description;
         }
     }
 }

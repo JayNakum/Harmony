@@ -23,7 +23,7 @@ namespace graphics
             static D3D12_HEAP_PROPERTIES heapProperties = Heap::toD3DHeapProperties(description);
 
             // Upload buffers must be 1-dimensional
-            D3D12_RESOURCE_DESC createDesc = GPUResource::toD3DResourceDesc(describeBuffer());
+            D3D12_RESOURCE_DESC createDesc = GPUResource::toD3DResourceDesc(describeResource());
 
             mUsageState = GPUResourceState::GenericRead;
 
@@ -55,7 +55,7 @@ namespace graphics
             mResource->Unmap(0, &CD3DX12_RANGE(begin, std::min(end, mBufferSize)));
         }
 
-        const GPUResource::Description UploadBuffer::describeBuffer() const
+        const GPUResource::Description UploadBuffer::describeResource() const
         {
             GPUResource::Description description{};
             description.width = mBufferSize;

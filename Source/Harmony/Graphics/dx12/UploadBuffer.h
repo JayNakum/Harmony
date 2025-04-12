@@ -40,7 +40,7 @@ namespace graphics
                 destroy();
             }
 
-            const GPUResource::Description describeBuffer() const;
+            const GPUResource::Description describeResource() const override;
 
         private:
             const size_t mBufferSize;
