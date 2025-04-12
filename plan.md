@@ -3,8 +3,8 @@
 	* RenderTarget and Pixel Buffers
 * Window
 * Swapchain
-* Main Loop
 * Input Handling
+* Main Loop
 * Code Cleanup
 	* Use as much forward declarations as possible
 	* Consistent #includes
@@ -13,9 +13,12 @@
 	* Function name
 	* const correctness
 	* Function parameters order
-* Get a triangle with the new rewrite
+* [SANDBOX] Get a triangle with the new rewrite
+* Setup Engine project
+* [ENGINE] Get a triangle with the new rewrite
 * ShaderInputManager
-* Render the old fog scene
+* Design multi threading system architecture (no simple job system)
+* [ENGINE] Render the old fog scene
 * Memory Budgets
 * put toString() inside ifdefs
 * complete all TODOs
