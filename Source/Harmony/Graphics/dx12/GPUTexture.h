@@ -12,6 +12,9 @@ namespace graphics
 {
     namespace dx12
     {
+        /*
+        * The class represents a texture on GPU Memory
+        */
         class Texture : public GPUResource
         {
         public:
@@ -23,7 +26,8 @@ namespace graphics
             }
 
         public:
-            inline const Description& getDescription() const { return mDescription; }
+            // Creates a filtered and valid GPUResource::Description based on the initData
+            const GPUResource::Description describeResource() const override;
 
             struct ShaderResourceViewInfo
             {
@@ -37,17 +41,20 @@ namespace graphics
             // Requires a pre allocated descriptorHandle& from a descriptor heap.
             void createShaderResourceView(DescriptorHandle& srvHandle, const ShaderResourceViewInfo& viewInfo) const;
 
-        protected:
-            // Creates a filtered and valid GPUResource::Description based on the initData
-            const GPUResource::Description describeResource() const override;
+            void attachResource(GPUResource& resource);
 
         private:
-            const Description mDescription;
+            Description mDescription;
         };
     }
 
     namespace dx12
     {
+        /*
+        * RenderTarget is an extension to the texture class with ability to create RTV and DSV.
+        * It owns an instance of texture.
+        * A rendertarget can be of either two types. Color or Depth.
+        */
         class RenderTarget
         {
         public:
@@ -57,17 +64,24 @@ namespace graphics
                 Depth
             };
 
-            RenderTarget(const Type type, const Texture::Description& description);
+            struct Description
+            {
+                const Type type;
+                Texture::Description textureDescription;
+            };
 
-            void createRTV(DescriptorHandle rtvHandle, uint32_t mipSlice = 0, uint32_t arraySlice = 0);
-            void createDSV(DescriptorHandle dsvHandle, uint32_t mipSlice = 0, uint32_t arraySlice = 0, bool readOnly = false);
+            RenderTarget(const Description& description);
 
-            inline const Type getType() const { return mType; }
+            void createFromSwapchain(DescriptorHandle& rtvHandle, GPUResource& baseResource);
+
+            void createRTV(DescriptorHandle& rtvHandle, uint32_t mipSlice = 0, uint32_t arraySlice = 0);
+            void createDSV(DescriptorHandle& dsvHandle, uint32_t mipSlice = 0, uint32_t arraySlice = 0, bool readOnly = false); // TODO: Support multiple read only depth and stencil views
+
+            inline const Description& getDescription() const { return mDescription; }
             inline const Texture& getTexture() const { return mTexture; }
-            inline Texture& getTexture() { return mTexture; }
 
         private:
-            const Type mType;
+            Description mDescription;
             Texture mTexture;
         };
     }

@@ -122,8 +122,8 @@ namespace graphics
                 unsigned int numRenderTargets = 1;
                 std::array<Format, MAX_RENDER_TARGETS> rtvFormats = { DefaultFormats::R8G8B8A8_UNORM };
                 Format dsvFormat = DefaultFormats::D24_UNORM_S8_UINT;
-                bool m4xMsaaState = false;
-                unsigned int m4xMsaaQuality = 0;
+                unsigned int sampleCount = 1;
+                unsigned int sampleQuality = 0;
             };
 
             GraphicsPipelineState(Description& description);

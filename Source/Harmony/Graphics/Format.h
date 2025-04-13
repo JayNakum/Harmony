@@ -57,6 +57,7 @@ namespace graphics
             // TODO: Extend with additional kinds if needed.
         };
 
+    public:
         // Default constructor initializing to a default uncompressed format.
         Format()
             : kind(Kind::Uncompressed), uncompressed{ ColorWriteMask::None, Type::Typeless, {0, 0, 0, 0} }
@@ -72,14 +73,8 @@ namespace graphics
             : kind(Kind::Compressed), compressed(fmt)
         {}
 
-        Kind kind;
-        union
-        {
-            Format::Uncompressed uncompressed;
-            Format::Compressed compressed;
-        };
-
-        bool operator==(const Format& other) const
+    public:
+        inline bool operator==(const Format& other) const
         {
             if (kind != other.kind)
                 return false;
@@ -102,14 +97,29 @@ namespace graphics
             }
         }
 
-        bool operator!=(const Format& other) const
+        inline bool operator!=(const Format& other) const
         {
             return !(*this == other);
         }
+
+    public:
+        Kind kind;
+        union
+        {
+            Format::Uncompressed uncompressed;
+            Format::Compressed compressed;
+        };
     };
 
     namespace DefaultFormats
     {
+        static Format getBaseFormat(const Format& format);
+        static Format getUAVFormat(const Format& format);
+        static Format getDSVFormat(const Format& format);
+        static Format getDepthFormat(const Format& format);
+        static Format getStencilFormat(const Format& format);
+        static size_t bytesPerPixel(const Format& format);
+
         // Uncompressed formats
         static const Format UNKNOWN = Format(Format::Uncompressed{ ColorWriteMask::None, Format::Type::Typeless, {0, 0, 0, 0} });
         // R32G32B32A32 formats

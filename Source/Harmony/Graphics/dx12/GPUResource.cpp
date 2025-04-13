@@ -63,8 +63,8 @@ namespace graphics
             createDesc.Width = (UINT64)description.width;
             createDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
             createDesc.MipLevels = description.mipLevels;
-            createDesc.SampleDesc.Count = 1;
-            createDesc.SampleDesc.Quality = 0;
+            createDesc.SampleDesc.Count = description.sampleCount;
+            createDesc.SampleDesc.Quality = description.sampleQuality;
             createDesc.Flags = toD3DResourceFlags(description.resourceFlags);
             return createDesc;
         }

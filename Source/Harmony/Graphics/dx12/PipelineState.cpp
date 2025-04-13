@@ -70,8 +70,8 @@ namespace graphics
             d3dDescription.DSVFormat = toDXGIFormat(description.dsvFormat);
 
             // Sample Desc
-            d3dDescription.SampleDesc.Count = description.m4xMsaaState ? 4 : 1;
-            d3dDescription.SampleDesc.Quality = description.m4xMsaaState ? (description.m4xMsaaQuality - 1) : 0;
+            d3dDescription.SampleDesc.Count = description.sampleCount;
+            d3dDescription.SampleDesc.Quality = description.sampleQuality;
 
             // TODO: NodeMask
 

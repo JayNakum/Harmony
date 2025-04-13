@@ -46,6 +46,8 @@ namespace graphics
                 Format format = DefaultFormats::UNKNOWN;
                 GPUResourceFlags resourceFlags = GPUResourceFlags::None;
                 uint64_t alignment = 0;
+                unsigned int sampleCount = 1;
+                unsigned int sampleQuality = 0;
             };
 
             // Create a committed resource.
@@ -81,7 +83,6 @@ namespace graphics
 
             static const D3D12_RESOURCE_DESC toD3DResourceDesc(const Description& description);
 
-        protected:
             virtual const GPUResource::Description describeResource() const = 0;
 
         protected:

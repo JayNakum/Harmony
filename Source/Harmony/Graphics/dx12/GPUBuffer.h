@@ -23,6 +23,9 @@ namespace graphics
             };
         };
 
+        /*
+        * The class represents a buffer on GPU Memory
+        */
         class GPUBuffer : public GPUResource
         {
         protected:
@@ -35,7 +38,8 @@ namespace graphics
             }
 
         public:
-            inline const Description& getDescription() const { return mDescription; }
+            // Creates a filtered and valid GPUResource::Description based on the initData
+            virtual const GPUResource::Description describeResource() const override;
 
             // For direct root32Consts
             inline const uint64_t rootConstantBufferView() const { return getGPUVirtualAddress(); }
@@ -63,10 +67,6 @@ namespace graphics
                 size_t offset = startIndex * elementSizeInBytes;
                 return indexBufferView(elementSizeInBytes, (uint32_t)(mDescription.width - offset), offset);
             }
-
-        protected:
-            // Creates a filtered and valid GPUResource::Description based on the initData
-            virtual const GPUResource::Description describeResource() const override;
 
         protected:
             const Description mDescription;
