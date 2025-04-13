@@ -3,7 +3,9 @@
 #include <cstdio>
 
 #include <string>
+#include <sstream>
 #include <locale>
+#include <iomanip>
 
 #include <array>
 #include <vector>

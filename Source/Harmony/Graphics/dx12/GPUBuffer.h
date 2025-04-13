@@ -12,6 +12,9 @@ namespace graphics
 {
     namespace dx12
     {
+        /*
+        * A common view for Vertex and Index buffer
+        */
         struct BufferView
         {
             uint64_t bufferLocation;
