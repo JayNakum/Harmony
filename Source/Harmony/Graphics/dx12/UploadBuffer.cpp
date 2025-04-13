@@ -1,6 +1,6 @@
 #include "UploadBuffer.h"
 
-#include "Renderer.h"
+#include "Core.h"
 
 #include "dx12/Heap.h"
 #include "dx12/types/GPUResourceState.h"
@@ -33,13 +33,7 @@ namespace graphics
 
             HASSERT_HR(hResult, "Failed to create upload buffer %s", createDescription.name);
 
-            mGPUVirtualAddress = mResource->GetGPUVirtualAddress();
-
-#if defined(RELEASE)
-            (void)(name);
-#else
-            mResource->SetName(utility::toWideString(createDescription.name).c_str());
-#endif
+            setName(mResource.Get(), utility::toWideString(createDescription.name).c_str());
         }
 
         void* UploadBuffer::map()

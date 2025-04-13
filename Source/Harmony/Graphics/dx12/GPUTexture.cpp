@@ -1,6 +1,6 @@
 #include "GPUTexture.h"
 
-#include "Renderer.h"
+#include "Core.h"
 
 #include "types/GPUResourceDimension.h"
 
@@ -82,11 +82,11 @@ namespace graphics
         {
             mDescription = resource.describeResource();
             mResource.Attach(resource.get());
-#if defined(RELEASE)
-            (void)mDescription.name;
-#else
-            mResource->SetName(utility::toWideString(mDescription.name).c_str());
-#endif
+        }
+
+        void Texture::reset()
+        {
+            mResource.Reset();
         }
 
         const GPUResource::Description Texture::describeResource() const

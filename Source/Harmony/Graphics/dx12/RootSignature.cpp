@@ -1,6 +1,6 @@
 #include "RootSignature.h"
 
-#include "Renderer.h"
+#include "Core.h"
 
 #include "types/RootSignatureFlag.h"
 
@@ -39,11 +39,7 @@ namespace graphics
                 HASSERT_HR(hResult, "Failed to create root signature %s.", description.name);
             }
 
-#if defined(RELEASE)
-            (void)description.name;
-#else
-            mRootSignature->SetName(utility::toWideString(description.name).c_str());
-#endif
+            setName(mRootSignature.Get(), utility::toWideString(description.name).c_str());
         }
     }
 }

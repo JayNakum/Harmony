@@ -12,11 +12,11 @@ namespace graphics
     /*
     * Creates a command lists of any type on request.
     * Contains the CommandQueues and also has the synchronization functions.
-    * It is only supposed to be used via Renderer.
+    * It is only supposed to be used via Core.
     */
     class CommandListManager
     {
-        friend class Renderer;
+        friend class Core;
     private:
         // Creates and initializes the internal CommandQueues.
         // TODO: Add compute and copy queue support.

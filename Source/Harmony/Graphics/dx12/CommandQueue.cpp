@@ -1,6 +1,6 @@
 #include "CommandQueue.h"
 
-#include "Renderer.h"
+#include "Core.h"
 
 #include "types/CommandListType.h"
 
@@ -22,11 +22,8 @@ namespace graphics
             HRESULT hResult = GfxDevice()->CreateCommandQueue(&createDesc, IID_PPV_ARGS(&mCommandQueue));
             HASSERT_HR(hResult, "Failed to create command queue %s.", createDescription.name);
 
-#if defined(RELEASE)
-            (void)createDescription.name;
-#else
-            mCommandQueue->SetName(utility::toWideString(createDescription.name).c_str());
-#endif
+            setName(mCommandQueue.Get(), utility::toWideString(createDescription.name).c_str());
+
             // Encode type at the top bit of the fence.
             mFence->Signal((uint64_t)mType << 56);
         }

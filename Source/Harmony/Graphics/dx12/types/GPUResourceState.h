@@ -21,7 +21,9 @@ namespace graphics
                 return D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_COPY_DEST;
             case GPUResourceState::GenericRead:
                 return D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_GENERIC_READ;
-                // TODO: Add support for more states as needed
+            case GPUResourceState::Present:
+                return D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_PRESENT;
+            // TODO: Add support for more states as needed
             }
         }
     }

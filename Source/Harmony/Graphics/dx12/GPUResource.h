@@ -21,20 +21,7 @@ namespace graphics
         */
         class GPUResource
         {
-        protected:
-            GPUResource()
-                : mUsageState(GPUResourceState::Common),
-                mTransitioningState(GPUResourceState::Invalid) {}
-
         public:
-            ~GPUResource()
-            {
-                destroy();
-            }
-
-            static constexpr D3D12_GPU_VIRTUAL_ADDRESS NULL_ADDRESS = (D3D12_GPU_VIRTUAL_ADDRESS)0;
-            static constexpr D3D12_GPU_VIRTUAL_ADDRESS INVALID_ADDRESS = (D3D12_GPU_VIRTUAL_ADDRESS)-1;
-
             struct Description
             {
                 std::string name;
@@ -49,6 +36,25 @@ namespace graphics
                 unsigned int sampleCount = 1;
                 unsigned int sampleQuality = 0;
             };
+            GPUResource()
+                : mResource(nullptr),
+                mUsageState(GPUResourceState::Common),
+                mTransitioningState(GPUResourceState::Invalid) {}
+
+            GPUResource(ID3D12Resource* resource, const GPUResourceState currentUsageState)
+                : mResource(resource),
+                mUsageState(currentUsageState),
+                mTransitioningState(GPUResourceState::Invalid)
+            {}
+
+            ~GPUResource()
+            {
+                destroy();
+            }
+
+            static constexpr D3D12_GPU_VIRTUAL_ADDRESS NULL_ADDRESS = (D3D12_GPU_VIRTUAL_ADDRESS)0;
+            static constexpr D3D12_GPU_VIRTUAL_ADDRESS INVALID_ADDRESS = (D3D12_GPU_VIRTUAL_ADDRESS)-1;
+
 
             // Create a committed resource.
             void createCommitted();
@@ -83,7 +89,7 @@ namespace graphics
 
             static const D3D12_RESOURCE_DESC toD3DResourceDesc(const Description& description);
 
-            virtual const GPUResource::Description describeResource() const = 0;
+            virtual const GPUResource::Description describeResource() const { return Description(); }
 
         protected:
             Microsoft::WRL::ComPtr<ID3D12Resource> mResource;

@@ -1,6 +1,6 @@
 #include "GPUResource.h"
 
-#include "Renderer.h"
+#include "Core.h"
 
 #include "Heap.h"
 
@@ -27,11 +27,7 @@ namespace graphics
             );
             HASSERT_HR(hResult, "Failed to create committed resource %s.", createDescription.name);
 
-#if defined(RELEASE)
-            (void)createDescription.name;
-#else
-            mResource->SetName(utility::toWideString(createDescription.name).c_str());
-#endif
+            setName(mResource.Get(), utility::toWideString(createDescription.name).c_str());
         }
 
         void GPUResource::createPlaced(Heap& backingHeap, uint64_t heapOffset)
@@ -44,12 +40,7 @@ namespace graphics
                 toD3DResourceState(mUsageState), nullptr, IID_PPV_ARGS(getAddressOf())
             );
             HASSERT_HR(hResult, "Failed to create placed resource %s.", createDescription.name);
-
-#if defined(RELEASE)
-            (void)createDescription.name;
-#else
-            mResource->SetName(utility::toWideString(createDescription.name).c_str());
-#endif
+            setName(mResource.Get(), utility::toWideString(createDescription.name).c_str());
         }
 
         const D3D12_RESOURCE_DESC GPUResource::toD3DResourceDesc(const Description& description)

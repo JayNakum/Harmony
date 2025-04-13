@@ -1,6 +1,6 @@
 #include "CommandList.h"
 
-#include "Renderer.h"
+#include "Core.h"
 
 #include "types/CommandListType.h"
 #include "types/GPUResourceState.h"
@@ -10,7 +10,7 @@ namespace graphics
     namespace dx12
     {
         CommandList::CommandList(Description& createDesc)
-            : CommandObject(createDesc.type), mCommandList(nullptr)
+            : CommandObject(createDesc.type), mCommandList(nullptr), mResourceBarrierBuffer{}, mNumBarriersToFlush(0)
         {
             HRESULT hResult = GfxDevice()->CreateCommandList(
                 1, toD3DCommandListType(createDesc.type),
@@ -18,11 +18,7 @@ namespace graphics
 
             HASSERT_HR(hResult, "Failed to create command list %s", createDesc.name);
 
-#if defined(RELEASE)
-            (void)name;
-#else
-            mCommandList->SetName(utility::toWideString(createDesc.name).c_str());
-#endif
+            setName(mCommandList.Get(), utility::toWideString(createDesc.name).c_str());
         }
 
         void CommandList::transitionResource(GPUResource& resource, const GPUResourceState newState, bool flushImmediate)

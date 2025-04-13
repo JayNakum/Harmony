@@ -1,6 +1,6 @@
 #include "DescriptorHeap.h"
 
-#include "Renderer.h"
+#include "Core.h"
 
 #include "types/DescriptorHeapFlags.h"
 #include "types/DescriptorHeapType.h"
@@ -19,12 +19,9 @@ namespace graphics
             heapDesc.NodeMask = 1;
 
             HRESULT hResult = GfxDevice()->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(mHeap.ReleaseAndGetAddressOf()));
+            HASSERT_HR(hResult, "Failed to create descriptor heap");
 
-#if defined(RELEASE)
-            (void)mDescription.name;
-#else
-            mHeap->SetName(utility::toWideString(mDescription.name).c_str());
-#endif
+            setName(mHeap.Get(), utility::toWideString(mDescription.name).c_str());
 
             mDescriptorSize = GfxDevice()->GetDescriptorHandleIncrementSize(heapDesc.Type);
 

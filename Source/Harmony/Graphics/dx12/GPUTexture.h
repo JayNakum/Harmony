@@ -43,6 +43,8 @@ namespace graphics
 
             void attachResource(GPUResource& resource);
 
+            void reset();
+
         private:
             Description mDescription;
         };
@@ -72,6 +74,7 @@ namespace graphics
 
             RenderTarget(const Description& description);
 
+            // baseResource is expected to have called setName for debugging
             void createFromSwapchain(DescriptorHandle& rtvHandle, GPUResource& baseResource);
 
             void createRTV(DescriptorHandle& rtvHandle, uint32_t mipSlice = 0, uint32_t arraySlice = 0);
@@ -79,6 +82,7 @@ namespace graphics
 
             inline const Description& getDescription() const { return mDescription; }
             inline const Texture& getTexture() const { return mTexture; }
+            inline Texture& getTexture() { return mTexture; }
 
         private:
             Description mDescription;

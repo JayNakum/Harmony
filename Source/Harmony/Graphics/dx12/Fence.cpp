@@ -1,6 +1,6 @@
 #include "Fence.h"
 
-#include "Renderer.h"
+#include "Core.h"
 
 namespace graphics
 {
@@ -11,11 +11,7 @@ namespace graphics
         {
             HRESULT hResult = GfxDevice()->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&mFence));
             HASSERT_HR(hResult, "Failed to create fence.");
-#if defined(RELEASE)
-            (void)name;
-#else
-            mFence->SetName(utility::toWideString(name).c_str());
-#endif
+            setName(mFence.Get(), utility::toWideString(name).c_str());
         }
 
         void Fence::wait(uint64_t fenceValue)

@@ -1,7 +1,6 @@
 #include "GPUBuffer.h"
 
-#include "Renderer.h"
-#include "CommandContext.h"
+#include "Core.h"
 
 namespace graphics
 {

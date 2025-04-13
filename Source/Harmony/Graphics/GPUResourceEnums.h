@@ -60,7 +60,8 @@ namespace graphics
         Invalid,
         Common,
         CopyDest,
-        GenericRead
+        GenericRead,
+        Present
         // TODO: Add more resource states
     };
 
@@ -78,6 +79,8 @@ namespace graphics
             return "CopyDest";
         case GPUResourceState::GenericRead:
             return "GenericRead";
+        case GPUResourceState::Present:
+            return "Present";
         }
     }
 

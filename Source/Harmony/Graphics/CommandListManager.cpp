@@ -1,6 +1,6 @@
 #include "CommandListManager.h"
 
-#include "Renderer.h"
+#include "Core.h"
 
 namespace graphics
 {

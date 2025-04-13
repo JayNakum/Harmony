@@ -10,23 +10,24 @@ namespace utility
     void print(const char* message);
     std::unique_ptr<char[]> translateErrorCode(const long errorCode) noexcept;
 
-    template<typename ... Args>
-    inline std::unique_ptr<char[]> formatMessage(const char* format, Args ... args)
+    template<typename... Args>
+    inline std::string formatMessage(const char* format, Args... args)
     {
-        int size = snprintf(nullptr, 0, format, args ...) + 1; // +1 for null terminator
+        int size = std::snprintf(nullptr, 0, format, args...);
+        if (size <= 0) return "";
 
-        std::unique_ptr<char[]> buffer(new char[size]);
+        std::string result(size + 1, '\0'); // +1 for null terminator
+        std::snprintf(&result[0], result.size(), format, args...);
 
-        snprintf(buffer.get(), size, format, args ...);
-
-        return buffer;
+        result.pop_back(); // remove null terminator
+        return result;
     }
 
     template<typename ... Args>
     inline void printF(const char* format, Args ... args)
     {
-        std::unique_ptr<char[]> formattedMessage = formatMessage(format, args...);
-        print(formattedMessage.get());
+        std::string formattedMessage = formatMessage(format, args...);
+        print(formattedMessage.c_str());
     }
 
     std::wstring toWideString(const std::string& str);

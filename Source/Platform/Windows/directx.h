@@ -8,3 +8,12 @@
 #ifdef DEBUG
     #include <dxgidebug.h>
 #endif
+
+inline static void setName(ID3D12Object* object, const wchar_t* name)
+{
+#if defined(RELEASE)
+    (void)name;
+#else
+    object->SetName(name);
+#endif
+}

@@ -11,21 +11,20 @@ namespace graphics
 {
     /*
     * A singleton class that manages the entire graphics system.
-    * All the other systems will access anything inside the graphics project via Renderer.
+    * All the other systems will access anything inside the graphics project via Core.
     */
-    class Renderer
+    class Core
     {
     private:
-        static Renderer* msInstance;
-        Renderer() = default;
+        static Core* msInstance;
+        Core() = default;
 
     public:
-        static Renderer* getInstance();
+        static Core* getInstance();
 
     public:
         inline const dx12::Device getDevice() const { return msDevice; }
         inline CommandListManager& getCommandListManager() { return msCommandListManager; }
-
 
     private:
         static dx12::Device msDevice;
@@ -39,17 +38,17 @@ namespace graphics
 * Keeping these outside of any namespace with Gfx prefix to make the code a bit more clean.
 */
 
-inline graphics::Renderer* GfxRenderer()
+inline graphics::Core* GfxCore()
 {
-    return graphics::Renderer::getInstance();
+    return graphics::Core::getInstance();
 }
 
 inline graphics::dx12::Device GfxDevice()
 {
-    return graphics::Renderer::getInstance()->getDevice();
+    return graphics::Core::getInstance()->getDevice();
 }
 
 inline graphics::CommandListManager& GfxCommandListManager()
 {
-    return graphics::Renderer::getInstance()->getCommandListManager();
+    return graphics::Core::getInstance()->getCommandListManager();
 }

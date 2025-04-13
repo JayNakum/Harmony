@@ -1,6 +1,6 @@
 #include "PipelineState.h"
 
-#include "Renderer.h"
+#include "Core.h"
 
 #include "types/DefaultFormats.h"
 #include "types/InputClassification.h"
@@ -81,12 +81,7 @@ namespace graphics
 
             HRESULT hResult = GfxDevice()->CreateGraphicsPipelineState(&d3dDescription, IID_PPV_ARGS(&mPipelineState));
             HASSERT_HR(hResult, "Failed to create PSO %s.", description.name.c_str());
-
-#if defined(RELEASE)
-            (void)description.name;
-#else
-            mPipelineState->SetName(utility::toWideString(description.name).c_str());
-#endif
+            setName(mPipelineState.Get(), utility::toWideString(description.name).c_str());
         }
 
         GraphicsPipelineState::~GraphicsPipelineState() {}

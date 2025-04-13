@@ -51,6 +51,9 @@ namespace graphics
             inline const ID3D12CommandQueue* operator->() const { return mCommandQueue.Get(); }
             inline ID3D12CommandQueue* operator->() { return mCommandQueue.Get(); }
 
+            inline const ID3D12CommandQueue* get() const { return mCommandQueue.Get(); }
+            inline ID3D12CommandQueue* get() { return mCommandQueue.Get(); }
+
         private:
             // Increments the fence WITHOUT locking the mutex
             // This method is used internally to prevent double locking the mutex.
