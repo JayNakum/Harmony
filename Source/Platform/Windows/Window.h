@@ -60,7 +60,7 @@ namespace windows
         ~Window();
 
     private:
-        inline void resize(unsigned int width, unsigned int height)
+        inline void resize(const unsigned int width, const unsigned int height)
         {
             mDescription.width = width;
             mDescription.height = height;

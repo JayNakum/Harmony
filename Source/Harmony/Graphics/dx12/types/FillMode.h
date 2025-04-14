@@ -9,9 +9,10 @@ namespace graphics
 {
     namespace dx12
     {
-        inline static const D3D12_FILL_MODE toD3DFillMode(const FillMode fillMode)
+        // Maps graphics::FillMode with D3D12_FILL_MODE
+        inline static const D3D12_FILL_MODE toD3DFillMode(const FillMode e)
         {
-            switch (fillMode)
+            switch (e)
             {
             case FillMode::Solid:
                 return D3D12_FILL_MODE::D3D12_FILL_MODE_SOLID;

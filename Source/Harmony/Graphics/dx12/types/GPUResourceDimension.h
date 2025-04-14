@@ -9,9 +9,10 @@ namespace graphics
 {
     namespace dx12
     {
-        inline static const D3D12_RESOURCE_DIMENSION toD3DResourceDimension(const GPUResourceDimension dimension)
+        // Maps graphics::GPUResourceDimension with D3D12_RESOURCE_DIMENSION
+        inline static const D3D12_RESOURCE_DIMENSION toD3DResourceDimension(const GPUResourceDimension e)
         {
-            switch (dimension)
+            switch (e)
             {
             default:
             case GPUResourceDimension::Unknown:
@@ -27,9 +28,10 @@ namespace graphics
             }
         }
 
-        inline static const D3D12_SRV_DIMENSION toD3DSRVDimension(const GPUResourceDimension dimension)
+        // Maps graphics::GPUResourceDimension with D3D12_SRV_DIMENSION
+        inline static const D3D12_SRV_DIMENSION toD3DSRVDimension(const GPUResourceDimension e)
         {
-            switch (dimension)
+            switch (e)
             {
             default:
             case GPUResourceDimension::Unknown:

@@ -13,7 +13,15 @@ namespace graphics
             mUsageState = GPUResourceState::CopyDest; // Since the resource is created on default heap, it expects some data to be copied to.
         }
 
-        void GPUBuffer::createConstantBufferView(DescriptorHandle& cbvHandle, uint32_t offset, size_t size) const
+        const GPUResource::Description GPUBuffer::describeResource() const
+        {
+            GPUResource::Description description{};
+            description.width = mDescription.width;
+            description.dimension = GPUResourceDimension::Buffer;
+            return description;
+        }
+
+        void GPUBuffer::createConstantBufferView(DescriptorHandle& cbvHandle, const uint32_t offset, size_t size) const
         {
             HASSERT(offset + size <= mDescription.width, "offset(%d) + size(%d) is more than total buffer size(%d).", offset, size, mDescription.width);
 
@@ -26,7 +34,7 @@ namespace graphics
             GfxDevice()->CreateConstantBufferView(&cbvDesc, cbvHandle);
         }
 
-        const BufferView GPUBuffer::vertexBufferView(size_t stride, size_t size, size_t offset) const
+        const BufferView GPUBuffer::vertexBufferView(const size_t stride, const size_t size, const size_t offset) const
         {
             BufferView bufferView{};
 
@@ -37,7 +45,7 @@ namespace graphics
             return bufferView;
         }
 
-        const BufferView GPUBuffer::indexBufferView(size_t elementSizeInBytes, size_t size, size_t offset) const
+        const BufferView GPUBuffer::indexBufferView(const size_t elementSizeInBytes, const size_t size, const size_t offset) const
         {
             BufferView bufferView{};
 
@@ -47,14 +55,6 @@ namespace graphics
 
             return bufferView;
         }
-
-        const GPUResource::Description GPUBuffer::describeResource() const
-        {
-            GPUResource::Description description{};
-            description.width = mDescription.width;
-            description.dimension = GPUResourceDimension::Buffer;
-            return description;
-        }
     }
 }
 
@@ -62,7 +62,7 @@ namespace graphics
 {
     namespace dx12
     {
-        void ByteAddressBuffer::createShaderResourceView(DescriptorHandle& srvHandle, unsigned int sizeInBytes, unsigned int offsetInBytes) const
+        void ByteAddressBuffer::createShaderResourceView(DescriptorHandle& srvHandle, const uint64_t sizeInBytes, const unsigned int offsetInBytes) const
         {
             HASSERT(offsetInBytes + sizeInBytes <= mDescription.width, "offset(%d) + size(%d) is more than total buffer size(%d).", offsetInBytes, sizeInBytes, mDescription.width);
             HASSERT(maths::isAligned(offsetInBytes, ByteAddressBuffer::DEFAULT_ALIGNMENT), "Byte offset must be %d-byte aligned.", ByteAddressBuffer::DEFAULT_ALIGNMENT);
@@ -73,8 +73,9 @@ namespace graphics
             srvDesc.Format = DXGI_FORMAT_R32_TYPELESS;
             srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 
-            srvDesc.Buffer.FirstElement = offsetInBytes / 4;
-            srvDesc.Buffer.NumElements = sizeInBytes / 4;
+            // GPU SRV views into a ByteAddressBuffer are in units of 4 bytes.
+            srvDesc.Buffer.FirstElement = (UINT)offsetInBytes / 4;
+            srvDesc.Buffer.NumElements = (UINT)sizeInBytes / 4;
 
             srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_RAW;
 

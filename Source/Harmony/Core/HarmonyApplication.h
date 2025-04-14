@@ -2,6 +2,11 @@
 
 namespace harmony
 {
+    /*
+    * A generic harmony application.
+    * This is an interface to allow multiple apps.
+    * There will mainly be two Applications implementing this. Engine and Sandbox.
+    */
     class Application
     {
     public:

@@ -9,19 +9,20 @@ namespace graphics
 {
     namespace dx12
     {
-        inline static const D3D12_RESOURCE_FLAGS toD3DResourceFlags(const GPUResourceFlags flags)
+        // Maps graphics::GPUResourceFlags with D3D12_RESOURCE_FLAGS
+        inline static const D3D12_RESOURCE_FLAGS toD3DResourceFlags(const GPUResourceFlags e)
         {
             D3D12_RESOURCE_FLAGS d3dFlags = D3D12_RESOURCE_FLAG_NONE;
 
-            if (hasFlag(flags, GPUResourceFlags::AllowRenderTarget))
+            if (hasFlag(e, GPUResourceFlags::AllowRenderTarget))
             {
                 d3dFlags |= D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
             }
-            if (hasFlag(flags, GPUResourceFlags::AllowDepthStencil))
+            if (hasFlag(e, GPUResourceFlags::AllowDepthStencil))
             {
                 d3dFlags |= D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
             }
-            if (hasFlag(flags, GPUResourceFlags::AllowUnorderedAccess))
+            if (hasFlag(e, GPUResourceFlags::AllowUnorderedAccess))
             {
                 d3dFlags |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
             }

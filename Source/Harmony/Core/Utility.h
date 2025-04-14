@@ -3,31 +3,27 @@
 #include "common.h"
 
 #include <type_traits>
+#include <stdarg.h>
 
+/*
+* string utilities.
+*/
 namespace utility
 {
-    // The platform specific implementation are in their respective project
     void print(const char* message);
     std::unique_ptr<char[]> translateErrorCode(const long errorCode) noexcept;
 
-    template<typename... Args>
-    inline std::string formatMessage(const char* format, Args... args)
+    inline void printF(const char* format, ...)
     {
-        int size = std::snprintf(nullptr, 0, format, args...);
-        if (size <= 0) return "";
+        constexpr size_t bufferSize = 1024;
+        static thread_local char buffer[bufferSize];
 
-        std::string result(size + 1, '\0'); // +1 for null terminator
-        std::snprintf(&result[0], result.size(), format, args...);
+        va_list args;
+        va_start(args, format);
+        vsnprintf(buffer, bufferSize, format, args);
+        va_end(args);
 
-        result.pop_back(); // remove null terminator
-        return result;
-    }
-
-    template<typename ... Args>
-    inline void printF(const char* format, Args ... args)
-    {
-        std::string formattedMessage = formatMessage(format, args...);
-        print(formattedMessage.c_str());
+        print(buffer);
     }
 
     std::wstring toWideString(const std::string& str);
@@ -55,6 +51,10 @@ namespace utility
     }
 }
 
+/*
+* Enum cast to its underlying type.
+* Mostly used for using enums as array index.
+*/
 template <typename Enum>
 constexpr auto enum_cast(Enum e) noexcept -> std::underlying_type_t<Enum>
 {
@@ -66,16 +66,13 @@ constexpr auto enum_cast(Enum e) noexcept -> std::underlying_type_t<Enum>
 * Deletes the copy constructor and = operator.
 * Used to make the code clean.
 */
-class NonCopyable
+class NonCopyableButMovable
 {
 protected:
-    NonCopyable() = default;
-    NonCopyable(const NonCopyable&) = delete;
-    NonCopyable& operator=(const NonCopyable&) = delete;
-};
+    NonCopyableButMovable() = default;
+    NonCopyableButMovable(const NonCopyableButMovable&) = delete;
+    NonCopyableButMovable& operator=(const NonCopyableButMovable&) = delete;
 
-struct MemoryBlob
-{
-    size_t size;
-    void* ptr;
+    NonCopyableButMovable(NonCopyableButMovable&&) = default;
+    NonCopyableButMovable& operator=(NonCopyableButMovable&&) = default;
 };

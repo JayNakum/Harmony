@@ -8,7 +8,8 @@ namespace graphics
     namespace dx12
     {
         /*
-        * Wrapper over ID3DBlob
+        * Wrapper over ID3DBlob.
+        * This is just to make the project API independent.
         */
         class Blob
         {
@@ -33,6 +34,7 @@ namespace graphics
                 };
             }
 
+            // For implicit conversion to shader bytecode
             operator D3D12_SHADER_BYTECODE() const { return getBytecode(); }
 
             ID3DBlob** operator&() { return mBlob.GetAddressOf(); }

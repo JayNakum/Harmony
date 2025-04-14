@@ -9,9 +9,10 @@ namespace graphics
 {
     namespace dx12
     {
-        inline static const D3D12_DESCRIPTOR_RANGE_TYPE toD3DDescriptorRangeType(const DescriptorRangeType type)
+        // Maps graphics::DescriptorRanceType with D3D12_DESCRIPTOR_RANGE_TYPE
+        inline static const D3D12_DESCRIPTOR_RANGE_TYPE toD3DDescriptorRangeType(const DescriptorRangeType e)
         {
-            switch (type)
+            switch (e)
             {
             case DescriptorRangeType::CBV:
                 return D3D12_DESCRIPTOR_RANGE_TYPE::D3D12_DESCRIPTOR_RANGE_TYPE_CBV;

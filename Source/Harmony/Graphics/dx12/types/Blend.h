@@ -9,10 +9,12 @@ namespace graphics
 {
     namespace dx12
     {
-        inline static const D3D12_BLEND toD3DBlend(const Blend blend)
+        // Maps graphics::Blend with D3D12_BLEND
+        inline static const D3D12_BLEND toD3DBlend(const Blend e)
         {
-            switch (blend)
+            switch (e)
             {
+            default:
             case Blend::Zero:
                 return D3D12_BLEND::D3D12_BLEND_ZERO;
             case Blend::One:
@@ -53,6 +55,5 @@ namespace graphics
                 return D3D12_BLEND::D3D12_BLEND_INV_ALPHA_FACTOR;
             }
         }
-
     }
 }

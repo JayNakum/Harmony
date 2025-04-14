@@ -11,9 +11,10 @@ namespace graphics
     {
         namespace dx12
         {
-            inline static const D3D12_COMPARISON_FUNC toD3DComparisonFunc(const ComparisionFunction function)
+            // Maps graphics::ComparisionFunction with D3D12_COMPARISION_FUNC
+            inline static const D3D12_COMPARISON_FUNC toD3DComparisonFunc(const ComparisionFunction e)
             {
-                switch (function)
+                switch (e)
                 {
                 case ComparisionFunction::None:
                     return D3D12_COMPARISON_FUNC::D3D12_COMPARISON_FUNC_NONE;

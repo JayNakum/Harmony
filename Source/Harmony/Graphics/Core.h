@@ -1,5 +1,6 @@
 #pragma once
 
+#include "common.h"
 #include "dx12/Device.h"
 
 #include "CommandListManager.h"

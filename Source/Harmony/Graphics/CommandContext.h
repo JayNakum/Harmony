@@ -18,7 +18,7 @@ namespace graphics
     * Contains the state and resources needed to record and execute commands on the GPU.
     * This parent class is inherited by GraphicsContext and // TODO: ComputeContext.
     */
-    class CommandContext : public CommandObject, NonCopyable
+    class CommandContext : public CommandObject
     {
 
     protected:
@@ -36,7 +36,7 @@ namespace graphics
         // currentDescriptorHeaps are then bind to GPU before draw call.
         void setDescriptorHeap(dx12::DescriptorHeap& descriptorHeap);
 
-        uint64_t finish(bool waitForCompletion = false);
+        uint64_t finish(const bool waitForCompletion = false);
         void reset();
 
         virtual void deallocate() = 0;
@@ -45,8 +45,8 @@ namespace graphics
     public:
         // Static methods that use the default command context.
 
-        static void initializeBuffer(dx12::GPUBuffer& dest, const void* data, size_t numBytes, size_t destOffset = 0, GPUResourceState newState = GPUResourceState::GenericRead);
-        static void initializeBuffer(dx12::GPUBuffer& dest, dx12::UploadBuffer& src, size_t srcOffset = 0, size_t numBytes = -1, size_t destOffset = 0, GPUResourceState newState = GPUResourceState::GenericRead);
+        static void initializeBuffer(dx12::GPUBuffer& dest, const void* data, size_t numBytes, const size_t destOffset = 0, GPUResourceState newState = GPUResourceState::GenericRead);
+        static void initializeBuffer(dx12::GPUBuffer& dest, dx12::UploadBuffer& src, const size_t srcOffset = 0, size_t numBytes = -1, const size_t destOffset = 0, GPUResourceState newState = GPUResourceState::GenericRead);
 
     private:
         std::string mID;

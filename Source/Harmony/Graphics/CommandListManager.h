@@ -1,5 +1,7 @@
 #pragma once
 
+#include "common.h"
+
 #include "CommandAllocatorPool.h"
 #include "CommandListPool.h"
 

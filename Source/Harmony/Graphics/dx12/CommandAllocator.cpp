@@ -12,7 +12,7 @@ namespace graphics
             : CommandObject(createDescription.type), mCommandAllocator(nullptr)
         {
             HRESULT hResult = GfxDevice()->CreateCommandAllocator(toD3DCommandListType(mType), IID_PPV_ARGS(&mCommandAllocator));
-            HASSERT_HR(hResult, "Failed to create command allocator %s.", createDescription.name);
+            HASSERT(SUCCEEDED(hResult), "Failed to create command allocator %s.\n%s", createDescription.name, utility::translateErrorCode(hResult));
 
             setName(mCommandAllocator.Get(), utility::toWideString(createDescription.name).c_str());
         }

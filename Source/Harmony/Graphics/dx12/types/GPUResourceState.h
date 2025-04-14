@@ -9,10 +9,12 @@ namespace graphics
 {
     namespace dx12
     {
-        inline static const D3D12_RESOURCE_STATES toD3DResourceState(const GPUResourceState state)
+        // Maps graphics::GPUResourceState with D3D12_RESOURCE_STATES
+        inline static const D3D12_RESOURCE_STATES toD3DResourceState(const GPUResourceState e)
         {
-            switch (state)
+            switch (e)
             {
+            default:
             case GPUResourceState::Invalid:
                 return static_cast<D3D12_RESOURCE_STATES>(-1);
             case GPUResourceState::Common:

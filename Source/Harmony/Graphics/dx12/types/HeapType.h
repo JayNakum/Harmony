@@ -9,10 +9,12 @@ namespace graphics
 {
     namespace dx12
     {
-        inline static const D3D12_HEAP_TYPE toD3DHeapType(const HeapType type)
+        // Maps graphics::HeapType with D3D12_HEAP_TYPE
+        inline static const D3D12_HEAP_TYPE toD3DHeapType(const HeapType e)
         {
-            switch (type)
+            switch (e)
             {
+            default:
             case HeapType::Default:
                 return D3D12_HEAP_TYPE::D3D12_HEAP_TYPE_DEFAULT;
             case HeapType::Upload:

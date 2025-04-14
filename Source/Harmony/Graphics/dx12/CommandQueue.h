@@ -8,8 +8,6 @@
 #include "CommandList.h"
 #include "Fence.h"
 
-#include "Log.h"
-
 namespace graphics
 {
     namespace dx12
@@ -29,36 +27,37 @@ namespace graphics
             // Creates an ID3D12CommandQueue of createDescription.type.
             CommandQueue(const Description& createDescription);
 
-            // Executes the commandlist and returns the incremented fence.
-            uint64_t executeCommandList(dx12::CommandList& commandList);
-
             // Signals the command queue and returns the incremented fence value.
-            uint64_t incrementFence();
+            const uint64_t incrementFence();
 
             // Checks if the fenceValue is reached or not.
-            bool isFenceComplete(uint64_t fenceValue);
+            bool isFenceComplete(const uint64_t fenceValue);
 
             // Waits for the passed fence value.
-            void waitForFence(uint64_t fenceValue);
+            void waitForFence(const uint64_t fenceValue);
 
             // Flushes the entire command queue.
             inline void waitForIdle() { waitForFence(incrementFence()); }
 
-            // Flushes the queueu and destroys the ID3D12CommadQueue.
+            // Executes the commandlist and returns the incremented fence.
+            const uint64_t executeCommandList(dx12::CommandList& commandList);
+
+            // Flushes the queue and destroys the ID3D12CommadQueue.
             ~CommandQueue();
+
+            // Returns the raw pointer of ID3D12CommandQueue.
+            inline const ID3D12CommandQueue* get() const { return mCommandQueue.Get(); }
+            inline ID3D12CommandQueue* get() { return mCommandQueue.Get(); }
 
             // Operator overload that returns the raw pointer of ID3D12CommandQueue.
             inline const ID3D12CommandQueue* operator->() const { return mCommandQueue.Get(); }
             inline ID3D12CommandQueue* operator->() { return mCommandQueue.Get(); }
 
-            inline const ID3D12CommandQueue* get() const { return mCommandQueue.Get(); }
-            inline ID3D12CommandQueue* get() { return mCommandQueue.Get(); }
-
         private:
             // Increments the fence WITHOUT locking the mutex
             // This method is used internally to prevent double locking the mutex.
             // Locking the mutex twice leads to a deadlock.
-            uint64_t incrementFenceNoMutex();
+            const uint64_t incrementFenceNoMutex();
 
         private:
             Microsoft::WRL::ComPtr<ID3D12CommandQueue> mCommandQueue;

@@ -1,5 +1,7 @@
 #include "Heap.h"
 
+#include "Core.h"
+
 #include "types/HeapType.h"
 
 namespace graphics
@@ -7,26 +9,17 @@ namespace graphics
     namespace dx12
     {
         Heap::Heap(const Description& createDescription)
-            : mDescription(createDescription), mNextAllocationOffset(0), mFreeSpace(createDescription.sizeInBytes)
+            : mHeap(nullptr)
         {
-            // TODO: Implement heap creation
-        }
+            D3D12_HEAP_DESC heapDesc{};
+            heapDesc.SizeInBytes = (UINT64)createDescription.sizeInBytes;
+            heapDesc.Properties.Type = toD3DHeapType(createDescription.type);
+            heapDesc.Alignment = D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT;
+            heapDesc.Flags = D3D12_HEAP_FLAG_NONE;
+            HRESULT hResult = GfxDevice()->CreateHeap(&heapDesc, IID_PPV_ARGS(&mHeap));
+            HASSERT(SUCCEEDED(hResult), "Failed to create heap for opaque render items.\n%s", utility::translateErrorCode(hResult));
 
-        uint64_t Heap::allocate(const uint64_t sizeInBytes)
-        {
-            HASSERT(canAllocate(sizeInBytes), "%s Heap out of space. Trying to allocate %d bytes but available space is %d bytes.", mDescription.name, sizeInBytes, mFreeSpace);
-            uint64_t allocationOffset = mNextAllocationOffset;
-
-            mNextAllocationOffset += sizeInBytes;
-            mFreeSpace -= sizeInBytes;
-
-            return allocationOffset;
-        }
-
-        void Heap::reset()
-        {
-            mNextAllocationOffset = 0;
-            mFreeSpace = mDescription.sizeInBytes;
+            setName(mHeap.Get(), utility::toWideString(createDescription.name).c_str());
         }
 
         Heap::~Heap()

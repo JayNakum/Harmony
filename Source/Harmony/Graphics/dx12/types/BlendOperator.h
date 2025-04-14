@@ -9,10 +9,12 @@ namespace graphics
 {
     namespace dx12
     {
-        inline static const D3D12_BLEND_OP toD3DBlendOperator(const BlendOperator blendOperator)
+        // Maps graphics::BlendOperator with D3D12+BLEND_OP
+        inline static const D3D12_BLEND_OP toD3DBlendOperator(const BlendOperator e)
         {
-            switch (blendOperator)
+            switch (e)
             {
+            default:
             case BlendOperator::Add:
                 return D3D12_BLEND_OP::D3D12_BLEND_OP_ADD;
             case BlendOperator::Subtract:

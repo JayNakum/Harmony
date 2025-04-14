@@ -9,10 +9,12 @@ namespace graphics
 {
     namespace dx12
     {
-        inline static const D3D12_PRIMITIVE_TOPOLOGY_TYPE toD3DPrimitiveTopologyType(const PrimitiveTopology topology)
+        // Maps graphics::PrimitiveTopology with D3D12_PRIMITIVE_TOPOLOGY
+        inline static const D3D12_PRIMITIVE_TOPOLOGY_TYPE toD3DPrimitiveTopologyType(const PrimitiveTopology e)
         {
-            switch (topology)
+            switch (e)
             {
+            default:
             case PrimitiveTopology::Undefined:
                 return D3D12_PRIMITIVE_TOPOLOGY_TYPE::D3D12_PRIMITIVE_TOPOLOGY_TYPE_UNDEFINED;
             case PrimitiveTopology::Point:

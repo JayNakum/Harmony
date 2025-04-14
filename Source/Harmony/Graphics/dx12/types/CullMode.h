@@ -9,9 +9,10 @@ namespace graphics
 {
     namespace dx12
     {
-        inline static const D3D12_CULL_MODE toD3DCullMode(const CullMode cullMode)
+        // Maps graphics::CullMode with D3D12_CULL_MODE
+        inline static const D3D12_CULL_MODE toD3DCullMode(const CullMode e)
         {
-            switch (cullMode)
+            switch (e)
             {
             case CullMode::None:
                 return D3D12_CULL_MODE::D3D12_CULL_MODE_NONE;

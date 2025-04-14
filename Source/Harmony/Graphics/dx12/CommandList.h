@@ -8,8 +8,6 @@
 #include "CommandAllocator.h"
 #include "GPUResource.h"
 
-#include "Log.h"
-
 namespace graphics
 {
     namespace dx12
@@ -29,18 +27,13 @@ namespace graphics
             };
 
             // Creates an ID3D12CommandList.
-            CommandList(Description& createDesc);
+            CommandList(Description& createDescription);
 
-            inline void flushResourceBarriers()
-            {
-                if (mNumBarriersToFlush > 0)
-                {
-                    mCommandList->ResourceBarrier(mNumBarriersToFlush, mResourceBarrierBuffer);
-                    mNumBarriersToFlush = 0;
-                }
-            }
-
+            // Transition a GPUResource to a newState and optionally flush the barriers immediately.
             void transitionResource(GPUResource& resource, const GPUResourceState newState, bool flushImmediate = false);
+
+            // Flushes the buffered barriers.
+            void flushResourceBarriers();
 
             // Closes and destroys the command list.
             ~CommandList();
@@ -57,7 +50,7 @@ namespace graphics
             Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> mCommandList;
 
             D3D12_RESOURCE_BARRIER mResourceBarrierBuffer[MAX_RESOURCE_BARRIERS];
-            UINT mNumBarriersToFlush;
+            unsigned int mNumBarriersToFlush;
         };
     }
 }

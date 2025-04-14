@@ -10,14 +10,14 @@ namespace graphics
 {
     namespace dx12
     {
-        RootSignature::RootSignature(const Description& description)
+        RootSignature::RootSignature(const Description& createDescription)
         {
             D3D12_ROOT_SIGNATURE_DESC rootSignatureDesc{};
-            rootSignatureDesc.NumParameters = (UINT)description.rootParameters.size();
-            rootSignatureDesc.pParameters = (const D3D12_ROOT_PARAMETER*)description.rootParameters.data();
-            rootSignatureDesc.NumStaticSamplers = (UINT)description.staticSamplers.size();
-            rootSignatureDesc.pStaticSamplers = (const D3D12_STATIC_SAMPLER_DESC*)description.staticSamplers.data();
-            rootSignatureDesc.Flags = toD3DFlags(description.flags);
+            rootSignatureDesc.NumParameters = (UINT)createDescription.rootParameters.size();
+            rootSignatureDesc.pParameters = (const D3D12_ROOT_PARAMETER*)createDescription.rootParameters.data();
+            rootSignatureDesc.NumStaticSamplers = (UINT)createDescription.staticSamplers.size();
+            rootSignatureDesc.pStaticSamplers = (const D3D12_STATIC_SAMPLER_DESC*)createDescription.staticSamplers.data();
+            rootSignatureDesc.Flags = toD3DRootSignatureFlags(createDescription.flags);
 
             Microsoft::WRL::ComPtr<ID3DBlob> serializedRootSig = nullptr;
             Microsoft::WRL::ComPtr<ID3DBlob> errorBlob = nullptr;
@@ -27,7 +27,7 @@ namespace graphics
                     &rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1,
                     serializedRootSig.GetAddressOf(), errorBlob.GetAddressOf());
 
-                HASSERT_HR(hResult, "Failed to serialize root signature %s.\n%s", description.name, errorBlob ? (char*)errorBlob->GetBufferPointer() : "Unknown error");
+                HASSERT(SUCCEEDED(hResult), "Failed to serialize root signature %s.\n%s\n%s", createDescription.name, errorBlob ? (char*)errorBlob->GetBufferPointer() : "Unknown error", utility::translateErrorCode(hResult));
             }
             {// Create root signature
                 HRESULT hResult = GfxDevice()->CreateRootSignature(
@@ -36,10 +36,15 @@ namespace graphics
                     serializedRootSig->GetBufferSize(),
                     IID_PPV_ARGS(&mRootSignature));
 
-                HASSERT_HR(hResult, "Failed to create root signature %s.", description.name);
+                HASSERT(SUCCEEDED(hResult), "Failed to create root signature %s.\n%s", createDescription.name, utility::translateErrorCode(hResult));
             }
 
-            setName(mRootSignature.Get(), utility::toWideString(description.name).c_str());
+            setName(mRootSignature.Get(), utility::toWideString(createDescription.name).c_str());
+        }
+
+        RootSignature::~RootSignature()
+        {
+            mRootSignature = nullptr;
         }
     }
 }

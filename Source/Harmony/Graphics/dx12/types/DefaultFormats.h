@@ -5,8 +5,9 @@
 
 #include "Format.h"
 
-namespace
+namespace // Keeping this in no namespace so that these are inaccessible outside this translation unit
 {
+    // Hash function for the defaultFormats map
     struct FormatHasher
     {
         std::size_t operator()(const graphics::Format & f) const
@@ -30,6 +31,7 @@ namespace
         }
     };
 
+    // Equal function for the defaultFormats map
     struct FormatEqual
     {
         bool operator()(const graphics::Format& a, const graphics::Format& b) const
@@ -188,6 +190,7 @@ namespace graphics
             { DefaultFormats::Y416, DXGI_FORMAT_Y416 },
         };
 
+        // Maps graphics::Format with DXGI_FORMAT
         inline static const DXGI_FORMAT toDXGIFormat(const Format& format)
         {
             return defaultFormats.at(format);

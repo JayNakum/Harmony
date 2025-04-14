@@ -1,5 +1,10 @@
 #pragma once
 
+/*
+* All the common #includes are here
+* This is then included in every single file.
+*/
+
 #include <cstdio>
 
 #include <string>
@@ -21,4 +26,5 @@
 #include <ctime>
 
 #include "Utility.h"
+#include "Log.h"
 #include "Maths.h"

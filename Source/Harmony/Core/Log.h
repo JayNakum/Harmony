@@ -2,9 +2,7 @@
 
 #include "Utility.h"
 
-#include "win.h"
-
-#if !defined(RELEASE) // TODO: Remove the ifdef once file logging is implemented because project will support file logging in RELEASE as well.
+#if defined(DEBUG)
 
 #define _LOG_FORMAT "[%s] %s | %s | %s:%d | "
 #define _LOG_ARGS utility::timenow().c_str(), utility::removeBasePath(__FILE__).c_str(), __FUNCTION__, __LINE__
@@ -12,7 +10,7 @@
 // unnecessary helper macro to print a simple message to logs
 #define DEBUGPRINT(message, ...) utility::printF(message "\n", ##__VA_ARGS__)
 
-// prints a formatted message to logs "[category] time | fileName | function:line | messsage"
+// prints a formatted message to logs "[category] time | fileName | function:line | message"
 #define DEBUGLOG(category, message, ...) utility::printF(_LOG_FORMAT message "\n", category, _LOG_ARGS, ##__VA_ARGS__)
 
 // DEBUGLOG ONCE
@@ -48,7 +46,7 @@ if ((bool)(condition)) \
 // triggers a breakpoint that stops execution and enter the debugger
 #define BREAK __debugbreak()
 
-// BREAK IF conditoin is TRUE
+// BREAK IF condition is TRUE
 #define BREAK_IF(condition) if((bool)(condition)) BREAK
 
 
@@ -58,17 +56,6 @@ if ((bool)(condition)) \
 if (!(bool)(condition)) \
 { \
     DEBUGLOG("SOFT ASSERT", message, ##__VA_ARGS__); \
-    BREAK; \
-} \
-}
-
-// BREAK and DEBUGLOG if FAILED(hResult)
-#define HASSERT_SOFT_HR(hResult, message, ...) \
-{ \
-if (FAILED((HRESULT)(hResult))) \
-{ \
-    DEBUGLOG("SOFT ASSERT", message, ##__VA_ARGS__); \
-    DEBUGLOG("ERROR", "%s", utility::translateErrorCode((HRESULT)(hResult)).get()); \
     BREAK; \
 } \
 }
@@ -85,19 +72,6 @@ if (!(bool)(condition) && !sTriggeredLog) \
 } \
 }
 
-// BREAK and DEBUGLOG ONCE if FAILED(hResult)
-#define HASSERT_SOFT_HR_ONCE(hResult, message, ...) \
-{ \
-static bool sTriggeredLog = false; \
-if (FAILED((HRESULT)(hResult)) && !sTriggeredLog) \
-{ \
-    sTriggeredLog = true; \
-    DEBUGLOG("SOFT ASSERT", message, ##__VA_ARGS__); \
-    DEBUGLOG("ERROR", "%s", utility::translateErrorCode((HRESULT)(hResult)).get()); \
-    BREAK; \
-} \
-}
-
 // BREAK, DEBUGLOG and ABORT IF condition is FALSE
 #define HASSERT(condition, message, ...) \
 { \
@@ -109,19 +83,7 @@ if (!(bool)(condition)) \
 } \
 }
 
-// BREAK, DEBUGLOG and ABORT if FAILED(hResult)
-#define HASSERT_HR(hResult, message, ...) \
-{ \
-if (FAILED((HRESULT)(hResult))) \
-{ \
-    DEBUGLOG("ASSERT", message, ##__VA_ARGS__); \
-    DEBUGLOG("ERROR", "%s", utility::translateErrorCode((HRESULT)(hResult)).get()); \
-    BREAK; \
-    std::abort(); \
-} \
-}
-
-#else
+#else // defined(DEBUG)
 
 #define DEBUGPRINT(message, ...) (void)(message)
 #define DEBUGLOG(category, message, ...) (void)(category); (void)(message)
@@ -133,9 +95,7 @@ if (FAILED((HRESULT)(hResult))) \
 #define BREAK_IF(condition) (void)condition
 
 #define HASSERT_SOFT(condition, message, ...) (void)(condition); (void)(message)
-#define HASSERT_SOFT_HR(hResult, message, ...) (void)(hResult); (void)(message)
-
+#define HASSERT_SOFT_ONCE(category, message, ...) (void)(condition); (void)(message)
 #define HASSERT(condition, message, ...) (void)(condition); (void)(message); if (!(bool)(condition)) std::abort()
-#define HASSERT_HR(hResult, message, ...) (void)(hResult); (void)(message); if (FAILED((HRESULT)(hResult))) std::abort()
 
-#endif // !defined(RELEASE)
+#endif // defined(DEBUG)

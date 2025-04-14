@@ -2,6 +2,9 @@
 
 #include <cmath>
 
+/*
+* Byte alignment utilities
+*/
 namespace maths
 {
     template <typename T> inline T alignUpWithMask(T value, size_t mask)
@@ -29,11 +32,17 @@ namespace maths
         return 0 == ((size_t)value & (alignment - 1));
     }
 
+}
+
+/*
+* Math utilities
+*/
+namespace maths
+{
     template <typename T> inline T divideByMultiple(T value, size_t alignment)
     {
         return (T)((value + alignment - 1) / alignment);
     }
-
     template <typename T> inline bool isPowerOfTwo(T value)
     {
         return 0 == (value & (value - 1));

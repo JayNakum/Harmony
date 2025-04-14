@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common.h"
+#include "directx.h"
 
 #include "GPUResource.h"
 
@@ -26,11 +27,14 @@ namespace graphics
             // Creates a committed buffer of size Description::bufferSize
             UploadBuffer(const Description& createDescription);
 
+            // Creates a filtered and valid GPUResource::Description based on the initData
+            const GPUResource::Description describeResource() const override;
+
             // Maps the ID3D12Resource and returns the memory pointer.
             void* map();
 
             // Unmaps the resource from begin to end/mBufferSize
-            void unmap(size_t begin = 0, size_t end = -1);
+            void unmap(const size_t begin = 0, const size_t end = -1);
 
             inline const size_t getSize() const { return mBufferSize; }
 
@@ -39,8 +43,6 @@ namespace graphics
             {
                 destroy();
             }
-
-            const GPUResource::Description describeResource() const override;
 
         private:
             const size_t mBufferSize;

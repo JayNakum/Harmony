@@ -1,6 +1,7 @@
 #include "common.h"
-
 #include "win.h"
+
+#include "Utility.h"
 
 /*
 * Windows specific overrides of the utility functions
@@ -17,17 +18,17 @@ namespace utility
 
     std::unique_ptr<char[]> translateErrorCode(const long errorCode) noexcept
     {
-        HRESULT hr = static_cast<HRESULT>(errorCode);
+        HRESULT hResult = static_cast<HRESULT>(errorCode);
         if (FACILITY_WINDOWS == HRESULT_FACILITY(errorCode))
         {
-            hr = HRESULT_CODE(errorCode);
+            hResult = HRESULT_CODE(errorCode);
         }
 
         LPSTR szErrMsg = nullptr;
 
         if (FormatMessageA(
             FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-            NULL, hr, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+            NULL, hResult, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
             (LPSTR)&szErrMsg, 0, NULL) != 0)
         {
             size_t bufferSize = strlen(szErrMsg) + 1;
@@ -42,10 +43,10 @@ namespace utility
         else
         {
             const char* genericErrorMsg = "Unexpected error # % #x.";
-            size_t bufferSize = snprintf(nullptr, 0, genericErrorMsg, hr) + 1;
+            size_t bufferSize = snprintf(nullptr, 0, genericErrorMsg, hResult) + 1;
 
             std::unique_ptr<char[]> errorMessage(new char[bufferSize]);
-            snprintf(errorMessage.get(), bufferSize, genericErrorMsg, hr);
+            snprintf(errorMessage.get(), bufferSize, genericErrorMsg, hResult);
 
             return errorMessage;
         }

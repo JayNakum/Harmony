@@ -11,9 +11,10 @@ namespace graphics
     {
         namespace dx12
         {
-            inline static const D3D12_TEXTURE_ADDRESS_MODE toD3DTextureAddressMode(const TextureAddressMode mode)
+            // Maps graphics::TextureAddressMode with D3D12_TEXTURE_ADDRESS_MODE
+            inline static const D3D12_TEXTURE_ADDRESS_MODE toD3DTextureAddressMode(const TextureAddressMode e)
             {
-                switch (mode)
+                switch (e)
                 {
                 case TextureAddressMode::Wrap:
                     return D3D12_TEXTURE_ADDRESS_MODE::D3D12_TEXTURE_ADDRESS_MODE_WRAP;

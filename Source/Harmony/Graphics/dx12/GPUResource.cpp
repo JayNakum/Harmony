@@ -2,10 +2,6 @@
 
 #include "Core.h"
 
-#include "Heap.h"
-
-#include "Log.h"
-
 namespace graphics
 {
     namespace dx12
@@ -25,7 +21,7 @@ namespace graphics
                 &heapProperties, D3D12_HEAP_FLAG_NONE, &resourceDescription,
                 toD3DResourceState(mUsageState), nullptr, IID_PPV_ARGS(getAddressOf())
             );
-            HASSERT_HR(hResult, "Failed to create committed resource %s.", createDescription.name);
+            HASSERT(SUCCEEDED(hResult), "Failed to create committed resource %s.\n%s", createDescription.name, utility::translateErrorCode(hResult));
 
             setName(mResource.Get(), utility::toWideString(createDescription.name).c_str());
         }
@@ -39,7 +35,7 @@ namespace graphics
                 (backingHeap.get()), heapOffset, &resourceDescription,
                 toD3DResourceState(mUsageState), nullptr, IID_PPV_ARGS(getAddressOf())
             );
-            HASSERT_HR(hResult, "Failed to create placed resource %s.", createDescription.name);
+            HASSERT(SUCCEEDED(hResult), "Failed to create placed resource %s.\n%s", createDescription.name, utility::translateErrorCode(hResult));
             setName(mResource.Get(), utility::toWideString(createDescription.name).c_str());
         }
 
@@ -47,7 +43,7 @@ namespace graphics
         {
             D3D12_RESOURCE_DESC createDesc{};
             createDesc.Alignment = description.alignment;
-            createDesc.DepthOrArraySize = description.depth;
+            createDesc.DepthOrArraySize = (UINT16)description.depth;
             createDesc.Dimension = toD3DResourceDimension(description.dimension);
             createDesc.Format = toDXGIFormat(description.format);
             createDesc.Height = (UINT)description.height;

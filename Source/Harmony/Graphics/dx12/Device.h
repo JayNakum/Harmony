@@ -3,8 +3,6 @@
 #include "common.h"
 #include "directx.h"
 
-#include "Log.h"
-
 namespace graphics
 {
     namespace dx12
@@ -35,19 +33,19 @@ namespace graphics
             ~Device();
 
         public:
+            inline bool isDeviceNvidia() { return Device::getVendorIdFromDevice(*this) == vendorID_Nvidia; }
+            inline bool isDeviceAMD() { return Device::getVendorIdFromDevice(*this) == vendorID_AMD; }
+            inline bool isDeviceIntel() { return Device::getVendorIdFromDevice(*this) == vendorID_Intel; }
+
             // Returns the raw pointer of D3D12Device.
             inline const ID3D12Device* operator->() const { return mDevice.Get(); }
             inline ID3D12Device* operator->() { return mDevice.Get(); }
 
-            inline bool isDeviceNvidia() const { return Device::getVendorIdFromDevice(mDevice.Get()) == vendorID_Nvidia; }
-            inline bool isDeviceAMD() const { return Device::getVendorIdFromDevice(mDevice.Get()) == vendorID_AMD; }
-            inline bool isDeviceIntel() const { return Device::getVendorIdFromDevice(mDevice.Get()) == vendorID_Intel; }
-
         public:
-            static uint32_t getVendorIdFromDevice(ID3D12Device* pDevice);
+            static uint32_t getVendorIdFromDevice(Device& device);
 
-            // Check adapter support for DirectX Raytracing.
-            static bool isRaytracingSupported(ID3D12Device* pDevice);
+        private:
+            static bool isRaytracingSupported(ID3D12Device* device);
 
         private:
             Microsoft::WRL::ComPtr<ID3D12Device> mDevice;

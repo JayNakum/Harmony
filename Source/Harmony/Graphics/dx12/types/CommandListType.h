@@ -9,10 +9,12 @@ namespace graphics
 {
     namespace dx12
     {
-        inline static const D3D12_COMMAND_LIST_TYPE toD3DCommandListType(const CommandListType type)
+        // Maps graphics::CommandListType with D3D12_COMMAND_LIST_TYPE
+        inline static const D3D12_COMMAND_LIST_TYPE toD3DCommandListType(const CommandListType e)
         {
-            switch (type)
+            switch (e)
             {
+            default:
             case CommandListType::Direct:
                 return D3D12_COMMAND_LIST_TYPE::D3D12_COMMAND_LIST_TYPE_DIRECT;
             case CommandListType::Compute:
@@ -21,6 +23,5 @@ namespace graphics
                 return D3D12_COMMAND_LIST_TYPE::D3D12_COMMAND_LIST_TYPE_COPY;
             }
         }
-
     }
 }

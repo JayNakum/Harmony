@@ -9,16 +9,16 @@ namespace graphics
 {
     namespace dx12
     {
-        CommandList::CommandList(Description& createDesc)
-            : CommandObject(createDesc.type), mCommandList(nullptr), mResourceBarrierBuffer{}, mNumBarriersToFlush(0)
+        CommandList::CommandList(Description& createDescription)
+            : CommandObject(createDescription.type), mCommandList(nullptr), mResourceBarrierBuffer{}, mNumBarriersToFlush(0)
         {
             HRESULT hResult = GfxDevice()->CreateCommandList(
-                1, toD3DCommandListType(createDesc.type),
-                (createDesc.allocator).get(), nullptr, IID_PPV_ARGS(&mCommandList));
+                1, toD3DCommandListType(createDescription.type),
+                (createDescription.allocator).get(), nullptr, IID_PPV_ARGS(&mCommandList));
 
-            HASSERT_HR(hResult, "Failed to create command list %s", createDesc.name);
+            HASSERT(SUCCEEDED(hResult), "Failed to create command list %s.\n%s", createDescription.name, utility::translateErrorCode(hResult));
 
-            setName(mCommandList.Get(), utility::toWideString(createDesc.name).c_str());
+            setName(mCommandList.Get(), utility::toWideString(createDescription.name).c_str());
         }
 
         void CommandList::transitionResource(GPUResource& resource, const GPUResourceState newState, bool flushImmediate)
@@ -34,14 +34,17 @@ namespace graphics
                 barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
                 barrier.Transition.StateBefore = toD3DResourceState(oldState);
                 barrier.Transition.StateAfter = toD3DResourceState(newState);
-                // Check to see if we already started the transition
+
+                // Check if we already started the transition
                 if (newState == resource.getTransitioningState())
                 {
                     barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_END_ONLY;
                     resource.setTransitioningState(GPUResourceState::Invalid);
                 }
                 else
+                {
                     barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+                }
 
                 resource.setUsageState(newState);
             }
@@ -52,10 +55,19 @@ namespace graphics
             }
         }
 
+        void CommandList::flushResourceBarriers()
+        {
+            if (mNumBarriersToFlush > 0)
+            {
+                mCommandList->ResourceBarrier(mNumBarriersToFlush, mResourceBarrierBuffer);
+                mNumBarriersToFlush = 0;
+            }
+        }
+
         CommandList::~CommandList()
         {
             HRESULT hResult = mCommandList->Close();
-            HASSERT_HR(hResult, "Failed to close command list.");
+            HASSERT(SUCCEEDED(hResult), "Failed to close command list.\n%s", utility::translateErrorCode(hResult));
             mCommandList = nullptr;
         }
     }

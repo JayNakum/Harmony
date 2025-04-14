@@ -58,7 +58,7 @@ namespace graphics
         return fence;
     }
 
-    void CommandContext::initializeBuffer(dx12::GPUBuffer& dest, const void* data, size_t numBytes, size_t destOffset, GPUResourceState newState = GPUResourceState::GenericRead)
+    void CommandContext::initializeBuffer(dx12::GPUBuffer& dest, const void* data, size_t numBytes, const size_t destOffset, GPUResourceState newState)
     {
         // Copy data to an intermediate upload heap.
         dx12::UploadBuffer intermediateBuffer({"Intermediate Buffer", numBytes});
@@ -71,10 +71,10 @@ namespace graphics
         initializeBuffer(dest, intermediateBuffer, 0, numBytes, 0, newState);
     }
 
-    void CommandContext::initializeBuffer(dx12::GPUBuffer& dest, dx12::UploadBuffer& src, size_t srcOffset, size_t numBytes, size_t destOffset, GPUResourceState newState)
+    void CommandContext::initializeBuffer(dx12::GPUBuffer& dest, dx12::UploadBuffer& src, const size_t srcOffset, size_t numBytes, const size_t destOffset, GPUResourceState newState)
     {
         // Safety check for maximum available bytes
-        size_t maxBytes = std::min<size_t>(dest.getSize() - destOffset, src.getSize() - srcOffset);
+        size_t maxBytes = std::min<size_t>(dest.describeResource().width - destOffset, src.getSize() - srcOffset);
         HASSERT_SOFT(maxBytes >= numBytes, "Not enough size(%d) in source buffer after offset %d. Copying only %d bytes.", numBytes, srcOffset, maxBytes);
         numBytes = std::min<size_t>(maxBytes, numBytes);
 
@@ -100,10 +100,15 @@ namespace graphics
 
         getCommandList()->Reset(mCurrentCommandAllocator->get(), nullptr);
     }
+    CommandContext::~CommandContext()
+    {
+    }
 }
 
 namespace graphics
 {
+    GraphicContextPool GraphicContext::msPool(CommandListType::Direct);
+
     GraphicContext::GraphicContext()
         : CommandContext(CommandListType::Direct) {}
 

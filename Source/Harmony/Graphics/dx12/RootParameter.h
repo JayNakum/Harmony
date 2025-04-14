@@ -13,8 +13,6 @@
 #include "types/ComparisionFunction.h"
 #include "types/StaticBorderColor.h"
 
-#include "Log.h"
-
 namespace graphics
 {
     namespace dx12
@@ -33,7 +31,7 @@ namespace graphics
             }
 
             // Initialize as 32 bit constants.
-            inline void initAsConstants(unsigned int shaderRegister, unsigned int dwordsCount, const ShaderVisibility visibility = ShaderVisibility::All, unsigned int registerSpace = 0)
+            inline void initAsConstants(const unsigned int shaderRegister, const unsigned int dwordsCount, const ShaderVisibility visibility = ShaderVisibility::All, const unsigned int registerSpace = 0)
             {
                 mRootParam.ParameterType = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
                 mRootParam.ShaderVisibility = toD3DShaderVisibility(visibility);
@@ -44,7 +42,7 @@ namespace graphics
 
             // A generic method for all type of ShaderViews (CBV, SRV, UAV)
             // Calling this method with RootParameterType::DescriptorTable is not allowed.
-            inline void initAsShaderView(const RootParameterType type, unsigned int shaderRegister, const ShaderVisibility visibility = ShaderVisibility::All, unsigned int registerSpace = 0)
+            inline void initAsShaderView(const RootParameterType type, const unsigned int shaderRegister, const ShaderVisibility visibility = ShaderVisibility::All, const unsigned int registerSpace = 0)
             {
                 HASSERT(type != RootParameterType::DescriptorTable, "Invalid root parameter type. Please use initAsDescriptorTable() instead.");
 
@@ -56,7 +54,7 @@ namespace graphics
 
             // Initializes the parameter as descriptor table with rangeCount entries.
             // Each entry in the table is a descriptor range, which are initialized via setTableRange().
-            inline void initAsDescriptorTable(size_t rangeCount, const ShaderVisibility visibility = ShaderVisibility::All)
+            inline void initAsDescriptorTable(const size_t rangeCount, const ShaderVisibility visibility = ShaderVisibility::All)
             {
                 mRootParam.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
                 mRootParam.ShaderVisibility = toD3DShaderVisibility(visibility);
@@ -70,7 +68,7 @@ namespace graphics
 
             // Initializes each entry of the descriptor table.
             // It is mandatory to initialize the root parameter as descriptor table first.
-            inline void setTableRange(unsigned int rangeIndex, const DescriptorRangeType type, unsigned int shaderRegister, unsigned int count, unsigned int registerSpace = 0)
+            inline void setTableRange(const unsigned int rangeIndex, const DescriptorRangeType type, const unsigned int shaderRegister, const unsigned int count, const unsigned int registerSpace = 0)
             {
                 HASSERT(rangeIndex < mDescriptorRanges.size(), "Descriptor table range out of bounds. Did you call init?");
 
@@ -114,7 +112,7 @@ namespace graphics
                 float maxLOD = FLT_MAX;
             };
 
-            inline void initStaticSampler(unsigned int shaderRegister, const Description& description = {}, const ShaderVisibility visibility = ShaderVisibility::All, unsigned int registerSpace = 0)
+            inline void initStaticSampler(const unsigned int shaderRegister, const Description& description = {}, const ShaderVisibility visibility = ShaderVisibility::All, const unsigned int registerSpace = 0)
             {
                 mStaticSampler.ShaderRegister = shaderRegister;
                 mStaticSampler.RegisterSpace = registerSpace;

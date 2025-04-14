@@ -43,6 +43,7 @@ namespace graphics
                 {
                     DEBUGLOG("WARNING", "Failed to enable D3D12 debug validation layer.");
                 }
+
 #if defined(DEBUG)
                 ComPtr<IDXGIInfoQueue> dxgiInfoQueue;
                 if (SUCCEEDED(DXGIGetDebugInterface1(0, IID_PPV_ARGS(dxgiInfoQueue.GetAddressOf()))))
@@ -67,7 +68,7 @@ namespace graphics
             // Obtain the DXGI factory
             ComPtr<IDXGIFactory6> dxgiFactory;
             hResult = CreateDXGIFactory2(dxgiFactoryFlags, IID_PPV_ARGS(&dxgiFactory));
-            HASSERT_SOFT_HR(hResult, "Failed to create DXGI Factory");
+            HASSERT(SUCCEEDED(hResult), "Failed to create DXGI Factory.\n%s", utility::translateErrorCode(hResult));
 
             // Create the D3D graphics device
             ComPtr<IDXGIAdapter1> pAdapter;
@@ -129,10 +130,10 @@ namespace graphics
                     BREAK;
                 }
                 hResult = dxgiFactory->EnumWarpAdapter(IID_PPV_ARGS(&pAdapter));
-                HASSERT_HR(hResult, "Failed to find warp adapter.");
+                HASSERT(SUCCEEDED(hResult), "Failed to find warp adapter.\n%s", utility::translateErrorCode(hResult));
 
                 hResult = D3D12CreateDevice(pAdapter.Get(), D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&pDevice));
-                HASSERT_HR(hResult, "Failed to create warp device.");
+                HASSERT(SUCCEEDED(hResult), "Failed to create warp device.\n%s", utility::translateErrorCode(hResult));
                 mDevice = pDevice.Detach();
             }
 #if !defined(RELEASE)
@@ -154,7 +155,7 @@ namespace graphics
 
                 DEBUGLOG_ONCE_IF(!sysDeveloperModeEnabled, "WARNING", "Enable Developer Mode on Windows 10 to get consistent profiling results.");
 
-                // Prevent the GPU from overclocking or underclocking to get consistent timings
+                // Prevent the GPU from over-clocking or under-clocking to get consistent timings
                 if (sysDeveloperModeEnabled)
                     mDevice->SetStablePowerState(TRUE);
             }
@@ -260,15 +261,15 @@ namespace graphics
             }
         }
 
-        uint32_t Device::getVendorIdFromDevice(ID3D12Device* pDevice)
+        uint32_t Device::getVendorIdFromDevice(Device& device)
         {
             HRESULT hResult = S_OK;
-            LUID luid = pDevice->GetAdapterLuid();
+            LUID luid = device->GetAdapterLuid();
 
             // Obtain the DXGI factory
             Microsoft::WRL::ComPtr<IDXGIFactory4> dxgiFactory;
             hResult = CreateDXGIFactory2(0, IID_PPV_ARGS(&dxgiFactory));
-            HASSERT_HR(hResult, "Failed to create DXGI Factory.");
+            HASSERT(SUCCEEDED(hResult), "Failed to create DXGI Factory.\n%s", utility::translateErrorCode(hResult));
 
             Microsoft::WRL::ComPtr<IDXGIAdapter1> pAdapter;
 
@@ -285,11 +286,11 @@ namespace graphics
             return 0;
         }
 
-        bool Device::isRaytracingSupported(ID3D12Device* pDevice)
+        bool Device::isRaytracingSupported(ID3D12Device* device)
         {
             D3D12_FEATURE_DATA_D3D12_OPTIONS5 featureSupport = {};
 
-            HRESULT hResult = pDevice->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS5, &featureSupport, sizeof(featureSupport));
+            HRESULT hResult = device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS5, &featureSupport, sizeof(featureSupport));
             if (FAILED(hResult))
                 return false;
 

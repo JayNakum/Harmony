@@ -9,9 +9,10 @@ namespace graphics
 {
     namespace dx12
     {
-        inline static const D3D12_SHADER_VISIBILITY toD3DShaderVisibility(const ShaderVisibility visibility)
+        // Maps graphics::ShaderVisibility with D3D12_SHADER_VISIBILITY
+        inline static const D3D12_SHADER_VISIBILITY toD3DShaderVisibility(const ShaderVisibility e)
         {
-            switch (visibility)
+            switch (e)
             {
             case ShaderVisibility::All:
                 return D3D12_SHADER_VISIBILITY::D3D12_SHADER_VISIBILITY_ALL;

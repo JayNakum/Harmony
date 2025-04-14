@@ -3,6 +3,7 @@
 #include "common.h"
 
 #include "CommandObject.h"
+
 #include "dx12/CommandAllocator.h"
 
 namespace graphics

@@ -11,9 +11,10 @@ namespace graphics
     {
         namespace dx12
         {
-            inline static const D3D12_STATIC_BORDER_COLOR toD3DStaticBorderColor(const StaticBorderColor color)
+            // Maps graphics::StaticBorderColor with D3D12_STATIC_BORDER_COLOR
+            inline static const D3D12_STATIC_BORDER_COLOR toD3DStaticBorderColor(const StaticBorderColor e)
             {
-                switch (color)
+                switch (e)
                 {
                 case StaticBorderColor::TransparentBlack:
                     return D3D12_STATIC_BORDER_COLOR::D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK;

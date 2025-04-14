@@ -7,8 +7,6 @@
 
 #include "DescriptorHandle.h"
 
-#include "Log.h"
-
 namespace graphics
 {
     namespace dx12
@@ -33,9 +31,6 @@ namespace graphics
             // Get the heap start handle
             inline DescriptorHandle getHeapStart() const { return mHeapStart; }
 
-            // Operator overload for array like indexing.
-            inline DescriptorHandle operator[] (size_t index) const { return mHeapStart + (INT)index * (INT)mDescriptorSize; }
-
             // Calculates the heap offset of the handle.
             inline uint32_t getOffsetOfHandle(const DescriptorHandle& dHandle) const
             {
@@ -48,16 +43,22 @@ namespace graphics
             // - If descriptor is GPUVisible then whether the GPU offset and CPU offset matches.
             bool validateHandle(const DescriptorHandle& dHandle) const;
 
+            // Operator overload for array like indexing.
+            inline DescriptorHandle operator[] (const size_t index) const { return mHeapStart + (INT)index * (INT)mDescriptorSize; }
+
             // Frees the heap.
             // Since mHeap is a ComPtr the heap is released automatically.
             virtual ~DescriptorHeap();
 
         public:
-            inline const DescriptorHeapType getDescriptorHeapType() const { return mDescription.type; }
-            inline const DescriptorHeapFlags getDescriptorHeapFlags() const { return mDescription.flag; }
+            // Return descriptor max descriptors size.
+            inline const size_t getMaxDescriptors() const { return mMaxDescriptors; }
 
             // Return descriptor handle increment size.
             inline const size_t getDescriptorSize() const { return mDescriptorSize; }
+
+            // Return descriptor heap type.
+            inline const DescriptorHeapType getDescriptorHeapType() const { return mType; }
 
             // Returns the raw pointer of ID3D12DescriptorHeap.
             inline const ID3D12DescriptorHeap* get() const { return mHeap.Get(); }
@@ -68,7 +69,8 @@ namespace graphics
             inline ID3D12DescriptorHeap* operator->() { return mHeap.Get(); }
 
         protected:
-            const Description mDescription;
+            const size_t mMaxDescriptors;
+            const DescriptorHeapType mType;
 
             // Queried from device via GetDescriptorHandleIncrementSize
             size_t mDescriptorSize;

@@ -10,16 +10,16 @@ namespace graphics
             : mFence(nullptr)
         {
             HRESULT hResult = GfxDevice()->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&mFence));
-            HASSERT_HR(hResult, "Failed to create fence.");
+            HASSERT(SUCCEEDED(hResult), "Failed to create fence.\n%s", utility::translateErrorCode(hResult));
             setName(mFence.Get(), utility::toWideString(name).c_str());
         }
 
-        void Fence::wait(uint64_t fenceValue)
+        void Fence::wait(const uint64_t fenceValue)
         {
             // Passing NULL is thread safe and doesn't require complex fenceEvent management.
             // Especially for this case where we need to wait immediately.
             HRESULT hResult = mFence->SetEventOnCompletion(fenceValue, NULL);
-            HASSERT_HR(hResult, "Failed to set event on fence completion and wait.");
+            HASSERT(SUCCEEDED(hResult), "Failed to set event on fence completion and wait.\n%s", utility::translateErrorCode(hResult));
         }
 
         Fence::~Fence()

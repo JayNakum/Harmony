@@ -9,10 +9,12 @@ namespace graphics
 {
     namespace dx12
     {
-        inline static const D3D12_LOGIC_OP toD3DBlendLogicOperator(const BlendLogicOperator blendLogicOperator)
+        // Maps graphics::BlendLogicOperator with D3D12_LOGIC_OP
+        inline static const D3D12_LOGIC_OP toD3DBlendLogicOperator(const BlendLogicOperator e)
         {
-            switch (blendLogicOperator)
+            switch (e)
             {
+            default:
             case BlendLogicOperator::Clear:
                 return D3D12_LOGIC_OP::D3D12_LOGIC_OP_CLEAR;
             case BlendLogicOperator::Set:

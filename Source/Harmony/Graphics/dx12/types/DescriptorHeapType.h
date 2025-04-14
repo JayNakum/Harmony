@@ -9,10 +9,12 @@ namespace graphics
 {
     namespace dx12
     {
-        inline static const D3D12_DESCRIPTOR_HEAP_TYPE toD3DDescriptorHeapType(const DescriptorHeapType type)
+        // Maps graphics::DescriptorHeapType with D3D12_DESCRIPTOR_HEAP_TYPE
+        inline static const D3D12_DESCRIPTOR_HEAP_TYPE toD3DDescriptorHeapType(const DescriptorHeapType e)
         {
-            switch (type)
+            switch (e)
             {
+            default:
             case DescriptorHeapType::ShaderViews:
                 return D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
             case DescriptorHeapType::Sampler:
@@ -23,6 +25,5 @@ namespace graphics
                 return D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
             }
         }
-
     }
 }

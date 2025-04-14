@@ -1,11 +1,10 @@
 #pragma once
 
 #include "common.h"
+#include "directx.h"
 
-#include "GPUResource.h"
 #include "DescriptorHandle.h"
-#include "Heap.h"
-
+#include "GPUResource.h"
 #include "Format.h"
 
 namespace graphics
@@ -20,12 +19,6 @@ namespace graphics
         public:
             Texture(const Description& createDescription);
 
-            virtual ~Texture()
-            {
-                destroy();
-            }
-
-        public:
             // Creates a filtered and valid GPUResource::Description based on the initData
             const GPUResource::Description describeResource() const override;
 
@@ -41,9 +34,17 @@ namespace graphics
             // Requires a pre allocated descriptorHandle& from a descriptor heap.
             void createShaderResourceView(DescriptorHandle& srvHandle, const ShaderResourceViewInfo& viewInfo) const;
 
+            // Transfer the ownership of a pre created GPUResource to this class.
+            // Meaning that the entire lifecycle of that GPUResource will be managed by this class instead.
             void attachResource(GPUResource& resource);
 
+            // Reset the resource.
             void reset();
+
+            virtual ~Texture()
+            {
+                destroy();
+            }
 
         private:
             Description mDescription;
@@ -56,6 +57,7 @@ namespace graphics
         * RenderTarget is an extension to the texture class with ability to create RTV and DSV.
         * It owns an instance of texture.
         * A rendertarget can be of either two types. Color or Depth.
+        * And the Texture::Descripton must have an appropriate format.
         */
         class RenderTarget
         {
@@ -72,13 +74,13 @@ namespace graphics
                 Texture::Description textureDescription;
             };
 
-            RenderTarget(const Description& description);
+            RenderTarget(const Description& createDescription);
 
             // baseResource is expected to have called setName for debugging
             void createFromSwapchain(DescriptorHandle& rtvHandle, GPUResource& baseResource);
 
-            void createRTV(DescriptorHandle& rtvHandle, uint32_t mipSlice = 0, uint32_t arraySlice = 0);
-            void createDSV(DescriptorHandle& dsvHandle, uint32_t mipSlice = 0, uint32_t arraySlice = 0, bool readOnly = false); // TODO: Support multiple read only depth and stencil views
+            void createRenderTargetView(DescriptorHandle& rtvHandle, uint32_t mipSlice = 0, uint32_t arraySlice = 0);
+            void createDepthStencilView(DescriptorHandle& dsvHandle, uint32_t mipSlice = 0, uint32_t arraySlice = 0, bool readOnly = false); // TODO: Support multiple read only depth and stencil views
 
             inline const Description& getDescription() const { return mDescription; }
             inline const Texture& getTexture() const { return mTexture; }

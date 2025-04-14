@@ -31,22 +31,9 @@ namespace graphics
                 &heapProperties, D3D12_HEAP_FLAG_NONE, &createDesc,
                 dx12::toD3DResourceState(mUsageState), nullptr, IID_PPV_ARGS(&mResource));
 
-            HASSERT_HR(hResult, "Failed to create upload buffer %s", createDescription.name);
+            HASSERT(SUCCEEDED(hResult), "Failed to create upload buffer %s.\n%s", createDescription.name, utility::translateErrorCode(hResult));
 
             setName(mResource.Get(), utility::toWideString(createDescription.name).c_str());
-        }
-
-        void* UploadBuffer::map()
-        {
-            void* memory = nullptr;
-            HRESULT hResult = mResource->Map(0, &CD3DX12_RANGE(0, mBufferSize), &memory);
-            HASSERT_HR(hResult, "Failed to map upload buffer resource.");
-            return memory;
-        }
-
-        void UploadBuffer::unmap(size_t begin, size_t end)
-        {
-            mResource->Unmap(0, &CD3DX12_RANGE(begin, std::min(end, mBufferSize)));
         }
 
         const GPUResource::Description UploadBuffer::describeResource() const
@@ -57,6 +44,18 @@ namespace graphics
 
             return description;
         }
+
+        void* UploadBuffer::map()
+        {
+            void* memory = nullptr;
+            HRESULT hResult = mResource->Map(0, &CD3DX12_RANGE(0, mBufferSize), &memory);
+            HASSERT(SUCCEEDED(hResult), "Failed to map upload buffer resource.\n%s", utility::translateErrorCode(hResult));
+            return memory;
+        }
+
+        void UploadBuffer::unmap(const size_t begin, const size_t end)
+        {
+            mResource->Unmap(0, &CD3DX12_RANGE(begin, std::min(end, mBufferSize)));
+        }
     }
 }
-

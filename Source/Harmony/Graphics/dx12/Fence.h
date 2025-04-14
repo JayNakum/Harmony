@@ -3,8 +3,6 @@
 #include "common.h"
 #include "directx.h"
 
-#include "Log.h"
-
 namespace graphics
 {
     namespace dx12
@@ -18,12 +16,12 @@ namespace graphics
             // Creates an ID3D12Fence
             Fence(const std::string& name);
 
-            void wait(uint64_t fenceValue);
+            // Wait for the fence value.
+            void wait(const uint64_t fenceValue);
 
             ~Fence();
 
-            // Returns the raw pointer of ID3D12Fence
-            // This is needed because a lot of synchronization functions require the raw pointer.
+            // Returns the raw pointer of ID3D12Fence.
             inline const ID3D12Fence* get() const { mFence.Get(); }
             inline ID3D12Fence* get() { return mFence.Get(); }
 

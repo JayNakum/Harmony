@@ -11,9 +11,10 @@ namespace graphics
     {
         namespace dx12
         {
-            inline static const D3D12_FILTER toD3DFilter(const Filter filter)
+            // Maps graphics::Filter with D3D12_FILTER
+            inline static const D3D12_FILTER toD3DFilter(const Filter e)
             {
-                switch (filter)
+                switch (e)
                 {
                 case Filter::MinMagMipPoint:
                     return D3D12_FILTER::D3D12_FILTER_MIN_MAG_MIP_POINT;

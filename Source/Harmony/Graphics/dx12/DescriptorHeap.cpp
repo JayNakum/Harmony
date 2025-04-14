@@ -9,23 +9,23 @@ namespace graphics
 {
     namespace dx12
     {
-        DescriptorHeap::DescriptorHeap(const Description & createDescription)
-            : mDescription(createDescription), mHeap(nullptr), mDescriptorSize(0)
+        DescriptorHeap::DescriptorHeap(const Description& createDescription)
+            : mMaxDescriptors(createDescription.maxDescriptors), mType(createDescription.type), mDescriptorSize(0), mHeap(nullptr)
         {
             D3D12_DESCRIPTOR_HEAP_DESC heapDesc{};
-            heapDesc.Type = toD3DDescriptorHeapType(mDescription.type);
-            heapDesc.NumDescriptors = (UINT)mDescription.maxDescriptors;
-            heapDesc.Flags = toD3DDescriptorHeapFlags(mDescription.flag);
+            heapDesc.Type = toD3DDescriptorHeapType(createDescription.type);
+            heapDesc.NumDescriptors = (UINT)createDescription.maxDescriptors;
+            heapDesc.Flags = toD3DDescriptorHeapFlags(createDescription.flag);
             heapDesc.NodeMask = 1;
 
             HRESULT hResult = GfxDevice()->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(mHeap.ReleaseAndGetAddressOf()));
-            HASSERT_HR(hResult, "Failed to create descriptor heap");
+            HASSERT(SUCCEEDED(hResult), "Failed to create descriptor heap.\n%s", utility::translateErrorCode(hResult));
 
-            setName(mHeap.Get(), utility::toWideString(mDescription.name).c_str());
+            setName(mHeap.Get(), utility::toWideString(createDescription.name).c_str());
 
             mDescriptorSize = GfxDevice()->GetDescriptorHandleIncrementSize(heapDesc.Type);
 
-            switch (mDescription.flag)
+            switch (createDescription.flag)
             {
             default:
             case DescriptorHeapFlags::GPUVisible:
@@ -42,17 +42,10 @@ namespace graphics
             }
         }
 
-        DescriptorHeap::~DescriptorHeap()
-        {
-            mHeap = nullptr;
-        }
-
-
-
         bool DescriptorHeap::validateHandle(const DescriptorHandle& dHandle) const
         {
             if (dHandle.getCPUPtr() < mHeapStart.getCPUPtr() ||
-                dHandle.getCPUPtr() >= mHeapStart.getCPUPtr() + mDescription.maxDescriptors * mDescriptorSize)
+                dHandle.getCPUPtr() >= mHeapStart.getCPUPtr() + mMaxDescriptors * mDescriptorSize)
             {
                 return false;
             }
@@ -72,6 +65,11 @@ namespace graphics
             }
 
             return true;
+        }
+
+        DescriptorHeap::~DescriptorHeap()
+        {
+            mHeap = nullptr;
         }
     }
 }

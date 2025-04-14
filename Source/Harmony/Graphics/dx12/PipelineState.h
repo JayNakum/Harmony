@@ -4,12 +4,10 @@
 #include "directx.h"
 
 #include "PipelineStateEnums.h"
+
 #include "Format.h"
-
-#include "Blob.h"
 #include "RootSignature.h"
-
-#include "Log.h"
+#include "Blob.h"
 
 namespace graphics
 {
@@ -26,11 +24,6 @@ namespace graphics
                 : mName(name), mRootSignature(nullptr), mPipelineState(nullptr) {}
 
         public:
-            virtual ~PipelineState()
-            {
-                mPipelineState = nullptr;
-            }
-
             inline void setRootSignature(const RootSignature& bindMappings)
             {
                 mRootSignature = &bindMappings;
@@ -40,6 +33,11 @@ namespace graphics
             {
                 HASSERT(mRootSignature != nullptr, "Root signature is null.");
                 return *mRootSignature;
+            }
+
+            virtual ~PipelineState()
+            {
+                mPipelineState = nullptr;
             }
 
             // Returns the raw pointer of ID3D12PipelineState.
@@ -126,8 +124,8 @@ namespace graphics
                 unsigned int sampleQuality = 0;
             };
 
-            GraphicsPipelineState(Description& description);
-            ~GraphicsPipelineState();
+            GraphicsPipelineState(Description& createDescription);
+            ~GraphicsPipelineState() = default;
         };
     }
 }

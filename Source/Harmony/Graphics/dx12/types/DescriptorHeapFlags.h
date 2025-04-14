@@ -9,9 +9,10 @@ namespace graphics
 {
     namespace dx12
     {
-        inline static const D3D12_DESCRIPTOR_HEAP_FLAGS toD3DDescriptorHeapFlags(const DescriptorHeapFlags flags)
+        // Maps graphics::DescriptorHeapFlags with D3D12_DESCRIPTOR_HEAP_FLAGS
+        inline static const D3D12_DESCRIPTOR_HEAP_FLAGS toD3DDescriptorHeapFlags(const DescriptorHeapFlags e)
         {
-            if (flags == DescriptorHeapFlags::GPUVisible)
+            if (e == DescriptorHeapFlags::GPUVisible)
             {
                 return (D3D12_DESCRIPTOR_HEAP_FLAG_NONE | D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE);
             }

@@ -33,6 +33,9 @@ workspace "Harmony"
   targetdir (target_dir)
   objdir (obj_dir)
 
+  pchheader "%{prj_src.Harmony.Core}/common.h"
+  pchsource "%{prj_src.Harmony.Core}/common.cpp"
+
 include "Sandbox"
 group "Harmony"
   include "Harmony/Core"

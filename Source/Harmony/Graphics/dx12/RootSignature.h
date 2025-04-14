@@ -7,8 +7,6 @@
 
 #include "RootParameter.h"
 
-#include "Log.h"
-
 namespace graphics
 {
     namespace dx12
@@ -29,11 +27,13 @@ namespace graphics
             };
 
             // Creates and serializes root signature
-            RootSignature(const Description& description);
+            RootSignature(const Description& createDescription);
+
+            ~RootSignature();
 
             // Returns the raw pointer of ID3D12RootSignature.
-            inline ID3D12RootSignature* get() { mRootSignature.Get(); }
-            inline ID3D12RootSignature* get() const { mRootSignature.Get(); }
+            inline ID3D12RootSignature* get() const { return mRootSignature.Get(); }
+            inline ID3D12RootSignature* get() { return mRootSignature.Get(); }
 
             const Microsoft::WRL::ComPtr<ID3D12RootSignature>& operator()() const { return mRootSignature; }
 

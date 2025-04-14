@@ -15,6 +15,21 @@ namespace graphics
             mUsageState = GPUResourceState::CopyDest; // Since the resource is created on default heap, it expects some data to be copied to.
         }
 
+        const GPUResource::Description Texture::describeResource() const
+        {
+            GPUResource::Description createDescription{};
+
+            createDescription.dimension = mDescription.dimension;
+            createDescription.width = mDescription.width;
+            createDescription.height = mDescription.height;
+            createDescription.depth = mDescription.depth;
+            createDescription.format = mDescription.format;
+            createDescription.sampleCount = mDescription.sampleCount;
+            createDescription.sampleQuality = mDescription.sampleQuality;
+
+            return createDescription;
+        }
+
         void Texture::createShaderResourceView(DescriptorHandle& srvHandle, const ShaderResourceViewInfo& viewInfo) const
         {
             D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
@@ -88,27 +103,12 @@ namespace graphics
         {
             mResource.Reset();
         }
-
-        const GPUResource::Description Texture::describeResource() const
-        {
-            GPUResource::Description description{};
-
-            description.dimension = mDescription.dimension;
-            description.width = mDescription.width;
-            description.height = mDescription.height;
-            description.depth = mDescription.depth;
-            description.format = mDescription.format;
-            description.sampleCount = mDescription.sampleCount;
-            description.sampleQuality= mDescription.sampleQuality;
-
-            return description;
-        }
     }
 
     namespace dx12
     {
-        RenderTarget::RenderTarget(const Description& description)
-            : mDescription(description), mTexture(description.textureDescription)
+        RenderTarget::RenderTarget(const Description& createDescription)
+            : mDescription(createDescription), mTexture(createDescription.textureDescription)
         {
             bool isValidColorFlag = hasFlag(mDescription.textureDescription.resourceFlags, GPUResourceFlags::AllowRenderTarget) && (mDescription.type == Type::Color);
             bool isValidDepthFlag = hasFlag(mDescription.textureDescription.resourceFlags, GPUResourceFlags::AllowDepthStencil) && (mDescription.type == Type::Depth);
@@ -124,7 +124,7 @@ namespace graphics
             GfxDevice()->CreateRenderTargetView(mTexture.get(), nullptr, rtvHandle);
         }
 
-        void RenderTarget::createRTV(DescriptorHandle& rtvHandle, uint32_t mipSlice, uint32_t arraySlice)
+        void RenderTarget::createRenderTargetView(DescriptorHandle& rtvHandle, uint32_t mipSlice, uint32_t arraySlice)
         {
             HASSERT(mDescription.type == Type::Color, "Cannot create RTV for a Depth RenderTarget.");
 
@@ -152,7 +152,7 @@ namespace graphics
             GfxDevice()->CreateRenderTargetView(mTexture.get(), &rtvDesc, rtvHandle);
         }
 
-        void RenderTarget::createDSV(DescriptorHandle& dsvHandle, uint32_t mipSlice, uint32_t arraySlice, bool readOnly)
+        void RenderTarget::createDepthStencilView(DescriptorHandle& dsvHandle, uint32_t mipSlice, uint32_t arraySlice, bool readOnly)
         {
             HASSERT(mDescription.type == Type::Depth, "Cannot create DSV for a Color RenderTarget.");
 
