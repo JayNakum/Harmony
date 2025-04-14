@@ -55,6 +55,15 @@ namespace graphics
                 }
             }
 
+            inline bool operator ==(const DescriptorHandle& other) const
+            {
+                return (mCPUHandle.ptr == other.getCPUPtr());
+            }
+            inline bool operator !=(const DescriptorHandle& other) const
+            {
+                return (mCPUHandle.ptr != other.getCPUPtr());
+            }
+
             inline size_t getCPUPtr() const { return mCPUHandle.ptr; }
             inline uint64_t getGPUPtr() const { return mGPUHandle.ptr; }
 

@@ -100,6 +100,7 @@ namespace graphics
 
         getCommandList()->Reset(mCurrentCommandAllocator->get(), nullptr);
     }
+
     CommandContext::~CommandContext()
     {
     }
@@ -107,20 +108,18 @@ namespace graphics
 
 namespace graphics
 {
-    GraphicContextPool GraphicContext::msPool(CommandListType::Direct);
-
     GraphicContext::GraphicContext()
         : CommandContext(CommandListType::Direct) {}
 
     GraphicContext& GraphicContext::begin(const std::string& id)
     {
-        GraphicContext& newContext = GraphicContext::msPool.requestContext();
-        newContext.setID(id);
+        GraphicContext& newContext = GfxCommandContextPool().requestGraphicContext();
+        newContext.setName(id);
         return newContext;
     }
 
     void GraphicContext::deallocate()
     {
-        GraphicContext::msPool.discardContext(*this);
+        GfxCommandContextPool().discardContext(*this);
     }
 }

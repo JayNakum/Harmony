@@ -304,7 +304,7 @@ namespace windows
         mDescription = { 0 };
     }
 
-    void Window::update()
+    bool Window::update()
     {
         while ((PeekMessage(&mMsgs, NULL, 0, 0, PM_REMOVE)))
         {
@@ -316,6 +316,7 @@ namespace windows
             TranslateMessage(&mMsgs);
             DispatchMessage(&mMsgs);
         }
+        return mIsRunning;
     }
 
 
@@ -343,8 +344,8 @@ namespace windows
     LRESULT Window::HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noexcept
     {
 #if defined(DEBUG)
-        //static WindowsMessageMap mm;
-        //OutputDebugString(utility::toWideString(mm(msg, lParam, wParam)).c_str());
+        static WindowsMessageMap mm;
+        OutputDebugString(utility::toWideString(mm(msg, lParam, wParam)).c_str());
 #endif
 
         switch (msg)

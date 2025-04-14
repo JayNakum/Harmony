@@ -17,20 +17,20 @@ namespace graphics
     class Core
     {
     private:
-        static Core* msInstance;
-        Core() = default;
+        Core();
+    public:
+        static Core& getInstance();
+        ~Core();
 
     public:
-        static Core* getInstance();
-
-    public:
-        inline const dx12::Device getDevice() const { return msDevice; }
-        inline CommandListManager& getCommandListManager() { return msCommandListManager; }
+        inline dx12::Device& getDevice() { return mDevice; }
+        inline CommandListManager& getCommandListManager() { return mCommandListManager; }
+        inline CommandContextPool& getCommandContextPool() { return mCommandContextPool; }
 
     private:
-        static dx12::Device msDevice;
-        static CommandListManager msCommandListManager;
-        static std::array<dx12::DescriptorHeap, descriptorHeapTypeCount> msActiveDescriptorHeap;
+        dx12::Device mDevice;
+        CommandListManager mCommandListManager;
+        CommandContextPool mCommandContextPool;
     };
 }
 
@@ -39,12 +39,7 @@ namespace graphics
 * Keeping these outside of any namespace with Gfx prefix to make the code a bit more clean.
 */
 
-inline graphics::Core* GfxCore()
-{
-    return graphics::Core::getInstance();
-}
-
-inline graphics::dx12::Device GfxDevice()
+inline graphics::dx12::Device& GfxDevice()
 {
     return graphics::Core::getInstance()->getDevice();
 }
@@ -52,4 +47,9 @@ inline graphics::dx12::Device GfxDevice()
 inline graphics::CommandListManager& GfxCommandListManager()
 {
     return graphics::Core::getInstance()->getCommandListManager();
+}
+
+inline graphics::CommandContextPool& GfxCommandContextPool()
+{
+    return graphics::Core::getInstance()->getCommandContextPool();
 }

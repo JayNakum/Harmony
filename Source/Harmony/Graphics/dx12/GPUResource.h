@@ -96,7 +96,6 @@ namespace graphics
             Microsoft::WRL::ComPtr<ID3D12Resource> mResource;
             GPUResourceState mUsageState;
             GPUResourceState mTransitioningState;
-            FormatEqual teset;
         };
     }
 }

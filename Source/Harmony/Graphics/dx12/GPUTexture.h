@@ -70,7 +70,7 @@ namespace graphics
 
             struct Description
             {
-                const Type type;
+                Type type;
                 Texture::Description textureDescription;
             };
 

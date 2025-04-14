@@ -8,8 +8,8 @@ namespace graphics
 {
     namespace dx12
     {
-        Swapchain::Swapchain(const Description& createDescription, std::array<DescriptorHandle, BACK_BUFFER_COUNT>& rtvHandles)
-            : mSwapChain3(nullptr), mBackBufferDescription(createDescription.renderTargetDescription),
+        Swapchain::Swapchain(const Description& createDescription, std::array<DescriptorHandle, BACK_BUFFER_COUNT> rtvHandles)
+            : mSwapChain(nullptr), mBackBufferDescription(createDescription.renderTargetDescription),
             mBackBuffers{createDescription.renderTargetDescription, createDescription.renderTargetDescription , createDescription.renderTargetDescription }
         {
             Microsoft::WRL::ComPtr<IDXGIFactory4> dxgiFactory;
@@ -19,8 +19,8 @@ namespace graphics
             }
 
             DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
-            swapChainDesc.Width = createDescription.width;
-            swapChainDesc.Height = createDescription.height;
+            swapChainDesc.Width = createDescription.renderTargetDescription.textureDescription.width;
+            swapChainDesc.Height = createDescription.renderTargetDescription.textureDescription.height;
             swapChainDesc.Format = toDXGIFormat(createDescription.renderTargetDescription.textureDescription.format);
             swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
             swapChainDesc.BufferCount = BACK_BUFFER_COUNT;
@@ -44,13 +44,13 @@ namespace graphics
                 &swapchain1);
             HASSERT(SUCCEEDED(hResult), "Failed to create swapchain %s.\n%s", createDescription.name, utility::translateErrorCode(hResult));
 
-            HRESULT hr = swapchain1.As(&mSwapChain3); // A swapchain3 is needed for GetCurrentBackBufferIndex()
+            HRESULT hr = swapchain1.As(&mSwapChain); // A swapchain3 is needed for GetCurrentBackBufferIndex()
             HASSERT(SUCCEEDED(hr), "Failed to cast SwapChain1 to SwapChain3.\n%s", utility::translateErrorCode(hResult));
 
-            resize(createDescription.width, createDescription.height, rtvHandles);
+            resize(createDescription.renderTargetDescription.textureDescription.width, createDescription.renderTargetDescription.textureDescription.height, rtvHandles);
         }
 
-        void Swapchain::resize(const unsigned int width, const unsigned int height, std::array<DescriptorHandle, BACK_BUFFER_COUNT>& rtvHandles)
+        void Swapchain::resize(const unsigned int width, const unsigned int height, std::array<DescriptorHandle, BACK_BUFFER_COUNT> rtvHandles)
         {
             // Reset the render target texture.
             for (size_t i = 0; i < BACK_BUFFER_COUNT; ++i)
@@ -58,7 +58,7 @@ namespace graphics
                 mBackBuffers[i].getTexture().reset();
             }
 
-            HRESULT hResult = mSwapChain3->ResizeBuffers(
+            HRESULT hResult = mSwapChain->ResizeBuffers(
                 BACK_BUFFER_COUNT,
                 width, height,
                 toDXGIFormat(mBackBufferDescription.textureDescription.format),
@@ -70,7 +70,7 @@ namespace graphics
             for (unsigned int i = 0; i < BACK_BUFFER_COUNT; ++i)
             {
                 Microsoft::WRL::ComPtr<ID3D12Resource> backBufferResource;
-                mSwapChain3->GetBuffer(i, IID_PPV_ARGS(&backBufferResource));
+                mSwapChain->GetBuffer(i, IID_PPV_ARGS(&backBufferResource));
 
                 GPUResource backBuffer(backBufferResource.Get(), GPUResourceState::Present); // Creating a GPUResource because createFromSwapchain() cannot work with ID3D12Resource
 
@@ -83,16 +83,16 @@ namespace graphics
 
         void Swapchain::present(const unsigned int interval)
         {
-            HRESULT hResult = mSwapChain3->Present(interval, 0);
+            HRESULT hResult = mSwapChain->Present(interval, 0);
 
             HASSERT(SUCCEEDED(hResult), "Failed to present swapchain.\n%s", utility::translateErrorCode(hResult));
 
-            mCurrentBuffer = mSwapChain3->GetCurrentBackBufferIndex();
+            mCurrentBuffer = mSwapChain->GetCurrentBackBufferIndex();
         }
 
         Swapchain::~Swapchain()
         {
-            mSwapChain3 = nullptr;
+            mSwapChain = nullptr;
         }
     }
 }

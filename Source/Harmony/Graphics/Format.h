@@ -39,7 +39,7 @@ namespace graphics
         {
             ColorWriteMask channels; // Active color channels.
             Type type; // Numeric type.
-            uint8_t bits[4]; // Bits per channel in order: {R, G, B, A}.
+            std::array<uint8_t, 4> bits; // Bits per channel in order: {R, G, B, A}.
         };
 
         // Descriptor for compressed formats (example for block-compressed formats).

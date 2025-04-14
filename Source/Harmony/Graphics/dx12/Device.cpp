@@ -108,7 +108,7 @@ namespace graphics
 
                     mDevice = pDevice.Detach();
 
-                    DEBUGLOG("INFO", "Selected GPU : % s(% u MB)", desc.Description, desc.DedicatedVideoMemory >> 20);
+                    DEBUGLOG("INFO", "Selected GPU : %ls(%u MB)", desc.Description, desc.DedicatedVideoMemory >> 20);
                 }
             }
 

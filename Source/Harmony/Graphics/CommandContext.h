@@ -12,24 +12,22 @@
 
 namespace graphics
 {
-
     /*
     * This is the classes that connects graphics classes with DX12.
     * Contains the state and resources needed to record and execute commands on the GPU.
     * This parent class is inherited by GraphicsContext and // TODO: ComputeContext.
     */
-    class CommandContext : public CommandObject
+    class CommandContext : public CommandObject//, public NonCopyable
     {
-
     protected:
         // Command context is only ever meant to be created, initialized or reset via the Context Manager
         CommandContext(const CommandListType type);
 
         void bindDescriptorHeaps() const;
 
-    public:
-        inline void setID(const std::string& id) { mID = id; }
+        inline void setName(const std::string& name) { mName = name; }
 
+    public:
         inline dx12::CommandList& getCommandList() const { return *mCommandList; }
 
         // Sets the descriptor in the array of currentDescriptorHeaps.
@@ -49,7 +47,7 @@ namespace graphics
         static void initializeBuffer(dx12::GPUBuffer& dest, dx12::UploadBuffer& src, const size_t srcOffset = 0, size_t numBytes = -1, const size_t destOffset = 0, GPUResourceState newState = GPUResourceState::GenericRead);
 
     private:
-        std::string mID;
+        std::string mName;
         dx12::CommandList* mCommandList;
         dx12::CommandAllocator* mCurrentCommandAllocator;
 
@@ -59,17 +57,12 @@ namespace graphics
 
 namespace graphics
 {
-    class GraphicContextPool;
-
     class GraphicContext : public CommandContext
     {
     public:
         GraphicContext();
-        static GraphicContext& begin(const std::string& id = "DEFAULT");
+        static GraphicContext& begin(const std::string& name = "DEFAULT");
 
         void deallocate() override;
-
-    private:
-        static GraphicContextPool msPool;
     };
 }

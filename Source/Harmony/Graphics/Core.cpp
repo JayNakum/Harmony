@@ -2,16 +2,19 @@
 
 namespace graphics
 {
-    Core* Core::msInstance = nullptr;
-
-    Core* Core::getInstance()
+    Core& Core::getInstance()
     {
-        if (msInstance)
-        {
-            return msInstance;
-        }
+        static Core instance;
 
-        msInstance = new Core();
-        return msInstance;
+        return instance;
+    }
+
+    Core::Core()
+        : mDevice(), mCommandListManager(), mCommandContextPool()
+    {
+    }
+
+    Core::~Core()
+    {
     }
 }

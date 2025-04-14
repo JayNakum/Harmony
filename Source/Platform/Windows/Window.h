@@ -41,21 +41,19 @@ namespace windows
             const wchar_t* title = L"Harmony";
             unsigned int width = 0;
             unsigned int height = 0;
-            unsigned int sampleCount = 0;
             bool isFullScreen = false;
         };
         Window(const Description& description);
 
         inline const Description& getDescription() const { return mDescription; }
         inline const HWND getHandle() const { return mHandle; }
-        inline bool isRunning() const { return mIsRunning; }
         inline bool didResize()
         {
             bool result = mDidResize;
             mDidResize = false;
             return result;
         }
-        void update();
+        bool update();
 
         ~Window();
 

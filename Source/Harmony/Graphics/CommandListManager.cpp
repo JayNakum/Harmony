@@ -4,6 +4,7 @@
 
 namespace graphics
 {
+    thread_local CommandListPool CommandListManager::msCommandListPool;
     CommandListManager::CommandListManager()
         : mGraphicsQueue(CommandListType::Direct)
     {}

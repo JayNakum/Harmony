@@ -22,7 +22,9 @@ project "Sandbox"
   filter "platforms:Windows"
     includedirs
     {
-      "%{prj_src.Platform.Windows}/"
+      "%{prj_src.Platform.Windows}/",
+      "%{include_dirs.DirectX}/",
+      "%{include_dirs.DirectX12}/"
     }
 
     links

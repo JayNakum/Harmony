@@ -2,18 +2,14 @@
 
 namespace graphics
 {
-    GraphicContextPool::GraphicContextPool(const CommandListType type)
-        : CommandContextPool(type)
-    {}
-
-    GraphicContext& GraphicContextPool::requestContext()
+    GraphicContext& CommandContextPool::requestGraphicContext()
     {
-        std::lock_guard<std::mutex> scoppedLockGuard(mPoolMutex);
+        std::lock_guard<std::mutex> scoppedLockGuard(mGraphicPoolMutex);
 
-        if (!mAvailableQueue.empty())
+        if (!mGraphicAvailableQueue.empty())
         {
-            GraphicContext* context = mAvailableQueue.front();
-            mAvailableQueue.pop();
+            GraphicContext* context = mGraphicAvailableQueue.front();
+            mGraphicAvailableQueue.pop();
             context->reset();
 
             return *context;
@@ -23,29 +19,24 @@ namespace graphics
         return (msGraphicContextPool.back());
     }
 
-    void GraphicContextPool::discardContext(GraphicContext& context)
+    void CommandContextPool::discardContext(GraphicContext& context)
     {
         const CommandListType type = context.getCommandListType();
-        std::lock_guard<std::mutex> scoppedLockGuard(mPoolMutex);
+        std::lock_guard<std::mutex> scoppedLockGuard(mGraphicPoolMutex);
 
-        mAvailableQueue.push(&context);
+        mGraphicAvailableQueue.push(&context);
     }
 
-    void GraphicContextPool::destroyPool()
+    void CommandContextPool::destroyPool()
     {
-        std::lock_guard<std::mutex> scoppedLockGuard(mPoolMutex);
+        std::lock_guard<std::mutex> scoppedLockGuard(mGraphicPoolMutex);
 
         // clear the queue to prevent dangling pointers
-        while (!mAvailableQueue.empty())
-        {	
-            mAvailableQueue.pop();
+        while (!mGraphicAvailableQueue.empty())
+        {
+            mGraphicAvailableQueue.pop();
         }
 
-        GraphicContextPool::msGraphicContextPool.clear();
-    }
-
-    GraphicContextPool::~GraphicContextPool()
-    {
-        destroyPool();
+        CommandContextPool::msGraphicContextPool.clear();
     }
 }
