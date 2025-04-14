@@ -1,6 +1,35 @@
-#include "win.h"
+#include "Entrypoint.h"
 
-int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE /*hPrevInstance*/, _In_ LPWSTR /*lpCmdLine*/, _In_ int nCmdShow)
+namespace sandbox
 {
+    class Application : public harmony::Application
+    {
+    public:
+        Application()
+        {
 
+        }
+
+        void initialize() override
+        {
+
+        }
+
+        void run() override
+        {
+
+        }
+
+        void deinitialize() override
+        {
+
+        }
+
+        ~Application()
+        {
+
+        }
+    };
 }
+
+CREATE_APPLICATION(sandbox::Application);

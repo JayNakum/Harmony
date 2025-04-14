@@ -67,7 +67,7 @@ namespace graphics
                 DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH
             );
             HASSERT_HR(hResult, "Failed to resize swapchain.");
-            
+
             for (size_t i = 0; i < BACK_BUFFER_COUNT; ++i)
             {
                 Microsoft::WRL::ComPtr<ID3D12Resource> backBufferResource;
