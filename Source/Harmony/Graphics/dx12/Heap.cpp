@@ -6,7 +6,7 @@ namespace graphics
 {
     namespace dx12
     {
-        Heap::Heap(const Description& createDescription)
+        Heap::Heap(Device& device, const Description& createDescription)
             : mHeap(nullptr)
         {
             D3D12_HEAP_DESC heapDesc{};
@@ -14,7 +14,7 @@ namespace graphics
             heapDesc.Properties.Type = toD3DHeapType(createDescription.type);
             heapDesc.Alignment = D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT;
             heapDesc.Flags = D3D12_HEAP_FLAG_NONE;
-            HRESULT hResult = GfxDevice()->CreateHeap(&heapDesc, IID_PPV_ARGS(&mHeap));
+            HRESULT hResult = device->CreateHeap(&heapDesc, IID_PPV_ARGS(&mHeap));
             HASSERT(SUCCEEDED(hResult), "Failed to create heap for opaque render items.\n%s", utility::translateErrorCode(hResult));
 
             setName(mHeap.Get(), utility::toWideString(createDescription.name).c_str());

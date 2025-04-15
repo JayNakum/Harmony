@@ -28,7 +28,7 @@ namespace graphics
             return createDescription;
         }
 
-        void Texture::createShaderResourceView(DescriptorHandle& srvHandle, const ShaderResourceViewInfo& viewInfo) const
+        void Texture::createShaderResourceView(Device& device, DescriptorHandle& srvHandle, const ShaderResourceViewInfo& viewInfo) const
         {
             D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
             srvDesc.Format = toDXGIFormat(mDescription.format);
@@ -88,7 +88,7 @@ namespace graphics
                 break;
             }
 
-            GfxDevice()->CreateShaderResourceView(mResource.Get(), &srvDesc, srvHandle);
+            device->CreateShaderResourceView(mResource.Get(), &srvDesc, srvHandle);
         }
 
         void Texture::attachResource(GPUResource& resource)
@@ -114,15 +114,15 @@ namespace graphics
             HASSERT(isValidColorFlag || isValidDepthFlag, "Invalid GPUResourceFlag %s for render target.", toString(mDescription.textureDescription.resourceFlags));
         }
 
-        void RenderTarget::createFromSwapchain(DescriptorHandle& rtvHandle, GPUResource& baseResource)
+        void RenderTarget::createFromSwapchain(Device& device, DescriptorHandle& rtvHandle, GPUResource& baseResource)
         {
             HASSERT(mDescription.type == Type::Color, "Cannot create RTV for a Depth RenderTarget.");
 
             mTexture.attachResource(baseResource);
-            GfxDevice()->CreateRenderTargetView(mTexture.get(), nullptr, rtvHandle);
+            device->CreateRenderTargetView(mTexture.get(), nullptr, rtvHandle);
         }
 
-        void RenderTarget::createRenderTargetView(DescriptorHandle& rtvHandle, uint32_t mipSlice, uint32_t arraySlice)
+        void RenderTarget::createRenderTargetView(Device& device, DescriptorHandle& rtvHandle, uint32_t mipSlice, uint32_t arraySlice)
         {
             HASSERT(mDescription.type == Type::Color, "Cannot create RTV for a Depth RenderTarget.");
 
@@ -147,10 +147,10 @@ namespace graphics
                 return;
             }
 
-            GfxDevice()->CreateRenderTargetView(mTexture.get(), &rtvDesc, rtvHandle);
+            device->CreateRenderTargetView(mTexture.get(), &rtvDesc, rtvHandle);
         }
 
-        void RenderTarget::createDepthStencilView(DescriptorHandle& dsvHandle, uint32_t mipSlice, uint32_t arraySlice, bool readOnly)
+        void RenderTarget::createDepthStencilView(Device& device, DescriptorHandle& dsvHandle, uint32_t mipSlice, uint32_t arraySlice, bool readOnly)
         {
             HASSERT(mDescription.type == Type::Depth, "Cannot create DSV for a Color RenderTarget.");
 
@@ -178,7 +178,7 @@ namespace graphics
                 return;
             }
 
-            GfxDevice()->CreateDepthStencilView(mTexture.get(), &dsvDesc, dsvHandle);
+            device->CreateDepthStencilView(mTexture.get(), &dsvDesc, dsvHandle);
         }
     }
 }

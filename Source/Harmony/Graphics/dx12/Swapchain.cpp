@@ -6,7 +6,7 @@ namespace graphics
 {
     namespace dx12
     {
-        Swapchain::Swapchain(const Description& createDescription, std::array<DescriptorHandle, BACK_BUFFER_COUNT> rtvHandles)
+        Swapchain::Swapchain(Device& device, CommandQueue& queue, const Description& createDescription, std::array<DescriptorHandle, BACK_BUFFER_COUNT> rtvHandles)
             : mSwapChain(nullptr), mBackBufferDescription(createDescription.renderTargetDescription),
             mBackBuffers{createDescription.renderTargetDescription, createDescription.renderTargetDescription , createDescription.renderTargetDescription }
         {
@@ -34,7 +34,7 @@ namespace graphics
 
             Microsoft::WRL::ComPtr<IDXGISwapChain1> swapchain1;
             HRESULT hResult = dxgiFactory->CreateSwapChainForHwnd(
-                GfxCommandListManager().getGraphicsQueue().get(),
+                queue.get(),
                 createDescription.windowHandle,
                 &swapChainDesc,
                 &fsSwapChainDesc,
@@ -45,10 +45,10 @@ namespace graphics
             HRESULT hr = swapchain1.As(&mSwapChain); // A swapchain3 is needed for GetCurrentBackBufferIndex()
             HASSERT(SUCCEEDED(hr), "Failed to cast SwapChain1 to SwapChain3.\n%s", utility::translateErrorCode(hResult));
 
-            resize((unsigned int)createDescription.renderTargetDescription.textureDescription.width, (unsigned int)createDescription.renderTargetDescription.textureDescription.height, rtvHandles);
+            resize(device, (unsigned int)createDescription.renderTargetDescription.textureDescription.width, (unsigned int)createDescription.renderTargetDescription.textureDescription.height, rtvHandles);
         }
 
-        void Swapchain::resize(const unsigned int width, const unsigned int height, std::array<DescriptorHandle, BACK_BUFFER_COUNT> rtvHandles)
+        void Swapchain::resize(Device& device, const unsigned int width, const unsigned int height, std::array<DescriptorHandle, BACK_BUFFER_COUNT> rtvHandles)
         {
             // Reset the render target texture.
             for (size_t i = 0; i < BACK_BUFFER_COUNT; ++i)
@@ -75,7 +75,7 @@ namespace graphics
                 std::string name = "swapchain buffer " + std::to_string(i);
                 setName(backBuffer.get(), utility::toWideString(name).c_str());
 
-                mBackBuffers[i].createFromSwapchain(rtvHandles[i], backBuffer);
+                mBackBuffers[i].createFromSwapchain(device, rtvHandles[i], backBuffer);
             }
         }
 

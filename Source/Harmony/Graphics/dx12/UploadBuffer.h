@@ -3,6 +3,8 @@
 #include "common.h"
 #include "directx.h"
 
+#include "Device.h"
+
 #include "GPUResource.h"
 
 namespace graphics
@@ -25,7 +27,7 @@ namespace graphics
             };
 
             // Creates a committed buffer of size Description::bufferSize
-            UploadBuffer(const Description& createDescription);
+            UploadBuffer(Device& device, const Description& createDescription);
 
             // Creates a filtered and valid GPUResource::Description based on the initData
             const GPUResource::Description describeResource() const override;

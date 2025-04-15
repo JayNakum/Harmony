@@ -1,12 +1,10 @@
 #include "CommandListManager.h"
 
-#include "Core.h"
-
 namespace graphics
 {
     thread_local CommandListPool CommandListManager::msCommandListPool;
-    CommandListManager::CommandListManager()
-        : mGraphicsQueue(CommandListType::Direct)
+    CommandListManager::CommandListManager(dx12::Device& device)
+        : mGraphicsQueue(device, CommandListType::Direct), mDevice(device)
     {}
 
     CommandListManager::~CommandListManager()
@@ -16,8 +14,8 @@ namespace graphics
 
     void CommandListManager::createNewCommandList(const CommandListType type, dx12::CommandList*& outCommandList, dx12::CommandAllocator*& outCommandAllocator)
     {
-        outCommandAllocator = &(getQueue(type).commandAllocatorPool.requestCommandAllocator());
-        outCommandList = &(msCommandListPool.requestCommandList(type, *outCommandAllocator));
+        outCommandAllocator = &(getQueue(type).commandAllocatorPool.requestCommandAllocator(mDevice));
+        outCommandList = &(msCommandListPool.requestCommandList(mDevice, type, *outCommandAllocator));
     }
 
     CommandListManager::Queue& CommandListManager::getQueue(const CommandListType type)

@@ -19,7 +19,7 @@ namespace graphics
             return description;
         }
 
-        void GPUBuffer::createConstantBufferView(DescriptorHandle& cbvHandle, const uint32_t offset, size_t size) const
+        void GPUBuffer::createConstantBufferView(Device& device, DescriptorHandle& cbvHandle, const uint32_t offset, size_t size) const
         {
             HASSERT(offset + size <= mDescription.width, "offset(%d) + size(%d) is more than total buffer size(%d).", offset, size, mDescription.width);
 
@@ -29,7 +29,7 @@ namespace graphics
             cbvDesc.BufferLocation = getGPUVirtualAddress() + (size_t)offset;
             cbvDesc.SizeInBytes = (UINT)size;
 
-            GfxDevice()->CreateConstantBufferView(&cbvDesc, cbvHandle);
+            device->CreateConstantBufferView(&cbvDesc, cbvHandle);
         }
 
         const BufferView GPUBuffer::vertexBufferView(const size_t stride, const size_t size, const size_t offset) const
@@ -60,7 +60,7 @@ namespace graphics
 {
     namespace dx12
     {
-        void ByteAddressBuffer::createShaderResourceView(DescriptorHandle& srvHandle, const uint64_t sizeInBytes, const unsigned int offsetInBytes) const
+        void ByteAddressBuffer::createShaderResourceView(Device& device, DescriptorHandle& srvHandle, const uint64_t sizeInBytes, const unsigned int offsetInBytes) const
         {
             HASSERT(offsetInBytes + sizeInBytes <= mDescription.width, "offset(%d) + size(%d) is more than total buffer size(%d).", offsetInBytes, sizeInBytes, mDescription.width);
             HASSERT(maths::isAligned(offsetInBytes, ByteAddressBuffer::DEFAULT_ALIGNMENT), "Byte offset must be %d-byte aligned.", ByteAddressBuffer::DEFAULT_ALIGNMENT);
@@ -77,7 +77,7 @@ namespace graphics
 
             srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_RAW;
 
-            GfxDevice()->CreateShaderResourceView(mResource.Get(), &srvDesc, srvHandle);
+            device->CreateShaderResourceView(mResource.Get(), &srvDesc, srvHandle);
         }
     }
 }

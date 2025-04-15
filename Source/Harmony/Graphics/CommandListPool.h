@@ -20,7 +20,7 @@ namespace graphics
 
         // Provides a CommandList from the available queue.
         // If none are available then creates a new one.
-        dx12::CommandList& requestCommandList(const CommandListType type, dx12::CommandAllocator& allocator);
+        dx12::CommandList& requestCommandList(dx12::Device& device, const CommandListType type, dx12::CommandAllocator& allocator);
 
         // Clears the pool. Doing which closes each command list and destroys it.
         void destroyPool();

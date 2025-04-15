@@ -7,7 +7,7 @@ namespace graphics
 {
     namespace dx12
     {
-        UploadBuffer::UploadBuffer(const Description& createDescription)
+        UploadBuffer::UploadBuffer(Device& device, const Description& createDescription)
             : mBufferSize(createDescription.bufferSize)
         {
             destroy();
@@ -25,7 +25,7 @@ namespace graphics
 
             mUsageState = GPUResourceState::GenericRead;
 
-            HRESULT hResult = GfxDevice()->CreateCommittedResource(
+            HRESULT hResult = device->CreateCommittedResource(
                 &heapProperties, D3D12_HEAP_FLAG_NONE, &createDesc,
                 dx12::toD3DResourceState(mUsageState), nullptr, IID_PPV_ARGS(&mResource));
 

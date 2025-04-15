@@ -3,6 +3,8 @@
 #include "common.h"
 #include "directx.h"
 
+#include "Device.h"
+
 #include "RootSignatureEnums.h"
 
 #include "RootParameter.h"
@@ -27,7 +29,7 @@ namespace graphics
             };
 
             // Creates and serializes root signature
-            RootSignature(const Description& createDescription);
+            RootSignature(Device& device, const Description& createDescription);
 
             ~RootSignature();
 

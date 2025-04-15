@@ -8,7 +8,7 @@ namespace graphics
 {
     namespace dx12
     {
-        RootSignature::RootSignature(const Description& createDescription)
+        RootSignature::RootSignature(Device& device, const Description& createDescription)
         {
             D3D12_ROOT_SIGNATURE_DESC rootSignatureDesc{};
             rootSignatureDesc.NumParameters = (UINT)createDescription.rootParameters.size();
@@ -28,7 +28,7 @@ namespace graphics
                 HASSERT(SUCCEEDED(hResult), "Failed to serialize root signature %s.\n%s\n%s", createDescription.name, errorBlob ? (char*)errorBlob->GetBufferPointer() : "Unknown error", utility::translateErrorCode(hResult));
             }
             {// Create root signature
-                HRESULT hResult = GfxDevice()->CreateRootSignature(
+                HRESULT hResult = device->CreateRootSignature(
                     0,
                     serializedRootSig->GetBufferPointer(),
                     serializedRootSig->GetBufferSize(),

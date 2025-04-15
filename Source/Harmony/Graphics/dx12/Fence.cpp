@@ -4,10 +4,10 @@ namespace graphics
 {
     namespace dx12
     {
-        Fence::Fence(const std::string& name)
+        Fence::Fence(Device& device, const std::string& name)
             : mFence(nullptr)
         {
-            HRESULT hResult = GfxDevice()->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&mFence));
+            HRESULT hResult = device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&mFence));
             HASSERT(SUCCEEDED(hResult), "Failed to create fence.\n%s", utility::translateErrorCode(hResult));
             setName(mFence.Get(), utility::toWideString(name).c_str());
         }

@@ -4,7 +4,7 @@
 
 #include <d3dcompiler.h>
 
-#include "Core.h"
+#include "CommandListManager.h"
 #include "DescriptorHeapWithAllocator.h"
 
 namespace sandbox
@@ -19,7 +19,10 @@ namespace sandbox
 
     public:
         Application()
-            : mWindow({L"Sandbox", CLIENT_WIDTH, CLIENT_HEIGHT}) {}
+            : mWindow({L"Sandbox", CLIENT_WIDTH, CLIENT_HEIGHT}) ,
+            mDevice(),
+            mCommandListManager(mDevice)
+        {}
 
         void initialize() override
         {
@@ -35,7 +38,7 @@ namespace sandbox
 
         void deinitialize() override
         {
-            GfxCommandListManager().getGraphicsQueue().waitForIdle();
+            mCommandListManager.getGraphicsQueue().waitForIdle();
         }
 
         ~Application()
@@ -44,6 +47,8 @@ namespace sandbox
 
     private:
         windows::Window mWindow;
+        Device mDevice;
+        CommandListManager mCommandListManager;
     };
 }
 

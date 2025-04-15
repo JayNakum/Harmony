@@ -2,6 +2,8 @@
 
 #include "common.h"
 
+#include "dx12/Device.h"
+
 #include "CommandAllocatorPool.h"
 #include "CommandListPool.h"
 
@@ -18,20 +20,18 @@ namespace graphics
     */
     class CommandListManager
     {
-        friend class Core;
-    private:
+    public:
         // Creates and initializes the internal CommandQueues.
         // TODO: Add compute and copy queue support.
-        CommandListManager();
+        CommandListManager(dx12::Device& device);
 
         ~CommandListManager();
 
-    public:
         // Returns the CommandQueue if the specified type.
         inline dx12::CommandQueue& getCommandQueue(const CommandListType type) { return getQueue(type).commandQueue; }
         inline dx12::CommandQueue& getGraphicsQueue() { return getCommandQueue(CommandListType::Direct); }
 
-        inline dx12::CommandAllocator& requestAllocator(const CommandListType type) { return getQueue(type).commandAllocatorPool.requestCommandAllocator(); }
+        inline dx12::CommandAllocator& requestAllocator(dx12::Device& device, const CommandListType type) { return getQueue(type).commandAllocatorPool.requestCommandAllocator(device); }
         inline void discardAllocator(uint64_t fence, dx12::CommandAllocator& usedAllocator) { getQueue(usedAllocator.getCommandListType()).commandAllocatorPool.discardCommandAllocator(fence, usedAllocator); }
 
     public:
@@ -57,8 +57,8 @@ namespace graphics
     private:
         struct Queue
         {
-            Queue(const CommandListType type)
-                : commandQueue({"global " + toString(type) + " command queue", type}),
+            Queue(dx12::Device& device, const CommandListType type)
+                : commandQueue(device, {"global " + toString(type) + " command queue", type}),
                 commandAllocatorPool(type) {}
 
             dx12::CommandQueue commandQueue;
@@ -71,6 +71,8 @@ namespace graphics
         Queue& getQueue(const CommandListType type);
 
         Queue mGraphicsQueue;
+
+        dx12::Device& mDevice;
 
         // Command Lists are thread local.
         // This allows us to have multiple threads writing commands in parallel.

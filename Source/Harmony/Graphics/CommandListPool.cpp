@@ -2,7 +2,7 @@
 
 namespace graphics
 {
-    dx12::CommandList& CommandListPool::requestCommandList(const CommandListType type, dx12::CommandAllocator& allocator)
+    dx12::CommandList& CommandListPool::requestCommandList(dx12::Device& device, const CommandListType type, dx12::CommandAllocator& allocator)
     {
         dx12::CommandList::Description createDesc{
             mCommandListPool.size() + " " + toString(type) + " type command list",
@@ -10,7 +10,7 @@ namespace graphics
             allocator
         };
 
-        mCommandListPool.emplace_back(createDesc);
+        mCommandListPool.emplace_back(device, createDesc);
 
         return mCommandListPool.back();
     }

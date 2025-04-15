@@ -3,6 +3,8 @@
 #include "common.h"
 #include "directx.h"
 
+#include "Device.h"
+
 #include "PipelineStateEnums.h"
 
 #include "Format.h"
@@ -124,7 +126,7 @@ namespace graphics
                 unsigned int sampleQuality = 0;
             };
 
-            GraphicsPipelineState(Description& createDescription);
+            GraphicsPipelineState(Device& device, Description& createDescription);
             ~GraphicsPipelineState() = default;
         };
     }

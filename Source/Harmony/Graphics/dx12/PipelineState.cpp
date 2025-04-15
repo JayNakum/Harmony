@@ -11,7 +11,7 @@ namespace graphics
 {
     namespace dx12
     {
-        GraphicsPipelineState::GraphicsPipelineState(Description& createDescription)
+        GraphicsPipelineState::GraphicsPipelineState(Device& device, Description& createDescription)
             : PipelineState(createDescription.name)
         {
             D3D12_GRAPHICS_PIPELINE_STATE_DESC d3dDescription{};
@@ -77,7 +77,7 @@ namespace graphics
 
             // TODO: Pipeline State Flags
 
-            HRESULT hResult = GfxDevice()->CreateGraphicsPipelineState(&d3dDescription, IID_PPV_ARGS(&mPipelineState));
+            HRESULT hResult = device->CreateGraphicsPipelineState(&d3dDescription, IID_PPV_ARGS(&mPipelineState));
             HASSERT(SUCCEEDED(hResult), "Failed to create PSO %s.\n%s", createDescription.name.c_str(), utility::translateErrorCode(hResult));
             setName(mPipelineState.Get(), utility::toWideString(createDescription.name).c_str());
         }

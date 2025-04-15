@@ -1,7 +1,5 @@
 #include "CommandContext.h"
 
-#include "Core.h"
-
 namespace graphics
 {
     CommandContext::CommandContext(const CommandListType type)

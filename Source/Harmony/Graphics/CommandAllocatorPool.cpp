@@ -1,14 +1,12 @@
 #include "CommandAllocatorPool.h"
 
-#include "Core.h"
-
 namespace graphics
 {
     CommandAllocatorPool::CommandAllocatorPool(const CommandListType type)
         : CommandObject(type)
     {}
 
-    dx12::CommandAllocator& CommandAllocatorPool::requestCommandAllocator()
+    dx12::CommandAllocator& CommandAllocatorPool::requestCommandAllocator(dx12::Device& device)
     {
         std::lock_guard<std::mutex> scoppedLockGuard(mPoolMutex);
 
@@ -24,7 +22,7 @@ namespace graphics
         dx12::CommandAllocator::Description createDesc;
         createDesc.name = (mCmdAllocatorPool.size() + " " + toString(mType) + "type command allocator");
         createDesc.type = mType;
-        mCmdAllocatorPool.emplace_back(createDesc);
+        mCmdAllocatorPool.emplace_back(device, createDesc);
 
         return mCmdAllocatorPool.back();
     }

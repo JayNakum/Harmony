@@ -7,10 +7,10 @@ namespace graphics
 {
     namespace dx12
     {
-        CommandList::CommandList(Description& createDescription)
+        CommandList::CommandList(Device& device, Description& createDescription)
             : CommandObject(createDescription.type), mCommandList(nullptr), mResourceBarrierBuffer{}, mNumBarriersToFlush(0)
         {
-            HRESULT hResult = GfxDevice()->CreateCommandList(
+            HRESULT hResult = device->CreateCommandList(
                 1, toD3DCommandListType(createDescription.type),
                 (createDescription.allocator).get(), nullptr, IID_PPV_ARGS(&mCommandList));
 

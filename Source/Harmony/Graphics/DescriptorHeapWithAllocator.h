@@ -14,7 +14,7 @@ namespace graphics
     {
     public:
         // Creates a DescriptorHeap and resets the allocation pointers.
-        DescriptorHeapWithAllocator(const Description& createDescription);
+        DescriptorHeapWithAllocator(dx12::Device& device, const Description& createDescription);
 
         // Checks for available space inside heap.
         inline bool canAllocate(const size_t count) const { return count <= mNumFreeDescriptors; }

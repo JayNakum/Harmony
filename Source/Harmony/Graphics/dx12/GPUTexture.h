@@ -3,6 +3,8 @@
 #include "common.h"
 #include "directx.h"
 
+#include "Device.h"
+
 #include "DescriptorHandle.h"
 #include "GPUResource.h"
 #include "Format.h"
@@ -32,7 +34,7 @@ namespace graphics
             };
             // Creates an SRV with custom mip level, mip count, arraySlice and arraySize.
             // Requires a pre allocated descriptorHandle& from a descriptor heap.
-            void createShaderResourceView(DescriptorHandle& srvHandle, const ShaderResourceViewInfo& viewInfo) const;
+            void createShaderResourceView(Device& device, DescriptorHandle& srvHandle, const ShaderResourceViewInfo& viewInfo) const;
 
             // Transfer the ownership of a pre created GPUResource to this class.
             // Meaning that the entire lifecycle of that GPUResource will be managed by this class instead.
@@ -77,10 +79,10 @@ namespace graphics
             RenderTarget(const Description& createDescription);
 
             // baseResource is expected to have called setName for debugging
-            void createFromSwapchain(DescriptorHandle& rtvHandle, GPUResource& baseResource);
+            void createFromSwapchain(Device& device, DescriptorHandle& rtvHandle, GPUResource& baseResource);
 
-            void createRenderTargetView(DescriptorHandle& rtvHandle, uint32_t mipSlice = 0, uint32_t arraySlice = 0);
-            void createDepthStencilView(DescriptorHandle& dsvHandle, uint32_t mipSlice = 0, uint32_t arraySlice = 0, bool readOnly = false); // TODO: Support multiple read only depth and stencil views
+            void createRenderTargetView(Device& device, DescriptorHandle& rtvHandle, uint32_t mipSlice = 0, uint32_t arraySlice = 0);
+            void createDepthStencilView(Device& device, DescriptorHandle& dsvHandle, uint32_t mipSlice = 0, uint32_t arraySlice = 0, bool readOnly = false); // TODO: Support multiple read only depth and stencil views
 
             inline const Description& getDescription() const { return mDescription; }
             inline const Texture& getTexture() const { return mTexture; }

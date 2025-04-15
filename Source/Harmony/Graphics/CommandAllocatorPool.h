@@ -19,7 +19,7 @@ namespace graphics
 
         // Provides a CommandAllocator from the available queue.
         // If none are available then creates a new one.
-        dx12::CommandAllocator& requestCommandAllocator();
+        dx12::CommandAllocator& requestCommandAllocator(dx12::Device& device);
 
         // Discards the allocator after GPU is done with it.
         // The fence value represents the last completed GPU work that used this allocator.

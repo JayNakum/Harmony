@@ -1,11 +1,9 @@
 #include "DescriptorHeapWithAllocator.h"
 
-#include "Core.h"
-
 namespace graphics
 {
-    DescriptorHeapWithAllocator::DescriptorHeapWithAllocator(const Description& createDescription)
-        : dx12::DescriptorHeap(createDescription)
+    DescriptorHeapWithAllocator::DescriptorHeapWithAllocator(dx12::Device& device, const Description& createDescription)
+        : dx12::DescriptorHeap(device, createDescription)
     {
         reset();
     }

@@ -3,6 +3,8 @@
 #include "common.h"
 #include "directx.h"
 
+#include "Device.h"
+
 #include "HeapEnums.h"
 
 namespace graphics
@@ -23,7 +25,7 @@ namespace graphics
             };
 
             // Creates and initializes an ID3D12Heap
-            Heap(const Description& createDescription);
+            Heap(Device& device, const Description& createDescription);
 
             // Frees the heap.
             // Since mHeap is a ComPtr the heap is released automatically.

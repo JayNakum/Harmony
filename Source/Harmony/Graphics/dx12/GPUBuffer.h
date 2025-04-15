@@ -3,6 +3,8 @@
 #include "common.h"
 #include "directx.h"
 
+#include "Device.h"
+
 #include "GPUResource.h"
 #include "DescriptorHandle.h"
 
@@ -91,15 +93,15 @@ namespace graphics
 
             // Creates an SRV of the entire buffer.
             // Requires a pre-allocated descriptorHandle& from a descriptor heap.
-            inline void createShaderResourceView(DescriptorHandle& srvHandle) const
+            inline void createShaderResourceView(Device& device, DescriptorHandle& srvHandle) const
             {
                 HASSERT(maths::isAligned(mDescription.width, ByteAddressBuffer::DEFAULT_ALIGNMENT), "ByteAddressBuffer size must be %d-byte aligned.", ByteAddressBuffer::DEFAULT_ALIGNMENT);
-                createShaderResourceView(srvHandle, mDescription.width);
+                createShaderResourceView(device, srvHandle, mDescription.width);
             }
 
             // Creates an SRV with custom size and offset.
             // Requires a pre-allocated descriptorHandle& from a descriptor heap.
-            void createShaderResourceView(DescriptorHandle& srvHandle, const uint64_t sizeInBytes, const unsigned int offsetInBytes = 0) const;
+            void createShaderResourceView(Device& device, DescriptorHandle& srvHandle, const uint64_t sizeInBytes, const unsigned int offsetInBytes = 0) const;
 
             virtual ~ByteAddressBuffer()
             {

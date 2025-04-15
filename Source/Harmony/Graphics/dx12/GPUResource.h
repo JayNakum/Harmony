@@ -3,6 +3,8 @@
 #include "common.h"
 #include "directx.h"
 
+#include "Device.h"
+
 #include "GPUResourceEnums.h"
 
 #include "Heap.h"
@@ -52,10 +54,10 @@ namespace graphics
                 mTransitioningState(GPUResourceState::Invalid) {}
 
             // Create a committed resource.
-            void createCommitted();
+            void createCommitted(Device& device);
 
             // Sub-Allocate a buffer out of a pre-allocated heap.
-            void createPlaced(Heap& backingHeap, uint64_t heapOffset);
+            void createPlaced(Device& device, Heap& backingHeap, uint64_t heapOffset);
 
             inline const GPUResourceState getUsageState() const { return mUsageState; }
             inline void setUsageState(const GPUResourceState newState) { mUsageState = newState; }

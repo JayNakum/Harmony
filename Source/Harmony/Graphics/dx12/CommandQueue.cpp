@@ -6,10 +6,10 @@ namespace graphics
 {
     namespace dx12
     {
-        CommandQueue::CommandQueue(const Description& createDescription)
+        CommandQueue::CommandQueue(Device& device, const Description& createDescription)
             : CommandObject(createDescription.type),
             mCommandQueue(nullptr),
-            mFence(createDescription.name + "fence"),
+            mFence(device, createDescription.name + "fence"),
             mNextFenceValue((uint64_t)mType << 56 | 1),
             mLastCompletedFenceValue((uint64_t)mType << 56)
         {
@@ -17,7 +17,7 @@ namespace graphics
             createDesc.Type = toD3DCommandListType(mType);
             createDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
 
-            HRESULT hResult = GfxDevice()->CreateCommandQueue(&createDesc, IID_PPV_ARGS(&mCommandQueue));
+            HRESULT hResult = device->CreateCommandQueue(&createDesc, IID_PPV_ARGS(&mCommandQueue));
             HASSERT(SUCCEEDED(hResult), "Failed to create command queue %s.\n%s", createDescription.name, utility::translateErrorCode(hResult));
 
             setName(mCommandQueue.Get(), utility::toWideString(createDescription.name).c_str());

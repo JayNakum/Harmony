@@ -4,7 +4,7 @@ namespace graphics
 {
     namespace dx12
     {
-        void GPUResource::createCommitted()
+        void GPUResource::createCommitted(Device& device)
         {
             static Heap::Description description{};
             description.name = "temp description for properties";
@@ -15,7 +15,7 @@ namespace graphics
             const Description createDescription = describeResource();
             D3D12_RESOURCE_DESC resourceDescription = GPUResource::toD3DResourceDesc(createDescription);
 
-            HRESULT hResult = GfxDevice()->CreateCommittedResource(
+            HRESULT hResult = device->CreateCommittedResource(
                 &heapProperties, D3D12_HEAP_FLAG_NONE, &resourceDescription,
                 toD3DResourceState(mUsageState), nullptr, IID_PPV_ARGS(getAddressOf())
             );
@@ -24,12 +24,12 @@ namespace graphics
             setName(mResource.Get(), utility::toWideString(createDescription.name).c_str());
         }
 
-        void GPUResource::createPlaced(Heap& backingHeap, uint64_t heapOffset)
+        void GPUResource::createPlaced(Device& device, Heap& backingHeap, uint64_t heapOffset)
         {
             const Description createDescription = describeResource();
             D3D12_RESOURCE_DESC resourceDescription = GPUResource::toD3DResourceDesc(createDescription);
 
-            HRESULT hResult = GfxDevice()->CreatePlacedResource(
+            HRESULT hResult = device->CreatePlacedResource(
                 (backingHeap.get()), heapOffset, &resourceDescription,
                 toD3DResourceState(mUsageState), nullptr, IID_PPV_ARGS(getAddressOf())
             );
