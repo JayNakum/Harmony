@@ -1,7 +1,5 @@
 #include "UploadBuffer.h"
 
-#include "Core.h"
-
 #include "dx12/Heap.h"
 #include "dx12/types/GPUResourceState.h"
 

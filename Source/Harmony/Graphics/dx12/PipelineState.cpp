@@ -1,7 +1,5 @@
 #include "PipelineState.h"
 
-#include "Core.h"
-
 #include "types/DefaultFormats.h"
 #include "types/InputClassification.h"
 #include "types/Blend.h"

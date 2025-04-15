@@ -37,6 +37,9 @@ namespace graphics
             // Since the RTV's are reset, it requires an array of pre-allocated handles.
             void resize(const unsigned int width, const unsigned int height, std::array<DescriptorHandle, BACK_BUFFER_COUNT> rtvHandles);
 
+            // Returns the current buffer index.
+            inline const unsigned int getCurrentBackBufferIndex() const { return mCurrentBuffer; }
+
             // Returns the current render target.
             inline RenderTarget& getCurrentBackBuffer() { return mBackBuffers[mCurrentBuffer]; }
 

@@ -53,7 +53,7 @@ namespace windows
             mDidResize = false;
             return result;
         }
-        bool update();
+        bool pollEvents();
 
         ~Window();
 

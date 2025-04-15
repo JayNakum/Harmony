@@ -296,15 +296,7 @@ namespace windows
         PeekMessage(&mMsgs, NULL, 0, 0, PM_NOREMOVE);
     }
 
-    Window::~Window()
-    {
-        DestroyWindow(mHandle);
-
-        mHandle = NULL;
-        mDescription = { 0 };
-    }
-
-    bool Window::update()
+    bool Window::pollEvents()
     {
         while ((PeekMessage(&mMsgs, NULL, 0, 0, PM_REMOVE)))
         {
@@ -317,6 +309,14 @@ namespace windows
             DispatchMessage(&mMsgs);
         }
         return mIsRunning;
+    }
+
+    Window::~Window()
+    {
+        DestroyWindow(mHandle);
+
+        mHandle = NULL;
+        mDescription = { 0 };
     }
 
 
@@ -344,8 +344,8 @@ namespace windows
     LRESULT Window::HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noexcept
     {
 #if defined(DEBUG)
-        static WindowsMessageMap mm;
-        OutputDebugString(utility::toWideString(mm(msg, lParam, wParam)).c_str());
+        //static WindowsMessageMap mm;
+        //OutputDebugString(utility::toWideString(mm(msg, lParam, wParam)).c_str());
 #endif
 
         switch (msg)

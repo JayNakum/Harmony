@@ -29,8 +29,8 @@ namespace graphics
             struct Description
             {
                 std::string name;
-                uint64_t width = 0;
-                uint64_t height = 1;
+                size_t width = 0;
+                size_t height = 1;
                 uint16_t depth = 1;
                 uint16_t mipLevels = 1;
                 GPUResourceDimension dimension = GPUResourceDimension::Unknown;

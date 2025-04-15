@@ -1,7 +1,5 @@
 #include "Heap.h"
 
-#include "Core.h"
-
 #include "types/HeapType.h"
 
 namespace graphics

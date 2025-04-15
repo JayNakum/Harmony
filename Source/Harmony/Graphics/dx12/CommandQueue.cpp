@@ -1,7 +1,5 @@
 #include "CommandQueue.h"
 
-#include "Core.h"
-
 #include "types/CommandListType.h"
 
 namespace graphics
@@ -40,7 +38,9 @@ namespace graphics
             // The max() is to protect against an unlikely race condition
             // that could cause the last completed fence value to regress.
             if (fenceValue > mLastCompletedFenceValue)
+            {
                 mLastCompletedFenceValue = std::max(mLastCompletedFenceValue, mFence->GetCompletedValue());
+            }
 
             return fenceValue <= mLastCompletedFenceValue;
         }

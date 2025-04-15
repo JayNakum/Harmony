@@ -1,7 +1,5 @@
 #include "RootSignature.h"
 
-#include "Core.h"
-
 #include "types/RootSignatureFlag.h"
 
 #include "Utility.h"

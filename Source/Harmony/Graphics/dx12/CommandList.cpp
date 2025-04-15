@@ -1,7 +1,5 @@
 #include "CommandList.h"
 
-#include "Core.h"
-
 #include "types/CommandListType.h"
 #include "types/GPUResourceState.h"
 

@@ -3,6 +3,8 @@
 #include "common.h"
 #include "directx.h"
 
+#include "Device.h"
+
 #include "CommandObject.h"
 
 namespace graphics
@@ -22,7 +24,7 @@ namespace graphics
             };
 
             // Creates an ID3D12CommandAllocator of type createDescription.type
-            CommandAllocator(const Description& createDescription);
+            CommandAllocator(Device& device, const Description& createDescription);
 
             // Destroys the ID3D12CommandAllocator
             ~CommandAllocator();

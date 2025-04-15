@@ -2,19 +2,10 @@
 
 namespace graphics
 {
+    dx12::Device Core::mDevice;
     Core& Core::getInstance()
     {
         static Core instance;
-
         return instance;
-    }
-
-    Core::Core()
-        : mDevice(), mCommandListManager(), mCommandContextPool()
-    {
-    }
-
-    Core::~Core()
-    {
     }
 }

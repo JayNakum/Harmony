@@ -1,7 +1,5 @@
 #include "GPUTexture.h"
 
-#include "Core.h"
-
 #include "types/GPUResourceDimension.h"
 
 namespace graphics

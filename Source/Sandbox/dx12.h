@@ -1,5 +1,7 @@
 #pragma once
 
+#include "directx.h"
+
 #include "dx12/Device.h"
 
 #include "dx12/Swapchain.h"

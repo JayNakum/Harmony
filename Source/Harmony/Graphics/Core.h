@@ -17,18 +17,18 @@ namespace graphics
     class Core
     {
     private:
-        Core();
+        Core() = default;
     public:
         static Core& getInstance();
-        ~Core();
+        ~Core() = default;
 
     public:
-        inline dx12::Device& getDevice() { return mDevice; }
+        static dx12::Device& getDevice() { return mDevice; }
         inline CommandListManager& getCommandListManager() { return mCommandListManager; }
         inline CommandContextPool& getCommandContextPool() { return mCommandContextPool; }
 
     private:
-        dx12::Device mDevice;
+        static dx12::Device mDevice;
         CommandListManager mCommandListManager;
         CommandContextPool mCommandContextPool;
     };
@@ -41,15 +41,15 @@ namespace graphics
 
 inline graphics::dx12::Device& GfxDevice()
 {
-    return graphics::Core::getInstance()->getDevice();
+    return graphics::Core::getDevice();
 }
 
 inline graphics::CommandListManager& GfxCommandListManager()
 {
-    return graphics::Core::getInstance()->getCommandListManager();
+    return graphics::Core::getInstance().getCommandListManager();
 }
 
 inline graphics::CommandContextPool& GfxCommandContextPool()
 {
-    return graphics::Core::getInstance()->getCommandContextPool();
+    return graphics::Core::getInstance().getCommandContextPool();
 }

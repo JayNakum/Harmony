@@ -3,6 +3,8 @@
 #include "common.h"
 #include "directx.h"
 
+#include "Device.h"
+
 namespace graphics
 {
     namespace dx12
@@ -14,7 +16,7 @@ namespace graphics
         {
         public:
             // Creates an ID3D12Fence
-            Fence(const std::string& name);
+            Fence(Device& device, const std::string& name);
 
             // Wait for the fence value.
             void wait(const uint64_t fenceValue);

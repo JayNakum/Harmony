@@ -3,6 +3,8 @@
 #include "common.h"
 #include "directx.h"
 
+#include "Device.h"
+
 #include "CommandObject.h"
 
 #include "CommandAllocator.h"
@@ -27,7 +29,7 @@ namespace graphics
             };
 
             // Creates an ID3D12CommandList.
-            CommandList(Description& createDescription);
+            CommandList(Device& device, Description& createDescription);
 
             // Transition a GPUResource to a newState and optionally flush the barriers immediately.
             void transitionResource(GPUResource& resource, const GPUResourceState newState, bool flushImmediate = false);

@@ -1,9 +1,7 @@
 #include "DescriptorHeap.h"
 
-#include "Core.h"
-
-#include "types/DescriptorHeapFlags.h"
 #include "types/DescriptorHeapType.h"
+#include "types/DescriptorHeapFlags.h"
 
 namespace graphics
 {

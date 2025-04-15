@@ -3,6 +3,8 @@
 #include "common.h"
 #include "directx.h"
 
+#include "Device.h"
+
 #include "DescriptorHeapEnums.h"
 
 #include "DescriptorHandle.h"
@@ -26,7 +28,7 @@ namespace graphics
             };
 
             // Create and initialize the descriptor heap.
-            DescriptorHeap(const Description& createDescription);
+            DescriptorHeap(Device& device, const Description& createDescription);
 
             // Get the heap start handle
             inline DescriptorHandle getHeapStart() const { return mHeapStart; }

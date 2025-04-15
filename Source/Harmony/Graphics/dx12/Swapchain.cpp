@@ -1,7 +1,5 @@
 #include "Swapchain.h"
 
-#include "Core.h"
-
 #include "types/DefaultFormats.h"
 
 namespace graphics
@@ -19,8 +17,8 @@ namespace graphics
             }
 
             DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
-            swapChainDesc.Width = createDescription.renderTargetDescription.textureDescription.width;
-            swapChainDesc.Height = createDescription.renderTargetDescription.textureDescription.height;
+            swapChainDesc.Width = (UINT)createDescription.renderTargetDescription.textureDescription.width;
+            swapChainDesc.Height = (UINT)createDescription.renderTargetDescription.textureDescription.height;
             swapChainDesc.Format = toDXGIFormat(createDescription.renderTargetDescription.textureDescription.format);
             swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
             swapChainDesc.BufferCount = BACK_BUFFER_COUNT;
@@ -47,7 +45,7 @@ namespace graphics
             HRESULT hr = swapchain1.As(&mSwapChain); // A swapchain3 is needed for GetCurrentBackBufferIndex()
             HASSERT(SUCCEEDED(hr), "Failed to cast SwapChain1 to SwapChain3.\n%s", utility::translateErrorCode(hResult));
 
-            resize(createDescription.renderTargetDescription.textureDescription.width, createDescription.renderTargetDescription.textureDescription.height, rtvHandles);
+            resize((unsigned int)createDescription.renderTargetDescription.textureDescription.width, (unsigned int)createDescription.renderTargetDescription.textureDescription.height, rtvHandles);
         }
 
         void Swapchain::resize(const unsigned int width, const unsigned int height, std::array<DescriptorHandle, BACK_BUFFER_COUNT> rtvHandles)

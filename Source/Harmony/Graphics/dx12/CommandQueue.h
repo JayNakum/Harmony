@@ -3,6 +3,8 @@
 #include "common.h"
 #include "directx.h"
 
+#include "Device.h"
+
 #include "CommandObject.h"
 
 #include "CommandList.h"
@@ -25,7 +27,7 @@ namespace graphics
             };
 
             // Creates an ID3D12CommandQueue of createDescription.type.
-            CommandQueue(const Description& createDescription);
+            CommandQueue(Device& device, const Description& createDescription);
 
             // Signals the command queue and returns the incremented fence value.
             const uint64_t incrementFence();
