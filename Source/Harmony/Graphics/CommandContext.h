@@ -2,6 +2,8 @@
 
 #include "common.h"
 
+#include "CommandListManager.h"
+
 #include "CommandObject.h"
 
 #include "dx12/CommandList.h"
@@ -21,7 +23,7 @@ namespace graphics
     {
     protected:
         // Command context is only ever meant to be created, initialized or reset via the Context Manager
-        CommandContext(const CommandListType type);
+        CommandContext(const CommandListType type, CommandListManager& commandListManager);
 
         void bindDescriptorHeaps() const;
 
@@ -51,6 +53,8 @@ namespace graphics
         dx12::CommandList* mCommandList;
         dx12::CommandAllocator* mCurrentCommandAllocator;
 
+        CommandListManager& mCommandListManager;
+
         std::array<dx12::DescriptorHeap*, descriptorHeapTypeCount> mCurrentDescriptorHeaps;
     };
 }
@@ -60,8 +64,7 @@ namespace graphics
     class GraphicContext : public CommandContext
     {
     public:
-        GraphicContext();
-        static GraphicContext& begin(const std::string& name = "DEFAULT");
+        GraphicContext(CommandListManager& commandListManager);
 
         void deallocate() override;
     };

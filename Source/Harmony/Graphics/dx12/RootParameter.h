@@ -13,6 +13,8 @@
 #include "types/ComparisionFunction.h"
 #include "types/StaticBorderColor.h"
 
+#include "Log.h"
+
 namespace graphics
 {
     namespace dx12

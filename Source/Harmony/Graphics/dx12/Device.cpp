@@ -1,5 +1,7 @@
 #include "Device.h"
 
+#include "Log.h"
+
 namespace graphics
 {
     using namespace Microsoft::WRL;
@@ -162,7 +164,7 @@ namespace graphics
 #endif
 
 #if defined(DEBUG)
-            ID3D12InfoQueue* infoQueue = nullptr;
+            ComPtr<ID3D12InfoQueue> infoQueue = nullptr;
             hResult = mDevice->QueryInterface(IID_PPV_ARGS(&infoQueue));
             if (SUCCEEDED(hResult))
             {
@@ -246,19 +248,15 @@ namespace graphics
         Device::~Device()
         {
 #if defined(DEBUG)
-            ID3D12DebugDevice* debugInterface;
-            HRESULT hResult = mDevice->QueryInterface(&debugInterface);
+            Microsoft::WRL::ComPtr<ID3D12DebugDevice> debugDevice;
+            HRESULT hResult = mDevice->QueryInterface(IID_PPV_ARGS(&debugDevice));
             if (SUCCEEDED(hResult))
             {
-                debugInterface->ReportLiveDeviceObjects(D3D12_RLDO_DETAIL | D3D12_RLDO_IGNORE_INTERNAL);
-                debugInterface->Release();
+                //debugDevice->ReportLiveDeviceObjects(D3D12_RLDO_SUMMARY| D3D12_RLDO_IGNORE_INTERNAL);
+                debugDevice->ReportLiveDeviceObjects(D3D12_RLDO_DETAIL | D3D12_RLDO_IGNORE_INTERNAL);
+                debugDevice->Release();
             }
 #endif
-            if (mDevice != nullptr)
-            {
-                mDevice->Release();
-                mDevice = nullptr;
-            }
         }
 
         uint32_t Device::getVendorIdFromDevice(Device& device)

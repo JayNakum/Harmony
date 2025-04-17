@@ -1,11 +1,14 @@
 #include "CommandContext.h"
 
+#include "Log.h"
+
 namespace graphics
 {
-    CommandContext::CommandContext(const CommandListType type)
-        : CommandObject(type), mCommandList(nullptr), mCurrentCommandAllocator(nullptr), mCurrentDescriptorHeaps{}
+    CommandContext::CommandContext(const CommandListType type, CommandListManager& commandListManager)
+        : CommandObject(type), mCommandList(nullptr), mCurrentCommandAllocator(nullptr),
+         mCommandListManager(commandListManager), mCurrentDescriptorHeaps{}
     {
-        GfxCommandListManager().createNewCommandList(mType, mCommandList, mCurrentCommandAllocator);
+        mCommandListManager.createNewCommandList(mType, mCommandList, mCurrentCommandAllocator);
     }
 
     void CommandContext::bindDescriptorHeaps() const
@@ -41,14 +44,14 @@ namespace graphics
 
         HASSERT(mCurrentCommandAllocator != nullptr, "Command allocator not found.");
 
-        dx12::CommandQueue& queue = GfxCommandListManager().getCommandQueue(mType);
+        dx12::CommandQueue& queue = mCommandListManager.getCommandQueue(mType);
         uint64_t fence = queue.executeCommandList(getCommandList());
-        GfxCommandListManager().discardAllocator(fence, *mCurrentCommandAllocator);
+        mCommandListManager.discardAllocator(fence, *mCurrentCommandAllocator);
         mCurrentCommandAllocator = nullptr;
 
         if (waitForCompletion)
         {
-            GfxCommandListManager().waitForFence(fence);
+            mCommandListManager.waitForFence(fence);
         }
 
         deallocate();
@@ -58,15 +61,15 @@ namespace graphics
 
     void CommandContext::initializeBuffer(dx12::GPUBuffer& dest, const void* data, size_t numBytes, const size_t destOffset, GPUResourceState newState)
     {
-        // Copy data to an intermediate upload heap.
-        dx12::UploadBuffer intermediateBuffer({"Intermediate Buffer", numBytes});
-        {
-            void* intermediateDst = intermediateBuffer.map();
-            memcpy(intermediateDst, data, numBytes);
-            intermediateBuffer.unmap();
-        }
+        //// Copy data to an intermediate upload heap.
+        //dx12::UploadBuffer intermediateBuffer({"Intermediate Buffer", numBytes});
+        //{
+        //    void* intermediateDst = intermediateBuffer.map();
+        //    memcpy(intermediateDst, data, numBytes);
+        //    intermediateBuffer.unmap();
+        //}
 
-        initializeBuffer(dest, intermediateBuffer, 0, numBytes, 0, newState);
+        //initializeBuffer(dest, intermediateBuffer, 0, numBytes, 0, newState);
     }
 
     void CommandContext::initializeBuffer(dx12::GPUBuffer& dest, dx12::UploadBuffer& src, const size_t srcOffset, size_t numBytes, const size_t destOffset, GPUResourceState newState)
@@ -76,15 +79,15 @@ namespace graphics
         HASSERT_SOFT(maxBytes >= numBytes, "Not enough size(%d) in source buffer after offset %d. Copying only %d bytes.", numBytes, srcOffset, maxBytes);
         numBytes = std::min<size_t>(maxBytes, numBytes);
 
-        CommandContext& initContext = GraphicContext::begin(); // TODO: Check if it is faster to switch to copy context.
+        //CommandContext& initContext = GraphicContext::begin(); // TODO: Check if it is faster to switch to copy context.
 
-        // Schedule a copy from the upload heap to the default heap.
-        initContext.getCommandList().transitionResource(dest, GPUResourceState::CopyDest, true);
-        initContext.getCommandList()->CopyBufferRegion(dest.get(), destOffset, (ID3D12Resource*)src.get(), srcOffset, numBytes);
-        initContext.getCommandList().transitionResource(dest, newState, true);
+        //// Schedule a copy from the upload heap to the default heap.
+        //initContext.getCommandList().transitionResource(dest, GPUResourceState::CopyDest, true);
+        //initContext.getCommandList()->CopyBufferRegion(dest.get(), destOffset, (ID3D12Resource*)src.get(), srcOffset, numBytes);
+        //initContext.getCommandList().transitionResource(dest, newState, true);
 
-        // Execute the command list and wait for it to finish so we can release the intermediate buffer.
-        initContext.finish(true);
+        //// Execute the command list and wait for it to finish so we can release the intermediate buffer.
+        //initContext.finish(true);
     }
 
     void CommandContext::reset()
@@ -94,7 +97,7 @@ namespace graphics
         HASSERT(mCommandList != nullptr, "Command list not found.");
         HASSERT_SOFT(mCurrentCommandAllocator == nullptr, "Command allocator is not null. It will get replaced by a new one.");
 
-        mCurrentCommandAllocator = &(GfxCommandListManager().requestAllocator(mType));
+        mCurrentCommandAllocator = &(mCommandListManager.requestAllocator(mType));
 
         getCommandList()->Reset(mCurrentCommandAllocator->get(), nullptr);
     }
@@ -106,18 +109,11 @@ namespace graphics
 
 namespace graphics
 {
-    GraphicContext::GraphicContext()
-        : CommandContext(CommandListType::Direct) {}
-
-    GraphicContext& GraphicContext::begin(const std::string& id)
-    {
-        GraphicContext& newContext = GfxCommandContextPool().requestGraphicContext();
-        newContext.setName(id);
-        return newContext;
-    }
+    GraphicContext::GraphicContext(CommandListManager& commandListManager)
+        : CommandContext(CommandListType::Direct, commandListManager) {}
 
     void GraphicContext::deallocate()
     {
-        GfxCommandContextPool().discardContext(*this);
+        //GfxCommandContextPool().discardContext(*this);
     }
 }

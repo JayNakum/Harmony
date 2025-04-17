@@ -35,7 +35,7 @@ namespace graphics
         };
 
         // Descriptor for uncompressed formats.
-        struct Format::Uncompressed
+        struct Uncompressed
         {
             ColorWriteMask channels; // Active color channels.
             Type type; // Numeric type.
@@ -43,7 +43,7 @@ namespace graphics
         };
 
         // Descriptor for compressed formats (example for block-compressed formats).
-        struct Format::Compressed
+        struct Compressed
         {
             uint8_t blockWidth; // Block width in pixels.
             uint8_t blockHeight; // Block height in pixels.
@@ -65,12 +65,12 @@ namespace graphics
         {}
 
         // Constructor for uncompressed formats.
-        Format(const Format::Uncompressed& fmt)
+        Format(const Uncompressed& fmt)
             : kind(Kind::Uncompressed), uncompressed(fmt)
         {}
 
         // Constructor for compressed formats.
-        Format(const Format::Compressed& fmt)
+        Format(const Compressed& fmt)
             : kind(Kind::Compressed), compressed(fmt)
         {}
 
@@ -107,8 +107,8 @@ namespace graphics
         Kind kind;
         union
         {
-            Format::Uncompressed uncompressed;
-            Format::Compressed compressed;
+            Uncompressed uncompressed;
+            Compressed compressed;
         };
     };
 

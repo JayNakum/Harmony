@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common.h"
+#include "Utility.h"
 #include "win.h"
 
 #include "HarmonyApplication.h"

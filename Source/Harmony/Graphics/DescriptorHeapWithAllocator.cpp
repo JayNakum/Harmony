@@ -1,5 +1,7 @@
 #include "DescriptorHeapWithAllocator.h"
 
+#include "Log.h"
+
 namespace graphics
 {
     DescriptorHeapWithAllocator::DescriptorHeapWithAllocator(dx12::Device& device, const Description& createDescription)

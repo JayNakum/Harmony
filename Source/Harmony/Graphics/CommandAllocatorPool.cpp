@@ -6,21 +6,22 @@ namespace graphics
         : CommandObject(type)
     {}
 
-    dx12::CommandAllocator& CommandAllocatorPool::requestCommandAllocator(dx12::Device& device)
+    dx12::CommandAllocator& CommandAllocatorPool::requestCommandAllocator(dx12::Device& device, const uint64_t completedFenceValue)
     {
         std::lock_guard<std::mutex> scoppedLockGuard(mPoolMutex);
 
-        updateAvailableQueue();
+        updateAvailableQueue(completedFenceValue);
 
         if (!mAvailableQueue.empty())
         {
             dx12::CommandAllocator* allocator = mAvailableQueue.front();
             mAvailableQueue.pop();
+            (*allocator)->Reset();
             return *allocator;
         }
 
         dx12::CommandAllocator::Description createDesc;
-        createDesc.name = (mCmdAllocatorPool.size() + " " + toString(mType) + "type command allocator");
+        createDesc.name = (mCmdAllocatorPool.size() + " " + toString(mType) + " type command allocator");
         createDesc.type = mType;
         mCmdAllocatorPool.emplace_back(device, createDesc);
 
@@ -38,13 +39,19 @@ namespace graphics
     {
         std::lock_guard<std::mutex> scoppedLockGuard(mPoolMutex);
 
-        updateAvailableQueue();
-        HASSERT(mUsedQueue.empty(), "Trying to destroy %s type pool while %d allocators are still in used.", toString(mType), mUsedQueue.size());
-
         // clear the queues to prevent dangling pointers
+        while (!mUsedQueue.empty())
+        {
+            mUsedQueue.pop();
+        }
         while (!mAvailableQueue.empty())
         {
             mAvailableQueue.pop();
+        }
+
+        for (dx12::CommandAllocator& allocator : mCmdAllocatorPool)
+        {
+            allocator->Reset();
         }
 
         mCmdAllocatorPool.clear();
@@ -55,9 +62,9 @@ namespace graphics
         destroyPool();
     }
 
-    void CommandAllocatorPool::updateAvailableQueue()
+    void CommandAllocatorPool::updateAvailableQueue(const uint64_t completedFenceValue)
     {
-        while (!mUsedQueue.empty() && GfxCommandListManager().isFenceComplete(mUsedQueue.front().first))
+        while (!mUsedQueue.empty() && (mUsedQueue.front().first) < completedFenceValue)
         {
             mAvailableQueue.push(mUsedQueue.front().second);
             mUsedQueue.pop();

@@ -7,6 +7,8 @@
 #include "types/BlendLogicOperator.h"
 #include "types/PrimitiveTopology.h"
 
+#include "Log.h"
+
 namespace graphics
 {
     namespace dx12
@@ -127,5 +129,12 @@ namespace graphics
 
             return d3dBlendDesc;
         }
+
+        const RootSignature& PipelineState::getRootSignature() const
+        {
+            HASSERT(mRootSignature != nullptr, "Root signature is null.");
+            return *mRootSignature;
+        }
+
     }
 }

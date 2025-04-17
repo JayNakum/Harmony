@@ -2,9 +2,6 @@
 
 #include "common.h"
 
-#include <type_traits>
-#include <stdarg.h>
-
 /*
 * string utilities.
 */
@@ -37,18 +34,7 @@ namespace utility
     std::string getFileExtension(const std::string& filePath);
     std::string removeFileExtension(const std::string& filePath);
 
-    inline std::string timenow() noexcept
-    {
-        time_t m_time = time(NULL);
-        struct tm now = {};
-
-        localtime_s(&now, &m_time);
-
-        char buffer[64];
-        strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", &now);
-
-        return std::string(buffer);
-    }
+    std::string timenow() noexcept;
 }
 
 /*

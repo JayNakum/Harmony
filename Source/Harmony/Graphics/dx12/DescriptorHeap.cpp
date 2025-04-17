@@ -3,6 +3,8 @@
 #include "types/DescriptorHeapType.h"
 #include "types/DescriptorHeapFlags.h"
 
+#include "Log.h"
+
 namespace graphics
 {
     namespace dx12

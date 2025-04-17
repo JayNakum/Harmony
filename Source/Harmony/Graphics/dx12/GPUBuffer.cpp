@@ -1,5 +1,8 @@
 #include "GPUBuffer.h"
 
+#include "Log.h"
+#include "Maths.h"
+
 namespace graphics
 {
     namespace dx12
@@ -60,6 +63,12 @@ namespace graphics
 {
     namespace dx12
     {
+        void ByteAddressBuffer::createShaderResourceView(Device& device, DescriptorHandle& srvHandle) const
+        {
+            HASSERT(maths::isAligned(mDescription.width, ByteAddressBuffer::DEFAULT_ALIGNMENT), "ByteAddressBuffer size must be %d-byte aligned.", ByteAddressBuffer::DEFAULT_ALIGNMENT);
+            createShaderResourceView(device, srvHandle, mDescription.width);
+        }
+
         void ByteAddressBuffer::createShaderResourceView(Device& device, DescriptorHandle& srvHandle, const uint64_t sizeInBytes, const unsigned int offsetInBytes) const
         {
             HASSERT(offsetInBytes + sizeInBytes <= mDescription.width, "offset(%d) + size(%d) is more than total buffer size(%d).", offsetInBytes, sizeInBytes, mDescription.width);

@@ -3,6 +3,8 @@
 #include "types/CommandListType.h"
 #include "types/GPUResourceState.h"
 
+#include "Log.h"
+
 namespace graphics
 {
     namespace dx12

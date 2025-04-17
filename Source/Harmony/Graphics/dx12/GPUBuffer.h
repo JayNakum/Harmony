@@ -93,11 +93,7 @@ namespace graphics
 
             // Creates an SRV of the entire buffer.
             // Requires a pre-allocated descriptorHandle& from a descriptor heap.
-            inline void createShaderResourceView(Device& device, DescriptorHandle& srvHandle) const
-            {
-                HASSERT(maths::isAligned(mDescription.width, ByteAddressBuffer::DEFAULT_ALIGNMENT), "ByteAddressBuffer size must be %d-byte aligned.", ByteAddressBuffer::DEFAULT_ALIGNMENT);
-                createShaderResourceView(device, srvHandle, mDescription.width);
-            }
+            void createShaderResourceView(Device& device, DescriptorHandle& srvHandle) const;
 
             // Creates an SRV with custom size and offset.
             // Requires a pre-allocated descriptorHandle& from a descriptor heap.

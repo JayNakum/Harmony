@@ -25,6 +25,5 @@
 
 #include <ctime>
 
-#include "Utility.h"
-#include "Log.h"
-#include "Maths.h"
+#include <type_traits>
+#include <stdarg.h>

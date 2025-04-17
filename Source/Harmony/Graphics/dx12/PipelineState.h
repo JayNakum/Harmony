@@ -31,11 +31,7 @@ namespace graphics
                 mRootSignature = &bindMappings;
             }
 
-            inline const RootSignature& getRootSignature() const
-            {
-                HASSERT(mRootSignature != nullptr, "Root signature is null.");
-                return *mRootSignature;
-            }
+            const RootSignature& getRootSignature() const;
 
             virtual ~PipelineState()
             {

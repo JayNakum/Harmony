@@ -31,7 +31,7 @@ namespace graphics
         inline dx12::CommandQueue& getCommandQueue(const CommandListType type) { return getQueue(type).commandQueue; }
         inline dx12::CommandQueue& getGraphicsQueue() { return getCommandQueue(CommandListType::Direct); }
 
-        inline dx12::CommandAllocator& requestAllocator(dx12::Device& device, const CommandListType type) { return getQueue(type).commandAllocatorPool.requestCommandAllocator(device); }
+        inline dx12::CommandAllocator& requestAllocator(const CommandListType type) { return getQueue(type).requestAllocator(mDevice); }
         inline void discardAllocator(uint64_t fence, dx12::CommandAllocator& usedAllocator) { getQueue(usedAllocator.getCommandListType()).commandAllocatorPool.discardCommandAllocator(fence, usedAllocator); }
 
     public:
@@ -66,6 +66,8 @@ namespace graphics
             // The CommandAllocatorPool is NOT thread_local
             // because if each thread has its own pool, one thread may have free allocators while another runs out.
             CommandAllocatorPool commandAllocatorPool;
+
+            inline dx12::CommandAllocator& requestAllocator(dx12::Device& device) { return commandAllocatorPool.requestCommandAllocator(device, commandQueue.getCompletedFence()); }
         };
 
         Queue& getQueue(const CommandListType type);

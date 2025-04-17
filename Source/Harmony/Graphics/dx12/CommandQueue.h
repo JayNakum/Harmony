@@ -35,6 +35,8 @@ namespace graphics
             // Checks if the fenceValue is reached or not.
             bool isFenceComplete(const uint64_t fenceValue);
 
+            inline const uint64_t getCompletedFence() { return mFence->GetCompletedValue(); }
+
             // Waits for the passed fence value.
             void waitForFence(const uint64_t fenceValue);
 

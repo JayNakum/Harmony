@@ -19,7 +19,7 @@ namespace graphics
 
         // Provides a CommandAllocator from the available queue.
         // If none are available then creates a new one.
-        dx12::CommandAllocator& requestCommandAllocator(dx12::Device& device);
+        dx12::CommandAllocator& requestCommandAllocator(dx12::Device& device, const uint64_t completedFenceValue);
 
         // Discards the allocator after GPU is done with it.
         // The fence value represents the last completed GPU work that used this allocator.
@@ -32,7 +32,7 @@ namespace graphics
 
     private:
         // Goes through the used queue and puts all the allocators that have completed their fence into available queue.
-        void updateAvailableQueue();
+        void updateAvailableQueue(const uint64_t completedFenceValue);
 
     private:
         // The memory pool containing all the CommandAllocators for each type.

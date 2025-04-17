@@ -17,6 +17,10 @@ namespace graphics
 
     void CommandListPool::destroyPool()
     {
+        for (dx12::CommandList& cmdList : mCommandListPool)
+        {
+            cmdList->Release();
+        }
         mCommandListPool.clear();
     }
 

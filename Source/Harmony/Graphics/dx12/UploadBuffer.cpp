@@ -3,6 +3,8 @@
 #include "dx12/Heap.h"
 #include "dx12/types/GPUResourceState.h"
 
+#include "Log.h"
+
 namespace graphics
 {
     namespace dx12
@@ -46,14 +48,16 @@ namespace graphics
         void* UploadBuffer::map()
         {
             void* memory = nullptr;
-            HRESULT hResult = mResource->Map(0, &CD3DX12_RANGE(0, mBufferSize), &memory);
+            CD3DX12_RANGE range = CD3DX12_RANGE(0, mBufferSize);
+            HRESULT hResult = mResource->Map(0, &range, &memory);
             HASSERT(SUCCEEDED(hResult), "Failed to map upload buffer resource.\n%s", utility::translateErrorCode(hResult));
             return memory;
         }
 
         void UploadBuffer::unmap(const size_t begin, const size_t end)
         {
-            mResource->Unmap(0, &CD3DX12_RANGE(begin, std::min(end, mBufferSize)));
+            CD3DX12_RANGE range = CD3DX12_RANGE(begin, std::min(end, mBufferSize));
+            mResource->Unmap(0, &range);
         }
     }
 }
