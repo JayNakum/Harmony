@@ -5,6 +5,7 @@
 #include "types/Blend.h"
 #include "types/BlendOperator.h"
 #include "types/BlendLogicOperator.h"
+#include "types/CullMode.h"
 #include "types/PrimitiveTopology.h"
 
 #include "Log.h"
@@ -19,7 +20,7 @@ namespace graphics
             D3D12_GRAPHICS_PIPELINE_STATE_DESC d3dDescription{};
 
             // Root Signature
-            d3dDescription.pRootSignature = mRootSignature->get();
+            d3dDescription.pRootSignature = createDescription.rootSignature->get();
 
             // Shaders
             d3dDescription.VS = createDescription.vertexShader;
@@ -30,16 +31,16 @@ namespace graphics
             // Blend State
             d3dDescription.BlendState = BlendDescription::toD3DBlendDesc(createDescription.blendDescription);
 
-            // TODO: Sample Mask
+            d3dDescription.SampleMask = D3D12_DEFAULT_SAMPLE_MASK;
 
             // Rasterizer State
             d3dDescription.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+            d3dDescription.RasterizerState.CullMode = toD3DCullMode(createDescription.cullMode);
 
             // Depth Stencil State
             d3dDescription.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
 
             // Input Layout
-
             std::vector<D3D12_INPUT_ELEMENT_DESC> d3dInputElements;
             for (const InputElementsDescription& element : (createDescription.inputLayout))
             {
@@ -59,14 +60,13 @@ namespace graphics
             d3dDescription.NumRenderTargets = createDescription.numRenderTargets;
 
             // RTV Format
-            for (unsigned int i = 0; i < GraphicsPipelineState::MAX_RENDER_TARGETS; ++i)
+            for (unsigned int i = 0; i < createDescription.numRenderTargets; ++i)
             {
                 d3dDescription.RTVFormats[i] = toDXGIFormat(createDescription.rtvFormats[i]);
             }
 
             // DSV Format
-            HASSERT((d3dDescription.DepthStencilState.DepthEnable != (BOOL)(createDescription.dsvFormat == DefaultFormats::UNKNOWN)),
-                "Depth buffer format is invalid.");
+            d3dDescription.DepthStencilState.DepthEnable = (BOOL)(createDescription.dsvFormat != DefaultFormats::UNKNOWN);
             d3dDescription.DSVFormat = toDXGIFormat(createDescription.dsvFormat);
 
             // Sample Desc

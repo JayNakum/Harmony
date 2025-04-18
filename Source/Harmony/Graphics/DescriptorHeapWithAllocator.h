@@ -28,6 +28,9 @@ namespace graphics
         // It doesn't invalidate descriptors.
         void reset();
 
+        // Operator overload for array like indexing.
+        inline dx12::DescriptorHandle operator[] (const size_t index) const { return mHeapStart + (INT)index * (INT)mDescriptorSize; }
+
         // Resets the allocation pointers.
         ~DescriptorHeapWithAllocator();
 

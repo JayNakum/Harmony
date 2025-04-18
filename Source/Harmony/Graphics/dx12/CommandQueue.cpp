@@ -78,7 +78,6 @@ namespace graphics
 
         CommandQueue::~CommandQueue()
         {
-            waitForIdle();
             mCommandQueue = nullptr;
         }
     }

@@ -93,12 +93,6 @@ namespace graphics
             device->CreateShaderResourceView(mResource.Get(), &srvDesc, srvHandle);
         }
 
-        void Texture::attachResource(GPUResource& resource)
-        {
-            mDescription = resource.describeResource();
-            mResource.Attach(resource.get());
-        }
-
         void Texture::reset()
         {
             mResource.Reset();
@@ -116,11 +110,11 @@ namespace graphics
             HASSERT(isValidColorFlag || isValidDepthFlag, "Invalid GPUResourceFlag %s for render target.", toString(mDescription.textureDescription.resourceFlags));
         }
 
-        void RenderTarget::createFromSwapchain(Device& device, DescriptorHandle& rtvHandle, GPUResource& baseResource)
+        void RenderTarget::createFromSwapchain(Device& device, DescriptorHandle& rtvHandle, ID3D12Resource* baseResource)
         {
             HASSERT(mDescription.type == Type::Color, "Cannot create RTV for a Depth RenderTarget.");
 
-            mTexture.attachResource(baseResource);
+            mTexture.setResource(baseResource);
             device->CreateRenderTargetView(mTexture.get(), nullptr, rtvHandle);
         }
 

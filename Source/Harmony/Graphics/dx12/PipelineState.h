@@ -26,11 +26,6 @@ namespace graphics
                 : mName(name), mRootSignature(nullptr), mPipelineState(nullptr) {}
 
         public:
-            inline void setRootSignature(const RootSignature& bindMappings)
-            {
-                mRootSignature = &bindMappings;
-            }
-
             const RootSignature& getRootSignature() const;
 
             virtual ~PipelineState()
@@ -90,7 +85,7 @@ namespace graphics
                     Blend destBlendAlpha = Blend::Zero;
                     BlendOperator blendOpAlpha = BlendOperator::Add;
                     BlendLogicOperator logicOp = BlendLogicOperator::NOOP;
-                    uint8_t renderTargetWriteMask = (uint8_t)ColorWriteMask::All; // Note: this works directly because the values of ColorWriteMask are same as D3D12_COLOR_WRITE_ENABLE
+                    uint8_t renderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL; // Note: this works directly because the values of ColorWriteMask are same as D3D12_COLOR_WRITE_ENABLE
 
                     static D3D12_RENDER_TARGET_BLEND_DESC toD3DRenderTargetBlendDesc(const RenderTargetBlendDescription& description);
                 };
@@ -109,6 +104,7 @@ namespace graphics
                 std::vector<InputElementsDescription> inputLayout;
                 Blob vertexShader;
                 Blob pixelShader;
+                const RootSignature* rootSignature;
                 // TODO: Add more shaders as needed.
 
                 FillMode fillMode = FillMode::Solid;
@@ -116,8 +112,8 @@ namespace graphics
                 BlendDescription blendDescription{};
                 PrimitiveTopology primitiveTopologyType = PrimitiveTopology::Triangle;
                 unsigned int numRenderTargets = 1;
-                std::array<Format, MAX_RENDER_TARGETS> rtvFormats = { DefaultFormats::R8G8B8A8_UNORM };
-                Format dsvFormat = DefaultFormats::D24_UNORM_S8_UINT;
+                std::array<Format, MAX_RENDER_TARGETS> rtvFormats;
+                Format dsvFormat = DefaultFormats::UNKNOWN; // DefaultFormats::D24_UNORM_S8_UINT;
                 unsigned int sampleCount = 1;
                 unsigned int sampleQuality = 0;
             };

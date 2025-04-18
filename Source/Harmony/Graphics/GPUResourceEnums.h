@@ -59,6 +59,9 @@ namespace graphics
     {
         Invalid,
         Common,
+        VertexAndConstantBuffer,
+        IndexBuffer,
+        RenderTarget,
         CopyDest,
         GenericRead,
         Present

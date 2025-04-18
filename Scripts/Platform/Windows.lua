@@ -3,7 +3,8 @@ project "Windows"
 
   files
   {
-    "%{prj_src.Platform.Windows}/**.*"
+    "%{prj_src.Platform.Windows}/**.h",
+    "%{prj_src.Platform.Windows}/**.cpp"
   }
 
   includedirs

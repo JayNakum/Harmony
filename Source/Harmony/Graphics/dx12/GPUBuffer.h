@@ -22,8 +22,11 @@ namespace graphics
             union
             {
                 size_t strideInBytes;
-                size_t elementSizeInBytes = 32;
+                bool is32Bit = false;
             };
+
+            static D3D12_VERTEX_BUFFER_VIEW toD3DVertexBufferView(const BufferView& bufferView);
+            static D3D12_INDEX_BUFFER_VIEW toD3DIndexBufferView(const BufferView& bufferView);
         };
 
         /*
@@ -56,13 +59,13 @@ namespace graphics
             }
 
             // Creates an index buffer view with custom offset, size and bits
-            const BufferView indexBufferView(const size_t elementSizeInBytes, const size_t size, const size_t offset = 0) const;
+            const BufferView indexBufferView(const size_t size, const size_t offset = 0, const bool is32Bits = false) const;
 
             // Creates an index buffer view of the entire buffer.
-            inline const BufferView indexBufferView(const size_t elementSizeInBytes, const size_t startIndex = 0) const
+            inline const BufferView indexBufferView(const size_t startIndex = 0, const bool is32Bits = false) const
             {
-                size_t offset = startIndex * elementSizeInBytes;
-                return indexBufferView(elementSizeInBytes, (uint32_t)(mDescription.width - offset), offset);
+                size_t offset = startIndex * is32Bits ? 32 : 16;
+                return indexBufferView((uint32_t)(mDescription.width - offset), offset, is32Bits);
             }
 
             virtual ~GPUBuffer()

@@ -25,6 +25,12 @@ namespace graphics
                 return D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_GENERIC_READ;
             case GPUResourceState::Present:
                 return D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_PRESENT;
+            case GPUResourceState::VertexAndConstantBuffer:
+                return D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
+            case GPUResourceState::IndexBuffer:
+                return D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_INDEX_BUFFER;
+            case GPUResourceState::RenderTarget:
+                return D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_RENDER_TARGET;
             // TODO: Add support for more states as needed
             }
         }

@@ -3,7 +3,8 @@ project "Sandbox"
 
   files
   {
-    "%{prj_src.Sandbox}/**.*"
+    "%{prj_src.Sandbox}/**.h",
+    "%{prj_src.Sandbox}/**.cpp"
   }
 
   includedirs

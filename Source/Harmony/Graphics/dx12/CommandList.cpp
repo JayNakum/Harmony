@@ -66,8 +66,8 @@ namespace graphics
 
         CommandList::~CommandList()
         {
-            HRESULT hResult = mCommandList->Close();
-            HASSERT(SUCCEEDED(hResult), "Failed to close command list.\n%s", utility::translateErrorCode(hResult));
+            /*HRESULT hResult = mCommandList->Close();
+            HASSERT(SUCCEEDED(hResult), "Failed to close command list.\n%s", utility::translateErrorCode(hResult));*/
             mCommandList = nullptr;
         }
     }

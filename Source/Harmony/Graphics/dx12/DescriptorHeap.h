@@ -45,9 +45,6 @@ namespace graphics
             // - If descriptor is GPUVisible then whether the GPU offset and CPU offset matches.
             bool validateHandle(const DescriptorHandle& dHandle) const;
 
-            // Operator overload for array like indexing.
-            inline DescriptorHandle operator[] (const size_t index) const { return mHeapStart + (INT)index * (INT)mDescriptorSize; }
-
             // Frees the heap.
             // Since mHeap is a ComPtr the heap is released automatically.
             virtual ~DescriptorHeap();

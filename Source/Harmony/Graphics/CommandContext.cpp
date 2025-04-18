@@ -46,7 +46,7 @@ namespace graphics
 
         dx12::CommandQueue& queue = mCommandListManager.getCommandQueue(mType);
         uint64_t fence = queue.executeCommandList(getCommandList());
-        mCommandListManager.discardAllocator(fence, *mCurrentCommandAllocator);
+        mCommandListManager.discardAllocator(*mCurrentCommandAllocator);
         mCurrentCommandAllocator = nullptr;
 
         if (waitForCompletion)
@@ -76,7 +76,7 @@ namespace graphics
     {
         // Safety check for maximum available bytes
         size_t maxBytes = std::min<size_t>(dest.describeResource().width - destOffset, src.getSize() - srcOffset);
-        HASSERT_SOFT(maxBytes >= numBytes, "Not enough size(%d) in source buffer after offset %d. Copying only %d bytes.", numBytes, srcOffset, maxBytes);
+        HASSERT(maxBytes >= numBytes, "Not enough size(%d) in source buffer after offset %d. Copying only %d bytes.", numBytes, srcOffset, maxBytes);
         numBytes = std::min<size_t>(maxBytes, numBytes);
 
         //CommandContext& initContext = GraphicContext::begin(); // TODO: Check if it is faster to switch to copy context.

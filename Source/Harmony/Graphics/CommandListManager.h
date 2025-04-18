@@ -32,7 +32,7 @@ namespace graphics
         inline dx12::CommandQueue& getGraphicsQueue() { return getCommandQueue(CommandListType::Direct); }
 
         inline dx12::CommandAllocator& requestAllocator(const CommandListType type) { return getQueue(type).requestAllocator(mDevice); }
-        inline void discardAllocator(uint64_t fence, dx12::CommandAllocator& usedAllocator) { getQueue(usedAllocator.getCommandListType()).commandAllocatorPool.discardCommandAllocator(fence, usedAllocator); }
+        inline void discardAllocator(dx12::CommandAllocator& usedAllocator) { getQueue(usedAllocator.getCommandListType()).discardAllocator(usedAllocator); }
 
     public:
         void createNewCommandList(const CommandListType type, dx12::CommandList*& outCommandList, dx12::CommandAllocator*& outCommandAllocator);
@@ -68,6 +68,7 @@ namespace graphics
             CommandAllocatorPool commandAllocatorPool;
 
             inline dx12::CommandAllocator& requestAllocator(dx12::Device& device) { return commandAllocatorPool.requestCommandAllocator(device, commandQueue.getCompletedFence()); }
+            inline void discardAllocator(dx12::CommandAllocator& usedAllocator) { commandAllocatorPool.discardCommandAllocator(commandQueue.getCompletedFence(), usedAllocator); }
         };
 
         Queue& getQueue(const CommandListType type);

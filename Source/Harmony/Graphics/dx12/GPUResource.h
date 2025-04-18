@@ -53,6 +53,11 @@ namespace graphics
                 mUsageState(currentUsageState),
                 mTransitioningState(GPUResourceState::Invalid) {}
 
+            void setResource(ID3D12Resource* resource)
+            {
+                mResource = resource;
+            }
+
             // Create a committed resource.
             void createCommitted(Device& device);
 
@@ -72,12 +77,14 @@ namespace graphics
             // Sets the ComPtr to null
             virtual void destroy()
             {
-                mResource = nullptr;
+                if (mResource)
+                {
+                    mResource = nullptr;
+                }
             }
 
             ~GPUResource()
             {
-                destroy();
             }
 
             // Returns ComPtr::GetAddressOf().

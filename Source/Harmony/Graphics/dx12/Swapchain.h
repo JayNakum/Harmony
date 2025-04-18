@@ -22,6 +22,7 @@ namespace graphics
         */
         class Swapchain
         {
+        public:
             static constexpr unsigned int BACK_BUFFER_COUNT = 3;
 
         public:
@@ -41,10 +42,10 @@ namespace graphics
             void resize(Device& device, const unsigned int width, const unsigned int height, std::array<DescriptorHandle, BACK_BUFFER_COUNT> rtvHandles);
 
             // Returns the current buffer index.
-            inline const unsigned int getCurrentBackBufferIndex() const { return mCurrentBuffer; }
+            inline const unsigned int getCurrentBackBufferIndex() const { return mSwapChain->GetCurrentBackBufferIndex();; }
 
             // Returns the current render target.
-            inline RenderTarget& getCurrentBackBuffer() { return mBackBuffers[mCurrentBuffer]; }
+            inline RenderTarget& getCurrentBackBuffer() { return mBackBuffers[getCurrentBackBufferIndex()]; }
 
             // Presents the swapchain and updates the current buffer index.
             void present(const unsigned int interval = 0);
@@ -52,10 +53,9 @@ namespace graphics
             ~Swapchain();
 
         private:
-            Microsoft::WRL::ComPtr<IDXGISwapChain3> mSwapChain;
             RenderTarget::Description mBackBufferDescription;
             std::array<RenderTarget, BACK_BUFFER_COUNT> mBackBuffers;
-            unsigned int mCurrentBuffer = 0;
+            Microsoft::WRL::ComPtr<IDXGISwapChain3> mSwapChain;
         };
     }
 }

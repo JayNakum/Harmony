@@ -10,7 +10,10 @@ namespace graphics
     {
         Swapchain::Swapchain(Device& device, CommandQueue& queue, const Description& createDescription, std::array<DescriptorHandle, BACK_BUFFER_COUNT> rtvHandles)
             : mSwapChain(nullptr), mBackBufferDescription(createDescription.renderTargetDescription),
-            mBackBuffers{createDescription.renderTargetDescription, createDescription.renderTargetDescription , createDescription.renderTargetDescription }
+            mBackBuffers{
+                createDescription.renderTargetDescription,
+                createDescription.renderTargetDescription,
+                createDescription.renderTargetDescription }
         {
             Microsoft::WRL::ComPtr<IDXGIFactory4> dxgiFactory;
             {
@@ -72,12 +75,7 @@ namespace graphics
                 Microsoft::WRL::ComPtr<ID3D12Resource> backBufferResource;
                 mSwapChain->GetBuffer(i, IID_PPV_ARGS(&backBufferResource));
 
-                GPUResource backBuffer(backBufferResource.Get(), GPUResourceState::Present); // Creating a GPUResource because createFromSwapchain() cannot work with ID3D12Resource
-
-                std::string name = "swapchain buffer " + std::to_string(i);
-                setName(backBuffer.get(), utility::toWideString(name).c_str());
-
-                mBackBuffers[i].createFromSwapchain(device, rtvHandles[i], backBuffer);
+                mBackBuffers[i].createFromSwapchain(device, rtvHandles[i], backBufferResource.Get());
             }
         }
 
@@ -86,13 +84,10 @@ namespace graphics
             HRESULT hResult = mSwapChain->Present(interval, 0);
 
             HASSERT(SUCCEEDED(hResult), "Failed to present swapchain.\n%s", utility::translateErrorCode(hResult));
-
-            mCurrentBuffer = mSwapChain->GetCurrentBackBufferIndex();
         }
 
         Swapchain::~Swapchain()
         {
-            mSwapChain = nullptr;
         }
     }
 }

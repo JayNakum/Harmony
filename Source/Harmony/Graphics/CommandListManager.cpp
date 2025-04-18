@@ -11,7 +11,6 @@ namespace graphics
     {
         msCommandListPool.destroyPool(); // We need to explicitly call this because the msCommandListPool is static
         mGraphicsQueue.commandAllocatorPool.destroyPool();
-        mGraphicsQueue.commandQueue->Release();
     }
 
     void CommandListManager::createNewCommandList(const CommandListType type, dx12::CommandList*& outCommandList, dx12::CommandAllocator*& outCommandAllocator)

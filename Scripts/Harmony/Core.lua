@@ -3,7 +3,8 @@ project "Core"
 
   files
   {
-    "%{prj_src.Harmony.Core}/**.*"
+    "%{prj_src.Harmony.Core}/**.h",
+    "%{prj_src.Harmony.Core}/**.cpp"
   }
 
   includedirs

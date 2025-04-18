@@ -46,15 +46,34 @@ namespace graphics
             return bufferView;
         }
 
-        const BufferView GPUBuffer::indexBufferView(const size_t elementSizeInBytes, const size_t size, const size_t offset) const
+        const BufferView GPUBuffer::indexBufferView(const size_t size, const size_t offset, const bool is32Bits) const
         {
             BufferView bufferView{};
 
             bufferView.bufferLocation = getGPUVirtualAddress() + offset;
             bufferView.sizeInBytes = size;
-            bufferView.elementSizeInBytes = elementSizeInBytes;
+            bufferView.is32Bit = is32Bits;
 
             return bufferView;
+        }
+
+
+        D3D12_VERTEX_BUFFER_VIEW BufferView::toD3DVertexBufferView(const BufferView& bufferView)
+        {
+            D3D12_VERTEX_BUFFER_VIEW d3dView{};
+            d3dView.BufferLocation = bufferView.bufferLocation;
+            d3dView.SizeInBytes = (UINT)bufferView.sizeInBytes;
+            d3dView.StrideInBytes = (UINT)bufferView.strideInBytes;
+            return d3dView;
+        }
+
+        D3D12_INDEX_BUFFER_VIEW BufferView::toD3DIndexBufferView(const BufferView& bufferView)
+        {
+            D3D12_INDEX_BUFFER_VIEW d3dView{};
+            d3dView.BufferLocation = bufferView.bufferLocation;
+            d3dView.SizeInBytes = (UINT)bufferView.sizeInBytes;
+            d3dView.Format = toDXGIFormat(bufferView.is32Bit ? DefaultFormats::R32_UINT : DefaultFormats::R16_UINT);
+            return d3dView;
         }
     }
 }

@@ -254,7 +254,6 @@ namespace graphics
             {
                 //debugDevice->ReportLiveDeviceObjects(D3D12_RLDO_SUMMARY| D3D12_RLDO_IGNORE_INTERNAL);
                 debugDevice->ReportLiveDeviceObjects(D3D12_RLDO_DETAIL | D3D12_RLDO_IGNORE_INTERNAL);
-                debugDevice->Release();
             }
 #endif
         }

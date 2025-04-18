@@ -3,7 +3,8 @@ project "Graphics"
 
   files
   {
-    "%{prj_src.Harmony.Graphics}/**.*"
+    "%{prj_src.Harmony.Graphics}/**.h",
+    "%{prj_src.Harmony.Graphics}/**.cpp"
   }
 
   includedirs
