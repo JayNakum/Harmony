@@ -12,8 +12,8 @@ def clean_line(line):
 # Cleans the white space in a file
 def clean_file(filename):
     try:
-        lines = open(filename, 'r').readlines()
-        with open(filename, 'w') as outfile:
+        lines = open(filename, 'r', encoding='utf-8').readlines()
+        with open(filename, 'w', encoding='utf-8') as outfile:
             for line in lines:
                 outfile.write(clean_line(line))
     except OSError:

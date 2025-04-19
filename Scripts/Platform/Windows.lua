@@ -27,6 +27,10 @@ project "Windows"
 
     "d3d12.lib",
     "dxgi.lib",
+    "dxguid.lib",
+
     "d3dcompiler.lib",
-    "dxguid.lib"
+
+    "dinput8.lib",
+    "xinput9_1_0.lib"
   }

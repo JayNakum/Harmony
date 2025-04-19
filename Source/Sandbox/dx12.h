@@ -29,3 +29,4 @@
 ////////
 
 #include "Window.h"
+#include "Inputs.h"

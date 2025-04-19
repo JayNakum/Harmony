@@ -42,12 +42,6 @@ namespace graphics
         virtual void deallocate() = 0;
         virtual ~CommandContext();
 
-    public:
-        // Static methods that use the default command context.
-
-        static void initializeBuffer(dx12::GPUBuffer& dest, const void* data, size_t numBytes, const size_t destOffset = 0, GPUResourceState newState = GPUResourceState::GenericRead);
-        static void initializeBuffer(dx12::GPUBuffer& dest, dx12::UploadBuffer& src, const size_t srcOffset = 0, size_t numBytes = -1, const size_t destOffset = 0, GPUResourceState newState = GPUResourceState::GenericRead);
-
     private:
         std::string mName;
         dx12::CommandList* mCommandList;

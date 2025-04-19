@@ -26,3 +26,7 @@
 
 #include <wrl/client.h>
 #include <wrl/event.h>
+
+#define DIRECTINPUT_VERSION 0x0800
+#include <dinput.h>
+#include <Xinput.h>

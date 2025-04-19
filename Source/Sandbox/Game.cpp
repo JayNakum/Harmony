@@ -19,10 +19,10 @@ namespace sandbox
     {
         static constexpr unsigned int CLIENT_WIDTH = 1080;
         static constexpr unsigned int CLIENT_HEIGHT = 720;
-        static constexpr float ASPECT_RATIO = CLIENT_WIDTH / CLIENT_HEIGHT;
     public:
         Application()
             : mWindow({L"Sandbox", CLIENT_WIDTH, CLIENT_HEIGHT}),
+            mInputs(mWindow.getHandle()),
             mDevice(),
             mViewport(0.0f, 0.0f, static_cast<float>(CLIENT_WIDTH), static_cast<float>(CLIENT_HEIGHT)),
             mScissorRect(0, 0, static_cast<LONG>(CLIENT_WIDTH), static_cast<LONG>(CLIENT_HEIGHT)),
@@ -101,9 +101,9 @@ namespace sandbox
             {// Vertex buffer
                 Vertex triangleVertices[] =
                 {
-                    { { 0.0f, 0.25f * ASPECT_RATIO, 0.0f, 1.0f }, { 0.87f, 0.55f, 0.55f, 1.0f } },
-                    { { 0.25f, -0.25f * ASPECT_RATIO, 0.0f, 1.0f }, { 0.87f, 0.55f, 0.55f, 1.0f } },
-                    { { -0.25f, -0.25f * ASPECT_RATIO, 0.0f, 1.0f }, { 0.87f, 0.55f, 0.55f, 1.0f } }
+                    { { 0.0f, 0.25f, 0.0f, 1.0f }, { 0.835f, 0.518f, 0.988f, 1.0f } },
+                    { { 0.25f, -0.25f, 0.0f, 1.0f }, { 0.694f, 0.392f, 0.804f, 1.0f } },
+                    { { -0.25f, -0.25f, 0.0f, 1.0f }, { 0.796f, 0.643f, 0.914f, 1.0f } }
                 };
 
                 size_t numBytes = sizeof(triangleVertices);
@@ -134,8 +134,11 @@ namespace sandbox
         void run() override
         {
             HRESULT hResult = S_OK;
-            while (mWindow.pollEvents())
+            while (!(mInputs.isPressed(core::Inputs::Digital::Key_escape)) &&
+                   mWindow.pollEvents())
             {
+                mInputs.update(0);
+
                 hResult = commandAllocator()->Reset();
                 HASSERT(SUCCEEDED(hResult), "Failed to reset command allocator");
 
@@ -151,7 +154,7 @@ namespace sandbox
                     DescriptorHandle rtvHandle = mRtvHeap[mSwapchain->getCurrentBackBufferIndex()];
                     commandList()->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
 
-                    const float clearColor[] = { 0.80f, 0.88f, 0.95f, 1.0f };
+                    const float clearColor[] = { 0.118f, 0.106f, 0.180f, 1.0f };
                     commandList()->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
                     commandList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
                     D3D12_VERTEX_BUFFER_VIEW vertexBufferView = BufferView::toD3DVertexBufferView(mVertexBuffer->vertexBufferView(sizeof(Vertex)));
@@ -185,6 +188,7 @@ namespace sandbox
     private:
         windows::Window mWindow;
         Device mDevice;
+        windows::Inputs mInputs;
 
         CD3DX12_VIEWPORT mViewport;
         CD3DX12_RECT mScissorRect;
