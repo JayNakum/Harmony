@@ -46,6 +46,9 @@ namespace graphics
             // Executes the commandlist and returns the incremented fence.
             const uint64_t executeCommandList(dx12::CommandList& commandList);
 
+            // Executes multiple commandlists and returns the incremented fence.
+            const uint64_t executeCommandLists(dx12::CommandList commandList[], const size_t count = 1);
+
             // Flushes the queue and destroys the ID3D12CommadQueue.
             ~CommandQueue();
 

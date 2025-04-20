@@ -207,10 +207,15 @@ namespace graphics
     enum class PrimitiveTopology
     {
         Undefined,
-        Point,
-        Line,
-        Triangle,
-        Patch
+        PointList,
+        LineList,
+        LineStrip,
+        TriangleList,
+        TriangleStrip,
+        LineListAdj,
+        LineStripAdj,
+        TriangleListAdj,
+        TriangleStripAdj
     };
 
     inline static const std::string toString(const PrimitiveTopology e)
@@ -221,13 +226,51 @@ namespace graphics
             return "";
         case PrimitiveTopology::Undefined:
             return "Undefined";
-        case PrimitiveTopology::Point:
+        case PrimitiveTopology::PointList:
+            return "PointList";
+        case PrimitiveTopology::LineList:
+            return "LineList";
+        case PrimitiveTopology::LineStrip:
+            return "LineStrip";
+        case PrimitiveTopology::TriangleList:
+            return "TriangleList";
+        case PrimitiveTopology::TriangleStrip:
+            return "TriangleStrip";
+        case PrimitiveTopology::LineListAdj:
+            return "LineListAdj";
+        case PrimitiveTopology::LineStripAdj:
+            return "LineStripAdj";
+        case PrimitiveTopology::TriangleListAdj:
+            return "TriangleListAdj";
+        case PrimitiveTopology::TriangleStripAdj:
+            return "TriangleStripAdj";
+        }
+    }
+
+    enum class PrimitiveTopologyType
+    {
+        Undefined,
+        Point,
+        Line,
+        Triangle,
+        Patch
+    };
+
+    inline static const std::string toString(const PrimitiveTopologyType e)
+    {
+        switch (e)
+        {
+        default:
+            return "";
+        case PrimitiveTopologyType::Undefined:
+            return "Undefined";
+        case PrimitiveTopologyType::Point:
             return "Point";
-        case PrimitiveTopology::Line:
+        case PrimitiveTopologyType::Line:
             return "Line";
-        case PrimitiveTopology::Triangle:
+        case PrimitiveTopologyType::Triangle:
             return "Triangle";
-        case PrimitiveTopology::Patch:
+        case PrimitiveTopologyType::Patch:
             return "Patch";
         }
     }

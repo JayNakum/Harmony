@@ -70,6 +70,20 @@ namespace graphics
             return incrementFenceNoMutex();
         }
 
+        const uint64_t CommandQueue::executeCommandLists(dx12::CommandList commandList[], const size_t count)
+        {
+            std::lock_guard<std::mutex> scoppedLockGuard(mFenceMutex);
+
+            std::vector<ID3D12CommandList*> d3dLists(count);
+            for (unsigned int i = 0; i < count; ++i)
+            {
+                d3dLists.push_back(commandList[i].get());
+            }
+
+            mCommandQueue->ExecuteCommandLists(count, d3dLists.data());
+            return incrementFenceNoMutex();
+        }
+
         const uint64_t CommandQueue::incrementFenceNoMutex()
         {
             mCommandQueue->Signal(mFence.get(), mNextFenceValue);

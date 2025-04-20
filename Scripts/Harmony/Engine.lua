@@ -19,3 +19,16 @@ project "Engine"
     "Core",
     "Graphics"
   }
+
+  filter "platforms:Windows"
+    includedirs
+    {
+      "%{prj_src.Platform.Windows}/",
+      "%{include_dirs.DirectX}/",
+      "%{include_dirs.DirectX12}/"
+    }
+
+    links
+    {
+      "Windows"
+    }

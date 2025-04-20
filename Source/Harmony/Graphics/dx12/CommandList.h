@@ -32,7 +32,7 @@ namespace graphics
             CommandList(Device& device, Description& createDescription);
 
             // Transition a GPUResource to a newState and optionally flush the barriers immediately.
-            void transitionResource(GPUResource& resource, const GPUResourceState newState, bool flushImmediate = false);
+            void transitionResource(GPUResource& resource, const GPUResourceStates newState, bool flushImmediate = false);
 
             // Flushes the buffered barriers.
             void flushResourceBarriers();

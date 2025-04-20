@@ -1,7 +1,7 @@
 #include "UploadBuffer.h"
 
 #include "dx12/Heap.h"
-#include "dx12/types/GPUResourceState.h"
+#include "dx12/types/GPUResourceStates.h"
 
 #include "Log.h"
 
@@ -25,11 +25,11 @@ namespace graphics
             // Upload buffers must be 1-dimensional
             D3D12_RESOURCE_DESC createDesc = GPUResource::toD3DResourceDesc(describeResource());
 
-            mUsageState = GPUResourceState::GenericRead;
+            mUsageState = GPUResourceStates::GenericRead;
 
             HRESULT hResult = device->CreateCommittedResource(
                 &heapProperties, D3D12_HEAP_FLAG_NONE, &createDesc,
-                dx12::toD3DResourceState(mUsageState), nullptr, IID_PPV_ARGS(&mResource));
+                dx12::toD3DResourceStates(mUsageState), nullptr, IID_PPV_ARGS(&mResource));
 
             HASSERT(SUCCEEDED(hResult), "Failed to create upload buffer %s.\n%s", createDescription.name, utility::translateErrorCode(hResult));
 

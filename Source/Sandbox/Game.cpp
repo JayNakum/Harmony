@@ -2,8 +2,6 @@
 
 #include "Entrypoint.h"
 
-#include "dx12.h"
-
 #include <D3Dcompiler.h>
 #include <DirectXMath.h>
 
@@ -122,9 +120,9 @@ namespace sandbox
 
                 mVertexBuffer->createCommitted(mDevice);
 
-                commandList().transitionResource(*mVertexBuffer, GPUResourceState::CopyDest, true);
+                commandList().transitionResource(*mVertexBuffer, GPUResourceStates::CopyDestination, true);
                 commandList()->CopyBufferRegion(mVertexBuffer->get(), 0, (ID3D12Resource*)intermediateBuffer.get(), 0, numBytes);
-                commandList().transitionResource(*mVertexBuffer, GPUResourceState::VertexAndConstantBuffer, true);
+                commandList().transitionResource(*mVertexBuffer, GPUResourceStates::VertexAndConstantBuffer, true);
                 mCommandListManager.getGraphicsQueue().executeCommandList(commandList());
             }
 
@@ -149,7 +147,7 @@ namespace sandbox
                 commandList()->RSSetViewports(1, &mViewport);
                 commandList()->RSSetScissorRects(1, &mScissorRect);
 
-                commandList().transitionResource(mSwapchain->getCurrentBackBuffer().getTexture(), GPUResourceState::RenderTarget, true);
+                commandList().transitionResource(mSwapchain->getCurrentBackBuffer().getTexture(), GPUResourceStates::RenderTarget, true);
                 {
                     DescriptorHandle rtvHandle = mRtvHeap[mSwapchain->getCurrentBackBufferIndex()];
                     commandList()->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
@@ -161,7 +159,7 @@ namespace sandbox
                     commandList()->IASetVertexBuffers(0, 1, &vertexBufferView);
                     commandList()->DrawInstanced(3, 1, 0, 0);
                 }
-                commandList().transitionResource(mSwapchain->getCurrentBackBuffer().getTexture(), GPUResourceState::Present, true);
+                commandList().transitionResource(mSwapchain->getCurrentBackBuffer().getTexture(), GPUResourceStates::Present, true);
 
                 mCommandListManager.getGraphicsQueue().executeCommandList(commandList());
 

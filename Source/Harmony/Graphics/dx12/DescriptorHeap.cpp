@@ -42,6 +42,31 @@ namespace graphics
             }
         }
 
+        void DescriptorHeap::copyDescriptorsFrom(
+            dx12::Device& device,
+            const dx12::DescriptorHandle& destStart,
+            const std::vector<dx12::DescriptorHandle>& srcStarts,
+            const std::vector<unsigned int>& srcCounts) const
+        {
+            HASSERT(srcStarts.size() == srcCounts.size(), "Mismatched srcStarts and srcCounts size");
+
+            const UINT numSrcRanges = static_cast<UINT>(srcStarts.size());
+
+            std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> srcHandles(numSrcRanges);
+            for (UINT i = 0; i < numSrcRanges; ++i)
+                srcHandles[i] = srcStarts[i];
+
+            device->CopyDescriptors(
+                1, // Number of destination ranges
+                &destStart, // Destination base handle
+                &srcCounts[0], // Number of descriptors in destination range
+                numSrcRanges, // Number of source ranges
+                srcHandles.data(), // Source base handles
+                srcCounts.data(), // Number of descriptors per source range
+                toD3DDescriptorHeapType(mType) // Descriptor heap type
+            );
+        }
+
         bool DescriptorHeap::validateHandle(const DescriptorHandle& dHandle) const
         {
             if (dHandle.getCPUPtr() < mHeapStart.getCPUPtr() ||

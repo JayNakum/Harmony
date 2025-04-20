@@ -3,25 +3,28 @@
 #include "common.h"
 #include "directx.h"
 
-namespace dx12
+namespace graphics
 {
-    // A union for all the DWord params.
-    // Prevents unnecessary function overloads.
-    struct DWParam
+    namespace dx12
     {
-        DWParam(FLOAT value) : floatValue(value) {}
-        DWParam(UINT value) : uintValue(value) {}
-        DWParam(INT value) : intValue(value) {}
-
-        void operator= (FLOAT value) { floatValue = value; }
-        void operator= (UINT value) { uintValue = value; }
-        void operator= (INT value) { intValue = value; }
-
-        union
+        // A union for all the DWord params.
+        // Prevents unnecessary function overloads.
+        struct DWParam
         {
-            FLOAT floatValue;
-            UINT uintValue;
-            INT intValue;
+            DWParam(FLOAT value) : floatValue(value) {}
+            DWParam(UINT value) : uintValue(value) {}
+            DWParam(INT value) : intValue(value) {}
+
+            void operator= (FLOAT value) { floatValue = value; }
+            void operator= (UINT value) { uintValue = value; }
+            void operator= (INT value) { intValue = value; }
+
+            union
+            {
+                FLOAT floatValue;
+                UINT uintValue;
+                INT intValue;
+            };
         };
-    };
+    }
 }

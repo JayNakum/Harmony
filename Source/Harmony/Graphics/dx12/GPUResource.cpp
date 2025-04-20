@@ -19,7 +19,7 @@ namespace graphics
 
             HRESULT hResult = device->CreateCommittedResource(
                 &heapProperties, D3D12_HEAP_FLAG_NONE, &resourceDescription,
-                toD3DResourceState(mUsageState), nullptr, IID_PPV_ARGS(getAddressOf())
+                toD3DResourceStates(mUsageState), nullptr, IID_PPV_ARGS(getAddressOf())
             );
             HASSERT(SUCCEEDED(hResult), "Failed to create committed resource %s.\n%s", createDescription.name, utility::translateErrorCode(hResult));
 
@@ -33,7 +33,7 @@ namespace graphics
 
             HRESULT hResult = device->CreatePlacedResource(
                 (backingHeap.get()), heapOffset, &resourceDescription,
-                toD3DResourceState(mUsageState), nullptr, IID_PPV_ARGS(getAddressOf())
+                toD3DResourceStates(mUsageState), nullptr, IID_PPV_ARGS(getAddressOf())
             );
             HASSERT(SUCCEEDED(hResult), "Failed to create placed resource %s.\n%s", createDescription.name, utility::translateErrorCode(hResult));
             setName(mResource.Get(), utility::toWideString(createDescription.name).c_str());

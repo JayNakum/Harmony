@@ -55,34 +55,56 @@ namespace graphics
         }
     }
 
-    enum class GPUResourceState
+    enum class GPUResourceStates
     {
         Invalid,
         Common,
         VertexAndConstantBuffer,
         IndexBuffer,
         RenderTarget,
-        CopyDest,
+        CopySource,
+        CopyDestination,
         GenericRead,
         Present
         // TODO: Add more resource states
     };
 
-    inline static const std::string toString(const GPUResourceState e)
+    inline static const GPUResourceStates operator|(GPUResourceStates a, GPUResourceStates b)
+    {
+        return static_cast<GPUResourceStates>(static_cast<uint32_t>(a) | static_cast<uint32_t>(b));
+    }
+    inline static const GPUResourceStates& operator|=(GPUResourceStates& a, GPUResourceStates b)
+    {
+        a = a | b;
+        return a;
+    }
+    inline static const GPUResourceStates operator&(GPUResourceStates a, GPUResourceStates b)
+    {
+        return static_cast<GPUResourceStates>(static_cast<uint32_t>(a) & static_cast<uint32_t>(b));
+    }
+
+    inline static const bool hasFlag(GPUResourceStates flags, GPUResourceStates check)
+    {
+        return (flags & check) != GPUResourceStates::Invalid;
+    }
+
+    inline static const std::string toString(const GPUResourceStates e)
     {
         switch (e)
         {
         default:
             return "";
-        case GPUResourceState::Invalid:
+        case GPUResourceStates::Invalid:
             return "Invalid";
-        case GPUResourceState::Common:
+        case GPUResourceStates::Common:
             return "Common";
-        case GPUResourceState::CopyDest:
-            return "CopyDest";
-        case GPUResourceState::GenericRead:
+        case GPUResourceStates::CopySource:
+            return "CopySource";
+        case GPUResourceStates::CopyDestination:
+            return "CopyDestination";
+        case GPUResourceStates::GenericRead:
             return "GenericRead";
-        case GPUResourceState::Present:
+        case GPUResourceStates::Present:
             return "Present";
         }
     }

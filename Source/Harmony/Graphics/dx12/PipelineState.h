@@ -110,7 +110,7 @@ namespace graphics
                 FillMode fillMode = FillMode::Solid;
                 CullMode cullMode = CullMode::None;
                 BlendDescription blendDescription{};
-                PrimitiveTopology primitiveTopologyType = PrimitiveTopology::Triangle;
+                PrimitiveTopologyType primitiveTopologyType = PrimitiveTopologyType::Triangle;
                 unsigned int numRenderTargets = 1;
                 std::array<Format, MAX_RENDER_TARGETS> rtvFormats;
                 Format dsvFormat = DefaultFormats::UNKNOWN; // DefaultFormats::D24_UNORM_S8_UINT;

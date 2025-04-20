@@ -1,0 +1,52 @@
+#pragma once
+
+#include "common.h"
+#include "directx.h"
+
+#include "GPUResourceEnums.h"
+
+namespace graphics
+{
+    namespace dx12
+    {
+        // Maps graphics::GPUResourceStates with D3D12_RESOURCE_STATES
+        inline static const D3D12_RESOURCE_STATES toD3DResourceStates(const GPUResourceStates e)
+        {
+            D3D12_RESOURCE_STATES states = static_cast<D3D12_RESOURCE_STATES>(-1);
+            if (hasFlag(e, GPUResourceStates::Common))
+            {
+                states |= D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_COMMON;
+            }
+            if (hasFlag(e, GPUResourceStates::CopySource))
+            {
+                states |= D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_COPY_SOURCE;
+            }
+            if (hasFlag(e, GPUResourceStates::CopyDestination))
+            {
+                states |= D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_COPY_DEST;
+            }
+            if (hasFlag(e, GPUResourceStates::GenericRead))
+            {
+                states |= D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_GENERIC_READ;
+            }
+            if (hasFlag(e, GPUResourceStates::Present))
+            {
+                states |= D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_PRESENT;
+            }
+            if (hasFlag(e, GPUResourceStates::VertexAndConstantBuffer))
+            {
+                states |= D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
+            }
+            if (hasFlag(e, GPUResourceStates::IndexBuffer))
+            {
+                states |= D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_INDEX_BUFFER;
+            }
+            if (hasFlag(e, GPUResourceStates::RenderTarget))
+            {
+                states |= D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_RENDER_TARGET;
+            }
+
+            return states
+        }
+    }
+}

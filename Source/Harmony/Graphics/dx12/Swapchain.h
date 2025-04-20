@@ -47,6 +47,9 @@ namespace graphics
             // Returns the current render target.
             inline RenderTarget& getCurrentBackBuffer() { return mBackBuffers[getCurrentBackBufferIndex()]; }
 
+            // Returns the current render target.
+            inline DescriptorHandle getCurrentBackBufferView() { return mRtvHandles[getCurrentBackBufferIndex()]; }
+
             // Presents the swapchain and updates the current buffer index.
             void present(const unsigned int interval = 0);
 
@@ -55,6 +58,7 @@ namespace graphics
         private:
             RenderTarget::Description mBackBufferDescription;
             std::array<RenderTarget, BACK_BUFFER_COUNT> mBackBuffers;
+            std::array<DescriptorHandle, BACK_BUFFER_COUNT> mRtvHandles;
             Microsoft::WRL::ComPtr<IDXGISwapChain3> mSwapChain;
         };
     }

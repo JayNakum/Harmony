@@ -6,14 +6,27 @@
 
 #include "CommandObject.h"
 
+#include "dx12/DWParam.h"
 #include "dx12/CommandList.h"
 #include "dx12/DescriptorHeap.h"
 #include "dx12/GPUResource.h"
 #include "dx12/UploadBuffer.h"
 #include "dx12/GPUBuffer.h"
+#include "dx12/GPUTexture.h"
+#include "dx12/PipelineState.h"
 
 namespace graphics
 {
+    struct Box
+    {
+        unsigned int left;
+        unsigned int top;
+        unsigned int front;
+        unsigned int right;
+        unsigned int bottom;
+        unsigned int back = 1;
+    };
+
     /*
     * This is the classes that connects graphics classes with DX12.
     * Contains the state and resources needed to record and execute commands on the GPU.
@@ -27,19 +40,36 @@ namespace graphics
 
         void bindDescriptorHeaps() const;
 
-        inline void setName(const std::string& name) { mName = name; }
-
     public:
+        inline void setName(const std::string& name) { mName = name; }
         inline dx12::CommandList& getCommandList() const { return *mCommandList; }
 
-        // Sets the descriptor in the array of currentDescriptorHeaps.
-        // currentDescriptorHeaps are then bind to GPU before draw call.
-        void setDescriptorHeap(dx12::DescriptorHeap& descriptorHeap);
-
-        uint64_t finish(const bool waitForCompletion = false);
         void reset();
 
-        virtual void deallocate() = 0;
+        void copyBuffer(dx12::GPUResource& destination, dx12::GPUResource& source) const;
+
+        void copyBufferRegion(dx12::GPUResource& destination, const size_t destinationOffset,
+                              dx12::GPUResource& source, const size_t sourceOffset,
+                              const size_t numBytes) const;
+
+        void copySubresource(dx12::GPUResource& destination, const unsigned int destinationSubIndex,
+                             dx12::GPUResource& source, const unsigned int sourceSubIndex) const;
+
+        void copyTextureRegion(dx12::GPUResource& destination, const unsigned int destinationX,
+                               const unsigned int destinationY, const unsigned int destinationZ,
+                               dx12::GPUResource& source, Box& sourceRect) const;
+
+        void setDescriptorHeap(dx12::DescriptorHeap& descriptorHeap);
+
+        void setPipelineState(dx12::PipelineState& pso) const;
+
+        void setPredication(dx12::GPUResource& buffer, const size_t bufferOffset, bool equalZero);
+
+        // flush existing commands to the GPU and keep the context alive
+        uint64_t finish(const bool waitForCompletion = false);
+
+        inline void flushResourceBarriers() const { getCommandList().flushResourceBarriers(); }
+
         virtual ~CommandContext();
 
     private:
@@ -55,11 +85,57 @@ namespace graphics
 
 namespace graphics
 {
+    struct ViewPort
+    {
+        float x;
+        float y;
+        float width;
+        float height;
+        float minDepth;
+        float maxDepth;
+    };
+
     class GraphicContext : public CommandContext
     {
     public:
         GraphicContext(CommandListManager& commandListManager);
 
-        void deallocate() override;
+        void clearColor(dx12::DescriptorHandle& target, float color[4], const Box* rect = nullptr);
+        void setRootSignature(const dx12::RootSignature& rootSignature);
+
+        void setRenderTargets(unsigned int count, const dx12::DescriptorHandle rtv);
+        void setRenderTargets(unsigned int count, const dx12::DescriptorHandle rtv, const dx12::DescriptorHandle dsv);
+
+        void setViewport(const ViewPort& viewport);
+        void setScissor(const Box& rect);
+        void setStencilRef(const unsigned int stencilRef);
+        void setBlendFactor(const float blendFactor[4]);
+        void setPrimitiveTopology(const PrimitiveTopology Topology);
+
+        void setConstant(const unsigned int rootIndex, dx12::DWParam value, const unsigned int offset);
+        void setConstants(const unsigned int rootIndex, dx12::DWParam x);
+        void setConstants(const unsigned int rootIndex, dx12::DWParam x, dx12::DWParam y);
+        void setConstants(const unsigned int rootIndex, dx12::DWParam x, dx12::DWParam y, dx12::DWParam z);
+        void setConstants(const unsigned int rootIndex, dx12::DWParam x, dx12::DWParam y, dx12::DWParam z, dx12::DWParam w);
+        void setConstants(const unsigned int rootIndex, const size_t count, const void* pConstants);
+        
+        void setBufferCBV(const unsigned int rootIndex, uint64_t cbv);
+        void setBufferSRV(const unsigned int rootIndex, const dx12::GPUBuffer& srv, const uint64_t offset = 0);
+        // void setBufferUAV(const unsigned int rootIndex, const dx12::DescriptorHandle& uav, const unsigned int offset = 0);
+        void setDescriptorTable(const unsigned int rootIndex, const dx12::DescriptorHandle& firstHandle);
+
+        void setIndexBuffer(const dx12::BufferView& view);
+        void setVertexBuffer(unsigned int slot, const dx12::BufferView views[], const size_t count = 1);
+
+        void draw(const unsigned int vertexCount, const unsigned int vertexStartOffset = 0);
+        void drawIndexed(const unsigned int indexCount, const unsigned int startIndexLocation = 0, const int baseVertexLocation = 0);
+        void drawInstanced(const unsigned int vertexCountPerInstance, const unsigned int instanceCount,
+                           const unsigned int startVertexLocation = 0, const unsigned int startInstanceLocation = 0);
+        void drawIndexedInstanced(const unsigned int indexCountPerInstance, const unsigned int instanceCount, const unsigned int startIndexLocation,
+                                  const int baseVertexLocation, const unsigned int startInstanceLocation);
+        
+        /*void drawIndirect(dx12::GPUBuffer& argumentBuffer, uint64_t argumentBufferOffset = 0);
+        void executeIndirect(dx12::CommandSignature& commandSig, dx12::GPUBuffer& argumentBuffer, uint64_t argumentStartOffset = 0,
+                             uint32_t maxCommands = 1, dx12::GPUBuffer* commandCounterBuffer = nullptr, uint64_t counterOffset = 0);*/
     };
 }

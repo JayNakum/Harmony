@@ -12,7 +12,7 @@ namespace graphics
             : mDescription(createDescription)
         {
             destroy();
-            mUsageState = GPUResourceState::CopyDest; // Since the resource is created on default heap, it expects some data to be copied to.
+            mUsageState = GPUResourceStates::CopyDestination; // Since the resource is created on default heap, it expects some data to be copied to.
         }
 
         const GPUResource::Description Texture::describeResource() const

@@ -9,7 +9,7 @@
 
 #include "Heap.h"
 
-#include "types/GPUResourceState.h"
+#include "types/GPUResourceStates.h"
 #include "types/GPUResourceFlags.h"
 #include "types/GPUResourceDimension.h"
 #include "types/DefaultFormats.h"
@@ -45,13 +45,13 @@ namespace graphics
 
             GPUResource()
                 : mResource(nullptr),
-                mUsageState(GPUResourceState::Common),
-                mTransitioningState(GPUResourceState::Invalid) {}
+                mUsageState(GPUResourceStates::Common),
+                mTransitioningState(GPUResourceStates::Invalid) {}
 
-            GPUResource(ID3D12Resource* resource, const GPUResourceState currentUsageState)
+            GPUResource(ID3D12Resource* resource, const GPUResourceStates currentUsageState)
                 : mResource(resource),
                 mUsageState(currentUsageState),
-                mTransitioningState(GPUResourceState::Invalid) {}
+                mTransitioningState(GPUResourceStates::Invalid) {}
 
             void setResource(ID3D12Resource* resource)
             {
@@ -64,11 +64,11 @@ namespace graphics
             // Sub-Allocate a buffer out of a pre-allocated heap.
             void createPlaced(Device& device, Heap& backingHeap, uint64_t heapOffset);
 
-            inline const GPUResourceState getUsageState() const { return mUsageState; }
-            inline void setUsageState(const GPUResourceState newState) { mUsageState = newState; }
+            inline const GPUResourceStates getUsageState() const { return mUsageState; }
+            inline void setUsageState(const GPUResourceStates newState) { mUsageState = newState; }
 
-            inline const GPUResourceState getTransitioningState() const { return mTransitioningState; }
-            inline void setTransitioningState(const GPUResourceState newState) { mTransitioningState = newState; }
+            inline const GPUResourceStates getTransitioningState() const { return mTransitioningState; }
+            inline void setTransitioningState(const GPUResourceStates newState) { mTransitioningState = newState; }
 
             inline const D3D12_GPU_VIRTUAL_ADDRESS getGPUVirtualAddress() const { return mResource->GetGPUVirtualAddress(); }
 
@@ -103,8 +103,8 @@ namespace graphics
 
         protected:
             Microsoft::WRL::ComPtr<ID3D12Resource> mResource;
-            GPUResourceState mUsageState;
-            GPUResourceState mTransitioningState;
+            GPUResourceStates mUsageState;
+            GPUResourceStates mTransitioningState;
         };
     }
 }
