@@ -10,10 +10,7 @@ namespace graphics
     {
         CommandQueue::CommandQueue(Device& device, const Description& createDescription)
             : CommandObject(createDescription.type),
-            mCommandQueue(nullptr),
-            mFence(device, createDescription.name + "fence"),
-            mNextFenceValue((uint64_t)mType << 56 | 1),
-            mLastCompletedFenceValue((uint64_t)mType << 56)
+            mCommandQueue(nullptr)
         {
             D3D12_COMMAND_QUEUE_DESC createDesc{};
             createDesc.Type = toD3DCommandListType(mType);
@@ -23,44 +20,10 @@ namespace graphics
             HASSERT(SUCCEEDED(hResult), "Failed to create command queue %s.\n%s", createDescription.name, utility::translateErrorCode(hResult));
 
             setName(mCommandQueue.Get(), utility::toWideString(createDescription.name).c_str());
-
-            // Encode type at the top bit of the fence.
-            mFence->Signal((uint64_t)mType << 56);
-        }
-
-        const uint64_t CommandQueue::incrementFence()
-        {
-            std::lock_guard<std::mutex> scoppedLockGuard(mFenceMutex);
-            return incrementFenceNoMutex();
-        }
-
-        bool CommandQueue::isFenceComplete(const uint64_t fenceValue)
-        {
-            // If check to avoid querying the fence value by testing against the last one seen.
-            // The max() is to protect against an unlikely race condition
-            // that could cause the last completed fence value to regress.
-            if (fenceValue > mLastCompletedFenceValue)
-            {
-                mLastCompletedFenceValue = std::max(mLastCompletedFenceValue, mFence->GetCompletedValue());
-            }
-
-            return fenceValue <= mLastCompletedFenceValue;
-        }
-
-        void CommandQueue::waitForFence(const uint64_t fenceValue)
-        {
-            if (isFenceComplete(fenceValue))
-            {
-                return;
-            }
-            mFence.wait(fenceValue);
-            mLastCompletedFenceValue = fenceValue;
         }
 
         const uint64_t CommandQueue::executeCommandList(dx12::CommandList& commandList)
         {
-            std::lock_guard<std::mutex> scoppedLockGuard(mFenceMutex);
-
             HRESULT hResult = commandList->Close();
             HASSERT(SUCCEEDED(hResult), "Failed to close command list.\n%s", utility::translateErrorCode(hResult));
 
@@ -70,9 +33,8 @@ namespace graphics
             return incrementFenceNoMutex();
         }
 
-        const uint64_t CommandQueue::executeCommandLists(dx12::CommandList commandList[], const size_t count)
+        const uint64_t CommandQueue::executeCommandLists(ExecuteCommandListsParams& executeCommandListsParams)
         {
-            std::lock_guard<std::mutex> scoppedLockGuard(mFenceMutex);
 
             std::vector<ID3D12CommandList*> d3dLists(count);
             for (unsigned int i = 0; i < count; ++i)
@@ -82,12 +44,6 @@ namespace graphics
 
             mCommandQueue->ExecuteCommandLists(count, d3dLists.data());
             return incrementFenceNoMutex();
-        }
-
-        const uint64_t CommandQueue::incrementFenceNoMutex()
-        {
-            mCommandQueue->Signal(mFence.get(), mNextFenceValue);
-            return mNextFenceValue++;
         }
 
         CommandQueue::~CommandQueue()

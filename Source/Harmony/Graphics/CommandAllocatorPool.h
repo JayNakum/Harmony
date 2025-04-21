@@ -15,11 +15,11 @@ namespace graphics
     {
     public:
         // TODO: Cache in a couple allocators already and put them in available queue
-        CommandAllocatorPool(const CommandListType type);
+        CommandAllocatorPool(const CommandListType type, dx12::Device& device);
 
         // Provides a CommandAllocator from the available queue.
         // If none are available then creates a new one.
-        dx12::CommandAllocator& requestCommandAllocator(dx12::Device& device, const uint64_t completedFenceValue);
+        dx12::CommandAllocator& requestCommandAllocator(const uint64_t completedFenceValue);
 
         // Discards the allocator after GPU is done with it.
         // The fence value represents the last completed GPU work that used this allocator.
@@ -45,7 +45,6 @@ namespace graphics
         // it is put inside the available queue ready for reuse.
         std::queue<dx12::CommandAllocator*> mAvailableQueue;
 
-        // Prevents incorrect read and write of the pool and queue
-        std::mutex mPoolMutex;
+        dx12::Device& mDevice;
     };
 }

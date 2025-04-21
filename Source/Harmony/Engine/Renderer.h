@@ -18,8 +18,9 @@ namespace engine
 
         inline graphics::GraphicContext& aquireGraphicContext(const std::string& name)
         {
-            graphics::GraphicContext& context = mCommandContextPool.requestGraphicContext(mCommandListManager);
+            graphics::GraphicContext& context = mCommandContextPool.requestGraphicContext(newResources.commandList);
             context.setName(name);
+            context.reset();
             return context;
         }
 
@@ -35,7 +36,6 @@ namespace engine
 
     private:
         graphics::dx12::Device mDevice;
-        graphics::CommandListManager mCommandListManager;
         graphics::dx12::RenderTarget::Description mRenderTargetDescription;
 
         graphics::DescriptorHeapWithAllocator mRTVDescriptorHeapCPU;

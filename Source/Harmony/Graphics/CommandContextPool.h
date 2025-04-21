@@ -18,9 +18,9 @@ namespace graphics
         CommandContextPool() = default;
 
         // Allocates a new context for the given command list type.
-        // If an available context exists, it is reset and reused.
+        // If an available context exists, it is reused.
         // Otherwise, a new one is created and initialized.
-        GraphicContext& requestGraphicContext(CommandListManager& commandListManager);
+        GraphicContext& requestGraphicContext();
 
         // Puts the context in available queue for future use.
         // This doesn't delete or reset the context. The context is reset first when requested via allocateContext().

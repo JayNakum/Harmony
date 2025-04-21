@@ -6,17 +6,14 @@
 
 namespace graphics
 {
-    CommandContext::CommandContext(const CommandListType type, CommandListManager& commandListManager)
-        : CommandObject(type), 
-        mCommandList(nullptr), 
-        mCurrentCommandAllocator(nullptr),
-        mCommandListManager(commandListManager),
+    CommandContext::CommandContext(const CommandListType type)
+        : CommandObject(type),
+        mCommandAllocatorPool(mType),
         mCurrentDescriptorHeaps{}
     {
-        mCommandListManager.createNewCommandList(mType, mCommandList, mCurrentCommandAllocator);
     }
 
-    void CommandContext::bindDescriptorHeaps() const
+    void CommandContext::bindDescriptorHeaps()
     {
         std::array<ID3D12DescriptorHeap*, descriptorHeapTypeCount> heapsToBind{};
         unsigned int nonNullHeaps = 0;
@@ -30,41 +27,34 @@ namespace graphics
 
         if (nonNullHeaps > 0)
         {
-            getCommandList()->SetDescriptorHeaps(nonNullHeaps, heapsToBind.data());
+            mCommandList->SetDescriptorHeaps(nonNullHeaps, heapsToBind.data());
         }
     }
 
     void CommandContext::reset()
     {
-        // We only call Reset() on previously freed contexts.
-        // The command list persists and will be reused, but we must request a new allocator.
-        HASSERT(mCommandList != nullptr, "Command list not found.");
-        HASSERT_SOFT(mCurrentCommandAllocator == nullptr, "Command allocator is not null. It will get replaced by a new one.");
-
-        mCurrentCommandAllocator = &(mCommandListManager.requestAllocator(mType));
-
-        getCommandList()->Reset(mCurrentCommandAllocator->get(), nullptr);
+        mCommandList->Reset(commandAllocator.get(), nullptr);
 
         bindDescriptorHeaps();
     }
 
-    void CommandContext::copyBuffer(dx12::GPUResource& destination, dx12::GPUResource& source) const
+    void CommandContext::copyBuffer(dx12::GPUResource& destination, dx12::GPUResource& source)
     {
-        getCommandList().transitionResource(source, GPUResourceStates::CopySource);
-        getCommandList().transitionResource(destination, GPUResourceStates::CopyDestination);
+        mCommandList.transitionResource(source, GPUResourceStates::CopySource);
+        mCommandList.transitionResource(destination, GPUResourceStates::CopyDestination);
         flushResourceBarriers();
-        getCommandList()->CopyResource(destination.get(), source.get());
+        mCommandList->CopyResource(destination.get(), source.get());
     }
 
-    void CommandContext::copyBufferRegion(dx12::GPUResource& destination, const size_t destinationOffset, dx12::GPUResource& source, const size_t sourceOffset, const size_t numBytes) const
+    void CommandContext::copyBufferRegion(dx12::GPUResource& destination, const size_t destinationOffset, dx12::GPUResource& source, const size_t sourceOffset, const size_t numBytes)
     {
-        getCommandList().transitionResource(source, GPUResourceStates::CopySource);
-        getCommandList().transitionResource(destination, GPUResourceStates::CopyDestination);
+        mCommandList.transitionResource(source, GPUResourceStates::CopySource);
+        mCommandList.transitionResource(destination, GPUResourceStates::CopyDestination);
         flushResourceBarriers();
-        getCommandList()->CopyBufferRegion(destination.get(), destinationOffset, source.get(), sourceOffset, numBytes);
+        mCommandList->CopyBufferRegion(destination.get(), destinationOffset, source.get(), sourceOffset, numBytes);
     }
 
-    void CommandContext::copySubresource(dx12::GPUResource& destination, const unsigned int destinationSubIndex, dx12::GPUResource& source, const unsigned int sourceSubIndex) const
+    void CommandContext::copySubresource(dx12::GPUResource& destination, const unsigned int destinationSubIndex, dx12::GPUResource& source, const unsigned int sourceSubIndex)
     {
         flushResourceBarriers();
 
@@ -82,13 +72,13 @@ namespace graphics
             sourceSubIndex
         };
 
-        getCommandList()->CopyTextureRegion(&destinationLocation, 0, 0, 0, &sourceLocation, nullptr);
+        mCommandList->CopyTextureRegion(&destinationLocation, 0, 0, 0, &sourceLocation, nullptr);
     }
 
-    void CommandContext::copyTextureRegion(dx12::GPUResource& destination, const unsigned int destinationX, const unsigned int destinationY, const unsigned int destinationZ, dx12::GPUResource& source, Box& sourceRect) const
+    void CommandContext::copyTextureRegion(dx12::GPUResource& destination, const unsigned int destinationX, const unsigned int destinationY, const unsigned int destinationZ, dx12::GPUResource& source, Box& sourceRect)
     {
-        getCommandList().transitionResource(source, GPUResourceStates::CopySource);
-        getCommandList().transitionResource(destination, GPUResourceStates::CopyDestination);
+        mCommandList.transitionResource(source, GPUResourceStates::CopySource);
+        mCommandList.transitionResource(destination, GPUResourceStates::CopyDestination);
         flushResourceBarriers();
 
         D3D12_TEXTURE_COPY_LOCATION destLoc = CD3DX12_TEXTURE_COPY_LOCATION(destination.get(), 0);
@@ -103,7 +93,7 @@ namespace graphics
             1,
         };
 
-        getCommandList()->CopyTextureRegion(&destLoc, destinationX, destinationY, destinationZ, &srcLoc, &box);
+        mCommandList->CopyTextureRegion(&destLoc, destinationX, destinationY, destinationZ, &srcLoc, &box);
     }
 
     void CommandContext::setDescriptorHeap(dx12::DescriptorHeap& descriptorHeap)
@@ -115,28 +105,28 @@ namespace graphics
         currentDescriptorHeap = &descriptorHeap;
     }
 
-    void CommandContext::setPipelineState(dx12::PipelineState& pso) const
+    void CommandContext::setPipelineState(dx12::PipelineState& pso)
     {
         ID3D12PipelineState* pipelineState = pso.get();
 
-        getCommandList()->SetPipelineState(pipelineState);
+        mCommandList->SetPipelineState(pipelineState);
     }
 
     void CommandContext::setPredication(dx12::GPUResource& buffer, const size_t bufferOffset, bool equalZero)
     {
-        getCommandList()->SetPredication(
+        mCommandList->SetPredication(
             buffer.get(), bufferOffset,
             equalZero ? D3D12_PREDICATION_OP_EQUAL_ZERO : D3D12_PREDICATION_OP_NOT_EQUAL_ZERO);
     }
 
-    uint64_t CommandContext::finish(bool waitForCompletion)
+    /*uint64_t CommandContext::finish(bool waitForCompletion)
     {
         flushResourceBarriers();
 
         HASSERT(mCurrentCommandAllocator != nullptr, "Command allocator not found.");
 
         dx12::CommandQueue& queue = mCommandListManager.getCommandQueue(mType);
-        uint64_t fence = queue.executeCommandList(getCommandList());
+        uint64_t fence = queue.executeCommandList(mCommandList);
         mCommandListManager.discardAllocator(*mCurrentCommandAllocator);
         mCurrentCommandAllocator = nullptr;
 
@@ -146,7 +136,7 @@ namespace graphics
         }
 
         return fence;
-    }
+    }*/
 
     CommandContext::~CommandContext()
     {
@@ -155,8 +145,8 @@ namespace graphics
 
 namespace graphics
 {
-    GraphicContext::GraphicContext(CommandListManager& commandListManager)
-        : CommandContext(CommandListType::Direct, commandListManager) {}
+    GraphicContext::GraphicContext(dx12::CommandList& commandList)
+        : CommandContext(CommandListType::Direct) {}
 
     void GraphicContext::clearColor(dx12::DescriptorHandle& target, float color[4], const Box* rect)
     {
@@ -167,22 +157,22 @@ namespace graphics
             rect->right,
             rect->bottom
         };
-        getCommandList()->ClearRenderTargetView(target, color, (rect == nullptr) ? 0 : 1, &d3dRect);
+        mCommandList->ClearRenderTargetView(target, color, (rect == nullptr) ? 0 : 1, &d3dRect);
     }
 
     void GraphicContext::setRootSignature(const dx12::RootSignature& rootSignature)
     {
-        getCommandList()->SetGraphicsRootSignature(rootSignature.get());
+        mCommandList->SetGraphicsRootSignature(rootSignature.get());
     }
 
     void GraphicContext::setRenderTargets(unsigned int count, const dx12::DescriptorHandle rtv)
     {
-        getCommandList()->OMSetRenderTargets(count, &rtv, FALSE, nullptr);
+        mCommandList->OMSetRenderTargets(count, &rtv, FALSE, nullptr);
     }
 
     void GraphicContext::setRenderTargets(unsigned int count, const dx12::DescriptorHandle rtv, const dx12::DescriptorHandle dsv)
     {
-        getCommandList()->OMSetRenderTargets(count, &rtv, FALSE, &dsv);
+        mCommandList->OMSetRenderTargets(count, &rtv, FALSE, &dsv);
     }
 
     void GraphicContext::setViewport(const ViewPort& viewport)
@@ -196,7 +186,7 @@ namespace graphics
             viewport.maxDepth
         };
 
-        getCommandList()->RSSetViewports(1, &d3dViewPort);
+        mCommandList->RSSetViewports(1, &d3dViewPort);
     }
 
     void GraphicContext::setScissor(const Box& rect)
@@ -210,27 +200,27 @@ namespace graphics
             rect.bottom
         };
 
-        getCommandList()->RSSetScissorRects(1, &d3dRect);
+        mCommandList->RSSetScissorRects(1, &d3dRect);
     }
 
     void GraphicContext::setStencilRef(const unsigned int stencilRef)
     {
-        getCommandList()->OMSetStencilRef(stencilRef);
+        mCommandList->OMSetStencilRef(stencilRef);
     }
 
     void GraphicContext::setBlendFactor(const float blendFactor[4])
     {
-        getCommandList()->OMSetBlendFactor(blendFactor);
+        mCommandList->OMSetBlendFactor(blendFactor);
     }
 
     void GraphicContext::setPrimitiveTopology(const PrimitiveTopology topology)
     {
-        getCommandList()->IASetPrimitiveTopology(dx12::toD3DPrimitiveTopology(topology));
+        mCommandList->IASetPrimitiveTopology(dx12::toD3DPrimitiveTopology(topology));
     }
 
     void GraphicContext::setConstant(const unsigned int rootIndex, dx12::DWParam value, const unsigned int offset)
     {
-        getCommandList()->SetGraphicsRoot32BitConstant(rootIndex, value.uintValue, offset);
+        mCommandList->SetGraphicsRoot32BitConstant(rootIndex, value.uintValue, offset);
     }
 
     void GraphicContext::setConstants(const unsigned int rootIndex, dx12::DWParam x)
@@ -261,28 +251,28 @@ namespace graphics
 
     void GraphicContext::setConstants(const unsigned int rootIndex, const size_t count, const void* pConstants)
     {
-        getCommandList()->SetGraphicsRoot32BitConstants(rootIndex, count, pConstants, 0);
+        mCommandList->SetGraphicsRoot32BitConstants(rootIndex, count, pConstants, 0);
     }
 
     void GraphicContext::setBufferCBV(const unsigned int rootIndex, uint64_t cbv)
     {
-        getCommandList()->SetGraphicsRootConstantBufferView(rootIndex, (D3D12_GPU_VIRTUAL_ADDRESS)cbv);
+        mCommandList->SetGraphicsRootConstantBufferView(rootIndex, (D3D12_GPU_VIRTUAL_ADDRESS)cbv);
     }
 
     void GraphicContext::setBufferSRV(const unsigned int rootIndex, const dx12::GPUBuffer& srv, const uint64_t offset)
     {
-        getCommandList()->SetGraphicsRootShaderResourceView(rootIndex, srv.getGPUVirtualAddress() + offset);
+        mCommandList->SetGraphicsRootShaderResourceView(rootIndex, srv.getGPUVirtualAddress() + offset);
     }
 
     void GraphicContext::setDescriptorTable(const unsigned int rootIndex, const dx12::DescriptorHandle& firstHandle)
     {
-        getCommandList()->SetGraphicsRootDescriptorTable(rootIndex, firstHandle);
+        mCommandList->SetGraphicsRootDescriptorTable(rootIndex, firstHandle);
     }
 
     void GraphicContext::setIndexBuffer(const dx12::BufferView& view)
     {
         const D3D12_INDEX_BUFFER_VIEW d3dView = dx12::BufferView::toD3DIndexBufferView(view);
-        getCommandList()->IASetIndexBuffer(&d3dView);
+        mCommandList->IASetIndexBuffer(&d3dView);
     }
 
     void GraphicContext::setVertexBuffer(unsigned int slot, const dx12::BufferView views[], const size_t count)
@@ -294,7 +284,7 @@ namespace graphics
             d3dViews[i] = dx12::BufferView::toD3DVertexBufferView(views[i]);
         }
 
-        getCommandList()->IASetVertexBuffers(slot, count, d3dViews.data());
+        mCommandList->IASetVertexBuffers(slot, count, d3dViews.data());
     }
 
     void GraphicContext::draw(const unsigned int vertexCount, const unsigned int vertexStartOffset)
@@ -310,12 +300,12 @@ namespace graphics
     void GraphicContext::drawInstanced(const unsigned int vertexCountPerInstance, const unsigned int instanceCount, const unsigned int startVertexLocation, const unsigned int startInstanceLocation)
     {
         flushResourceBarriers();
-        getCommandList()->DrawInstanced(vertexCountPerInstance, instanceCount, startVertexLocation, startInstanceLocation);
+        mCommandList->DrawInstanced(vertexCountPerInstance, instanceCount, startVertexLocation, startInstanceLocation);
     }
 
     void GraphicContext::drawIndexedInstanced(const unsigned int indexCountPerInstance, const unsigned int instanceCount, const unsigned int startIndexLocation, const int baseVertexLocation, const unsigned int startInstanceLocation)
     {
         flushResourceBarriers();
-        getCommandList()->DrawIndexedInstanced(indexCountPerInstance, instanceCount, startIndexLocation, baseVertexLocation, startInstanceLocation);
+        mCommandList->DrawIndexedInstanced(indexCountPerInstance, instanceCount, startIndexLocation, baseVertexLocation, startInstanceLocation);
     }
 }
