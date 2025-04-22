@@ -1,7 +1,7 @@
 #include "common.h"
 
 #include "Entrypoint.h"
-
+#include "dx12.h"
 #include <D3Dcompiler.h>
 #include <DirectXMath.h>
 
@@ -81,10 +81,10 @@ namespace sandbox
                 {
                     HRESULT hResult = S_OK;
 
-                    hResult = D3DCompileFromFile(L"C:\\Dev\\Harmony\\Harmony\\Source\\Sandbox\\Shaders\\shader.hlsl", nullptr, nullptr, "VSMain", "vs_5_0", compileFlags, 0, &vertexShader, nullptr);
+                    hResult = D3DCompileFromFile(L"D:\\Harmony\\Source\\Sandbox\\Shaders\\shader.hlsl", nullptr, nullptr, "VSMain", "vs_5_0", compileFlags, 0, &vertexShader, nullptr);
                     HASSERT(SUCCEEDED(hResult), "Failed to compile vertex shader.\n%s", errorBlob->GetBufferPointer());
 
-                    hResult = D3DCompileFromFile(L"C:\\Dev\\Harmony\\Harmony\\Source\\Sandbox\\Shaders\\shader.hlsl", nullptr, nullptr, "PSMain", "ps_5_0", compileFlags, 0, &pixelShader, nullptr);
+                    hResult = D3DCompileFromFile(L"D:\\Harmony\\Source\\Sandbox\\Shaders\\shader.hlsl", nullptr, nullptr, "PSMain", "ps_5_0", compileFlags, 0, &pixelShader, nullptr);
                     HASSERT(SUCCEEDED(hResult), "Failed to compile pixel shader.\n%s", errorBlob->GetBufferPointer());
                 }
                 createDesc.vertexShader = vertexShader;

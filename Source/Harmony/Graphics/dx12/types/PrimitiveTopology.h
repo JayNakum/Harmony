@@ -19,21 +19,21 @@ namespace graphics
                 return D3D12_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_UNDEFINED;
             case PrimitiveTopology::PointList:
                 return D3D12_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_POINTLIST;
-            case PrimitiveTopology::LineList:                             
+            case PrimitiveTopology::LineList:
                 return D3D12_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_LINELIST;
-            case PrimitiveTopology::LineStrip:                            
+            case PrimitiveTopology::LineStrip:
                 return D3D12_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_LINESTRIP;
-            case PrimitiveTopology::TriangleList:                         
+            case PrimitiveTopology::TriangleList:
                 return D3D12_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-            case PrimitiveTopology::TriangleStrip:                        
+            case PrimitiveTopology::TriangleStrip:
                 return D3D12_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
-            case PrimitiveTopology::LineListAdj:                          
+            case PrimitiveTopology::LineListAdj:
                 return D3D12_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_LINELIST_ADJ;
-            case PrimitiveTopology::LineStripAdj:                         
+            case PrimitiveTopology::LineStripAdj:
                 return D3D12_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_LINESTRIP_ADJ;
-            case PrimitiveTopology::TriangleListAdj:                      
+            case PrimitiveTopology::TriangleListAdj:
                 return D3D12_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST_ADJ;
-            case PrimitiveTopology::TriangleStripAdj:                     
+            case PrimitiveTopology::TriangleStripAdj:
                 return D3D12_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP_ADJ;
             }
         }

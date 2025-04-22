@@ -15,10 +15,5 @@ prj_src["Platform"] = {}
 prj_src["Platform"]["Windows"] = "%{wks.location}/../Source/Platform/Windows"
 
 -- LIBRARIES --
-DIRECTX_SDK = os.getenv("DXSDK_DIR")
 include_dirs = {}
-include_dirs["DirectX"] = "%{DIRECTX_SDK}/Include"
 include_dirs["DirectX12"] = "%{wks.location}/../Vendors/DirectX-Headers/include"
-
-lib_dirs = {}
-lib_dirs["DirectX"] = "%{DIRECTX_SDK}/Lib"

@@ -7,8 +7,8 @@
 namespace graphics
 {
     CommandContext::CommandContext(const CommandListType type, CommandListManager& commandListManager)
-        : CommandObject(type), 
-        mCommandList(nullptr), 
+        : CommandObject(type),
+        mCommandList(nullptr),
         mCurrentCommandAllocator(nullptr),
         mCommandListManager(commandListManager),
         mCurrentDescriptorHeaps{}

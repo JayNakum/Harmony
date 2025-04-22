@@ -24,7 +24,13 @@ project "Sandbox"
     includedirs
     {
       "%{prj_src.Platform.Windows}/",
-      "%{include_dirs.DirectX}/",
+
+      "$(WindowsSDK_IncludePath)/",
+      "$(WindowsSDK_IncludePath)/um",
+      "$(WindowsSDK_IncludePath)/shared",
+      "$(WindowsSDK_IncludePath)/winrt",
+      "$(WindowsSDK_IncludePath)/cppwinrt",
+
       "%{include_dirs.DirectX12}/"
     }
 

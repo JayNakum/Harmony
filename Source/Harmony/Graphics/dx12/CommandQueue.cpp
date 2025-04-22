@@ -70,7 +70,7 @@ namespace graphics
             return incrementFenceNoMutex();
         }
 
-        const uint64_t CommandQueue::executeCommandLists(dx12::CommandList commandList[], const size_t count)
+        /*const uint64_t CommandQueue::executeCommandLists(dx12::CommandList commandList[], const size_t count)
         {
             std::lock_guard<std::mutex> scoppedLockGuard(mFenceMutex);
 
@@ -82,7 +82,7 @@ namespace graphics
 
             mCommandQueue->ExecuteCommandLists(count, d3dLists.data());
             return incrementFenceNoMutex();
-        }
+        }*/
 
         const uint64_t CommandQueue::incrementFenceNoMutex()
         {

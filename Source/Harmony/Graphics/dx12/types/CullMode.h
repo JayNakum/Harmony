@@ -14,12 +14,13 @@ namespace graphics
         {
             switch (e)
             {
+            default:
+            case CullMode::Back:
+                return D3D12_CULL_MODE::D3D12_CULL_MODE_BACK;
             case CullMode::None:
                 return D3D12_CULL_MODE::D3D12_CULL_MODE_NONE;
             case CullMode::Front:
                 return D3D12_CULL_MODE::D3D12_CULL_MODE_FRONT;
-            case CullMode::Back:
-                return D3D12_CULL_MODE::D3D12_CULL_MODE_BACK;
             }
         }
     }

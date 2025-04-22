@@ -12,7 +12,7 @@ namespace graphics
         // Maps graphics::GPUResourceStates with D3D12_RESOURCE_STATES
         inline static const D3D12_RESOURCE_STATES toD3DResourceStates(const GPUResourceStates e)
         {
-            D3D12_RESOURCE_STATES states = static_cast<D3D12_RESOURCE_STATES>(-1);
+            D3D12_RESOURCE_STATES states = D3D12_RESOURCE_STATE_COMMON;
             if (hasFlag(e, GPUResourceStates::Common))
             {
                 states |= D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_COMMON;
@@ -46,7 +46,7 @@ namespace graphics
                 states |= D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_RENDER_TARGET;
             }
 
-            return states
+            return states;
         }
     }
 }

@@ -1,5 +1,6 @@
 project "Windows"
   kind "StaticLib"
+  systemversion "latest"
 
   files
   {
@@ -12,13 +13,18 @@ project "Windows"
     "%{prj_src.Platform.Windows}/",
     "%{prj_src.Harmony.Core}/",
 
-    "%{include_dirs.DirectX}/",
+    "$(WindowsSDK_IncludePath)/",
+    "$(WindowsSDK_IncludePath)/um",
+    "$(WindowsSDK_IncludePath)/shared",
+    "$(WindowsSDK_IncludePath)/winrt",
+    "$(WindowsSDK_IncludePath)/cppwinrt",
+
     "%{include_dirs.DirectX12}/"
   }
 
   libdirs
   {
-    "%{lib_dirs.DirectX}/"
+    "$(WindowsSDK_LibraryPath)/um/x64"
   }
 
   links
@@ -30,6 +36,8 @@ project "Windows"
     "dxguid.lib",
 
     "d3dcompiler.lib",
+
+    "gameinput.lib",
 
     "dinput8.lib",
     "xinput9_1_0.lib"

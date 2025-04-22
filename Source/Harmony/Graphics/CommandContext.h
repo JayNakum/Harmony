@@ -118,7 +118,7 @@ namespace graphics
         void setConstants(const unsigned int rootIndex, dx12::DWParam x, dx12::DWParam y, dx12::DWParam z);
         void setConstants(const unsigned int rootIndex, dx12::DWParam x, dx12::DWParam y, dx12::DWParam z, dx12::DWParam w);
         void setConstants(const unsigned int rootIndex, const size_t count, const void* pConstants);
-        
+
         void setBufferCBV(const unsigned int rootIndex, uint64_t cbv);
         void setBufferSRV(const unsigned int rootIndex, const dx12::GPUBuffer& srv, const uint64_t offset = 0);
         // void setBufferUAV(const unsigned int rootIndex, const dx12::DescriptorHandle& uav, const unsigned int offset = 0);
@@ -133,7 +133,7 @@ namespace graphics
                            const unsigned int startVertexLocation = 0, const unsigned int startInstanceLocation = 0);
         void drawIndexedInstanced(const unsigned int indexCountPerInstance, const unsigned int instanceCount, const unsigned int startIndexLocation,
                                   const int baseVertexLocation, const unsigned int startInstanceLocation);
-        
+
         /*void drawIndirect(dx12::GPUBuffer& argumentBuffer, uint64_t argumentBufferOffset = 0);
         void executeIndirect(dx12::CommandSignature& commandSig, dx12::GPUBuffer& argumentBuffer, uint64_t argumentStartOffset = 0,
                              uint32_t maxCommands = 1, dx12::GPUBuffer* commandCounterBuffer = nullptr, uint64_t counterOffset = 0);*/

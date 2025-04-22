@@ -57,15 +57,15 @@ namespace graphics
 
     enum class GPUResourceStates
     {
-        Invalid,
-        Common,
-        VertexAndConstantBuffer,
-        IndexBuffer,
-        RenderTarget,
-        CopySource,
-        CopyDestination,
-        GenericRead,
-        Present
+        Invalid = 0,
+        Common = 1 << 0,
+        VertexAndConstantBuffer = 1 << 1,
+        IndexBuffer = 1 << 2,
+        RenderTarget = 1 << 3,
+        CopySource = 1 << 4,
+        CopyDestination = 1 << 5,
+        GenericRead = 1 << 6,
+        Present = 1 << 7
         // TODO: Add more resource states
     };
 
