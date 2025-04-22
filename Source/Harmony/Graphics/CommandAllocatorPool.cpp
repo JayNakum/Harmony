@@ -2,12 +2,14 @@
 
 namespace graphics
 {
-    CommandAllocatorPool::CommandAllocatorPool(const CommandListType type, dx12::Device& device)
-        : CommandObject(type), mDevice(device)
+    CommandAllocatorPool::CommandAllocatorPool(const CommandListType type)
+        : CommandObject(type)
     {}
 
-    dx12::CommandAllocator& CommandAllocatorPool::requestCommandAllocator(const uint64_t completedFenceValue)
-	{
+    dx12::CommandAllocator& CommandAllocatorPool::requestCommandAllocator(dx12::Device& device, const uint64_t completedFenceValue)
+    {
+        std::lock_guard<std::mutex> scoppedLockGuard(mPoolMutex);
+
         updateAvailableQueue(completedFenceValue);
 
         if (!mAvailableQueue.empty())
@@ -21,18 +23,22 @@ namespace graphics
         dx12::CommandAllocator::Description createDesc;
         createDesc.name = (mCmdAllocatorPool.size() + " " + toString(mType) + " type command allocator");
         createDesc.type = mType;
-        mCmdAllocatorPool.emplace_back(mDevice, createDesc);
+        mCmdAllocatorPool.emplace_back(device, createDesc);
 
         return mCmdAllocatorPool.back();
     }
 
     void CommandAllocatorPool::discardCommandAllocator(const uint64_t completedFenceValue, dx12::CommandAllocator& usedAllocator)
     {
+        std::lock_guard<std::mutex> scoppedLockGuard(mPoolMutex);
+
         mUsedQueue.push(std::make_pair(completedFenceValue, &usedAllocator));
     }
 
     void CommandAllocatorPool::destroyPool()
     {
+        std::lock_guard<std::mutex> scoppedLockGuard(mPoolMutex);
+
         // clear the queues to prevent dangling pointers
         while (!mUsedQueue.empty())
         {

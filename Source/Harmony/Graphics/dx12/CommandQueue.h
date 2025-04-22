@@ -29,20 +29,25 @@ namespace graphics
             // Creates an ID3D12CommandQueue of createDescription.type.
             CommandQueue(Device& device, const Description& createDescription);
 
-            struct ExecuteCommandListsParams
-            {
-                Fence const* fencesToWait;
-                unsigned int fenceToWaitCount;
+            // Signals the command queue and returns the incremented fence value.
+            const uint64_t incrementFence();
 
-				CommandList const* commandLists;
-                unsigned int commandListCount;
-				
-                Fence const* fencesToSignal;
-				unsigned int fenceToSignalCount;
-            };
+            // Checks if the fenceValue is reached or not.
+            bool isFenceComplete(const uint64_t fenceValue);
 
-            // Executes multiple commandlist and returns the incremented fence.
-            const uint64_t executeCommandLists(ExecuteCommandListsParams& executeCommandListsParams);
+            inline const uint64_t getCompletedFence() { return mFence->GetCompletedValue(); }
+
+            // Waits for the passed fence value.
+            void waitForFence(const uint64_t fenceValue);
+
+            // Flushes the entire command queue.
+            inline void waitForIdle() { waitForFence(incrementFence()); }
+
+            // Executes the commandlist and returns the incremented fence.
+            const uint64_t executeCommandList(dx12::CommandList& commandList);
+
+            // Executes multiple commandlists and returns the incremented fence.
+            const uint64_t executeCommandLists(dx12::CommandList commandList[], const size_t count = 1);
 
             // Flushes the queue and destroys the ID3D12CommadQueue.
             ~CommandQueue();
@@ -63,6 +68,12 @@ namespace graphics
 
         private:
             Microsoft::WRL::ComPtr<ID3D12CommandQueue> mCommandQueue;
+
+            // For CPU-GPU synchronization
+            Fence mFence;
+            uint64_t mNextFenceValue;
+            uint64_t mLastCompletedFenceValue;
+            std::mutex mFenceMutex;
         };
     }
 }
