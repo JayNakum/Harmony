@@ -37,8 +37,6 @@ project "Windows"
 
     "d3dcompiler.lib",
 
-    "gameinput.lib",
-
     "dinput8.lib",
     "xinput9_1_0.lib"
   }
