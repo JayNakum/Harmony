@@ -5,6 +5,7 @@ namespace engine
     Renderer::Renderer(const HWND handle, unsigned int clientWidth, unsigned int clientHeight)
         : mDevice(),
         mCommandListManager(mDevice),
+        mCommandContextPool(),
         mRenderTargetDescription{
             graphics::dx12::RenderTarget::Type::Color,
             "swapchain back buffer",
@@ -36,27 +37,7 @@ namespace engine
                 mRTVDescriptorHeapCPU.allocate(1),
                 mRTVDescriptorHeapCPU.allocate(1)
             }
-        ),
-        mCommandContextPool(),
-        mViewDescriptorHeapGPU(
-            mDevice,
-            {
-                "gpu visible shader view descriptor heap",
-                graphics::DescriptorHeapType::ShaderViews,
-                65535,
-                graphics::DescriptorHeapFlags::GPUVisible
-            }
-        ),
-        mViewDescriptorHeapCPU(
-            mDevice,
-            {
-                "cpu visible shader view descriptor heap",
-                graphics::DescriptorHeapType::ShaderViews,
-                65535,
-                graphics::DescriptorHeapFlags::CPUVisible
-            }
         )
-
     {}
 
     Renderer::~Renderer()

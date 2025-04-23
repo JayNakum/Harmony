@@ -4,10 +4,13 @@
 
 #include "dx12/Device.h"
 #include "CommandListManager.h"
-#include "dx12/Swapchain.h"
 #include "CommandContext.h"
 #include "CommandContextPool.h"
+
 #include "DescriptorHeapWithAllocator.h"
+#include "DynamicDescriptorHeap.h"
+
+#include "dx12/Swapchain.h"
 
 namespace engine
 {
@@ -18,8 +21,11 @@ namespace engine
 
         inline graphics::GraphicContext& aquireGraphicContext(const std::string& name)
         {
-            graphics::GraphicContext& context = mCommandContextPool.requestGraphicContext(mCommandListManager);
+            graphics::CommandListManager::CommandObjects newObjects = mCommandListManager.createNewCommandList(graphics::CommandListType::Direct);
+
+            graphics::GraphicContext& context = mCommandContextPool.requestGraphicContext(newObjects.commandList);
             context.setName(name);
+            context.reset(newObjects.commandAllocator);
             return context;
         }
 
@@ -36,13 +42,12 @@ namespace engine
     private:
         graphics::dx12::Device mDevice;
         graphics::CommandListManager mCommandListManager;
-        graphics::dx12::RenderTarget::Description mRenderTargetDescription;
-
-        graphics::DescriptorHeapWithAllocator mRTVDescriptorHeapCPU;
-        graphics::dx12::Swapchain mSwapchain;
         graphics::CommandContextPool mCommandContextPool;
 
-        graphics::DescriptorHeapWithAllocator mViewDescriptorHeapGPU;
-        graphics::DescriptorHeapWithAllocator mViewDescriptorHeapCPU;
+        graphics::DynamicDescriptorHeap mShaderViewsHeap;
+
+        graphics::dx12::RenderTarget::Description mRenderTargetDescription;
+        graphics::DescriptorHeapWithAllocator mRTVDescriptorHeapCPU;
+        graphics::dx12::Swapchain mSwapchain;
     };
 }

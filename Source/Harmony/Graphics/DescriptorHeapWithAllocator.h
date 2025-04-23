@@ -12,33 +12,53 @@ namespace graphics
     */
     class DescriptorHeapWithAllocator : public dx12::DescriptorHeap
     {
+        static constexpr size_t PAGE_SIZE = 256;
+
     public:
         // Creates a DescriptorHeap and resets the allocation pointers.
         DescriptorHeapWithAllocator(dx12::Device& device, const Description& createDescription);
 
-        // Checks for available space inside heap.
-        inline bool canAllocate(const size_t count) const { return count <= mNumFreeDescriptors; }
+        class Page
+        {
+        public:
+            Page(dx12::DescriptorHandle starthandle, const size_t descriptorSize, const size_t pageSize);
 
-        // Creates space for count number of descriptors inside the heap. Using ring allocation.
-        // Returns the handle that points to the start of the allocation.
-        // The handle will then be used for actual allocation.
-        dx12::DescriptorHandle allocate(const size_t count = 1);
+            // Checks for available space inside page.
+            inline bool canAllocate(const size_t count) const { return count <= mNumFreeDescriptors; }
 
-        // Sets the allocation handle at start and numFreeDescriptors to maxDescriptors.
-        // It doesn't invalidate descriptors.
-        void reset();
+            // Operator overload for array like indexing.
+            inline dx12::DescriptorHandle operator[] (const size_t index) const { return mStartHandle + (INT)index * (INT)mDescriptorSize; }
 
-        // Operator overload for array like indexing.
-        inline dx12::DescriptorHandle operator[] (const size_t index) const { return mHeapStart + (INT)index * (INT)mDescriptorSize; }
+            // Creates space for count number of descriptors inside the heap. Using ring allocation.
+            // Returns the handle that points to the start of the allocation.
+            // The handle will then be used for actual allocation.
+            dx12::DescriptorHandle allocate(const size_t count = 1);
+
+            // Sets the allocation handle at start and numFreeDescriptors to maxDescriptors.
+            // It doesn't invalidate descriptors.
+            void reset();
+
+            ~Page();
+
+        private:
+            dx12::DescriptorHandle mStartHandle;
+
+            // Keep track of the free spaces available for validation.
+            size_t mNumFreeDescriptors;
+
+            // Handle where the next allocation will be done.
+            std::atomic<unsigned int> mNextFreeHandle;
+
+            const size_t mDescriptorSize;
+            const size_t mPageSize;
+        };
+
+        Page allocatePage();
 
         // Resets the allocation pointers.
         ~DescriptorHeapWithAllocator();
 
     private:
-        // Keep track of the free spaces available for validation.
-        size_t mNumFreeDescriptors;
-
-        // Handle where the next allocation will be done.
-        dx12::DescriptorHandle mNextFreeHandle;
+        std::atomic<unsigned int> mPageOffset;
     };
 }

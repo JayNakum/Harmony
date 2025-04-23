@@ -35,7 +35,12 @@ namespace graphics
         inline void discardAllocator(dx12::CommandAllocator& usedAllocator) { getQueue(usedAllocator.getCommandListType()).discardAllocator(usedAllocator); }
 
     public:
-        void createNewCommandList(const CommandListType type, dx12::CommandList*& outCommandList, dx12::CommandAllocator*& outCommandAllocator);
+        struct CommandObjects
+        {
+            dx12::CommandList commandList;
+            dx12::CommandAllocator commandAllocator;
+        };
+        CommandObjects createNewCommandList(const CommandListType type);
 
         // Test to see if a fence has already been reached
         inline bool isFenceComplete(uint64_t fenceValue)

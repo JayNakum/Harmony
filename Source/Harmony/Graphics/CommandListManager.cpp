@@ -13,10 +13,12 @@ namespace graphics
         mGraphicsQueue.commandAllocatorPool.destroyPool();
     }
 
-    void CommandListManager::createNewCommandList(const CommandListType type, dx12::CommandList*& outCommandList, dx12::CommandAllocator*& outCommandAllocator)
+    CommandListManager::CommandObjects CommandListManager::createNewCommandList(const CommandListType type)
     {
-        outCommandAllocator = &(getQueue(type).requestAllocator(mDevice));
-        outCommandList = &(msCommandListPool.requestCommandList(mDevice, type, *outCommandAllocator));
+        dx12::CommandAllocator& commandAllocator = getQueue(type).requestAllocator(mDevice);
+        dx12::CommandList& commandList = msCommandListPool.requestCommandList(mDevice, type, commandAllocator);
+
+        return { commandList, commandAllocator };
     }
 
     CommandListManager::Queue& CommandListManager::getQueue(const CommandListType type)

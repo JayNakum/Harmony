@@ -5,12 +5,17 @@
 namespace graphics
 {
     DescriptorHeapWithAllocator::DescriptorHeapWithAllocator(dx12::Device& device, const Description& createDescription)
-        : dx12::DescriptorHeap(device, createDescription)
+        : dx12::DescriptorHeap(device, createDescription), mPageOffset(0)
+    {
+    }
+
+    DescriptorHeapWithAllocator::Page::Page(dx12::DescriptorHandle starthandle, const size_t descriptorSize, const size_t pageSize)
+        : mStartHandle(starthandle), mDescriptorSize(descriptorSize), mPageSize(pageSize)
     {
         reset();
     }
 
-    dx12::DescriptorHandle DescriptorHeapWithAllocator::allocate(const size_t count)
+    dx12::DescriptorHandle DescriptorHeapWithAllocator::Page::allocate(const size_t count)
     {
         HASSERT_SOFT(canAllocate(count), "Descriptor Heap out of space. Trying to allocate %d descriptors but available space is %d. Overwriting from the beginning.", count, mNumFreeDescriptors);
 
@@ -21,7 +26,7 @@ namespace graphics
             reset();
         }
 
-        dx12::DescriptorHandle allocationHandle = mNextFreeHandle;
+        dx12::DescriptorHandle allocationHandle = mStartHandle + mNextFreeHandle;
 
         mNextFreeHandle += (INT)(count * mDescriptorSize);
         mNumFreeDescriptors -= count;
@@ -29,14 +34,27 @@ namespace graphics
         return allocationHandle;
     }
 
-    void DescriptorHeapWithAllocator::reset()
+    void DescriptorHeapWithAllocator::Page::reset()
     {
-        mNumFreeDescriptors = mMaxDescriptors;
-        mNextFreeHandle = mHeapStart;
+        mNumFreeDescriptors = mPageSize;
+        mNextFreeHandle = 0;
+    }
+
+    DescriptorHeapWithAllocator::Page::~Page()
+    {
+        reset();
+    }
+
+    DescriptorHeapWithAllocator::Page DescriptorHeapWithAllocator::allocatePage()
+    {
+        dx12::DescriptorHandle pageStart = mHeapStart + mPageOffset;
+        mPageOffset = (mPageOffset + (PAGE_SIZE * mDescriptorSize)) % mMaxDescriptors;
+
+        return Page(pageStart, mDescriptorSize, PAGE_SIZE);
     }
 
     DescriptorHeapWithAllocator::~DescriptorHeapWithAllocator()
     {
-        reset();
+        mPageOffset = 0;
     }
 }

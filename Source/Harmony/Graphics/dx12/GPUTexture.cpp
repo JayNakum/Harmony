@@ -8,14 +8,14 @@ namespace graphics
 {
     namespace dx12
     {
-        Texture::Texture(const Description& createDescription)
+        GPUTexture::GPUTexture(const Description& createDescription)
             : mDescription(createDescription)
         {
             destroy();
             mUsageState = GPUResourceStates::CopyDestination; // Since the resource is created on default heap, it expects some data to be copied to.
         }
 
-        const GPUResource::Description Texture::describeResource() const
+        const GPUResource::Description GPUTexture::describeResource() const
         {
             GPUResource::Description createDescription{};
 
@@ -30,7 +30,7 @@ namespace graphics
             return createDescription;
         }
 
-        void Texture::createShaderResourceView(Device& device, DescriptorHandle& srvHandle, const ShaderResourceViewInfo& viewInfo) const
+        void GPUTexture::createShaderResourceView(Device& device, DescriptorHandle& srvHandle, const ShaderResourceViewInfo& viewInfo) const
         {
             D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
             srvDesc.Format = toDXGIFormat(mDescription.format);
@@ -93,7 +93,7 @@ namespace graphics
             device->CreateShaderResourceView(mResource.Get(), &srvDesc, srvHandle);
         }
 
-        void Texture::reset()
+        void GPUTexture::reset()
         {
             mResource.Reset();
         }

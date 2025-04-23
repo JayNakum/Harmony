@@ -16,10 +16,10 @@ namespace graphics
         /*
         * The class represents a texture on GPU Memory
         */
-        class Texture : public GPUResource
+        class GPUTexture : public GPUResource
         {
         public:
-            Texture(const Description& createDescription);
+            GPUTexture(const Description& createDescription);
 
             // Creates a filtered and valid GPUResource::Description based on the initData
             const GPUResource::Description describeResource() const override;
@@ -39,7 +39,7 @@ namespace graphics
             // Reset the resource.
             void reset();
 
-            virtual ~Texture()
+            virtual ~GPUTexture()
             {
                 destroy();
             }
@@ -55,7 +55,7 @@ namespace graphics
         * RenderTarget is an extension to the texture class with ability to create RTV and DSV.
         * It owns an instance of texture.
         * A rendertarget can be of either two types. Color or Depth.
-        * And the Texture::Descripton must have an appropriate format.
+        * And the GPUTexture::Descripton must have an appropriate format.
         */
         class RenderTarget
         {
@@ -69,7 +69,7 @@ namespace graphics
             struct Description
             {
                 Type type;
-                Texture::Description textureDescription;
+                GPUTexture::Description textureDescription;
             };
 
             RenderTarget(const Description& createDescription);
@@ -81,12 +81,12 @@ namespace graphics
             void createDepthStencilView(Device& device, DescriptorHandle& dsvHandle, uint32_t mipSlice = 0, uint32_t arraySlice = 0, bool readOnly = false); // TODO: Support multiple read only depth and stencil views
 
             inline const Description& getDescription() const { return mDescription; }
-            inline const Texture& getTexture() const { return mTexture; }
-            inline Texture& getTexture() { return mTexture; }
+            inline const GPUTexture& getTexture() const { return mTexture; }
+            inline GPUTexture& getTexture() { return mTexture; }
 
         private:
             Description mDescription;
-            Texture mTexture;
+            GPUTexture mTexture;
         };
     }
 }

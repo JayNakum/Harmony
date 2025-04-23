@@ -36,50 +36,47 @@ namespace graphics
     {
     protected:
         // Command context is only ever meant to be created, initialized or reset via the Context Manager
-        CommandContext(const CommandListType type, CommandListManager& commandListManager);
-
-        void bindDescriptorHeaps() const;
+        CommandContext(const CommandListType type, dx12::CommandList& commandList);
 
     public:
         inline void setName(const std::string& name) { mName = name; }
-        inline dx12::CommandList& getCommandList() const { return *mCommandList; }
 
-        void reset();
+        inline void setDevice(dx12::Device& device) { mDevice = &device; }
+        inline void setShaderViewHeap(DynamicDescriptorHeap& descriptorHeap) { mShaderViewsHeap = &descriptorHeap; }
 
-        void copyBuffer(dx12::GPUResource& destination, dx12::GPUResource& source) const;
+        void reset(dx12::CommandAllocator& commandAllocator);
+
+        void copyBuffer(dx12::GPUResource& destination, dx12::GPUResource& source);
 
         void copyBufferRegion(dx12::GPUResource& destination, const size_t destinationOffset,
                               dx12::GPUResource& source, const size_t sourceOffset,
-                              const size_t numBytes) const;
+                              const size_t numBytes);
 
         void copySubresource(dx12::GPUResource& destination, const unsigned int destinationSubIndex,
-                             dx12::GPUResource& source, const unsigned int sourceSubIndex) const;
+                             dx12::GPUResource& source, const unsigned int sourceSubIndex);
 
         void copyTextureRegion(dx12::GPUResource& destination, const unsigned int destinationX,
                                const unsigned int destinationY, const unsigned int destinationZ,
-                               dx12::GPUResource& source, Box& sourceRect) const;
+                               dx12::GPUResource& source, Box& sourceRect);
 
-        void setDescriptorHeap(dx12::DescriptorHeap& descriptorHeap);
-
-        void setPipelineState(dx12::PipelineState& pso) const;
+        void setPipelineState(dx12::PipelineState& pso);
 
         void setPredication(dx12::GPUResource& buffer, const size_t bufferOffset, bool equalZero);
 
         // flush existing commands to the GPU and keep the context alive
-        uint64_t finish(const bool waitForCompletion = false);
+        // uint64_t finish(const bool waitForCompletion = false);
 
-        inline void flushResourceBarriers() const { getCommandList().flushResourceBarriers(); }
+        inline void flushResourceBarriers() { mCommandList.flushResourceBarriers(); }
 
         virtual ~CommandContext();
 
+    protected:
+        dx12::CommandList mCommandList;
+
     private:
         std::string mName;
-        dx12::CommandList* mCommandList;
-        dx12::CommandAllocator* mCurrentCommandAllocator;
-
-        CommandListManager& mCommandListManager;
-
-        std::array<dx12::DescriptorHeap*, descriptorHeapTypeCount> mCurrentDescriptorHeaps;
+        dx12::Device* mDevice;
+        DynamicDescriptorHeap* mShaderViewsHeap;
     };
 }
 
@@ -98,7 +95,7 @@ namespace graphics
     class GraphicContext : public CommandContext
     {
     public:
-        GraphicContext(CommandListManager& commandListManager);
+        GraphicContext(dx12::CommandList& commandList);
 
         void clearColor(dx12::DescriptorHandle& target, float color[4], const Box* rect = nullptr);
         void setRootSignature(const dx12::RootSignature& rootSignature);
