@@ -2,7 +2,7 @@
 
 namespace graphics
 {
-    ShaderInput::ShaderInput(GraphicContext& context, const std::vector<Parameter>& layout, RootSignatureFlags flags = RootSignatureFlags::AllowInputAssemblerInputLayout)
+    ShaderInput::ShaderInput(GraphicContext& context, const std::vector<Parameter>& layout, RootSignatureFlags flags)
         : mContext(context), mLayout(layout), mShaderViewDescriptorHeap(context.getShaderViewsHeap()), mCPUDescriptorHeapPage(mShaderViewDescriptorHeap.allocatePage())
     {
         dx12::RootSignature rootSignature = initialize(layout, flags);
@@ -70,6 +70,8 @@ namespace graphics
 			dx12::DescriptorHandle gpuHandle = gpuStartHandle + cpuOffset;
 			mContext.commandList()->SetGraphicsRootDescriptorTable(rootIndex, gpuHandle);
         }
+
+        mContext.bindDescriptorHeaps();
     }
 
     const std::array<dx12::StaticSampler, 6> ShaderInput::getStaticSamplers()
@@ -127,6 +129,7 @@ namespace graphics
 
     dx12::RootSignature ShaderInput::initialize(const std::vector<Parameter>& layout, const RootSignatureFlags flags)
     {
+		// TODO: validate layout using reflections
         dx12::Device& device = mContext.getDevice();
 
         dx12::RootSignature::Description createDescription;

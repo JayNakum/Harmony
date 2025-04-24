@@ -65,7 +65,7 @@ namespace graphics
             size_t mNumFreeDescriptors;
 
             // Handle where the next allocation will be done.
-            std::atomic<unsigned int> mNextFreeHandle;
+            unsigned int mNextFreeHandle;
 
             const size_t mDescriptorSize;
             const size_t mPageSize;
@@ -77,6 +77,7 @@ namespace graphics
         ~DescriptorHeapWithAllocator();
 
     private:
-        std::atomic<unsigned int> mPageOffset;
+        unsigned int mPageOffset;
+        std::mutex mHeapMutex;
     };
 }

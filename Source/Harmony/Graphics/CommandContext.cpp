@@ -86,6 +86,12 @@ namespace graphics
             equalZero ? D3D12_PREDICATION_OP_EQUAL_ZERO : D3D12_PREDICATION_OP_NOT_EQUAL_ZERO);
     }
 
+	void CommandContext::bindDescriptorHeaps()
+	{
+        ID3D12DescriptorHeap* heap = mShaderViewsHeap->getGPUHeap().get();
+        mCommandList->SetDescriptorHeaps(1, &heap);
+	}
+
     /*uint64_t CommandContext::finish(bool waitForCompletion)
     {
         flushResourceBarriers();

@@ -70,7 +70,7 @@ namespace graphics
             inline const DescriptorHeapType getDescriptorHeapType() const { return mType; }
 
             // Returns the raw pointer of ID3D12DescriptorHeap.
-            inline const ID3D12DescriptorHeap* get() const { return mHeap.Get(); }
+            inline ID3D12DescriptorHeap* get() const { return mHeap.Get(); }
             inline ID3D12DescriptorHeap* get() { return mHeap.Get(); }
 
             // Operator overload that returns the raw pointer of ID3D12DescriptorHeap.

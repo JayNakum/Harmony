@@ -46,9 +46,17 @@ namespace graphics
     }
 
     DescriptorHeapWithAllocator::Page DescriptorHeapWithAllocator::allocatePage()
-    {
-        dx12::DescriptorHandle pageStart = mHeapStart + mPageOffset;
-        mPageOffset = (mPageOffset + (PAGE_SIZE * mDescriptorSize)) % mMaxDescriptors;
+	{
+		std::lock_guard<std::mutex> scopedLockGuard(mHeapMutex);
+
+		dx12::DescriptorHandle pageStart = mHeapStart + (mPageOffset * mDescriptorSize);
+
+        mPageOffset += PAGE_SIZE;
+
+        if (mPageOffset > mMaxDescriptors)
+        {
+            mPageOffset = 0;
+        }
 
         return Page(pageStart, mDescriptorSize, PAGE_SIZE);
     }

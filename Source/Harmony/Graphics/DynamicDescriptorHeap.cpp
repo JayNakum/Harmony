@@ -37,8 +37,4 @@ namespace graphics
 
         return gpuPage.getStartHandle();
     }
-
-    DynamicDescriptorHeap::~DynamicDescriptorHeap()
-    {
-    }
 }
