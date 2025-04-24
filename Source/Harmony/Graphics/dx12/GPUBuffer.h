@@ -47,7 +47,7 @@ namespace graphics
             // Creates a CBV based on buffer description.
             // Requires a pre-allocated descriptorHandle& from a descriptor heap.
             void createConstantBufferView(Device& device, DescriptorHandle& cbvHandle) const;
-            void createConstantBufferView(Device& device, DescriptorHandle& cbvHandle, const uint32_t offset, size_t size) const;
+            void createConstantBufferView(Device& device, DescriptorHandle& cbvHandle, size_t size, const uint32_t offset = 0) const;
 
             // Creates an vertex buffer view with custom offset, size and stride
             const BufferView vertexBufferView(const size_t stride, const size_t size, const size_t offset = 0) const;
@@ -95,12 +95,9 @@ namespace graphics
             ByteAddressBuffer(const Description& createDescription)
                 : GPUBuffer(createDescription) {}
 
-            // Creates an SRV of the entire buffer.
-            // Requires a pre-allocated descriptorHandle& from a descriptor heap.
-            void createShaderResourceView(Device& device, DescriptorHandle& srvHandle) const;
-
             // Creates an SRV with custom size and offset.
             // Requires a pre-allocated descriptorHandle& from a descriptor heap.
+            void createShaderResourceView(Device& device, DescriptorHandle& srvHandle) const;
             void createShaderResourceView(Device& device, DescriptorHandle& srvHandle, const uint64_t sizeInBytes, const unsigned int offsetInBytes = 0) const;
 
             virtual ~ByteAddressBuffer()

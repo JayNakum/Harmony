@@ -36,8 +36,8 @@ namespace engine
             mCommandContextPool.discardContext(usedContext);
         }
 
-        void render();
-        void present();
+        /*void render();
+        void present();*/
 
         ~Renderer();
 

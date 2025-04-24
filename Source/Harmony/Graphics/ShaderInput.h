@@ -12,6 +12,15 @@
 
 namespace graphics
 {
+    /*
+    * A management system for shader inputs.
+    * The class handles multiple things at a time.
+    * - Creation and binding of root signature
+    * - Allocation of descriptors.
+    * - Management and binding of dynamic descriptor heap.
+    * 
+    * Everything is initialized form a single shader input layout passed in constructor.
+    */
     class ShaderInput
     {
     public:
@@ -27,12 +36,19 @@ namespace graphics
             std::vector<Range> ranges;
         };
 
-        // Scoped shader inputs for management of root signature and descriptors.
-        // Allocates a CPUDescriptorHeapPage. Creates and sets a root signature. Allocates necessary descriptors in the page.
+        // Scoped shader inputs.
+        // Layout is expected in order of shader registers.
         ShaderInput(GraphicContext& context, const std::vector<Parameter>& layout, const RootSignatureFlags flags = RootSignatureFlags::AllowInputAssemblerInputLayout);
 
+        // Set a buffer at the specified layoutIndex, parameterIndex and rangeIndex.
         const dx12::DescriptorHandle setResource(const dx12::ByteAddressBuffer& buffer, const unsigned int layoutIndex, const unsigned int parameterIndex = 0, const unsigned int rangeIndex = 0);
+        const dx12::DescriptorHandle setResource(const dx12::ByteAddressBuffer& buffer, const uint64_t sizeInBytes, const unsigned int offsetInBytes, 
+            const unsigned int layoutIndex, const unsigned int parameterIndex = 0, const unsigned int rangeIndex = 0);
+        
+        // Set a texture at the specified layoutIndex, parameterIndex and rangeIndex.
         const dx12::DescriptorHandle setResource(const dx12::GPUTexture& texture, const unsigned int layoutIndex, const unsigned int parameterIndex = 0, const unsigned int rangeIndex = 0);
+        const dx12::DescriptorHandle setResource(const dx12::GPUTexture& texture, const dx12::GPUTexture::ShaderResourceViewInfo& viewInfo, 
+            const unsigned int layoutIndex, const unsigned int parameterIndex = 0, const unsigned int rangeIndex = 0);
 
         // Copies descriptors from CPU to GPU and sets descriptor heaps.
         void finalize();
@@ -42,6 +58,7 @@ namespace graphics
     private:
         static const std::array<dx12::StaticSampler, 6> getStaticSamplers();
 
+        // Creates the root signature and allocated descriptors in CPU heap.
         dx12::RootSignature initialize(const std::vector<Parameter>& layout, const RootSignatureFlags flags);
 
     private:

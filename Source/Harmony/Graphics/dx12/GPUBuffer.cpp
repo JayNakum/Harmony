@@ -29,7 +29,7 @@ namespace graphics
             createConstantBufferView(device, cbvHandle, 0, size);
         }
 
-        void GPUBuffer::createConstantBufferView(Device& device, DescriptorHandle& cbvHandle, const uint32_t offset, size_t size) const
+        void GPUBuffer::createConstantBufferView(Device& device, DescriptorHandle& cbvHandle, size_t size, const uint32_t offset) const
         {
             HASSERT(offset + size <= mDescription.width, "offset(%d) + size(%d) is more than total buffer size(%d).", offset, size, mDescription.width);
 

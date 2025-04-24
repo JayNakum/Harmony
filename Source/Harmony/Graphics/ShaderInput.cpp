@@ -11,48 +11,58 @@ namespace graphics
 
     const dx12::DescriptorHandle ShaderInput::setResource(const dx12::ByteAddressBuffer& buffer, const unsigned int layoutIndex, const unsigned int parameterIndex, const unsigned int rangeIndex)
     {
-        dx12::DescriptorHandle handle = mDescriptors.at(layoutIndex).ranges.at(parameterIndex).descriptorRange;
+        return setResource(buffer, buffer.describeResource().width, 0, layoutIndex, parameterIndex, rangeIndex);
+    }
 
-        const DescriptorRangeType type = mLayout.at(layoutIndex).ranges.at(parameterIndex).type;
+    const dx12::DescriptorHandle ShaderInput::setResource(const dx12::ByteAddressBuffer& buffer, const uint64_t sizeInBytes, const unsigned int offsetInBytes, const unsigned int layoutIndex, const unsigned int parameterIndex, const unsigned int rangeIndex)
+    {
+		dx12::DescriptorHandle handle = mDescriptors.at(layoutIndex).ranges.at(parameterIndex).descriptorRange;
 
-        dx12::Device& device = mContext.getDevice();
+		const DescriptorRangeType type = mLayout.at(layoutIndex).ranges.at(parameterIndex).type;
 
-        switch (type)
-        {
-        case DescriptorRangeType::CBV:
-            buffer.createConstantBufferView(device, handle);
-            break;
-        case DescriptorRangeType::SRV:
-            buffer.createShaderResourceView(device, handle);
-            break;
-        default:
-            HASSERT(false, "Invalid DescriptorRangeType at layoutIndex(%d) paramterIndex(%d) rangeIndex(%d).", layoutIndex, parameterIndex, rangeIndex);
-            break;
-        }
+		dx12::Device& device = mContext.getDevice();
 
-        return handle;
+		switch (type)
+		{
+		case DescriptorRangeType::CBV:
+			buffer.createConstantBufferView(device, handle, sizeInBytes, offsetInBytes);
+			break;
+		case DescriptorRangeType::SRV:
+			buffer.createShaderResourceView(device, handle, sizeInBytes, offsetInBytes);
+			break;
+		default:
+			HASSERT(false, "Invalid DescriptorRangeType at layoutIndex(%d) paramterIndex(%d) rangeIndex(%d).", layoutIndex, parameterIndex, rangeIndex);
+			break;
+		}
+
+		return handle;
     }
 
     const dx12::DescriptorHandle ShaderInput::setResource(const dx12::GPUTexture& texture, const unsigned int layoutIndex, const unsigned int parameterIndex, const unsigned int rangeIndex)
     {
-        dx12::DescriptorHandle handle = mDescriptors.at(layoutIndex).ranges.at(parameterIndex).descriptorRange;
-        
-        const DescriptorRangeType type = mLayout.at(layoutIndex).ranges.at(parameterIndex).type;
+        return setResource(texture, dx12::GPUTexture::ShaderResourceViewInfo{}, layoutIndex, parameterIndex, rangeIndex);
+    }
 
-        dx12::Device& device = mContext.getDevice();
+    const dx12::DescriptorHandle ShaderInput::setResource(const dx12::GPUTexture& texture, const dx12::GPUTexture::ShaderResourceViewInfo& viewInfo, const unsigned int layoutIndex, const unsigned int parameterIndex, const unsigned int rangeIndex)
+    {
+		dx12::DescriptorHandle handle = mDescriptors.at(layoutIndex).ranges.at(parameterIndex).descriptorRange;
 
-        switch (type)
-        {
-        case DescriptorRangeType::SRV:
-            texture.createShaderResourceView(device, handle);
-            break;
+		const DescriptorRangeType type = mLayout.at(layoutIndex).ranges.at(parameterIndex).type;
 
-        default:
-            HASSERT(false, "Invalid DescriptorRangeType at layoutIndex(%d) paramterIndex(%d) rangeIndex(%d).", layoutIndex, parameterIndex, rangeIndex);
-            break;
-        }
+		dx12::Device& device = mContext.getDevice();
 
-        return handle;
+		switch (type)
+		{
+		case DescriptorRangeType::SRV:
+			texture.createShaderResourceView(device, handle, viewInfo);
+			break;
+
+		default:
+			HASSERT(false, "Invalid DescriptorRangeType at layoutIndex(%d) paramterIndex(%d) rangeIndex(%d).", layoutIndex, parameterIndex, rangeIndex);
+			break;
+		}
+
+		return handle;
     }
 
     void ShaderInput::finalize()
