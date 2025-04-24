@@ -34,7 +34,7 @@ namespace graphics
             };
             // Creates an SRV with custom mip level, mip count, arraySlice and arraySize.
             // Requires a pre allocated descriptorHandle& from a descriptor heap.
-            void createShaderResourceView(Device& device, DescriptorHandle& srvHandle, const ShaderResourceViewInfo& viewInfo) const;
+            void createShaderResourceView(Device& device, DescriptorHandle& srvHandle, const ShaderResourceViewInfo& viewInfo = {}) const;
 
             // Reset the resource.
             void reset();

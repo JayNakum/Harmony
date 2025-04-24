@@ -19,13 +19,15 @@ namespace graphics
         */
         class RootSignature
         {
+            static constexpr unsigned int MAX_STATIC_SAMPLERS = 6;
+
         public:
             struct Description
             {
                 std::string name;
                 RootSignatureFlags flags;
                 std::vector<RootParameter> rootParameters;
-                std::vector<StaticSampler> staticSamplers;
+                std::array<StaticSampler, MAX_STATIC_SAMPLERS> staticSamplers{};
             };
 
             // Creates and serializes root signature

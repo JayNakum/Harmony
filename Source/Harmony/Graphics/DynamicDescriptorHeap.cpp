@@ -3,9 +3,9 @@
 namespace graphics
 {
     DynamicDescriptorHeap::DynamicDescriptorHeap(dx12::Device& device)
-        :
+        : mDevice(device),
         mCPUHeap(
-            device,
+            mDevice,
             {
                 "cpu visible shader view descriptor heap",
                 graphics::DescriptorHeapType::ShaderViews,
@@ -14,7 +14,7 @@ namespace graphics
             }
         ),
         mGPUHeap(
-            device,
+            mDevice,
             {
                 "gpu visible shader view descriptor heap",
                 graphics::DescriptorHeapType::ShaderViews,
@@ -24,10 +24,18 @@ namespace graphics
         )
     {}
 
-    DescriptorHeapWithAllocator::Page DynamicDescriptorHeap::allocateCPUPageForContext()
+    DescriptorHeapWithAllocator::Page DynamicDescriptorHeap::allocatePage()
     {
-        std::lock_guard<std::mutex> scoppedLockGuard(mCPUHeapMutex);
         return mCPUHeap.allocatePage();
+    }
+
+    dx12::DescriptorHandle DynamicDescriptorHeap::finalize(const DescriptorHeapWithAllocator::Page& cpuPage)
+    {
+        DescriptorHeapWithAllocator::Page gpuPage = mGPUHeap.allocatePage();
+
+        mGPUHeap.copyDescriptorsFrom(mDevice, gpuPage.getStartHandle(), { cpuPage.getStartHandle() }, { (unsigned int)(cpuPage.getUsedHandlesCount()) });
+
+        return gpuPage.getStartHandle();
     }
 
     DynamicDescriptorHeap::~DynamicDescriptorHeap()

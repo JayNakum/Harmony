@@ -26,6 +26,8 @@ namespace engine
             graphics::GraphicContext& context = mCommandContextPool.requestGraphicContext(newObjects.commandList);
             context.setName(name);
             context.reset(newObjects.commandAllocator);
+            context.setDevice(mDevice);
+            context.setShaderViewHeap(mShaderViewsHeap);
             return context;
         }
 

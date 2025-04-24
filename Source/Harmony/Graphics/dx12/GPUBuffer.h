@@ -46,6 +46,7 @@ namespace graphics
 
             // Creates a CBV based on buffer description.
             // Requires a pre-allocated descriptorHandle& from a descriptor heap.
+            void createConstantBufferView(Device& device, DescriptorHandle& cbvHandle) const;
             void createConstantBufferView(Device& device, DescriptorHandle& cbvHandle, const uint32_t offset, size_t size) const;
 
             // Creates an vertex buffer view with custom offset, size and stride

@@ -4,7 +4,7 @@ namespace graphics
 {
     GraphicContext& CommandContextPool::requestGraphicContext(dx12::CommandList& commandList)
     {
-        std::lock_guard<std::mutex> scoppedLockGuard(mGraphicPoolMutex);
+        std::lock_guard<std::mutex> scopedLockGuard(mGraphicPoolMutex);
 
         if (!mGraphicAvailableQueue.empty())
         {
@@ -20,14 +20,14 @@ namespace graphics
     void CommandContextPool::discardContext(GraphicContext& context)
     {
         const CommandListType type = context.getCommandListType();
-        std::lock_guard<std::mutex> scoppedLockGuard(mGraphicPoolMutex);
+        std::lock_guard<std::mutex> scopedLockGuard(mGraphicPoolMutex);
 
         mGraphicAvailableQueue.push(&context);
     }
 
     void CommandContextPool::destroyPool()
     {
-        std::lock_guard<std::mutex> scoppedLockGuard(mGraphicPoolMutex);
+        std::lock_guard<std::mutex> scopedLockGuard(mGraphicPoolMutex);
 
         // clear the queue to prevent dangling pointers
         while (!mGraphicAvailableQueue.empty())

@@ -23,6 +23,24 @@ namespace graphics
         public:
             Page(dx12::DescriptorHandle starthandle, const size_t descriptorSize, const size_t pageSize);
 
+            inline dx12::DescriptorHandle getStartHandle() const { return mStartHandle; }
+            inline dx12::DescriptorHandle getStartHandle() { return mStartHandle; }
+
+            inline const size_t getFreeHandlesCount() const { return mNumFreeDescriptors; }
+            inline const size_t getUsedHandlesCount() const { return mPageSize - mNumFreeDescriptors; }
+
+			// Calculates the page offset of the handle.
+			inline const uint32_t getOffsetOfHandle(const dx12::DescriptorHandle& dHandle) const
+			{
+				return (uint32_t)(getByteOffsetOfHandle(dHandle) / mDescriptorSize);
+			}
+
+			// Calculates the page offset of the handle.
+			inline const uint32_t getByteOffsetOfHandle(const dx12::DescriptorHandle& dHandle) const
+			{
+				return (uint32_t)((dHandle.getCPUPtr() - mStartHandle.getCPUPtr()));
+			}
+
             // Checks for available space inside page.
             inline bool canAllocate(const size_t count) const { return count <= mNumFreeDescriptors; }
 

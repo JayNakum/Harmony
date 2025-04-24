@@ -114,7 +114,7 @@ namespace graphics
                 float maxLOD = FLT_MAX;
             };
 
-            inline void initStaticSampler(const unsigned int shaderRegister, const Description& description = {}, const ShaderVisibility visibility = ShaderVisibility::All, const unsigned int registerSpace = 0)
+            StaticSampler(const unsigned int shaderRegister, const Description& description = {}, const ShaderVisibility visibility = ShaderVisibility::All, const unsigned int registerSpace = 0)
             {
                 mStaticSampler.ShaderRegister = shaderRegister;
                 mStaticSampler.RegisterSpace = registerSpace;

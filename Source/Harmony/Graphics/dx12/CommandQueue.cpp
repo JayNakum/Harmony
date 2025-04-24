@@ -30,7 +30,7 @@ namespace graphics
 
         const uint64_t CommandQueue::incrementFence()
         {
-            std::lock_guard<std::mutex> scoppedLockGuard(mFenceMutex);
+            std::lock_guard<std::mutex> scopedLockGuard(mFenceMutex);
             return incrementFenceNoMutex();
         }
 
@@ -59,7 +59,7 @@ namespace graphics
 
         const uint64_t CommandQueue::executeCommandList(dx12::CommandList& commandList)
         {
-            std::lock_guard<std::mutex> scoppedLockGuard(mFenceMutex);
+            std::lock_guard<std::mutex> scopedLockGuard(mFenceMutex);
 
             HRESULT hResult = commandList->Close();
             HASSERT(SUCCEEDED(hResult), "Failed to close command list.\n%s", utility::translateErrorCode(hResult));
@@ -72,7 +72,7 @@ namespace graphics
 
         /*const uint64_t CommandQueue::executeCommandLists(dx12::CommandList commandList[], const size_t count)
         {
-            std::lock_guard<std::mutex> scoppedLockGuard(mFenceMutex);
+            std::lock_guard<std::mutex> scopedLockGuard(mFenceMutex);
 
             std::vector<ID3D12CommandList*> d3dLists(count);
             for (unsigned int i = 0; i < count; ++i)

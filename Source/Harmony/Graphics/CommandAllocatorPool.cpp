@@ -8,7 +8,7 @@ namespace graphics
 
     dx12::CommandAllocator& CommandAllocatorPool::requestCommandAllocator(dx12::Device& device, const uint64_t completedFenceValue)
     {
-        std::lock_guard<std::mutex> scoppedLockGuard(mPoolMutex);
+        std::lock_guard<std::mutex> scopedLockGuard(mPoolMutex);
 
         updateAvailableQueue(completedFenceValue);
 
@@ -30,14 +30,14 @@ namespace graphics
 
     void CommandAllocatorPool::discardCommandAllocator(const uint64_t completedFenceValue, dx12::CommandAllocator& usedAllocator)
     {
-        std::lock_guard<std::mutex> scoppedLockGuard(mPoolMutex);
+        std::lock_guard<std::mutex> scopedLockGuard(mPoolMutex);
 
         mUsedQueue.push(std::make_pair(completedFenceValue, &usedAllocator));
     }
 
     void CommandAllocatorPool::destroyPool()
     {
-        std::lock_guard<std::mutex> scoppedLockGuard(mPoolMutex);
+        std::lock_guard<std::mutex> scopedLockGuard(mPoolMutex);
 
         // clear the queues to prevent dangling pointers
         while (!mUsedQueue.empty())

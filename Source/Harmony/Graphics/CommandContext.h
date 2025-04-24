@@ -2,9 +2,9 @@
 
 #include "common.h"
 
-#include "CommandListManager.h"
-
 #include "CommandObject.h"
+
+#include "DynamicDescriptorHeap.h"
 
 #include "dx12/DWParam.h"
 #include "dx12/CommandList.h"
@@ -39,12 +39,20 @@ namespace graphics
         CommandContext(const CommandListType type, dx12::CommandList& commandList);
 
     public:
-        inline void setName(const std::string& name) { mName = name; }
+        inline dx12::CommandList commandList() { return mCommandList; }
 
-        inline void setDevice(dx12::Device& device) { mDevice = &device; }
-        inline void setShaderViewHeap(DynamicDescriptorHeap& descriptorHeap) { mShaderViewsHeap = &descriptorHeap; }
+        inline void setName(const std::string& name) { mName = name; }
+        inline const std::string getName() const { return mName; }
 
         void reset(dx12::CommandAllocator& commandAllocator);
+
+        inline void setDevice(dx12::Device& device) { mDevice = &device; }
+        inline const dx12::Device& getDevice() const { return *mDevice; }
+        inline dx12::Device& getDevice() { return *mDevice; }
+
+        inline void setShaderViewHeap(DynamicDescriptorHeap& descriptorHeap) { mShaderViewsHeap = &descriptorHeap; }
+        inline const DynamicDescriptorHeap& getShaderViewsHeap() const { return *mShaderViewsHeap; }
+        inline DynamicDescriptorHeap& getShaderViewsHeap() { return *mShaderViewsHeap; }
 
         void copyBuffer(dx12::GPUResource& destination, dx12::GPUResource& source);
 
