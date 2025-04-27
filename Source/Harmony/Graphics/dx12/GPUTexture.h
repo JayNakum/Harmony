@@ -74,7 +74,7 @@ namespace graphics
 
             RenderTarget(const Description& createDescription);
 
-            // baseResource is expected to have called setName for debugging
+            // baseResource is expected to have called setD3DName for debugging
             void createFromSwapchain(Device& device, DescriptorHandle& rtvHandle, ID3D12Resource* baseResource);
 
             void createRenderTargetView(Device& device, DescriptorHandle& rtvHandle, uint32_t mipSlice = 0, uint32_t arraySlice = 0);

@@ -355,9 +355,10 @@ namespace windows
             PostQuitMessage(0);
             return 0;
         }
+        case WM_DISPLAYCHANGE:
         case WM_SIZE:
         {
-            resize((UINT)(UINT64)lParam & 0xFFFF, (UINT)(UINT64)lParam >> 16);
+            onResize((UINT)(UINT64)lParam & 0xFFFF, (UINT)(UINT64)lParam >> 16);
         }
         }
         return DefWindowProc(hWnd, msg, wParam, lParam);

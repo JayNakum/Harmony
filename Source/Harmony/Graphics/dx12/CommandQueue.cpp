@@ -22,7 +22,7 @@ namespace graphics
             HRESULT hResult = device->CreateCommandQueue(&createDesc, IID_PPV_ARGS(&mCommandQueue));
             HASSERT(SUCCEEDED(hResult), "Failed to create command queue %s.\n%s", createDescription.name, utility::translateErrorCode(hResult));
 
-            setName(mCommandQueue.Get(), utility::toWideString(createDescription.name).c_str());
+            setD3DName(mCommandQueue.Get(), utility::toWideString(createDescription.name).c_str());
 
             // Encode type at the top bit of the fence.
             mFence->Signal((uint64_t)mType << 56);

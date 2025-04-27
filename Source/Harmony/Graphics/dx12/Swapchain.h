@@ -39,6 +39,7 @@ namespace graphics
 
             // Resize the swapchain with the new width and height.
             // Since the RTV's are reset, it requires an array of pre-allocated handles.
+            // Also checks for HDR support.
             void resize(Device& device, const unsigned int width, const unsigned int height, std::array<DescriptorHandle, BACK_BUFFER_COUNT> rtvHandles);
 
             // Returns the current buffer index.
@@ -50,7 +51,7 @@ namespace graphics
             // Returns the current render target.
             inline DescriptorHandle getCurrentBackBufferView() { return mRtvHandles[getCurrentBackBufferIndex()]; }
 
-            // Presents the swapchain and updates the current buffer index.
+            // Presents the swapchain.
             void present(const unsigned int interval = 0);
 
             ~Swapchain();
@@ -60,6 +61,9 @@ namespace graphics
             std::array<RenderTarget, BACK_BUFFER_COUNT> mBackBuffers;
             std::array<DescriptorHandle, BACK_BUFFER_COUNT> mRtvHandles;
             Microsoft::WRL::ComPtr<IDXGISwapChain3> mSwapChain;
+
+            bool mTearingSupport = false;
+            bool mHDRSupport = false;
         };
     }
 }

@@ -11,7 +11,7 @@ namespace graphics
         {
             HRESULT hResult = device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&mFence));
             HASSERT(SUCCEEDED(hResult), "Failed to create fence.\n%s", utility::translateErrorCode(hResult));
-            setName(mFence.Get(), utility::toWideString(name).c_str());
+            setD3DName(mFence.Get(), utility::toWideString(name).c_str());
         }
 
         void Fence::wait(const uint64_t fenceValue)

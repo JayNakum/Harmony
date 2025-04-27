@@ -18,7 +18,7 @@ namespace graphics
     * - Creation and binding of root signature
     * - Allocation of descriptors.
     * - Management and binding of dynamic descriptor heap.
-    * 
+    *
     * Everything is initialized form a single shader input layout passed in constructor.
     */
     class ShaderInput
@@ -40,14 +40,18 @@ namespace graphics
         // Layout is expected in order of shader registers.
         ShaderInput(GraphicContext& context, const std::vector<Parameter>& layout, const RootSignatureFlags flags = RootSignatureFlags::AllowInputAssemblerInputLayout);
 
+        // Set a CPU descriptor handle at the specified layoutIndex, parameterIndex and rangeIndex.
+        const dx12::DescriptorHandle setResource(const dx12::DescriptorHandle& cpuHandle,
+            const unsigned int layoutIndex, const unsigned int parameterIndex = 0, const unsigned int rangeIndex = 0);
+
         // Set a buffer at the specified layoutIndex, parameterIndex and rangeIndex.
         const dx12::DescriptorHandle setResource(const dx12::ByteAddressBuffer& buffer, const unsigned int layoutIndex, const unsigned int parameterIndex = 0, const unsigned int rangeIndex = 0);
-        const dx12::DescriptorHandle setResource(const dx12::ByteAddressBuffer& buffer, const uint64_t sizeInBytes, const unsigned int offsetInBytes, 
+        const dx12::DescriptorHandle setResource(const dx12::ByteAddressBuffer& buffer, const uint64_t sizeInBytes, const unsigned int offsetInBytes,
             const unsigned int layoutIndex, const unsigned int parameterIndex = 0, const unsigned int rangeIndex = 0);
-        
+
         // Set a texture at the specified layoutIndex, parameterIndex and rangeIndex.
         const dx12::DescriptorHandle setResource(const dx12::GPUTexture& texture, const unsigned int layoutIndex, const unsigned int parameterIndex = 0, const unsigned int rangeIndex = 0);
-        const dx12::DescriptorHandle setResource(const dx12::GPUTexture& texture, const dx12::GPUTexture::ShaderResourceViewInfo& viewInfo, 
+        const dx12::DescriptorHandle setResource(const dx12::GPUTexture& texture, const dx12::GPUTexture::ShaderResourceViewInfo& viewInfo,
             const unsigned int layoutIndex, const unsigned int parameterIndex = 0, const unsigned int rangeIndex = 0);
 
         // Copies descriptors from CPU to GPU and sets descriptor heaps.
@@ -66,8 +70,7 @@ namespace graphics
 
         const std::vector<Parameter>& mLayout;
 
-        DescriptorHeapWithAllocator::Page mCPUDescriptorHeapPage;
-        DynamicDescriptorHeap& mShaderViewDescriptorHeap;
+        DescriptorHeapWithAllocator::Page& mCPUDescriptorHeapPage;
 
         struct ShaderDescriptorTableLayout // struct Range
         {

@@ -14,7 +14,7 @@ namespace graphics
             HRESULT hResult = device->CreateCommandAllocator(toD3DCommandListType(mType), IID_PPV_ARGS(&mCommandAllocator));
             HASSERT(SUCCEEDED(hResult), "Failed to create command allocator %s.\n%s", createDescription.name, utility::translateErrorCode(hResult));
 
-            setName(mCommandAllocator.Get(), utility::toWideString(createDescription.name).c_str());
+            setD3DName(mCommandAllocator.Get(), utility::toWideString(createDescription.name).c_str());
         }
 
         CommandAllocator::~CommandAllocator()

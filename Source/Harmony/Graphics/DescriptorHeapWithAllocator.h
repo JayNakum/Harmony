@@ -29,17 +29,17 @@ namespace graphics
             inline const size_t getFreeHandlesCount() const { return mNumFreeDescriptors; }
             inline const size_t getUsedHandlesCount() const { return mPageSize - mNumFreeDescriptors; }
 
-			// Calculates the page offset of the handle.
-			inline const uint32_t getOffsetOfHandle(const dx12::DescriptorHandle& dHandle) const
-			{
-				return (uint32_t)(getByteOffsetOfHandle(dHandle) / mDescriptorSize);
-			}
+            // Calculates the page offset of the handle.
+            inline const uint32_t getOffsetOfHandle(const dx12::DescriptorHandle& dHandle) const
+            {
+                return (uint32_t)(getByteOffsetOfHandle(dHandle) / mDescriptorSize);
+            }
 
-			// Calculates the page offset of the handle.
-			inline const uint32_t getByteOffsetOfHandle(const dx12::DescriptorHandle& dHandle) const
-			{
-				return (uint32_t)((dHandle.getCPUPtr() - mStartHandle.getCPUPtr()));
-			}
+            // Calculates the page offset of the handle.
+            inline const uint32_t getByteOffsetOfHandle(const dx12::DescriptorHandle& dHandle) const
+            {
+                return (uint32_t)((dHandle.getCPUPtr() - mStartHandle.getCPUPtr()));
+            }
 
             // Checks for available space inside page.
             inline bool canAllocate(const size_t count) const { return count <= mNumFreeDescriptors; }

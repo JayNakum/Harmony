@@ -33,7 +33,7 @@ namespace graphics
 
             HASSERT(SUCCEEDED(hResult), "Failed to create upload buffer %s.\n%s", createDescription.name, utility::translateErrorCode(hResult));
 
-            setName(mResource.Get(), utility::toWideString(createDescription.name).c_str());
+            setD3DName(mResource.Get(), utility::toWideString(createDescription.name).c_str());
         }
 
         const GPUResource::Description UploadBuffer::describeResource() const

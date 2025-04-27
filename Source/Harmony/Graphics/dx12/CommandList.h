@@ -31,6 +31,8 @@ namespace graphics
             // Creates an ID3D12CommandList.
             CommandList(Device& device, Description& createDescription);
 
+            void setName(const std::string name);
+
             // Transition a GPUResource to a newState and optionally flush the barriers immediately.
             void transitionResource(GPUResource& resource, const GPUResourceStates newState, bool flushImmediate = false);
 

@@ -2,7 +2,7 @@
 
 namespace graphics
 {
-    GraphicContext& CommandContextPool::requestGraphicContext(dx12::CommandList& commandList)
+    GraphicContext& CommandContextPool::requestGraphicContext(dx12::Device& device, DynamicDescriptorHeap& descriptorHeap)
     {
         std::lock_guard<std::mutex> scopedLockGuard(mGraphicPoolMutex);
 
@@ -13,7 +13,7 @@ namespace graphics
             return *context;
         }
 
-        msGraphicContextPool.emplace_back(commandList);
+        msGraphicContextPool.emplace_back(device, descriptorHeap);
         return (msGraphicContextPool.back());
     }
 

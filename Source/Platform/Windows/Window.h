@@ -47,6 +47,9 @@ namespace windows
 
         inline const Description& getDescription() const { return mDescription; }
         inline const HWND getHandle() const { return mHandle; }
+        
+        // Return two when the window is resized OR 
+        // the display of the window is changed
         inline bool didResize()
         {
             bool result = mDidResize;
@@ -58,7 +61,7 @@ namespace windows
         ~Window();
 
     private:
-        inline void resize(const unsigned int width, const unsigned int height)
+        inline void onResize(const unsigned int width, const unsigned int height)
         {
             mDescription.width = width;
             mDescription.height = height;

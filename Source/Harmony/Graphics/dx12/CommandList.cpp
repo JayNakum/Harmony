@@ -18,7 +18,12 @@ namespace graphics
 
             HASSERT(SUCCEEDED(hResult), "Failed to create command list %s.\n%s", createDescription.name, utility::translateErrorCode(hResult));
 
-            setName(mCommandList.Get(), utility::toWideString(createDescription.name).c_str());
+            setName(createDescription.name);
+        }
+
+        void CommandList::setName(const std::string name)
+        {
+            setD3DName(mCommandList.Get(), utility::toWideString(name).c_str());
         }
 
         void CommandList::transitionResource(GPUResource& resource, const GPUResourceStates newState, bool flushImmediate)

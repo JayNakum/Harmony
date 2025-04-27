@@ -41,15 +41,23 @@ namespace graphics
             d3dDescription.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
 
             // Input Layout
-            std::vector<D3D12_INPUT_ELEMENT_DESC> d3dInputElements;
-            for (const InputElementsDescription& element : (createDescription.inputLayout))
+            if (createDescription.inputLayout.size() == 0)
             {
-                d3dInputElements.emplace_back(
-                    InputElementsDescription::toD3DInputElementDesc(element)
-                );
+                d3dDescription.InputLayout.NumElements = 0;
+                d3dDescription.InputLayout.pInputElementDescs = nullptr;
             }
-            d3dDescription.InputLayout.NumElements = (UINT)d3dInputElements.size();
-            d3dDescription.InputLayout.pInputElementDescs = d3dInputElements.data();
+            else
+            {
+                std::vector<D3D12_INPUT_ELEMENT_DESC> d3dInputElements;
+                for (const InputElementsDescription& element : (createDescription.inputLayout))
+                {
+                    d3dInputElements.emplace_back(
+                        InputElementsDescription::toD3DInputElementDesc(element)
+                    );
+                }
+                d3dDescription.InputLayout.NumElements = (UINT)createDescription.inputLayout.size();
+                d3dDescription.InputLayout.pInputElementDescs = d3dInputElements.data();
+            }
 
             // TODO: IB Strip Cut Value
 
@@ -81,7 +89,7 @@ namespace graphics
 
             HRESULT hResult = device->CreateGraphicsPipelineState(&d3dDescription, IID_PPV_ARGS(&mPipelineState));
             HASSERT(SUCCEEDED(hResult), "Failed to create PSO %s.\n%s", createDescription.name.c_str(), utility::translateErrorCode(hResult));
-            setName(mPipelineState.Get(), utility::toWideString(createDescription.name).c_str());
+            setD3DName(mPipelineState.Get(), utility::toWideString(createDescription.name).c_str());
         }
 
         D3D12_INPUT_ELEMENT_DESC GraphicsPipelineState::InputElementsDescription::toD3DInputElementDesc(const InputElementsDescription& createDescription)
@@ -135,6 +143,5 @@ namespace graphics
             HASSERT(mRootSignature != nullptr, "Root signature is null.");
             return *mRootSignature;
         }
-
     }
 }

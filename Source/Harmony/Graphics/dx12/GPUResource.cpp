@@ -23,7 +23,7 @@ namespace graphics
             );
             HASSERT(SUCCEEDED(hResult), "Failed to create committed resource %s.\n%s", createDescription.name, utility::translateErrorCode(hResult));
 
-            setName(mResource.Get(), utility::toWideString(createDescription.name).c_str());
+            setD3DName(mResource.Get(), utility::toWideString(createDescription.name).c_str());
         }
 
         void GPUResource::createPlaced(Device& device, Heap& backingHeap, uint64_t heapOffset)
@@ -36,7 +36,7 @@ namespace graphics
                 toD3DResourceStates(mUsageState), nullptr, IID_PPV_ARGS(getAddressOf())
             );
             HASSERT(SUCCEEDED(hResult), "Failed to create placed resource %s.\n%s", createDescription.name, utility::translateErrorCode(hResult));
-            setName(mResource.Get(), utility::toWideString(createDescription.name).c_str());
+            setD3DName(mResource.Get(), utility::toWideString(createDescription.name).c_str());
         }
 
         const D3D12_RESOURCE_DESC GPUResource::toD3DResourceDesc(const Description& description)

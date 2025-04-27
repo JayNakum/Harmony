@@ -19,7 +19,7 @@ namespace graphics
             HRESULT hResult = device->CreateHeap(&heapDesc, IID_PPV_ARGS(&mHeap));
             HASSERT(SUCCEEDED(hResult), "Failed to create heap for opaque render items.\n%s", utility::translateErrorCode(hResult));
 
-            setName(mHeap.Get(), utility::toWideString(createDescription.name).c_str());
+            setD3DName(mHeap.Get(), utility::toWideString(createDescription.name).c_str());
         }
 
         Heap::~Heap()

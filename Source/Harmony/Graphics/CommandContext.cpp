@@ -6,11 +6,24 @@
 
 namespace graphics
 {
-    CommandContext::CommandContext(const CommandListType type, dx12::CommandList& commandList)
-        : CommandObject(type), mCommandList(commandList) {}
+    CommandContext::CommandContext(const CommandListType type, dx12::Device& device, DynamicDescriptorHeap& descriptorHeap)
+        : CommandObject(type),
+        mDevice(device),
+        mShaderViewsHeap(descriptorHeap),
+        mShaderViewsHeapCPUPage(mShaderViewsHeap.allocatePage()),
+        mCommandAllocatorPool(mType),
+        mCommandList(mDevice, dx12::CommandList::Description{ "new " + toString(mType) + " commandList", mType, mCommandAllocatorPool.requestCommandAllocator(mDevice, 0)})
+    {}
 
-    void CommandContext::reset(dx12::CommandAllocator& commandAllocator)
+    void CommandContext::setName(const std::string & name)
     {
+        mName = name;
+        mCommandList.setName(name);
+    }
+
+    void CommandContext::reset(const uint64_t completedFence)
+    {
+        dx12::CommandAllocator commandAllocator = mCommandAllocatorPool.requestCommandAllocator(mDevice, completedFence);
         mCommandList->Reset(commandAllocator.get(), nullptr);
     }
 
@@ -86,11 +99,16 @@ namespace graphics
             equalZero ? D3D12_PREDICATION_OP_EQUAL_ZERO : D3D12_PREDICATION_OP_NOT_EQUAL_ZERO);
     }
 
-	void CommandContext::bindDescriptorHeaps()
-	{
-        ID3D12DescriptorHeap* heap = mShaderViewsHeap->getGPUHeap().get();
+    const dx12::DescriptorHandle CommandContext::copyDescriptorsToGPU()
+    {
+        return mShaderViewsHeap.finalize(mShaderViewsHeapCPUPage);
+    }
+
+    void CommandContext::bindDescriptorHeaps()
+    {
+        ID3D12DescriptorHeap* heap = mShaderViewsHeap.getGPUHeap().get();
         mCommandList->SetDescriptorHeaps(1, &heap);
-	}
+    }
 
     /*uint64_t CommandContext::finish(bool waitForCompletion)
     {
@@ -118,8 +136,8 @@ namespace graphics
 
 namespace graphics
 {
-    GraphicContext::GraphicContext(dx12::CommandList& commandList)
-        : CommandContext(CommandListType::Direct, commandList) {}
+    GraphicContext::GraphicContext(dx12::Device& device, DynamicDescriptorHeap& descriptorHeap)
+        : CommandContext(CommandListType::Direct, device, descriptorHeap) {}
 
     void GraphicContext::clearColor(dx12::DescriptorHandle& target, float color[4], const Box* rect)
     {

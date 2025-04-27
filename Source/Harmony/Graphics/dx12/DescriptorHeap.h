@@ -38,11 +38,11 @@ namespace graphics
             {
                 return (uint32_t)(getByteOffsetOfHandle(dHandle) / mDescriptorSize);
             }
-			// Calculates the heap offset in bytes of the handle.
-			inline const uint32_t getByteOffsetOfHandle(const DescriptorHandle& dHandle) const
-			{
-				return (uint32_t)((dHandle.getCPUPtr() - mHeapStart.getCPUPtr()));
-			}
+            // Calculates the heap offset in bytes of the handle.
+            inline const uint32_t getByteOffsetOfHandle(const DescriptorHandle& dHandle) const
+            {
+                return (uint32_t)((dHandle.getCPUPtr() - mHeapStart.getCPUPtr()));
+            }
 
             // Batched copy of descriptors into this heap from one or more source ranges.
             void copyDescriptorsFrom(dx12::Device& device, const dx12::DescriptorHandle& destStart,

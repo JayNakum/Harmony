@@ -4,8 +4,9 @@ namespace engine
 {
     Renderer::Renderer(const HWND handle, unsigned int clientWidth, unsigned int clientHeight)
         : mDevice(),
-        mCommandListManager(mDevice),
+        mGraphicsQueue(mDevice, {"global graphics queue", graphics::CommandListType::Direct}),
         mCommandContextPool(),
+        mShaderViewsHeap(mDevice),
         mRenderTargetDescription{
             graphics::dx12::RenderTarget::Type::Color,
             "swapchain back buffer",
@@ -25,17 +26,18 @@ namespace engine
                 graphics::DescriptorHeapFlags::CPUVisible
             }
         ),
+        mRTVPage(mRTVDescriptorHeapCPU.allocatePage()),
         mSwapchain(
-            mDevice, mCommandListManager.getGraphicsQueue(),
+            mDevice, mGraphicsQueue,
             {
                 "swapchain",
                 handle,
                 mRenderTargetDescription
             },
             {
-                mRTVDescriptorHeapCPU.allocate(1),
-                mRTVDescriptorHeapCPU.allocate(1),
-                mRTVDescriptorHeapCPU.allocate(1)
+                mRTVPage.allocate(1),
+                mRTVPage.allocate(1),
+                mRTVPage.allocate(1)
             }
         )
     {}

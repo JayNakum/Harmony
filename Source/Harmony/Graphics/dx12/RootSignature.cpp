@@ -39,7 +39,7 @@ namespace graphics
                 HASSERT(SUCCEEDED(hResult), "Failed to create root signature %s.\n%s", createDescription.name, utility::translateErrorCode(hResult));
             }
 
-            setName(mRootSignature.Get(), utility::toWideString(createDescription.name).c_str());
+            setD3DName(mRootSignature.Get(), utility::toWideString(createDescription.name).c_str());
         }
 
         RootSignature::~RootSignature()

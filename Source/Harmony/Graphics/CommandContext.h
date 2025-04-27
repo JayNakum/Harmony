@@ -5,6 +5,7 @@
 #include "CommandObject.h"
 
 #include "DynamicDescriptorHeap.h"
+#include "CommandAllocatorPool.h"
 
 #include "dx12/DWParam.h"
 #include "dx12/CommandList.h"
@@ -36,23 +37,22 @@ namespace graphics
     {
     protected:
         // Command context is only ever meant to be created, initialized or reset via the Context Manager
-        CommandContext(const CommandListType type, dx12::CommandList& commandList);
+        CommandContext(const CommandListType type, dx12::Device& device,
+                       DynamicDescriptorHeap& descriptorHeap);
 
     public:
-        inline dx12::CommandList commandList() { return mCommandList; }
-
-        inline void setName(const std::string& name) { mName = name; }
+        void setName(const std::string& name);
         inline const std::string getName() const { return mName; }
 
-        void reset(dx12::CommandAllocator& commandAllocator);
+        inline dx12::CommandList commandList() { return mCommandList; }
 
-        inline void setDevice(dx12::Device& device) { mDevice = &device; }
-        inline const dx12::Device& getDevice() const { return *mDevice; }
-        inline dx12::Device& getDevice() { return *mDevice; }
+        void reset(const uint64_t completedFence);
 
-        inline void setShaderViewHeap(DynamicDescriptorHeap& descriptorHeap) { mShaderViewsHeap = &descriptorHeap; }
-        inline const DynamicDescriptorHeap& getShaderViewsHeap() const { return *mShaderViewsHeap; }
-        inline DynamicDescriptorHeap& getShaderViewsHeap() { return *mShaderViewsHeap; }
+        inline const dx12::Device& getDevice() const { return mDevice; }
+        inline dx12::Device& getDevice() { return mDevice; }
+
+        inline const DescriptorHeapWithAllocator::Page& getShaderViewHeapPage() const { return mShaderViewsHeapCPUPage; }
+        inline DescriptorHeapWithAllocator::Page& getShaderViewHeapPage() { return mShaderViewsHeapCPUPage; }
 
         void copyBuffer(dx12::GPUResource& destination, dx12::GPUResource& source);
 
@@ -71,6 +71,7 @@ namespace graphics
 
         void setPredication(dx12::GPUResource& buffer, const size_t bufferOffset, bool equalZero);
 
+        const dx12::DescriptorHandle copyDescriptorsToGPU();
         void bindDescriptorHeaps();
 
         // flush existing commands to the GPU and keep the context alive
@@ -80,13 +81,15 @@ namespace graphics
 
         virtual ~CommandContext();
 
-    protected:
-        dx12::CommandList mCommandList;
-
     private:
         std::string mName;
-        dx12::Device* mDevice;
-		DynamicDescriptorHeap* mShaderViewsHeap;
+        dx12::Device& mDevice;
+        DynamicDescriptorHeap& mShaderViewsHeap;
+        DescriptorHeapWithAllocator::Page mShaderViewsHeapCPUPage;
+
+    protected:
+        CommandAllocatorPool mCommandAllocatorPool;
+        dx12::CommandList mCommandList;
     };
 }
 
@@ -105,7 +108,7 @@ namespace graphics
     class GraphicContext : public CommandContext
     {
     public:
-        GraphicContext(dx12::CommandList& commandList);
+        GraphicContext(dx12::Device& device, DynamicDescriptorHeap& descriptorHeap);
 
         void clearColor(dx12::DescriptorHandle& target, float color[4], const Box* rect = nullptr);
         void setRootSignature(const dx12::RootSignature& rootSignature);
