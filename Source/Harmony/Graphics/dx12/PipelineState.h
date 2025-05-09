@@ -104,8 +104,8 @@ namespace graphics
                 std::vector<InputElementsDescription> inputLayout;
                 Blob vertexShader;
                 Blob pixelShader;
-                const RootSignature* rootSignature;
                 // TODO: Add more shaders as needed.
+                const RootSignature* rootSignature;
 
                 FillMode fillMode = FillMode::Solid;
                 CullMode cullMode = CullMode::None;

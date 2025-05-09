@@ -92,47 +92,47 @@ namespace graphics
             setD3DName(mPipelineState.Get(), utility::toWideString(createDescription.name).c_str());
         }
 
-        D3D12_INPUT_ELEMENT_DESC GraphicsPipelineState::InputElementsDescription::toD3DInputElementDesc(const InputElementsDescription& createDescription)
+        D3D12_INPUT_ELEMENT_DESC GraphicsPipelineState::InputElementsDescription::toD3DInputElementDesc(const InputElementsDescription& description)
         {
             D3D12_INPUT_ELEMENT_DESC d3dInputElementDesc{};
-            d3dInputElementDesc.SemanticName = createDescription.name.c_str();
+            d3dInputElementDesc.SemanticName = description.name.c_str();
             d3dInputElementDesc.SemanticIndex = 0;
-            d3dInputElementDesc.Format = toDXGIFormat(createDescription.format);
+            d3dInputElementDesc.Format = toDXGIFormat(description.format);
             d3dInputElementDesc.InputSlot = 0;
-            d3dInputElementDesc.AlignedByteOffset = createDescription.alignedByteOffset;
-            d3dInputElementDesc.InputSlotClass = toD3DInputClassification(createDescription.inputSlotClassification);
+            d3dInputElementDesc.AlignedByteOffset = description.alignedByteOffset;
+            d3dInputElementDesc.InputSlotClass = toD3DInputClassification(description.inputSlotClassification);
             d3dInputElementDesc.InstanceDataStepRate = 0;
             return d3dInputElementDesc;
         }
 
-        D3D12_RENDER_TARGET_BLEND_DESC GraphicsPipelineState::BlendDescription::RenderTargetBlendDescription::toD3DRenderTargetBlendDesc(const RenderTargetBlendDescription& createDescription)
+        D3D12_RENDER_TARGET_BLEND_DESC GraphicsPipelineState::BlendDescription::RenderTargetBlendDescription::toD3DRenderTargetBlendDesc(const RenderTargetBlendDescription& description)
         {
             D3D12_RENDER_TARGET_BLEND_DESC d3dRenderTargetBlendDesc{};
 
-            d3dRenderTargetBlendDesc.BlendEnable = createDescription.blendEnable;
-            d3dRenderTargetBlendDesc.LogicOpEnable = createDescription.logicOpEnable;
-            d3dRenderTargetBlendDesc.SrcBlend = toD3DBlend(createDescription.srcBlend);
-            d3dRenderTargetBlendDesc.DestBlend = toD3DBlend(createDescription.destBlend);
-            d3dRenderTargetBlendDesc.BlendOp = toD3DBlendOperator(createDescription.blendOp);
-            d3dRenderTargetBlendDesc.SrcBlendAlpha = toD3DBlend(createDescription.srcBlendAlpha);
-            d3dRenderTargetBlendDesc.DestBlendAlpha = toD3DBlend(createDescription.destBlendAlpha);
-            d3dRenderTargetBlendDesc.BlendOpAlpha = toD3DBlendOperator(createDescription.blendOpAlpha);
-            d3dRenderTargetBlendDesc.LogicOp = toD3DBlendLogicOperator(createDescription.logicOp);
-            d3dRenderTargetBlendDesc.RenderTargetWriteMask = createDescription.renderTargetWriteMask;
+            d3dRenderTargetBlendDesc.BlendEnable = description.blendEnable;
+            d3dRenderTargetBlendDesc.LogicOpEnable = description.logicOpEnable;
+            d3dRenderTargetBlendDesc.SrcBlend = toD3DBlend(description.srcBlend);
+            d3dRenderTargetBlendDesc.DestBlend = toD3DBlend(description.destBlend);
+            d3dRenderTargetBlendDesc.BlendOp = toD3DBlendOperator(description.blendOp);
+            d3dRenderTargetBlendDesc.SrcBlendAlpha = toD3DBlend(description.srcBlendAlpha);
+            d3dRenderTargetBlendDesc.DestBlendAlpha = toD3DBlend(description.destBlendAlpha);
+            d3dRenderTargetBlendDesc.BlendOpAlpha = toD3DBlendOperator(description.blendOpAlpha);
+            d3dRenderTargetBlendDesc.LogicOp = toD3DBlendLogicOperator(description.logicOp);
+            d3dRenderTargetBlendDesc.RenderTargetWriteMask = description.renderTargetWriteMask;
 
             return d3dRenderTargetBlendDesc;
         }
 
-        D3D12_BLEND_DESC GraphicsPipelineState::BlendDescription::toD3DBlendDesc(const BlendDescription& createDescription)
+        D3D12_BLEND_DESC GraphicsPipelineState::BlendDescription::toD3DBlendDesc(const BlendDescription& description)
         {
             D3D12_BLEND_DESC d3dBlendDesc{};
 
-            d3dBlendDesc.AlphaToCoverageEnable = createDescription.alphaToCoverageEnable;
-            d3dBlendDesc.IndependentBlendEnable = createDescription.independentBlendEnable;
+            d3dBlendDesc.AlphaToCoverageEnable = description.alphaToCoverageEnable;
+            d3dBlendDesc.IndependentBlendEnable = description.independentBlendEnable;
 
             for (unsigned int i = 0; i < GraphicsPipelineState::MAX_RENDER_TARGETS; ++i)
             {
-                d3dBlendDesc.RenderTarget[i] = RenderTargetBlendDescription::toD3DRenderTargetBlendDesc(createDescription.renderTarget[i]);
+                d3dBlendDesc.RenderTarget[i] = RenderTargetBlendDescription::toD3DRenderTargetBlendDesc(description.renderTarget[i]);
             }
 
             return d3dBlendDesc;

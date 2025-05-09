@@ -47,8 +47,8 @@ namespace windows
 
         inline const Description& getDescription() const { return mDescription; }
         inline const HWND getHandle() const { return mHandle; }
-        
-        // Return two when the window is resized OR 
+
+        // Return two when the window is resized OR
         // the display of the window is changed
         inline bool didResize()
         {

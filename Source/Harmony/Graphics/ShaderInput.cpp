@@ -2,11 +2,10 @@
 
 namespace graphics
 {
-    ShaderInput::ShaderInput(GraphicContext& context, const std::vector<Parameter>& layout, RootSignatureFlags flags)
-        : mContext(context), mLayout(layout), mCPUDescriptorHeapPage(context.getShaderViewHeapPage())
+    ShaderInput::ShaderInput(const std::string& id, GraphicContext& context, const std::vector<Parameter>& layout, RootSignatureFlags flags)
+        : mID(id), mContext(context), mLayout(layout), mCPUDescriptorHeapPage(context.getShaderViewHeapPage()), mRootSignature(initialize(layout, flags))
     {
-        dx12::RootSignature rootSignature = initialize(layout, flags);
-        mContext.setRootSignature(rootSignature);
+        mContext.setRootSignature(mRootSignature);
     }
 
     const dx12::DescriptorHandle ShaderInput::setResource(const dx12::DescriptorHandle& cpuHandle, const unsigned int layoutIndex, const unsigned int parameterIndex, const unsigned int rangeIndex)
@@ -149,7 +148,7 @@ namespace graphics
         dx12::Device& device = mContext.getDevice();
 
         dx12::RootSignature::Description createDescription;
-        createDescription.name = mContext.getName() + " root signature";
+        createDescription.name = mID + " root signature";
         createDescription.flags = flags;
 
         // Auto-assignment counters per descriptor type

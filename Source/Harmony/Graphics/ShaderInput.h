@@ -38,7 +38,9 @@ namespace graphics
 
         // Scoped shader inputs.
         // Layout is expected in order of shader registers.
-        ShaderInput(GraphicContext& context, const std::vector<Parameter>& layout, const RootSignatureFlags flags = RootSignatureFlags::AllowInputAssemblerInputLayout);
+        ShaderInput(const std::string& id, GraphicContext& context, const std::vector<Parameter>& layout, const RootSignatureFlags flags = RootSignatureFlags::None);
+
+        const dx12::RootSignature& getRootSignature() const { return mRootSignature; }
 
         // Set a CPU descriptor handle at the specified layoutIndex, parameterIndex and rangeIndex.
         const dx12::DescriptorHandle setResource(const dx12::DescriptorHandle& cpuHandle,
@@ -69,6 +71,7 @@ namespace graphics
         GraphicContext& mContext;
 
         const std::vector<Parameter>& mLayout;
+        dx12::RootSignature mRootSignature;
 
         DescriptorHeapWithAllocator::Page& mCPUDescriptorHeapPage;
 
@@ -84,5 +87,7 @@ namespace graphics
         };
 
         std::vector<ShaderDescriptorLayout> mDescriptors;
+
+        const std::string mID;
     };
 }
