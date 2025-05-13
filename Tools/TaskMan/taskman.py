@@ -15,7 +15,7 @@ TASKS = {
             'working_dir': '.',
         }
     },
-    'generate': {
+    'generate projects': {
         'func': generate_projects,
         'kwargs': {
             'premake_exe': 'Vendors\\premake5\\premake5.exe',
