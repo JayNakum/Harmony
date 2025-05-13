@@ -33,7 +33,7 @@ namespace graphics
     * Contains the state and resources needed to record and execute commands on the GPU.
     * This parent class is inherited by GraphicsContext and // TODO: ComputeContext.
     */
-    class CommandContext : public CommandObject//, public NonCopyable
+    class CommandContext : public CommandObject, NonCopyable
     {
     protected:
         // Command context is only ever meant to be created, initialized or reset via the Context Manager

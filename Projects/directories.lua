@@ -4,15 +4,15 @@ obj_dir = "%{wks.location}/Bin/Obj/%{cfg.buildcfg}-%{cfg.system}-%{cfg.architect
 
 -- CORE --
 prj_src = {}
-prj_src["Sandbox"] = "%{wks.location}/../Source/Sandbox"
+prj_src["Sandbox"] = "%{wks.location}/../Code/Sandbox"
 
 prj_src["Harmony"] = {}
-prj_src["Harmony"]["Core"] = "%{wks.location}/../Source/Harmony/Core"
-prj_src["Harmony"]["Graphics"] = "%{wks.location}/../Source/Harmony/Graphics"
-prj_src["Harmony"]["Engine"] = "%{wks.location}/../Source/Harmony/Engine"
+prj_src["Harmony"]["Core"] = "%{wks.location}/../Code/Harmony/Core"
+prj_src["Harmony"]["Graphics"] = "%{wks.location}/../Code/Harmony/Graphics"
+prj_src["Harmony"]["Engine"] = "%{wks.location}/../Code/Harmony/Engine"
 
 prj_src["Platform"] = {}
-prj_src["Platform"]["Windows"] = "%{wks.location}/../Source/Platform/Windows"
+prj_src["Platform"]["Windows"] = "%{wks.location}/../Code/Platform/Windows"
 
 -- LIBRARIES --
 include_dirs = {}

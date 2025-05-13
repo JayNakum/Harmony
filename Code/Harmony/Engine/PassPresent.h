@@ -17,13 +17,12 @@ namespace engine
 
                 graphics::dx12::DescriptorHandle outputRTV;
             };
-            void render(graphics::GraphicContext& context, InputOutputs& inputOutputs, bool hdrSupport = false);
+            void render(graphics::GraphicContext& context, InputOutputs& inputOutputs);
 
             ~Present() = default;
 
         private:
-            graphics::dx12::GraphicsPipelineState::Description mPSODescSDR;
-            graphics::dx12::GraphicsPipelineState::Description mPSODescHDR;
+            graphics::dx12::GraphicsPipelineState::Description mPSODesc;
         };
     }
 }
