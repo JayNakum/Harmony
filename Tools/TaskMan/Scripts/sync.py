@@ -1,16 +1,24 @@
 from .terminal import run_command
 
-def git_sync(working_dir:str = '.') -> None:
+def status(working_dir:str = '.') -> None:
+    # detect changes
+    print("[INFO] Checking for changes.")
+    run_command("git status --porcelain > changelog.txt", working_dir=working_dir)
+    run_command("git status", working_dir=working_dir)
+
+def sync(working_dir:str = '.') -> None:
     print('[INFO] Syncing projects.')
 
     # pull from repository
     print("[INFO] Pulling latest changes from GitHub.")
     run_command("git pull", working_dir=working_dir)
 
-    # detect changes
-    print("[INFO] Checking for changes.")
-    run_command("git status --porcelain > changelog.txt", working_dir=working_dir)
-    run_command("git status", working_dir=working_dir)
+    status(working_dir)
+
+    print("[INFO] Sync completed successfully!")
+
+def submit(working_dir:str = '.') -> None:
+    status(working_dir)
 
     # stage changes
     print("[INFO] Staging changes.")
@@ -30,5 +38,3 @@ def git_sync(working_dir:str = '.') -> None:
     # push to repository
     print("[INFO] Pushing changes.")
     run_command("git push", working_dir=working_dir)
-
-    print("[INFO] Sync completed successfully!")

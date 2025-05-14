@@ -5,7 +5,8 @@ from plyer import notification
 
 from Scripts.clean_files import clean_files
 from Scripts.generate_projects import generate_projects
-from Scripts.sync import git_sync
+from Scripts.sync import sync
+from Scripts.sync import submit
 
 # Task dispatch table
 TASKS = {
@@ -27,7 +28,13 @@ TASKS = {
         }
     },
     'sync': {
-        'func': git_sync,
+        'func': sync,
+        'kwargs': {
+            'working_dir': '.',
+        }
+    },
+    'submit': {
+        'func': submit,
         'kwargs': {
             'working_dir': '.',
         }
