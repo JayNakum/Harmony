@@ -1,6 +1,8 @@
 import sys
 sys.dont_write_bytecode = True
 
+from plyer import notification
+
 from Scripts.clean_files import clean_files
 from Scripts.generate_projects import generate_projects
 from Scripts.sync import git_sync
@@ -54,6 +56,8 @@ def main():
         sys.exit(1)
 
     dispatch(choice)
+    notification.notify(title='TaskMan', message=f'Task {choice} completed.', app_name='TaskMan')
+
 
 if __name__ == '__main__':
     main()
