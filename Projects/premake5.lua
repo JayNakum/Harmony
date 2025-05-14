@@ -1,7 +1,7 @@
 include "directories.lua"
 
 workspace "Harmony"
-  location "../Build/"
+  location "../Build/%{action}"
   startproject "Sandbox"
   flags { "MultiProcessorCompile" }
 

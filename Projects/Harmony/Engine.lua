@@ -1,5 +1,5 @@
 project "Engine"
-  location "%{wks.location}/Harmony/Engine/"
+  location "%{wks.location}/Harmony/Engine"
   kind "StaticLib"
 
   files
