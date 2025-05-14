@@ -1,4 +1,5 @@
 project "Sandbox"
+  location "%{wks.location}/Sandbox/"
   kind "WindowedApp"
 
   files

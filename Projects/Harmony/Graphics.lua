@@ -1,4 +1,5 @@
 project "Graphics"
+  location "%{wks.location}/Graphics/"
   kind "StaticLib"
 
   files

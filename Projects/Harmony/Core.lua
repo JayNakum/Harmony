@@ -1,4 +1,5 @@
 project "Core"
+  location "%{wks.location}/Core/"
   kind "StaticLib"
 
   files

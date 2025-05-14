@@ -1,4 +1,5 @@
 project "Engine"
+  location "%{wks.location}/Engine/"
   kind "StaticLib"
 
   files
