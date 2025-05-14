@@ -43,8 +43,6 @@ TASKS = {
 
 def dispatch(task_name: str, **overrides):
     entry = TASKS.get(task_name)
-    if not entry:
-        raise ValueError(f'Unknown task: {task_name}')
     # merge defaults with overrides
     kwargs = {**entry['kwargs'], **overrides}
     return entry['func'](**kwargs)
