@@ -1,5 +1,5 @@
 project "Graphics"
-  location "%{wks.location}/Graphics/"
+  location "%{wks.location}/Harmony/Graphics/"
   kind "StaticLib"
 
   files

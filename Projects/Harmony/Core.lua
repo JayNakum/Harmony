@@ -1,5 +1,5 @@
 project "Core"
-  location "%{wks.location}/Core/"
+  location "%{wks.location}/Harmony/Core/"
   kind "StaticLib"
 
   files
