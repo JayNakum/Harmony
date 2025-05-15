@@ -1,12 +1,10 @@
 import subprocess
-import sys
 
 # Runs a shell command and returns its output
 def run_command(
         command:str,
-        exit_on_fail:bool = True,
         working_dir:str = None
-    ) -> None:
+    ) -> bool:
     
     result = subprocess.run(
         command,
@@ -25,6 +23,6 @@ def run_command(
     # If the command fails
     if result.returncode != 0:
         print(f"[ERROR] Command failed: {command}")
-        if exit_on_fail:
-            input("Press Enter to exit...")
-            sys.exit(1)
+        return False
+    
+    return True
