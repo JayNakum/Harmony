@@ -21,9 +21,9 @@ def clean_file(filename: str) -> bool:
         return False
 
 def clean_files(
-        working_dir: str = '.', 
         file_extensions: tuple = (), 
-        ignore_dir: tuple = ('.git', '.vscode', '__pycache__')) -> bool:
+        ignore_dir: tuple = ('.git', '.vscode', '__pycache__'),
+        working_dir: str = '.') -> bool:
     
     print("[INFO] Cleaning files.")
     okay = True
@@ -32,8 +32,7 @@ def clean_files(
         for file in files:
             if file.lower().endswith(file_extensions):
                 filepath = os.path.join(root, file)
-                if not clean_file(filepath):
-                    okay = False
+                okay &= clean_file(filepath)
 
         # Do not walk these subdirectories. Remove them from the list
         i = 0

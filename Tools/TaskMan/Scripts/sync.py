@@ -6,15 +6,25 @@ def status(working_dir: str = '.') -> bool:
     okay &= run_command("git status", working_dir=working_dir)
     return okay
 
-def sync(working_dir: str = '.') -> bool:
+def sync(commit:str = None, working_dir: str = '.') -> bool:
     print('[INFO] Syncing projects.')
     print("[INFO] Pulling latest changes from GitHub.")
     
-    okay = run_command("git pull", working_dir=working_dir)
+    okay = True
+
+    if commit:
+        print(f"[INFO] Fetching latest and checking out commit {commit}.")
+        okay &= run_command("git fetch", working_dir=working_dir)
+        okay &= run_command(f"git checkout {commit}", working_dir=working_dir)
+    else:
+        print("[INFO] Pulling latest changes.")
+        okay &= run_command("git pull", working_dir=working_dir)
+    
     okay &= status(working_dir)
 
     if okay:
         print("[INFO] Sync completed successfully!")
+        
     return okay
 
 def submit(working_dir: str = '.') -> bool:

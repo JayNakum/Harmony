@@ -1,8 +1,8 @@
 import sys
 sys.dont_write_bytecode = True
 
+import time
 from plyer import notification
-from tqdm import tqdm
 
 from Scripts.clean_files import clean_files
 from Scripts.sync import sync
@@ -22,6 +22,7 @@ TASKS = {
     'sync': {
         'func': sync,
         'kwargs': {
+            'commit': None,
             'working_dir': '.',
         }
     },
@@ -42,45 +43,71 @@ TASKS = {
     }
 }
 
-def dispatch(task_name: str, **overrides):
+def dispatch(task_name:str, **overrides):
     entry = TASKS.get(task_name)
     # merge defaults with overrides
     kwargs = {**entry['kwargs'], **overrides}
     return entry['func'](**kwargs)
 
+def parse_task_input(task_str:str):
+    # colon indicates arguments
+    if ':' in task_str:
+        task_name, args_str = task_str.split(':', 1)
+        kwargs = {}
+        # pipe separated arguments
+        for arg in args_str.split('|'):
+            if '=' in arg:
+                key, value = arg.split('=', 1)
+                kwargs[key.strip()] = value.strip()
+        return task_name.strip(), kwargs
+    else:
+        return task_str.strip(), {}
+
 def main():
     # Always run clean first
     dispatch('clean')
 
-    # List tasks and accept choice
     print('\nAvailable tasks:')
-    for key in TASKS.keys(): print(f'- {key}')
+    for key in TASKS:
+        print(f'- {key}')
 
-    raw_choices = input('Enter tasks to run (comma-separated): ')
-    choices = [s.strip() for s in raw_choices.strip().lower().split(',') if s.strip()]
-
-    task_statuses = {}  # { task_name: success_bool }
-
-    for choice in tqdm(choices, desc="Executing tasks", unit="task"):
-        if not choice:
-            continue
-        if choice not in TASKS:
-            print(f'[ERROR] Invalid task: "{choice}"')
-            task_statuses[choice] = False
-        else:
-            success = dispatch(choice)
-            task_statuses[choice] = success
-
-    # Notification message
-    if all(task_statuses.values()):
-        title = 'TaskMan Tasks Completed Successfully'
-    else:
-        title = 'TaskMan Tasks Completed with Errors'
+    raw_input_str = input('Enter tasks to run (semicolon-separated): ')
     
+
+    # semicolon separated tasks
+    raw_tasks = [s.strip() for s in raw_input_str.strip().split(';') if s.strip()]
+    
+    parsed_tasks = [parse_task_input(task_str) for task_str in raw_tasks]
+    task_statuses = {}
+
+    start_time_total = time.perf_counter()
+    for task_name, overrides in parsed_tasks:
+        print()  # Ensure separation before task logs
+
+        if task_name not in TASKS:
+            print(f'[ERROR] Invalid task: "{task_name}"')
+            task_statuses[task_name] = False
+        else:
+            print(f"[INFO] Running task: {task_name}")
+            start_time = time.perf_counter()
+            success = dispatch(task_name, **overrides)
+            elapsed = time.perf_counter() - start_time
+            print(f'Done({elapsed:.3f}).')
+            task_statuses[task_name] = success
+    elapsed_total = time.perf_counter() - start_time_total
+
+    # Notification
+    if all(task_statuses.values()):
+        title = f'TaskMan Tasks Completed Successfully ({elapsed_total:.3f})'
+    else:
+        title = f'TaskMan Tasks Completed with Errors ({elapsed_total:.3f})'
+
     message_lines = [
         f"({'success' if status else 'error'}) {task}"
         for task, status in task_statuses.items()
     ]
+    
+    print(f'\n{title}')
 
     notification.notify(
         title=title,
