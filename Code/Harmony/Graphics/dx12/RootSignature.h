@@ -25,9 +25,8 @@ namespace graphics
             struct Description
             {
                 std::string name;
-                RootSignatureFlags flags;
                 std::vector<RootParameter> rootParameters;
-                std::array<StaticSampler, MAX_STATIC_SAMPLERS> staticSamplers{};
+                std::array<StaticSampler, MAX_STATIC_SAMPLERS> staticSamplers;
             };
 
             // Creates and serializes root signature
@@ -40,6 +39,9 @@ namespace graphics
             inline ID3D12RootSignature* get() { return mRootSignature.Get(); }
 
             const Microsoft::WRL::ComPtr<ID3D12RootSignature>& operator()() const { return mRootSignature; }
+
+        private:
+            const D3D12_ROOT_SIGNATURE_FLAGS getD3DFlagsFromParameters(const std::vector<RootParameter>& parameters);
 
         private:
             Microsoft::WRL::ComPtr<ID3D12RootSignature> mRootSignature;

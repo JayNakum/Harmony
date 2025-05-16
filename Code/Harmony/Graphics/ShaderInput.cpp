@@ -2,8 +2,8 @@
 
 namespace graphics
 {
-    ShaderInput::ShaderInput(const std::string& id, GraphicContext& context, const std::vector<Parameter>& layout, RootSignatureFlags flags)
-        : mID(id), mContext(context), mLayout(layout), mCPUDescriptorHeapPage(context.getShaderViewHeapPage()), mRootSignature(initialize(layout, flags))
+    ShaderInput::ShaderInput(GraphicContext& context, const std::vector<Parameter>& layout)
+        : mContext(context), mLayout(layout), mCPUDescriptorHeapPage(context.getShaderViewHeapPage()), mRootSignature(initialize(layout, mContext.getName()))
     {
         mContext.setRootSignature(mRootSignature);
     }
@@ -35,37 +35,38 @@ namespace graphics
         case DescriptorRangeType::SRV:
             buffer.createShaderResourceView(device, handle, sizeInBytes, offsetInBytes);
             break;
+        case DescriptorRangeType::UAV:
+            buffer.createUnorderedAccessView(device, handle, sizeInBytes, offsetInBytes);
+            break;
         default:
-            HASSERT(false, "Invalid DescriptorRangeType at layoutIndex(%d) paramterIndex(%d) rangeIndex(%d).", layoutIndex, parameterIndex, rangeIndex);
+            HASSERT(false, "Invalid DescriptorRangeType(%s) at layoutIndex(%d) paramterIndex(%d) rangeIndex(%d).", toString(type), layoutIndex, parameterIndex, rangeIndex);
             break;
         }
 
         return handle;
     }
 
-    const dx12::DescriptorHandle ShaderInput::setResource(const dx12::GPUTexture& texture, const unsigned int layoutIndex, const unsigned int parameterIndex, const unsigned int rangeIndex)
-    {
-        return setResource(texture, dx12::GPUTexture::ShaderResourceViewInfo{}, layoutIndex, parameterIndex, rangeIndex);
-    }
 
     const dx12::DescriptorHandle ShaderInput::setResource(const dx12::GPUTexture& texture, const dx12::GPUTexture::ShaderResourceViewInfo& viewInfo, const unsigned int layoutIndex, const unsigned int parameterIndex, const unsigned int rangeIndex)
     {
         dx12::DescriptorHandle handle = mDescriptors.at(layoutIndex).ranges.at(parameterIndex).descriptorRange;
 
         const DescriptorRangeType type = mLayout.at(layoutIndex).ranges.at(parameterIndex).type;
+        HASSERT(type == DescriptorRangeType::SRV, "Invalid DescriptorRangeType(%s) at layoutIndex(%d) paramterIndex(%d) rangeIndex(%d).", toString(type), layoutIndex, parameterIndex, rangeIndex);
 
-        dx12::Device& device = mContext.getDevice();
+        texture.createShaderResourceView(mContext.getDevice(), handle, viewInfo);
 
-        switch (type)
-        {
-        case DescriptorRangeType::SRV:
-            texture.createShaderResourceView(device, handle, viewInfo);
-            break;
+        return handle;
+    }
 
-        default:
-            HASSERT(false, "Invalid DescriptorRangeType at layoutIndex(%d) paramterIndex(%d) rangeIndex(%d).", layoutIndex, parameterIndex, rangeIndex);
-            break;
-        }
+    const dx12::DescriptorHandle ShaderInput::setResource(const dx12::GPUTexture& texture, const dx12::GPUTexture::UnorderedAccessViewInfo& viewInfo, const unsigned int layoutIndex, const unsigned int parameterIndex, const unsigned int rangeIndex)
+    {
+        dx12::DescriptorHandle handle = mDescriptors.at(layoutIndex).ranges.at(parameterIndex).descriptorRange;
+
+        const DescriptorRangeType type = mLayout.at(layoutIndex).ranges.at(parameterIndex).type;
+        HASSERT(type == DescriptorRangeType::UAV, "Invalid DescriptorRangeType(%s) at layoutIndex(%d) paramterIndex(%d) rangeIndex(%d).", toString(type), layoutIndex, parameterIndex, rangeIndex);
+
+        texture.createUnorderedAccessView(mContext.getDevice(), handle, viewInfo);
 
         return handle;
     }
@@ -142,14 +143,13 @@ namespace graphics
         };
     }
 
-    dx12::RootSignature ShaderInput::initialize(const std::vector<Parameter>& layout, const RootSignatureFlags flags)
+    dx12::RootSignature ShaderInput::initialize(const std::vector<Parameter>& layout, const std::string& name)
     {
         // TODO: validate layout using reflections
         dx12::Device& device = mContext.getDevice();
 
         dx12::RootSignature::Description createDescription;
-        createDescription.name = mID + " root signature";
-        createDescription.flags = flags;
+        createDescription.name = name + " root signature";
 
         // Auto-assignment counters per descriptor type
         unsigned int nextCBV = 0;

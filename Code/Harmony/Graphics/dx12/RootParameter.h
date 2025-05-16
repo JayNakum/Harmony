@@ -32,10 +32,13 @@ namespace graphics
                 mRootParam.ParameterType = (D3D12_ROOT_PARAMETER_TYPE)0xFFFFFFFF;
             }
 
+            inline const ShaderVisibility getShaderVisibility() const { return mShaderVisiblilty; }
+
             // Initialize as 32 bit constants.
             inline void initAsConstants(const unsigned int shaderRegister, const unsigned int dwordsCount, const ShaderVisibility visibility = ShaderVisibility::All, const unsigned int registerSpace = 0)
             {
                 mRootParam.ParameterType = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
+                mShaderVisiblilty = visibility;
                 mRootParam.ShaderVisibility = toD3DShaderVisibility(visibility);
                 mRootParam.Constants.Num32BitValues = dwordsCount;
                 mRootParam.Constants.ShaderRegister = shaderRegister;
@@ -49,6 +52,7 @@ namespace graphics
                 HASSERT(type != RootParameterType::DescriptorTable, "Invalid root parameter type. Please use initAsDescriptorTable() instead.");
 
                 mRootParam.ParameterType = toD3DRootParameterType(type);
+                mShaderVisiblilty = visibility;
                 mRootParam.ShaderVisibility = toD3DShaderVisibility(visibility);
                 mRootParam.Descriptor.ShaderRegister = shaderRegister;
                 mRootParam.Descriptor.RegisterSpace = registerSpace;
@@ -59,6 +63,7 @@ namespace graphics
             inline void initAsDescriptorTable(const size_t rangeCount, const ShaderVisibility visibility = ShaderVisibility::All)
             {
                 mRootParam.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+                mShaderVisiblilty = visibility;
                 mRootParam.ShaderVisibility = toD3DShaderVisibility(visibility);
                 mRootParam.DescriptorTable.NumDescriptorRanges = (UINT)rangeCount;
 
@@ -85,6 +90,7 @@ namespace graphics
             const D3D12_ROOT_PARAMETER& operator()() const { return mRootParam; }
 
         private:
+            ShaderVisibility mShaderVisiblilty;
             D3D12_ROOT_PARAMETER mRootParam;
             std::vector<D3D12_DESCRIPTOR_RANGE> mDescriptorRanges;
         };
@@ -114,7 +120,7 @@ namespace graphics
                 float maxLOD = FLT_MAX;
             };
 
-            StaticSampler(const unsigned int shaderRegister, const Description& description = {}, const ShaderVisibility visibility = ShaderVisibility::All, const unsigned int registerSpace = 0)
+            StaticSampler(const unsigned int shaderRegister = 0, const Description& description = {}, const ShaderVisibility visibility = ShaderVisibility::All, const unsigned int registerSpace = 0)
             {
                 mStaticSampler.ShaderRegister = shaderRegister;
                 mStaticSampler.RegisterSpace = registerSpace;

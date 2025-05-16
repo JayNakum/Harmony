@@ -33,10 +33,10 @@ workspace "Harmony"
   targetdir (target_dir)
   objdir (obj_dir)
 
-include "Sandbox"
+group "Platform"
+  include "Platform/Windows"
 group "Harmony"
   include "Harmony/Core"
   include "Harmony/Graphics"
   include "Harmony/Engine"
-group "Platform"
-  include "Platform/Windows"
+include "Sandbox"

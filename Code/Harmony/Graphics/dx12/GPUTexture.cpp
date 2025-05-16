@@ -45,34 +45,26 @@ namespace graphics
 
             case GPUResourceDimension::Texture1D:
                 srvDesc.Texture1D.MostDetailedMip = viewInfo.mostDetailedMip;
-                srvDesc.Texture1D.MipLevels = (viewInfo.mipLevels == UINT32_MAX)
-                    ? (mDescription.mipLevels - viewInfo.mostDetailedMip)
-                    : viewInfo.mipLevels;
+                srvDesc.Texture1D.MipLevels = viewInfo.mipLevels;
                 srvDesc.Texture1D.ResourceMinLODClamp = viewInfo.resourceMinLODClamp;
                 break;
 
             case GPUResourceDimension::Texture2D:
                 srvDesc.Texture2D.MostDetailedMip = viewInfo.mostDetailedMip;
-                srvDesc.Texture2D.MipLevels = (viewInfo.mipLevels == UINT32_MAX)
-                    ? (mDescription.mipLevels - viewInfo.mostDetailedMip)
-                    : viewInfo.mipLevels;
+                srvDesc.Texture2D.MipLevels = viewInfo.mipLevels;
                 srvDesc.Texture2D.PlaneSlice = 0;
                 srvDesc.Texture2D.ResourceMinLODClamp = viewInfo.resourceMinLODClamp;
                 break;
 
             case GPUResourceDimension::Texture3D:
                 srvDesc.Texture3D.MostDetailedMip = viewInfo.mostDetailedMip;
-                srvDesc.Texture3D.MipLevels = (viewInfo.mipLevels == UINT32_MAX)
-                    ? (mDescription.mipLevels - viewInfo.mostDetailedMip)
-                    : viewInfo.mipLevels;
+                srvDesc.Texture3D.MipLevels = viewInfo.mipLevels;
                 srvDesc.Texture3D.ResourceMinLODClamp = viewInfo.resourceMinLODClamp;
                 break;
 
             case GPUResourceDimension::Texture1DArray:
                 srvDesc.Texture1DArray.MostDetailedMip = viewInfo.mostDetailedMip;
-                srvDesc.Texture1DArray.MipLevels = (viewInfo.mipLevels == UINT32_MAX)
-                    ? (mDescription.mipLevels - viewInfo.mostDetailedMip)
-                    : viewInfo.mipLevels;
+                srvDesc.Texture1DArray.MipLevels = viewInfo.mipLevels;
                 srvDesc.Texture1DArray.FirstArraySlice = viewInfo.firstArraySlice;
                 srvDesc.Texture1DArray.ArraySize = viewInfo.arraySize;
                 srvDesc.Texture1DArray.ResourceMinLODClamp = viewInfo.resourceMinLODClamp;
@@ -80,9 +72,7 @@ namespace graphics
 
             case GPUResourceDimension::Texture2DArray:
                 srvDesc.Texture2DArray.MostDetailedMip = viewInfo.mostDetailedMip;
-                srvDesc.Texture2DArray.MipLevels = (viewInfo.mipLevels == UINT32_MAX)
-                    ? (mDescription.mipLevels - viewInfo.mostDetailedMip)
-                    : viewInfo.mipLevels;
+                srvDesc.Texture2DArray.MipLevels = viewInfo.mipLevels;
                 srvDesc.Texture2DArray.FirstArraySlice = viewInfo.firstArraySlice;
                 srvDesc.Texture2DArray.ArraySize = viewInfo.arraySize;
                 srvDesc.Texture2DArray.PlaneSlice = 0;
@@ -91,6 +81,50 @@ namespace graphics
             }
 
             device->CreateShaderResourceView(mResource.Get(), &srvDesc, srvHandle);
+        }
+
+        void GPUTexture::createUnorderedAccessView(Device& device, DescriptorHandle& uavHandle, const UnorderedAccessViewInfo& viewInfo) const
+        {
+            D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc{};
+            uavDesc.Format = toDXGIFormat(mDescription.format);
+            uavDesc.ViewDimension = toD3DUAVDimension(mDescription.dimension);
+
+            switch (mDescription.dimension)
+            {
+            default:
+                HASSERT(false, "Unhandled UAV creation path for resource dimension: %s", toString(mDescription.dimension));
+                break;
+
+            case GPUResourceDimension::Texture1D:
+                uavDesc.Texture1D.MipSlice = viewInfo.mipSlice;
+                break;
+
+            case GPUResourceDimension::Texture2D:
+                uavDesc.Texture2D.MipSlice = viewInfo.mipSlice;
+                uavDesc.Texture2D.PlaneSlice = 0;
+                break;
+
+            case GPUResourceDimension::Texture3D:
+                uavDesc.Texture3D.MipSlice = viewInfo.mipSlice;
+                uavDesc.Texture3D.FirstWSlice = viewInfo.firstWSlice;
+                uavDesc.Texture3D.WSize = viewInfo.wSize;
+                break;
+
+            case GPUResourceDimension::Texture1DArray:
+                uavDesc.Texture1DArray.MipSlice = viewInfo.mipSlice;
+                uavDesc.Texture1DArray.FirstArraySlice = viewInfo.firstArraySlice;
+                uavDesc.Texture1DArray.ArraySize = viewInfo.arraySize;
+                break;
+
+            case GPUResourceDimension::Texture2DArray:
+                uavDesc.Texture2DArray.MipSlice = viewInfo.mipSlice;
+                uavDesc.Texture2DArray.FirstArraySlice = viewInfo.firstArraySlice;
+                uavDesc.Texture2DArray.ArraySize = viewInfo.arraySize;
+                uavDesc.Texture2DArray.PlaneSlice = 0;
+                break;
+            }
+
+            device->CreateUnorderedAccessView(mResource.Get(), nullptr, &uavDesc, uavHandle);
         }
 
         void GPUTexture::reset()

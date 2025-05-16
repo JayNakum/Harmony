@@ -12,14 +12,13 @@ namespace engine
         void Present::render(graphics::GraphicContext& context, InputOutputs& inputOutputs)
         {
             const graphics::ShaderInput::Parameter slot1{ graphics::ShaderVisibility::Pixel,
-                {{graphics::DescriptorRangeType::SRV, 2}}
+                {{graphics::DescriptorRangeType::SRV, 1}}
             };
 
             const std::vector<graphics::ShaderInput::Parameter> layout = { slot1 };
-            graphics::ShaderInput presentSI("presentSI", context, layout);
+            graphics::ShaderInput presentSI(context, layout);
 
-            presentSI.setResource(inputOutputs.inputRTV, 0, 0);
-            presentSI.setResource(inputOutputs.outputRTV, 0, 1);
+            presentSI.setResource(inputOutputs.inputSRV, 0);
 
             graphics::dx12::Device& device = context.getDevice();
 

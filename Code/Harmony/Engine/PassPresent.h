@@ -13,7 +13,7 @@ namespace engine
 
             struct InputOutputs
             {
-                graphics::dx12::DescriptorHandle inputRTV;
+                graphics::dx12::DescriptorHandle inputSRV;
 
                 graphics::dx12::DescriptorHandle outputRTV;
             };

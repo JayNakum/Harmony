@@ -38,7 +38,7 @@ namespace graphics
 
         // Scoped shader inputs.
         // Layout is expected in order of shader registers.
-        ShaderInput(const std::string& id, GraphicContext& context, const std::vector<Parameter>& layout, const RootSignatureFlags flags = RootSignatureFlags::None);
+        ShaderInput(GraphicContext& context, const std::vector<Parameter>& layout);
 
         const dx12::RootSignature& getRootSignature() const { return mRootSignature; }
 
@@ -52,10 +52,10 @@ namespace graphics
             const unsigned int layoutIndex, const unsigned int parameterIndex = 0, const unsigned int rangeIndex = 0);
 
         // Set a texture at the specified layoutIndex, parameterIndex and rangeIndex.
-        const dx12::DescriptorHandle setResource(const dx12::GPUTexture& texture, const unsigned int layoutIndex, const unsigned int parameterIndex = 0, const unsigned int rangeIndex = 0);
         const dx12::DescriptorHandle setResource(const dx12::GPUTexture& texture, const dx12::GPUTexture::ShaderResourceViewInfo& viewInfo,
             const unsigned int layoutIndex, const unsigned int parameterIndex = 0, const unsigned int rangeIndex = 0);
-
+        const dx12::DescriptorHandle setResource(const dx12::GPUTexture& texture, const dx12::GPUTexture::UnorderedAccessViewInfo& viewInfo,
+                                                 const unsigned int layoutIndex, const unsigned int parameterIndex = 0, const unsigned int rangeIndex = 0);
         // Copies descriptors from CPU to GPU and sets descriptor heaps.
         void finalize();
 
@@ -65,7 +65,7 @@ namespace graphics
         static const std::array<dx12::StaticSampler, 6> getStaticSamplers();
 
         // Creates the root signature and allocated descriptors in CPU heap.
-        dx12::RootSignature initialize(const std::vector<Parameter>& layout, const RootSignatureFlags flags);
+        dx12::RootSignature initialize(const std::vector<Parameter>& layout, const std::string& name);
 
     private:
         GraphicContext& mContext;
@@ -87,7 +87,5 @@ namespace graphics
         };
 
         std::vector<ShaderDescriptorLayout> mDescriptors;
-
-        const std::string mID;
     };
 }

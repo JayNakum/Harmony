@@ -17,7 +17,8 @@ namespace graphics
             rootSignatureDesc.pParameters = (const D3D12_ROOT_PARAMETER*)createDescription.rootParameters.data();
             rootSignatureDesc.NumStaticSamplers = (UINT)createDescription.staticSamplers.size();
             rootSignatureDesc.pStaticSamplers = (const D3D12_STATIC_SAMPLER_DESC*)createDescription.staticSamplers.data();
-            rootSignatureDesc.Flags = toD3DRootSignatureFlags(createDescription.flags);
+
+            rootSignatureDesc.Flags = getD3DFlagsFromParameters(createDescription.rootParameters);
 
             Microsoft::WRL::ComPtr<ID3DBlob> serializedRootSig = nullptr;
             Microsoft::WRL::ComPtr<ID3DBlob> errorBlob = nullptr;
@@ -45,6 +46,62 @@ namespace graphics
         RootSignature::~RootSignature()
         {
             mRootSignature = nullptr;
+        }
+
+        const D3D12_ROOT_SIGNATURE_FLAGS RootSignature::getD3DFlagsFromParameters(const std::vector<RootParameter>& parameters)
+        {
+            D3D12_ROOT_SIGNATURE_FLAGS flags =
+                D3D12_ROOT_SIGNATURE_FLAGS::D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
+                D3D12_ROOT_SIGNATURE_FLAGS::D3D12_ROOT_SIGNATURE_FLAG_DENY_VERTEX_SHADER_ROOT_ACCESS |
+                D3D12_ROOT_SIGNATURE_FLAGS::D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
+                D3D12_ROOT_SIGNATURE_FLAGS::D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
+                D3D12_ROOT_SIGNATURE_FLAGS::D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS |
+                D3D12_ROOT_SIGNATURE_FLAGS::D3D12_ROOT_SIGNATURE_FLAG_DENY_PIXEL_SHADER_ROOT_ACCESS |
+                D3D12_ROOT_SIGNATURE_FLAGS::D3D12_ROOT_SIGNATURE_FLAG_DENY_AMPLIFICATION_SHADER_ROOT_ACCESS |
+                D3D12_ROOT_SIGNATURE_FLAGS::D3D12_ROOT_SIGNATURE_FLAG_DENY_MESH_SHADER_ROOT_ACCESS;
+
+            for (const RootParameter& param : parameters)
+            {
+                switch (param.getShaderVisibility())
+                {
+                default:
+                    HASSERT_SOFT(false, "Invalid root parameter shader visibility.");
+                    return D3D12_ROOT_SIGNATURE_FLAGS::D3D12_ROOT_SIGNATURE_FLAG_NONE;
+
+                case ShaderVisibility::All:
+                    flags &= ~(D3D12_ROOT_SIGNATURE_FLAGS::D3D12_ROOT_SIGNATURE_FLAG_DENY_VERTEX_SHADER_ROOT_ACCESS |
+                               D3D12_ROOT_SIGNATURE_FLAGS::D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
+                               D3D12_ROOT_SIGNATURE_FLAGS::D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
+                               D3D12_ROOT_SIGNATURE_FLAGS::D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS |
+                               D3D12_ROOT_SIGNATURE_FLAGS::D3D12_ROOT_SIGNATURE_FLAG_DENY_PIXEL_SHADER_ROOT_ACCESS |
+                               D3D12_ROOT_SIGNATURE_FLAGS::D3D12_ROOT_SIGNATURE_FLAG_DENY_AMPLIFICATION_SHADER_ROOT_ACCESS |
+                               D3D12_ROOT_SIGNATURE_FLAGS::D3D12_ROOT_SIGNATURE_FLAG_DENY_MESH_SHADER_ROOT_ACCESS);
+                    break;
+                case ShaderVisibility::Vertex:
+                    flags &= ~(D3D12_ROOT_SIGNATURE_FLAGS::D3D12_ROOT_SIGNATURE_FLAG_DENY_VERTEX_SHADER_ROOT_ACCESS);
+                    break;
+                case ShaderVisibility::Hull:
+                    flags &= ~(D3D12_ROOT_SIGNATURE_FLAGS::D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS);
+                    break;
+                case ShaderVisibility::Domain:
+                    flags &= ~(D3D12_ROOT_SIGNATURE_FLAGS::D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS);
+                    break;
+                case ShaderVisibility::Geometry:
+                    flags &= ~(D3D12_ROOT_SIGNATURE_FLAGS::D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS);
+                    break;
+                case ShaderVisibility::Pixel:
+                    flags &= ~(D3D12_ROOT_SIGNATURE_FLAGS::D3D12_ROOT_SIGNATURE_FLAG_DENY_PIXEL_SHADER_ROOT_ACCESS);
+                    break;
+                case ShaderVisibility::Amplification:
+                    flags &= ~(D3D12_ROOT_SIGNATURE_FLAGS::D3D12_ROOT_SIGNATURE_FLAG_DENY_AMPLIFICATION_SHADER_ROOT_ACCESS);
+                    break;
+                case ShaderVisibility::Mesh:
+                    flags &= ~(D3D12_ROOT_SIGNATURE_FLAGS::D3D12_ROOT_SIGNATURE_FLAG_DENY_MESH_SHADER_ROOT_ACCESS);
+                    break;
+                }
+            }
+
+            return flags;
         }
     }
 }

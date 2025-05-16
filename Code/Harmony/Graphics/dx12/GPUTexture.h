@@ -26,15 +26,68 @@ namespace graphics
 
             struct ShaderResourceViewInfo
             {
-                uint32_t mostDetailedMip = 0;
-                uint32_t mipLevels = UINT32_MAX; // If UINT32_MAX, use all remaining mips
-                uint32_t firstArraySlice = 0;
-                uint32_t arraySize = 1;
-                float resourceMinLODClamp = 0.0f;
+                uint32_t mostDetailedMip;
+                uint32_t mipLevels;
+                uint32_t firstArraySlice;
+                uint32_t arraySize;
+                float resourceMinLODClamp;
+
+                static const ShaderResourceViewInfo getSRVInfo(const GPUTexture::Description& desc)
+                {
+                    ShaderResourceViewInfo viewInfo{};
+                    viewInfo.mostDetailedMip = 0;
+                    viewInfo.mipLevels = desc.mipLevels; // Use all mips
+                    viewInfo.firstArraySlice = 0;
+
+                    switch (desc.dimension)
+                    {
+                    case GPUResourceDimension::Texture1DArray:
+                    case GPUResourceDimension::Texture2DArray:
+                        viewInfo.arraySize = desc.depth; // Full array size
+                        break;
+
+                    default:
+                        viewInfo.arraySize = 1; // Not an array texture
+                        break;
+                    }
+
+                    viewInfo.resourceMinLODClamp = 0.0f;
+                    return viewInfo;
+                }
+
             };
             // Creates an SRV with custom mip level, mip count, arraySlice and arraySize.
             // Requires a pre allocated descriptorHandle& from a descriptor heap.
             void createShaderResourceView(Device& device, DescriptorHandle& srvHandle, const ShaderResourceViewInfo& viewInfo) const;
+
+            struct UnorderedAccessViewInfo
+            {
+                uint32_t mipSlice;
+                uint32_t firstArraySlice;
+                uint32_t arraySize;
+                uint32_t firstWSlice;
+                uint32_t wSize;
+
+                static const UnorderedAccessViewInfo getUAVInfo(const GPUTexture::Description& desc)
+                {
+                    UnorderedAccessViewInfo viewInfo{};
+                    viewInfo.mipSlice = 0;
+                    viewInfo.firstArraySlice = 0;
+                    viewInfo.arraySize = (desc.dimension == GPUResourceDimension::Texture1DArray ||
+                                          desc.dimension == GPUResourceDimension::Texture2DArray)
+                        ? desc.depth
+                        : 0;
+                    viewInfo.firstWSlice = 0;
+                    viewInfo.wSize = (desc.dimension == GPUResourceDimension::Texture3D)
+                        ? desc.depth
+                        : 0;
+                    return viewInfo;
+                }
+            };
+
+            // Creates an UAV with custom mip level, mip count, arraySlice and arraySize.
+            // Requires a pre allocated descriptorHandle& from a descriptor heap.
+            void createUnorderedAccessView(Device& device, DescriptorHandle& uavHandle, const UnorderedAccessViewInfo& viewInfo) const;
 
             // Reset the resource.
             void reset();

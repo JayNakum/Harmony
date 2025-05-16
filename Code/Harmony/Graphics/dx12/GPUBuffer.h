@@ -95,10 +95,15 @@ namespace graphics
             ByteAddressBuffer(const Description& createDescription)
                 : GPUBuffer(createDescription) {}
 
+            void createShaderResourceView(Device& device, DescriptorHandle& srvHandle) const;
             // Creates an SRV with custom size and offset.
             // Requires a pre-allocated descriptorHandle& from a descriptor heap.
-            void createShaderResourceView(Device& device, DescriptorHandle& srvHandle) const;
             void createShaderResourceView(Device& device, DescriptorHandle& srvHandle, const uint64_t sizeInBytes, const unsigned int offsetInBytes = 0) const;
+
+            void createUnorderedAccessView(Device& device, DescriptorHandle& uavHandle) const;
+            // Creates an UAV with custom size and offset.
+            // Requires a pre-allocated descriptorHandle& from a descriptor heap.
+            void createUnorderedAccessView(Device& device, DescriptorHandle& uavHandle, const uint64_t sizeInBytes, const unsigned int offsetInBytes = 0) const;
 
             virtual ~ByteAddressBuffer()
             {

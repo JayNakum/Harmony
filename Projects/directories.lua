@@ -4,6 +4,8 @@ target_dir = "%{wks.location}/../Bin/%{cfg.buildcfg}-%{cfg.system}-%{cfg.archite
 obj_dir = "%{wks.location}/../Obj/%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}/%{prj.name}"
 
 code_path = "%{wks.location}/../../Code"
+vendors_path = "%{wks.location}/../../Vendors"
+
 -- CORE --
 prj_src = {}
 prj_src["Sandbox"] = "%{code_path}/Sandbox"
@@ -18,4 +20,4 @@ prj_src["Platform"]["Windows"] = "%{code_path}/Platform/Windows"
 
 -- LIBRARIES --
 include_dirs = {}
-include_dirs["DirectX12"] = "%{wks.location}/../Vendors/DirectX-Headers/include"
+include_dirs["DirectX12"] = "%{vendors_path}/DirectX-Headers/include"

@@ -106,13 +106,38 @@ namespace graphics
             srvDesc.Format = DXGI_FORMAT_R32_TYPELESS;
             srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 
-            // GPU SRV views into a ByteAddressBuffer are in units of 4 bytes.
+            // GPU views into a ByteAddressBuffer are in units of 4 bytes.
             srvDesc.Buffer.FirstElement = (UINT)offsetInBytes / 4;
             srvDesc.Buffer.NumElements = (UINT)sizeInBytes / 4;
 
             srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_RAW;
 
             device->CreateShaderResourceView(mResource.Get(), &srvDesc, srvHandle);
+        }
+
+        void ByteAddressBuffer::createUnorderedAccessView(Device& device, DescriptorHandle& uavHandle) const
+        {
+            HASSERT(maths::isAligned(mDescription.width, ByteAddressBuffer::DEFAULT_ALIGNMENT), "ByteAddressBuffer size must be %d-byte aligned.", ByteAddressBuffer::DEFAULT_ALIGNMENT);
+            createUnorderedAccessView(device, uavHandle, mDescription.width);
+        }
+
+        void ByteAddressBuffer::createUnorderedAccessView(Device& device, DescriptorHandle& uavHandle, const uint64_t sizeInBytes, const unsigned int offsetInBytes) const
+        {
+            HASSERT(offsetInBytes + sizeInBytes <= mDescription.width, "offset(%d) + size(%d) is more than total buffer size(%d).", offsetInBytes, sizeInBytes, mDescription.width);
+            HASSERT(maths::isAligned(offsetInBytes, ByteAddressBuffer::DEFAULT_ALIGNMENT), "Byte offset must be %d-byte aligned.", ByteAddressBuffer::DEFAULT_ALIGNMENT);
+            HASSERT(maths::isAligned(sizeInBytes, ByteAddressBuffer::DEFAULT_ALIGNMENT), "Byte size must be %d-byte aligned.", ByteAddressBuffer::DEFAULT_ALIGNMENT);
+
+            D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
+            uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
+            uavDesc.Format = DXGI_FORMAT_R32_TYPELESS;
+
+            // GPU views into a ByteAddressBuffer are in units of 4 bytes.
+            uavDesc.Buffer.FirstElement = (UINT)offsetInBytes / 4;
+            uavDesc.Buffer.NumElements = (UINT)sizeInBytes / 4;
+
+            uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_RAW;
+
+            device->CreateUnorderedAccessView(mResource.Get(), nullptr, &uavDesc, uavHandle);
         }
     }
 }
