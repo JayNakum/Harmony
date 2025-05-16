@@ -21,9 +21,9 @@ def clean_file(filename: str) -> bool:
         return False
 
 def clean_files(
-        file_extensions: tuple = (), 
-        ignore_dir: tuple = ('.git', '.vscode', '__pycache__'),
-        working_dir: str = '.') -> bool:
+        file_extensions: tuple, 
+        ignore_dir: tuple,
+        working_dir: str) -> bool:
     
     print("[INFO] Cleaning files.")
     okay = True

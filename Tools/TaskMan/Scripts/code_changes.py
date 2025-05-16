@@ -1,12 +1,12 @@
 from .terminal import run_command
 
-def status(working_dir: str = '.') -> bool:
+def status(working_dir: str) -> bool:
     print("[INFO] Checking for changes.")
     okay = run_command("git status --porcelain > changelog.txt", working_dir=working_dir)
     okay &= run_command("git status", working_dir=working_dir)
     return okay
 
-def sync(commit:str = None, working_dir: str = '.') -> bool:
+def sync(commit:str, working_dir: str) -> bool:
     print('[INFO] Syncing projects.')
     print("[INFO] Pulling latest changes from GitHub.")
     
@@ -27,7 +27,7 @@ def sync(commit:str = None, working_dir: str = '.') -> bool:
         
     return okay
 
-def submit(working_dir: str = '.') -> bool:
+def submit(working_dir: str) -> bool:
     okay = status(working_dir)
     
     print("[INFO] Staging changes.")
