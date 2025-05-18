@@ -24,6 +24,12 @@ namespace graphics
     class ShaderInput
     {
     public:
+        struct Constants
+        {
+            const ShaderVisibility shaderVisibility;
+            const unsigned int count = 1;
+        };
+
         struct Range
         {
             const DescriptorRangeType type;
@@ -37,10 +43,13 @@ namespace graphics
         };
 
         // Scoped shader inputs.
+        // 32bit constants are expected at the top of root parameters
         // Layout is expected in order of shader registers.
-        ShaderInput(GraphicContext& context, const std::vector<Parameter>& layout);
+        ShaderInput(GraphicContext& context, const std::vector<Constants>& constantsLayout, const std::vector<Parameter>& parametersLayout);
 
         const dx12::RootSignature& getRootSignature() const { return mRootSignature; }
+
+        const void setConstant(const dx12::DWParam value, const unsigned int layoutIndex, const unsigned int parameterIndex = 0);
 
         // Set a CPU descriptor handle at the specified layoutIndex, parameterIndex and rangeIndex.
         const dx12::DescriptorHandle setResource(const dx12::DescriptorHandle& cpuHandle,
@@ -65,27 +74,29 @@ namespace graphics
         static const std::array<dx12::StaticSampler, 6> getStaticSamplers();
 
         // Creates the root signature and allocated descriptors in CPU heap.
-        dx12::RootSignature initialize(const std::vector<Parameter>& layout, const std::string& name);
+        dx12::RootSignature initialize(const std::string& name);
 
     private:
         GraphicContext& mContext;
 
-        const std::vector<Parameter>& mLayout;
+        const std::vector<Constants>& mConstantsLayout;
+        const std::vector<Parameter>& mParametersLayout;
         dx12::RootSignature mRootSignature;
 
         DescriptorHeapWithAllocator::Page& mCPUDescriptorHeapPage;
+
+        using RootConstants = std::vector<dx12::DWParam>;
+        std::vector<RootConstants> mRootConstants;
 
         struct ShaderDescriptorTableLayout // struct Range
         {
             dx12::DescriptorHandle descriptorRange;
             unsigned int count = 1;
         };
-
         struct ShaderDescriptorLayout // struct Parameter
         {
             std::vector<ShaderDescriptorTableLayout> ranges;
         };
-
         std::vector<ShaderDescriptorLayout> mDescriptors;
     };
 }

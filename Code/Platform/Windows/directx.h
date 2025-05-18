@@ -9,6 +9,8 @@
     #include <dxgidebug.h>
 #endif
 
+#include <D3Dcompiler.h>
+
 inline static void setD3DName(ID3D12Object* object, const wchar_t* name)
 {
 #if defined(RELEASE)

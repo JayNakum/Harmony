@@ -3,16 +3,17 @@
 #include "common.h"
 
 #include "dx12/Device.h"
-
 #include "dx12/CommandQueue.h"
+
+#include "dx12/Swapchain.h"
 
 #include "CommandContext.h"
 #include "CommandContextPool.h"
-
 #include "DescriptorHeapWithAllocator.h"
 #include "DynamicDescriptorHeap.h"
 
-#include "dx12/Swapchain.h"
+// Render Passes
+#include "PassPresent.h"
 
 namespace engine
 {
@@ -37,6 +38,9 @@ namespace engine
         void render();
 
         ~Renderer();
+
+    private:
+        renderPass::Present presentPass;
 
     private:
         graphics::dx12::Device mDevice;

@@ -54,7 +54,7 @@ namespace graphics
             // Presents the swapchain.
             void present(const unsigned int interval = 0);
 
-            ~Swapchain();
+            ~Swapchain() = default;
 
         private:
             RenderTarget::Description mBackBufferDescription;

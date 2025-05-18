@@ -116,9 +116,5 @@ namespace graphics
 
             HASSERT(SUCCEEDED(hResult), "Failed to present swapchain.\n%s", utility::translateErrorCode(hResult));
         }
-
-        Swapchain::~Swapchain()
-        {
-        }
     }
 }

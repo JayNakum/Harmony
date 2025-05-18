@@ -42,6 +42,16 @@ namespace engine
         )
     {}
 
+    void Renderer::render()
+    {
+        renderPass::Present::InputOutputs presentIO{
+            // FINAL SRV //,
+            mSwapchain.getCurrentBackBuffer(),
+            mSwapchain.getCurrentBackBufferView()
+        };
+        presentPass.render(aquireGraphicContext("present"), presentIO);
+    }
+
     Renderer::~Renderer()
     {
     }

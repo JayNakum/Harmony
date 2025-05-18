@@ -54,6 +54,8 @@ namespace graphics
         inline const DescriptorHeapWithAllocator::Page& getShaderViewHeapPage() const { return mShaderViewsHeapCPUPage; }
         inline DescriptorHeapWithAllocator::Page& getShaderViewHeapPage() { return mShaderViewsHeapCPUPage; }
 
+        void transitionResource(dx12::GPUResource& resource, const GPUResourceStates newState, const bool flushImmediate = false);
+
         void copyBuffer(dx12::GPUResource& destination, dx12::GPUResource& source);
 
         void copyBufferRegion(dx12::GPUResource& destination, const size_t destinationOffset,
@@ -109,6 +111,8 @@ namespace graphics
     {
     public:
         GraphicContext(dx12::Device& device, DynamicDescriptorHeap& descriptorHeap);
+
+        static const dx12::Blob compileShader(const char* shaderName, const char* shaderCode, const char* targetProfile, const char* entryPoint = "main");
 
         void clearColor(dx12::DescriptorHandle& target, float color[4], const Box* rect = nullptr);
         void setRootSignature(const dx12::RootSignature& rootSignature);

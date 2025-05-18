@@ -27,6 +27,11 @@ namespace graphics
         mCommandList->Reset(commandAllocator.get(), nullptr);
     }
 
+    void CommandContext::transitionResource(dx12::GPUResource& resource, const GPUResourceStates newState, const bool flushImmediate)
+    {
+        mCommandList.transitionResource(resource, newState, flushImmediate);
+    }
+
     void CommandContext::copyBuffer(dx12::GPUResource& destination, dx12::GPUResource& source)
     {
         mCommandList.transitionResource(source, GPUResourceStates::CopySource);
@@ -138,6 +143,37 @@ namespace graphics
 {
     GraphicContext::GraphicContext(dx12::Device& device, DynamicDescriptorHeap& descriptorHeap)
         : CommandContext(CommandListType::Direct, device, descriptorHeap) {}
+
+    const dx12::Blob GraphicContext::compileShader(const char* shaderName, const char* shaderCode, const char* targetProfile, const char* entryPoint)
+    {
+        dx12::Blob shaderBlob;
+        dx12::Blob errorBlob;
+
+        static UINT compileFlags = 0;
+#if defined(DEBUG)
+        compileFlags = D3DCOMPILE_ENABLE_STRICTNESS | D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
+#endif
+
+        HRESULT hResult = D3DCompile(
+            shaderCode,
+            strlen(shaderCode),
+            shaderName,
+            nullptr,
+            nullptr,
+            entryPoint,
+            targetProfile,
+            compileFlags,
+            0,
+            &shaderBlob,
+            &errorBlob
+        );
+
+        HASSERT(SUCCEEDED(hResult), "Failed to compile %s shader.\n%s", shaderName,
+                errorBlob->GetBufferPointer() ? (char*)(errorBlob->GetBufferPointer()) : "Invalid Error");
+
+        return shaderBlob;
+    }
+
 
     void GraphicContext::clearColor(dx12::DescriptorHandle& target, float color[4], const Box* rect)
     {
