@@ -192,7 +192,7 @@ namespace graphics
         mCommandList->SetGraphicsRootSignature(rootSignature.get());
     }
 
-    void GraphicContext::setRenderTargets(unsigned int count, const dx12::DescriptorHandle rtv)
+    void GraphicContext::setRenderTargets(const dx12::DescriptorHandle rtv, unsigned int count)
     {
         mCommandList->OMSetRenderTargets(count, &rtv, FALSE, nullptr);
     }

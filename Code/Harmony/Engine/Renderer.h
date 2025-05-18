@@ -13,6 +13,7 @@
 #include "DynamicDescriptorHeap.h"
 
 // Render Passes
+#include "PassWater.h"
 #include "PassPresent.h"
 
 namespace engine
@@ -35,11 +36,13 @@ namespace engine
             mCommandContextPool.discardContext(usedContext);
         }
 
+        void resize(const unsigned int width, const unsigned int height);
         void render();
 
         ~Renderer();
 
     private:
+        renderPass::Water waterPass;
         renderPass::Present presentPass;
 
     private:
@@ -50,9 +53,13 @@ namespace engine
 
         graphics::DynamicDescriptorHeap mShaderViewsHeap;
 
-        graphics::dx12::RenderTarget::Description mRenderTargetDescription;
         graphics::DescriptorHeapWithAllocator mRTVDescriptorHeapCPU;
         graphics::DescriptorHeapWithAllocator::Page mRTVPage;
+
         graphics::dx12::Swapchain mSwapchain;
+        unsigned int mClientWidth;
+        unsigned int mClientHeight;
+
+        graphics::dx12::RenderTarget::Description mRenderTargetDescription;
     };
 }

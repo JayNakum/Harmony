@@ -19,9 +19,10 @@ namespace graphics
         {
             GPUResource::Description createDescription{};
 
-            createDescription.dimension = mDescription.dimension;
             createDescription.width = mDescription.width;
             createDescription.height = mDescription.height;
+            createDescription.mipLevels = mDescription.mipLevels;
+            createDescription.dimension = mDescription.dimension;
             createDescription.depth = mDescription.depth;
             createDescription.format = mDescription.format;
             createDescription.sampleCount = mDescription.sampleCount;

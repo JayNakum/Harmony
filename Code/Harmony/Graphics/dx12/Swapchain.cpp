@@ -9,17 +9,28 @@ namespace graphics
     namespace dx12
     {
         Swapchain::Swapchain(Device& device, CommandQueue& queue, const Description& createDescription, std::array<DescriptorHandle, BACK_BUFFER_COUNT> rtvHandles)
-            : mSwapChain(nullptr), mBackBufferDescription(createDescription.renderTargetDescription),
-            mBackBuffers{
-                createDescription.renderTargetDescription,
-                createDescription.renderTargetDescription,
-                createDescription.renderTargetDescription }
+            : mSwapChain(nullptr),
+            mRenderTargetDescription{
+                graphics::dx12::RenderTarget::Type::Color,
+                "swapchain back buffer",
+                createDescription.width,
+                createDescription.height,
+                1, 1,
+                graphics::GPUResourceDimension::Texture2D,
+                graphics::DefaultFormats::R8G8B8A8_UNORM,
+                graphics::GPUResourceFlags::AllowRenderTarget,
+            },
+            mBackBuffers{mRenderTargetDescription, mRenderTargetDescription, mRenderTargetDescription},
+            mRtvHandles(rtvHandles),
+            mTearingSupport(false), mHDRSupport(false)
         {
             Microsoft::WRL::ComPtr<IDXGIFactory6> dxgiFactory;
             {// Create dxgiFactory
                 HRESULT hResult = CreateDXGIFactory1(IID_PPV_ARGS(&dxgiFactory));
                 HASSERT(SUCCEEDED(hResult), "Failed to create dxgi factory.\n%s", utility::translateErrorCode(hResult));
             }
+
+            checkHDRSupport();
 
             {// Check for tearing support
                 BOOL allowTearing = FALSE;
@@ -29,13 +40,13 @@ namespace graphics
 
             {// Create swapchain
                 DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
-                swapChainDesc.Width = (UINT)createDescription.renderTargetDescription.textureDescription.width;
-                swapChainDesc.Height = (UINT)createDescription.renderTargetDescription.textureDescription.height;
-                swapChainDesc.Format = toDXGIFormat(createDescription.renderTargetDescription.textureDescription.format);
+                swapChainDesc.Width = (UINT)createDescription.width;
+                swapChainDesc.Height = (UINT)createDescription.height;
+                swapChainDesc.Format = toDXGIFormat(mHDRSupport ? DefaultFormats::R10G10B10A2_UNORM : DefaultFormats::R8G8B8A8_UNORM);
                 swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
                 swapChainDesc.BufferCount = BACK_BUFFER_COUNT;
-                swapChainDesc.SampleDesc.Count = createDescription.renderTargetDescription.textureDescription.sampleCount;
-                swapChainDesc.SampleDesc.Quality = createDescription.renderTargetDescription.textureDescription.sampleQuality;
+                swapChainDesc.SampleDesc.Count = 1;
+                swapChainDesc.SampleDesc.Quality = 0;
                 swapChainDesc.Scaling = DXGI_SCALING_NONE;
                 swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
                 swapChainDesc.AlphaMode = DXGI_ALPHA_MODE_IGNORE;
@@ -58,11 +69,13 @@ namespace graphics
                 HASSERT(SUCCEEDED(hResult), "Failed to cast SwapChain1 to SwapChain3.\n%s", utility::translateErrorCode(hResult));
             }
 
-            resize(device, (unsigned int)createDescription.renderTargetDescription.textureDescription.width, (unsigned int)createDescription.renderTargetDescription.textureDescription.height, rtvHandles);
+            resize(device, (unsigned int)createDescription.width, (unsigned int)createDescription.height, rtvHandles);
         }
 
         void Swapchain::resize(Device& device, const unsigned int width, const unsigned int height, std::array<DescriptorHandle, BACK_BUFFER_COUNT> rtvHandles)
         {
+            checkHDRSupport();
+
             // Reset the render target texture.
             for (size_t i = 0; i < BACK_BUFFER_COUNT; ++i)
             {
@@ -72,7 +85,7 @@ namespace graphics
             HRESULT hResult = mSwapChain->ResizeBuffers(
                 BACK_BUFFER_COUNT,
                 width, height,
-                toDXGIFormat(mBackBufferDescription.textureDescription.format),
+                toDXGIFormat(mHDRSupport ? DefaultFormats::R10G10B10A2_UNORM : DefaultFormats::R8G8B8A8_UNORM),
                 DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH
             );
             HASSERT(SUCCEEDED(hResult), "Failed to resize swapchain.\n%s", utility::translateErrorCode(hResult));
@@ -85,29 +98,6 @@ namespace graphics
 
                 mBackBuffers[i].createFromSwapchain(device, rtvHandles[i], backBufferResource.Get());
             }
-
-            {// Check for HDR support
-                Microsoft::WRL::ComPtr<IDXGISwapChain4> swapChain4;
-                HRESULT hResult = mSwapChain.As(&swapChain4);
-                HASSERT_SOFT(SUCCEEDED(hResult), "Failed to cast SwapChain3 to SwapChain4.\n%s", utility::translateErrorCode(hResult));
-
-                Microsoft::WRL::ComPtr<IDXGIOutput> output;
-                Microsoft::WRL::ComPtr<IDXGIOutput6> output6;
-                DXGI_OUTPUT_DESC1 outputDesc;
-                UINT colorSpaceSupport;
-
-                // Query support for ST.2084 on the display and set the color space accordingly
-                if (SUCCEEDED(swapChain4->GetContainingOutput(&output)) &&
-                    SUCCEEDED(output.As(&output6)) &&
-                    SUCCEEDED(output6->GetDesc1(&outputDesc)) &&
-                    outputDesc.ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020 &&
-                    SUCCEEDED(swapChain4->CheckColorSpaceSupport(DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020, &colorSpaceSupport)) &&
-                    (colorSpaceSupport & DXGI_SWAP_CHAIN_COLOR_SPACE_SUPPORT_FLAG_PRESENT) &&
-                    SUCCEEDED(swapChain4->SetColorSpace1(DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020)))
-                {
-                    mHDRSupport = true;
-                }
-            }
         }
 
         void Swapchain::present(const unsigned int interval)
@@ -115,6 +105,30 @@ namespace graphics
             HRESULT hResult = mSwapChain->Present(interval, 0);
 
             HASSERT(SUCCEEDED(hResult), "Failed to present swapchain.\n%s", utility::translateErrorCode(hResult));
+        }
+
+        void Swapchain::checkHDRSupport()
+        {
+            Microsoft::WRL::ComPtr<IDXGISwapChain4> swapChain4;
+            HRESULT hResult = mSwapChain.As(&swapChain4);
+            HASSERT_SOFT(SUCCEEDED(hResult), "Failed to cast SwapChain3 to SwapChain4.\n%s", utility::translateErrorCode(hResult));
+
+            Microsoft::WRL::ComPtr<IDXGIOutput> output;
+            Microsoft::WRL::ComPtr<IDXGIOutput6> output6;
+            DXGI_OUTPUT_DESC1 outputDesc;
+            UINT colorSpaceSupport;
+
+            // Query support for ST.2084 on the display and set the color space accordingly
+            if (SUCCEEDED(swapChain4->GetContainingOutput(&output)) &&
+                SUCCEEDED(output.As(&output6)) &&
+                SUCCEEDED(output6->GetDesc1(&outputDesc)) &&
+                outputDesc.ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020 &&
+                SUCCEEDED(swapChain4->CheckColorSpaceSupport(DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020, &colorSpaceSupport)) &&
+                (colorSpaceSupport & DXGI_SWAP_CHAIN_COLOR_SPACE_SUPPORT_FLAG_PRESENT) &&
+                SUCCEEDED(swapChain4->SetColorSpace1(DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020)))
+            {
+                mHDRSupport = true;
+            }
         }
     }
 }

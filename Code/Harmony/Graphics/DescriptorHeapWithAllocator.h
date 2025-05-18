@@ -56,6 +56,24 @@ namespace graphics
             // It doesn't invalidate descriptors.
             void reset();
 
+            Page(const Page& copy)
+                : mStartHandle(copy.mStartHandle),
+                mNumFreeDescriptors(copy.mNumFreeDescriptors),
+                mNextFreeHandle(copy.mNextFreeHandle),
+                mDescriptorSize(copy.mDescriptorSize),
+                mPageSize(copy.mPageSize)
+            {}
+
+            void operator=(const Page& rhs)
+            {
+                if (this != &rhs)
+                {
+                    mStartHandle = rhs.mStartHandle;
+                    mNumFreeDescriptors = rhs.mNumFreeDescriptors;
+                    mNextFreeHandle = rhs.mNextFreeHandle;
+                }
+            }
+
             ~Page();
 
         private:

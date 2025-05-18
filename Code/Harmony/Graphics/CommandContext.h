@@ -117,7 +117,7 @@ namespace graphics
         void clearColor(dx12::DescriptorHandle& target, float color[4], const Box* rect = nullptr);
         void setRootSignature(const dx12::RootSignature& rootSignature);
 
-        void setRenderTargets(unsigned int count, const dx12::DescriptorHandle rtv);
+        void setRenderTargets(const dx12::DescriptorHandle rtv, unsigned int count = 1);
         void setRenderTargets(unsigned int count, const dx12::DescriptorHandle rtv, const dx12::DescriptorHandle dsv);
 
         void setViewport(const ViewPort& viewport);

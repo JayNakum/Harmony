@@ -57,16 +57,26 @@ namespace graphics
 
     enum class GPUResourceStates
     {
-        Invalid = 0,
-        Common = 1 << 0,
-        VertexAndConstantBuffer = 1 << 1,
-        IndexBuffer = 1 << 2,
-        RenderTarget = 1 << 3,
-        CopySource = 1 << 4,
-        CopyDestination = 1 << 5,
-        GenericRead = 1 << 6,
-        Present = 1 << 7
-        // TODO: Add more resource states
+        Common = 0,
+        VertexAndConstantBuffer = 1 << 0,
+        IndexBuffer = 1 << 1,
+        RenderTarget = 1 << 2,
+        UnorderedAccess = 1 << 3,
+        DepthWrite = 1 << 4,
+        DepthRead = 1 << 5,
+        NonPixelShaderResource = 1 << 6,
+        PixelShaderResource = 1 << 7,
+        StreamOut = 1 << 8,
+        IndirectArgument = 1 << 9,
+        CopyDestination = 1 << 10,
+        CopySource = 1 << 11,
+        ResolveDestination = 1 << 12,
+        ResolveSource = 1 << 13,
+        ShadingRateResource = 1 << 14,
+        GenericRead = (((((VertexAndConstantBuffer | IndexBuffer) | NonPixelShaderResource) | PixelShaderResource) | IndirectArgument) | CopySource),
+        AllShaderResource = (NonPixelShaderResource | PixelShaderResource),
+        Present = 1 << 15,
+        Predication = 1 << 16,
     };
 
     inline static const GPUResourceStates operator|(GPUResourceStates a, GPUResourceStates b)
@@ -85,7 +95,7 @@ namespace graphics
 
     inline static const bool hasFlag(GPUResourceStates flags, GPUResourceStates check)
     {
-        return (flags & check) != GPUResourceStates::Invalid;
+        return (flags & check) != GPUResourceStates::Common;
     }
 
     inline static const std::string toString(const GPUResourceStates e)
@@ -94,18 +104,46 @@ namespace graphics
         {
         default:
             return "";
-        case GPUResourceStates::Invalid:
-            return "Invalid";
         case GPUResourceStates::Common:
             return "Common";
-        case GPUResourceStates::CopySource:
-            return "CopySource";
+        case GPUResourceStates::VertexAndConstantBuffer:
+            return "VertexAndConstantBuffer";
+        case GPUResourceStates::IndexBuffer:
+            return "IndexBuffer";
+        case GPUResourceStates::RenderTarget:
+            return "RenderTarget";
+        case GPUResourceStates::UnorderedAccess:
+            return "UnorderedAccess";
+        case GPUResourceStates::DepthWrite:
+            return "DepthWrite";
+        case GPUResourceStates::DepthRead:
+            return "DepthRead";
+        case GPUResourceStates::NonPixelShaderResource:
+            return "NonPixelShaderResource";
+        case GPUResourceStates::PixelShaderResource:
+            return "PixelShaderResource";
+        case GPUResourceStates::StreamOut:
+            return "StreamOut";
+        case GPUResourceStates::IndirectArgument:
+            return "IndirectArgument";
         case GPUResourceStates::CopyDestination:
             return "CopyDestination";
+        case GPUResourceStates::CopySource:
+            return "CopySource";
+        case GPUResourceStates::ResolveDestination:
+            return "ResolveDestination";
+        case GPUResourceStates::ResolveSource:
+            return "ResolveSource";
+        case GPUResourceStates::ShadingRateResource:
+            return "ShadingRateResource";
         case GPUResourceStates::GenericRead:
             return "GenericRead";
+        case GPUResourceStates::AllShaderResource:
+            return "AllShaderResource";
         case GPUResourceStates::Present:
             return "Present";
+        case GPUResourceStates::Predication:
+            return "Predication";
         }
     }
 

@@ -4,7 +4,7 @@
 
 namespace shaders
 {
-static constexpr char* ScreenQuadVS = R"###(
+    static constexpr char* ScreenQuadVS = R"###(
 void main(
     in uint vertexID : SV_VertexID,
     out float4 position : SV_Position,
@@ -17,7 +17,7 @@ void main(
 }
 )###";
 
-static constexpr char* BufferCopyPS = R"###(
+    static constexpr char* BufferCopyPS = R"###(
 Texture2D colorTex : register(t0);
 
 float4 main(float4 position : SV_Position) : SV_Target0
@@ -39,7 +39,11 @@ namespace engine
             const std::vector<graphics::ShaderInput::Parameter> parametersLayout = { slot1 };
 
             graphics::ShaderInput presentSI(context, {/*no constants*/}, parametersLayout);
-            presentSI.setResource(inputOutputs.inSRV, 0);
+            presentSI.setResource(
+                inputOutputs.inPresentTexture,
+                graphics::dx12::GPUTexture::ShaderResourceViewInfo::getSRVInfo(inputOutputs.inPresentTexture.describeResource()),
+                0
+            );
 
             graphics::dx12::GraphicsPipelineState::Description psoDesc;
             psoDesc.name = "present pso";
@@ -54,18 +58,17 @@ namespace engine
                 shaders::BufferCopyPS,
                 "ps_5_0"
             );
+            psoDesc.numRenderTargets = 1;
+            psoDesc.rtvFormats[0] = graphics::DefaultFormats::R8G8B8A8_UNORM;
             graphics::dx12::GraphicsPipelineState presentPSO(context.getDevice(), psoDesc);
 
             context.setPipelineState(presentPSO);
 
-            context.transitionResource(inputOutputs.inRenderTarget.getTexture(), graphics::GPUResourceStates::RenderTarget);
-            context.setRenderTargets(1, inputOutputs.inRTV);
-
             graphics::ViewPort viewport{};
             viewport.x = 0;
             viewport.y = 0;
-            viewport.width = inputOutputs.inRenderTarget.getTexture().describeResource().width;
-            viewport.height = inputOutputs.inRenderTarget.getTexture().describeResource().height;
+            viewport.width = inputOutputs.width;
+            viewport.height = inputOutputs.height;
             context.setViewport(viewport);
 
             graphics::Box scissor{};
@@ -77,7 +80,6 @@ namespace engine
 
             context.setPrimitiveTopology(graphics::PrimitiveTopology::TriangleList);
             context.draw(3);
-            context.transitionResource(inputOutputs.inRenderTarget.getTexture(), graphics::GPUResourceStates::Present);
         }
     }
 }

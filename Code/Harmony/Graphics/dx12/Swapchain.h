@@ -30,7 +30,8 @@ namespace graphics
             {
                 std::string name;
                 HWND windowHandle;
-                RenderTarget::Description renderTargetDescription;
+                unsigned int width;
+                unsigned int height;
             };
 
             // Creates a swapchain based on the createDescription.
@@ -57,13 +58,16 @@ namespace graphics
             ~Swapchain() = default;
 
         private:
-            RenderTarget::Description mBackBufferDescription;
+            void checkHDRSupport();
+
+        private:
+            Microsoft::WRL::ComPtr<IDXGISwapChain3> mSwapChain;
+            RenderTarget::Description mRenderTargetDescription;
             std::array<RenderTarget, BACK_BUFFER_COUNT> mBackBuffers;
             std::array<DescriptorHandle, BACK_BUFFER_COUNT> mRtvHandles;
-            Microsoft::WRL::ComPtr<IDXGISwapChain3> mSwapChain;
 
-            bool mTearingSupport = false;
-            bool mHDRSupport = false;
+            bool mTearingSupport;
+            bool mHDRSupport;
         };
     }
 }

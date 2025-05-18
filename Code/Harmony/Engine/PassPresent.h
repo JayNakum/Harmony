@@ -2,7 +2,6 @@
 
 #include "CommandContext.h"
 
-
 namespace engine
 {
     namespace renderPass
@@ -14,10 +13,10 @@ namespace engine
 
             struct InputOutputs
             {
-                graphics::dx12::DescriptorHandle inSRV;
+                unsigned int width;
+                unsigned int height;
 
-                graphics::dx12::RenderTarget inRenderTarget;
-                graphics::dx12::DescriptorHandle inRTV;
+                graphics::dx12::GPUTexture inPresentTexture;
             };
             void render(graphics::GraphicContext& context, InputOutputs& inputOutputs);
 
