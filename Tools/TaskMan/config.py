@@ -1,4 +1,4 @@
-from Scripts.clean_files import clean_files
+from Scripts.clean_files import clean_files, delete_folder
 from Scripts.code_changes import sync, submit
 from Scripts.generate_projects import generate_projects
 
@@ -11,7 +11,13 @@ TASKS = {
             'working_dir': '.',
         }
     },
-
+    'clean build': {
+        'func': delete_folder,
+        'kwargs': {
+            'folder_path': 'Build',
+            'working_dir': '.',
+        }
+    },
     'sync': {
         'func': sync,
         'kwargs': {
