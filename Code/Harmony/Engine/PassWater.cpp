@@ -65,7 +65,16 @@ namespace engine
 
             graphics::dx12::GraphicsPipelineState trianglePSO(context.getDevice(), psoDesc);
 
-        }
+            context.setPipelineState(trianglePSO);
 
+            context.setRenderTargets(inputOutputs.inRTV);
+
+            const float clearColor[4] = { 0.118f, 0.106f, 0.180f, 1.0f };
+            context.clearColor(inputOutputs.inRTV, clearColor);
+
+            context.setPrimitiveTopology(graphics::PrimitiveTopology::TriangleList);
+            context.setVertexBuffer(0, &inputOutputs.inVertexBuffer);
+            context.drawInstanced(3, 1);
+        }
     }
 }

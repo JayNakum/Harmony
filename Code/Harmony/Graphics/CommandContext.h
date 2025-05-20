@@ -114,7 +114,7 @@ namespace graphics
 
         static const dx12::Blob compileShader(const char* shaderName, const char* shaderCode, const char* targetProfile, const char* entryPoint = "main");
 
-        void clearColor(dx12::DescriptorHandle& target, float color[4], const Box* rect = nullptr);
+        void clearColor(dx12::DescriptorHandle& target, const float color[4]);
         void setRootSignature(const dx12::RootSignature& rootSignature);
 
         void setRenderTargets(const dx12::DescriptorHandle rtv, unsigned int count = 1);

@@ -46,12 +46,12 @@ namespace graphics
             GPUResource()
                 : mResource(nullptr),
                 mUsageState(GPUResourceStates::Common),
-                mTransitioningState(GPUResourceStates::Invalid) {}
+                mTransitioningState(GPUResourceStates::Common) {}
 
             GPUResource(ID3D12Resource* resource, const GPUResourceStates currentUsageState)
                 : mResource(resource),
                 mUsageState(currentUsageState),
-                mTransitioningState(GPUResourceStates::Invalid) {}
+                mTransitioningState(GPUResourceStates::Common) {}
 
             void setResource(ID3D12Resource* resource)
             {
@@ -101,7 +101,7 @@ namespace graphics
         public:
             static const D3D12_RESOURCE_DESC toD3DResourceDesc(const Description& description);
 
-        protected:
+        public:
             Microsoft::WRL::ComPtr<ID3D12Resource> mResource;
             GPUResourceStates mUsageState;
             GPUResourceStates mTransitioningState;

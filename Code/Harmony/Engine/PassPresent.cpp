@@ -67,17 +67,20 @@ namespace engine
             graphics::ViewPort viewport{};
             viewport.x = 0;
             viewport.y = 0;
-            viewport.width = inputOutputs.width;
-            viewport.height = inputOutputs.height;
+            viewport.width = (float)inputOutputs.width;
+            viewport.height = (float)inputOutputs.height;
             context.setViewport(viewport);
 
             graphics::Box scissor{};
-            scissor.left = viewport.x;
-            scissor.top = viewport.y;
-            scissor.right = viewport.x + viewport.width;
-            scissor.bottom = viewport.y + viewport.height;
+            scissor.left = (unsigned int)viewport.x;
+            scissor.top = (unsigned int)viewport.y;
+            scissor.right = (unsigned int)viewport.x + (unsigned int)viewport.width;
+            scissor.bottom = (unsigned int)viewport.y + (unsigned int)viewport.height;
             context.setScissor(scissor);
 
+            context.setRenderTargets(inputOutputs.inRTV);
+            const float clearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+            context.clearColor(inputOutputs.inRTV, clearColor);
             context.setPrimitiveTopology(graphics::PrimitiveTopology::TriangleList);
             context.draw(3);
         }

@@ -87,7 +87,10 @@ namespace graphics
                 range.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
             }
 
-            const D3D12_ROOT_PARAMETER& operator()() const { return mRootParam; }
+            const D3D12_ROOT_PARAMETER get() const { return mRootParam; }
+            D3D12_ROOT_PARAMETER get() { return mRootParam; }
+
+            const D3D12_ROOT_PARAMETER& operator() () const { return mRootParam; }
 
         private:
             ShaderVisibility mShaderVisiblilty;

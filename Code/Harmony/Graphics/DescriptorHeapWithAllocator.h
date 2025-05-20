@@ -47,6 +47,8 @@ namespace graphics
             // Operator overload for array like indexing.
             inline dx12::DescriptorHandle operator[] (const size_t index) const { return mStartHandle + (INT)index * (INT)mDescriptorSize; }
 
+            inline const size_t getDescriptorSize() const { return mDescriptorSize; }
+
             // Creates space for count number of descriptors inside the heap. Using ring allocation.
             // Returns the handle that points to the start of the allocation.
             // The handle will then be used for actual allocation.

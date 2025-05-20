@@ -13,8 +13,9 @@ namespace graphics
             return *context;
         }
 
-        msGraphicContextPool.emplace_back(device, descriptorHeap);
-        return (msGraphicContextPool.back());
+        GraphicContext* newContext = new GraphicContext(device, descriptorHeap);
+        msGraphicContextPool.emplace_back(newContext);
+        return *(newContext);
     }
 
     void CommandContextPool::discardContext(GraphicContext& context)
@@ -35,6 +36,10 @@ namespace graphics
             mGraphicAvailableQueue.pop();
         }
 
+        for (const GraphicContext* context : msGraphicContextPool)
+        {
+            delete context;
+        }
         CommandContextPool::msGraphicContextPool.clear();
     }
 }

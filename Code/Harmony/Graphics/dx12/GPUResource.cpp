@@ -19,7 +19,7 @@ namespace graphics
 
             HRESULT hResult = device->CreateCommittedResource(
                 &heapProperties, D3D12_HEAP_FLAG_NONE, &resourceDescription,
-                toD3DResourceStates(mUsageState), nullptr, IID_PPV_ARGS(getAddressOf())
+                toD3DResourceStates(mUsageState), {}, IID_PPV_ARGS(getAddressOf())
             );
             HASSERT(SUCCEEDED(hResult), "Failed to create committed resource %s.\n%s", createDescription.name, utility::translateErrorCode(hResult));
 
@@ -48,7 +48,7 @@ namespace graphics
             createDesc.Format = toDXGIFormat(description.format);
             createDesc.Height = (UINT)description.height;
             createDesc.Width = (UINT64)description.width;
-            createDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+            createDesc.Layout = description.dimension == GPUResourceDimension::Buffer ? D3D12_TEXTURE_LAYOUT_ROW_MAJOR : D3D12_TEXTURE_LAYOUT_UNKNOWN;
             createDesc.MipLevels = description.mipLevels;
             createDesc.SampleDesc.Count = description.sampleCount;
             createDesc.SampleDesc.Quality = description.sampleQuality;

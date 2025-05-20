@@ -41,6 +41,7 @@ namespace graphics
             d3dDescription.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
 
             // Input Layout
+            std::vector<D3D12_INPUT_ELEMENT_DESC> d3dInputElements;
             if (createDescription.inputLayout.size() == 0)
             {
                 d3dDescription.InputLayout.NumElements = 0;
@@ -48,7 +49,6 @@ namespace graphics
             }
             else
             {
-                std::vector<D3D12_INPUT_ELEMENT_DESC> d3dInputElements;
                 for (const InputElementsDescription& element : (createDescription.inputLayout))
                 {
                     d3dInputElements.emplace_back(

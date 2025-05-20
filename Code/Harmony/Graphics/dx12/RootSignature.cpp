@@ -14,7 +14,15 @@ namespace graphics
         {
             D3D12_ROOT_SIGNATURE_DESC rootSignatureDesc{};
             rootSignatureDesc.NumParameters = (UINT)createDescription.rootParameters.size();
-            rootSignatureDesc.pParameters = (const D3D12_ROOT_PARAMETER*)createDescription.rootParameters.data();
+
+            std::vector<D3D12_ROOT_PARAMETER> d3dParameters;
+            d3dParameters.reserve(createDescription.rootParameters.size());
+            for (const RootParameter& param : createDescription.rootParameters)
+            {
+                d3dParameters.push_back(param.get());
+            }
+            rootSignatureDesc.pParameters = d3dParameters.data();
+
             rootSignatureDesc.NumStaticSamplers = (UINT)createDescription.staticSamplers.size();
             rootSignatureDesc.pStaticSamplers = (const D3D12_STATIC_SAMPLER_DESC*)createDescription.staticSamplers.data();
 

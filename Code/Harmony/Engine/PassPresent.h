@@ -17,6 +17,8 @@ namespace engine
                 unsigned int height;
 
                 graphics::dx12::GPUTexture inPresentTexture;
+
+                graphics::dx12::DescriptorHandle inRTV;
             };
             void render(graphics::GraphicContext& context, InputOutputs& inputOutputs);
 

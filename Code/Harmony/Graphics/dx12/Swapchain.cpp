@@ -12,13 +12,15 @@ namespace graphics
             : mSwapChain(nullptr),
             mRenderTargetDescription{
                 graphics::dx12::RenderTarget::Type::Color,
-                "swapchain back buffer",
-                createDescription.width,
-                createDescription.height,
-                1, 1,
-                graphics::GPUResourceDimension::Texture2D,
-                graphics::DefaultFormats::R8G8B8A8_UNORM,
-                graphics::GPUResourceFlags::AllowRenderTarget,
+                {
+                    "swapchain back buffer",
+                    createDescription.width,
+                    createDescription.height,
+                    1, 1,
+                    graphics::GPUResourceDimension::Texture2D,
+                    graphics::DefaultFormats::R8G8B8A8_UNORM,
+                    graphics::GPUResourceFlags::AllowRenderTarget
+                },
             },
             mBackBuffers{mRenderTargetDescription, mRenderTargetDescription, mRenderTargetDescription},
             mRtvHandles(rtvHandles),
@@ -30,8 +32,6 @@ namespace graphics
                 HASSERT(SUCCEEDED(hResult), "Failed to create dxgi factory.\n%s", utility::translateErrorCode(hResult));
             }
 
-            checkHDRSupport();
-
             {// Check for tearing support
                 BOOL allowTearing = FALSE;
                 HRESULT hResult = dxgiFactory->CheckFeatureSupport(DXGI_FEATURE_PRESENT_ALLOW_TEARING, &allowTearing, sizeof(allowTearing));
@@ -42,7 +42,7 @@ namespace graphics
                 DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
                 swapChainDesc.Width = (UINT)createDescription.width;
                 swapChainDesc.Height = (UINT)createDescription.height;
-                swapChainDesc.Format = toDXGIFormat(mHDRSupport ? DefaultFormats::R10G10B10A2_UNORM : DefaultFormats::R8G8B8A8_UNORM);
+                swapChainDesc.Format = toDXGIFormat(DefaultFormats::R8G8B8A8_UNORM);
                 swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
                 swapChainDesc.BufferCount = BACK_BUFFER_COUNT;
                 swapChainDesc.SampleDesc.Count = 1;
@@ -74,19 +74,20 @@ namespace graphics
 
         void Swapchain::resize(Device& device, const unsigned int width, const unsigned int height, std::array<DescriptorHandle, BACK_BUFFER_COUNT> rtvHandles)
         {
-            checkHDRSupport();
+            //checkHDRSupport();
 
             // Reset the render target texture.
             for (size_t i = 0; i < BACK_BUFFER_COUNT; ++i)
             {
                 mBackBuffers[i].getTexture().reset();
+                mRtvHandles[i] = rtvHandles[i];
             }
 
             HRESULT hResult = mSwapChain->ResizeBuffers(
                 BACK_BUFFER_COUNT,
                 width, height,
-                toDXGIFormat(mHDRSupport ? DefaultFormats::R10G10B10A2_UNORM : DefaultFormats::R8G8B8A8_UNORM),
-                DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH
+                toDXGIFormat(DefaultFormats::R8G8B8A8_UNORM),
+                DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH | (mTearingSupport ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0)
             );
             HASSERT(SUCCEEDED(hResult), "Failed to resize swapchain.\n%s", utility::translateErrorCode(hResult));
 
@@ -94,7 +95,8 @@ namespace graphics
             for (unsigned int i = 0; i < BACK_BUFFER_COUNT; ++i)
             {
                 Microsoft::WRL::ComPtr<ID3D12Resource> backBufferResource;
-                mSwapChain->GetBuffer(i, IID_PPV_ARGS(&backBufferResource));
+                HRESULT hr = mSwapChain->GetBuffer(i, IID_PPV_ARGS(&backBufferResource));
+                HASSERT(SUCCEEDED(hr), "Failed to get swapchain back buffer.\n%s", utility::translateErrorCode(hr))
 
                 mBackBuffers[i].createFromSwapchain(device, rtvHandles[i], backBufferResource.Get());
             }

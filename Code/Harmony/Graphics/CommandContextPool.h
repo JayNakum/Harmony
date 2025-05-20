@@ -33,7 +33,7 @@ namespace graphics
 
     private:
         // The main context pool containing all the contexts of each type.
-        std::vector<GraphicContext> msGraphicContextPool;
+        std::vector<GraphicContext*> msGraphicContextPool;
         // A queue of contexts of each type that are available for reuse.
         std::queue<GraphicContext*> mGraphicAvailableQueue;
         // Prevents incorrect reading and writing of context pool and available queue.

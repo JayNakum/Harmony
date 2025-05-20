@@ -28,15 +28,15 @@ namespace graphics
             switch (createDescription.flag)
             {
             default:
+            case DescriptorHeapFlags::CPUVisible:
+            {
+                mHeapStart = DescriptorHandle(mHeap->GetCPUDescriptorHandleForHeapStart());
+                break;
+            }
             case DescriptorHeapFlags::GPUVisible:
             {
                 mHeapStart = DescriptorHandle(mHeap->GetCPUDescriptorHandleForHeapStart(),
                     mHeap->GetGPUDescriptorHandleForHeapStart());
-                break;
-            }
-            case DescriptorHeapFlags::CPUVisible:
-            {
-                mHeapStart = DescriptorHandle(mHeap->GetCPUDescriptorHandleForHeapStart());
                 break;
             }
             }

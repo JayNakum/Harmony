@@ -73,10 +73,10 @@ namespace graphics
         ResolveDestination = 1 << 12,
         ResolveSource = 1 << 13,
         ShadingRateResource = 1 << 14,
-        GenericRead = (((((VertexAndConstantBuffer | IndexBuffer) | NonPixelShaderResource) | PixelShaderResource) | IndirectArgument) | CopySource),
-        AllShaderResource = (NonPixelShaderResource | PixelShaderResource),
-        Present = 1 << 15,
-        Predication = 1 << 16,
+        GenericRead = 1 << 15,// (((((VertexAndConstantBuffer | IndexBuffer) | NonPixelShaderResource) | PixelShaderResource) | IndirectArgument) | CopySource),
+        AllShaderResource = 1 << 16, // (NonPixelShaderResource | PixelShaderResource),
+        Present = 1 << 17,
+        Predication = 1 << 18,
     };
 
     inline static const GPUResourceStates operator|(GPUResourceStates a, GPUResourceStates b)

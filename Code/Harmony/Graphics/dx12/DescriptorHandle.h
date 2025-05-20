@@ -70,9 +70,12 @@ namespace graphics
             inline bool isNull() const { return mCPUHandle.ptr == INVALID_ADDRESS; }
             inline bool isGPUVisible() const { return mGPUHandle.ptr != INVALID_ADDRESS; }
 
+            const D3D12_CPU_DESCRIPTOR_HANDLE getCPUHandle() const { return mCPUHandle; }
+            const D3D12_GPU_DESCRIPTOR_HANDLE getGPUHandle() const { return mGPUHandle; }
+
             const D3D12_CPU_DESCRIPTOR_HANDLE* operator&() const { return &mCPUHandle; }
             operator D3D12_CPU_DESCRIPTOR_HANDLE() const { return mCPUHandle; }
-            operator D3D12_GPU_DESCRIPTOR_HANDLE() const { return mGPUHandle; }
+            //operator D3D12_GPU_DESCRIPTOR_HANDLE() const { return mGPUHandle; }
 
         private:
             D3D12_CPU_DESCRIPTOR_HANDLE mCPUHandle;

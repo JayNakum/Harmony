@@ -2,11 +2,14 @@
 
 namespace graphics
 {
+    std::unordered_map<std::string, dx12::RootSignature> ShaderInput::msRootSignatures;
+
     ShaderInput::ShaderInput(GraphicContext& context, const std::vector<Constants>& constantsLayout, const std::vector<Parameter>& parametersLayout)
         : mContext(context),
-        mConstantsLayout(constantsLayout), mParametersLayout(parametersLayout),
         mCPUDescriptorHeapPage(context.getShaderViewHeapPage()),
-        mRootSignature(initialize(mContext.getName()))
+        mConstantsLayout(constantsLayout),
+        mParametersLayout(parametersLayout),
+        mRootSignature(initialize(createRootSignatureID()))
     {
         mContext.setRootSignature(mRootSignature);
     }
@@ -18,7 +21,7 @@ namespace graphics
 
     const dx12::DescriptorHandle ShaderInput::setResource(const dx12::DescriptorHandle& cpuHandle, const unsigned int layoutIndex, const unsigned int parameterIndex, const unsigned int rangeIndex)
     {
-        mDescriptors.at(layoutIndex).ranges.at(parameterIndex).descriptorRange = cpuHandle;
+        getDescriptorHandleAt(layoutIndex, parameterIndex, rangeIndex) = cpuHandle;
         return cpuHandle;
     }
 
@@ -29,7 +32,7 @@ namespace graphics
 
     const dx12::DescriptorHandle ShaderInput::setResource(const dx12::ByteAddressBuffer& buffer, const uint64_t sizeInBytes, const unsigned int offsetInBytes, const unsigned int layoutIndex, const unsigned int parameterIndex, const unsigned int rangeIndex)
     {
-        dx12::DescriptorHandle handle = mDescriptors.at(layoutIndex).ranges.at(parameterIndex).descriptorRange;
+        dx12::DescriptorHandle handle = getDescriptorHandleAt(layoutIndex, parameterIndex, rangeIndex);
 
         const DescriptorRangeType type = mParametersLayout.at(layoutIndex).ranges.at(parameterIndex).type;
 
@@ -57,7 +60,7 @@ namespace graphics
 
     const dx12::DescriptorHandle ShaderInput::setResource(const dx12::GPUTexture& texture, const dx12::GPUTexture::ShaderResourceViewInfo& viewInfo, const unsigned int layoutIndex, const unsigned int parameterIndex, const unsigned int rangeIndex)
     {
-        dx12::DescriptorHandle handle = mDescriptors.at(layoutIndex).ranges.at(parameterIndex).descriptorRange;
+        dx12::DescriptorHandle handle = getDescriptorHandleAt(layoutIndex, parameterIndex, rangeIndex);
 
         const DescriptorRangeType type = mParametersLayout.at(layoutIndex).ranges.at(parameterIndex).type;
         HASSERT(type == DescriptorRangeType::SRV, "Invalid DescriptorRangeType(%s) at layoutIndex(%d) paramterIndex(%d) rangeIndex(%d).", toString(type), layoutIndex, parameterIndex, rangeIndex);
@@ -69,7 +72,7 @@ namespace graphics
 
     const dx12::DescriptorHandle ShaderInput::setResource(const dx12::GPUTexture& texture, const dx12::GPUTexture::UnorderedAccessViewInfo& viewInfo, const unsigned int layoutIndex, const unsigned int parameterIndex, const unsigned int rangeIndex)
     {
-        dx12::DescriptorHandle handle = mDescriptors.at(layoutIndex).ranges.at(parameterIndex).descriptorRange;
+        dx12::DescriptorHandle handle = getDescriptorHandleAt(layoutIndex, parameterIndex, rangeIndex);
 
         const DescriptorRangeType type = mParametersLayout.at(layoutIndex).ranges.at(parameterIndex).type;
         HASSERT(type == DescriptorRangeType::UAV, "Invalid DescriptorRangeType(%s) at layoutIndex(%d) paramterIndex(%d) rangeIndex(%d).", toString(type), layoutIndex, parameterIndex, rangeIndex);
@@ -89,21 +92,19 @@ namespace graphics
             while (rootIndex < mRootConstants.size())
             {
                 RootConstants& constants = mRootConstants.at(rootIndex);
-                mContext.commandList()->SetComputeRoot32BitConstants(rootIndex++, constants.size(), constants.data(), 0);
+                mContext.commandList()->SetComputeRoot32BitConstants(rootIndex++, (UINT)constants.size(), constants.data(), 0);
             }
         }
         {// Finalize descriptor tables
-            HASSERT(mParametersLayout.size() == mDescriptors.size(), "Mismatch in layout size (%d) and descriptors size (%s).", mParametersLayout.size(), mDescriptors.size());
-
             const dx12::DescriptorHandle gpuStartHandle = mContext.copyDescriptorsToGPU();
-            while (rootIndex < mDescriptors.size())
+            for (unsigned int i = 0; i < mParametersLayout.size(); ++i)
             {
-                ShaderDescriptorLayout& descriptors = mDescriptors.at(rootIndex);
-                ShaderDescriptorTableLayout& tableLayout = descriptors.ranges.at(0);
+                const Parameter& param = mParametersLayout[i];
+                dx12::DescriptorHandle handle = getDescriptorTableAt(i);
 
-                uint32_t cpuOffset = mCPUDescriptorHeapPage.getByteOffsetOfHandle(tableLayout.descriptorRange);
+                uint32_t cpuOffset = mCPUDescriptorHeapPage.getByteOffsetOfHandle(handle);
                 dx12::DescriptorHandle gpuHandle = gpuStartHandle + cpuOffset;
-                mContext.commandList()->SetGraphicsRootDescriptorTable(rootIndex++, gpuHandle);
+                mContext.commandList()->SetGraphicsRootDescriptorTable(rootIndex++, gpuHandle.getGPUHandle());
             }
 
             mContext.bindDescriptorHeaps();
@@ -163,13 +164,36 @@ namespace graphics
         };
     }
 
-    dx12::RootSignature ShaderInput::initialize(const std::string& name)
+    std::string ShaderInput::createRootSignatureID()
+    {
+        std::string rootSignatureID = "ROOT SIGNATURE";
+
+        /*for (const Constants& constants : mConstantsLayout)
+        {
+            rootSignatureID += toString(constants.shaderVisibility);
+            rootSignatureID += std::to_string(constants.count);
+        }*/
+
+        for (const Parameter& parameter : mParametersLayout)
+        {
+            rootSignatureID += toString(parameter.shaderVisibility);
+            for (const Range& range : parameter.ranges)
+            {
+                rootSignatureID += toString(range.type);
+                rootSignatureID += std::to_string(range.count);
+            }
+        }
+
+        return rootSignatureID;
+    }
+
+    dx12::RootSignature& ShaderInput::initialize(const std::string& rootSignatureID)
     {
         // TODO: validate layout using reflections
         dx12::Device& device = mContext.getDevice();
 
         dx12::RootSignature::Description createDescription;
-        createDescription.name = name + " root signature";
+        createDescription.name = mContext.getName() + " root signature";
 
         unsigned int nextConstant32 = 0;
         for (const Constants& constants : mConstantsLayout)
@@ -190,18 +214,20 @@ namespace graphics
         unsigned int nextUAV = 0;
         unsigned int nextSampler = 0;
 
+        unsigned int totalDescriptors = 0; // Descriptor Allocation
         for (const Parameter& parameter : mParametersLayout)
         {
             HASSERT(parameter.ranges.size() > 0, "No descriptor ranges found.");
 
-            dx12::RootParameter rootParameter;
-
-            ShaderDescriptorLayout descriptors; // Descriptor Allocation
+            createDescription.rootParameters.emplace_back();
+            dx12::RootParameter& rootParameter = createDescription.rootParameters.back();
 
             rootParameter.initAsDescriptorTable(parameter.ranges.size(), parameter.shaderVisibility);
             for (unsigned int rangeIndex = 0; rangeIndex < parameter.ranges.size(); ++rangeIndex)
             {
                 const Range& range = parameter.ranges[rangeIndex];
+
+                HASSERT(range.count > 0, "Trying to set an empty descriptor range.");
 
                 unsigned int shaderRegister = 0;
                 switch (range.type)
@@ -222,20 +248,56 @@ namespace graphics
 
                 rootParameter.setTableRange(rangeIndex, range.type, shaderRegister, range.count);
 
-                // Descriptor Allocation
-                ShaderDescriptorTableLayout tableLayout;
-                tableLayout.count = range.count;
-                tableLayout.descriptorRange = mCPUDescriptorHeapPage.allocate(tableLayout.count);
-                descriptors.ranges.push_back(tableLayout);
+                totalDescriptors += range.count; // Descriptor Allocation
             }
-
-            createDescription.rootParameters.emplace_back(rootParameter);
-
-            mDescriptors.push_back(descriptors); // Descriptor Allocation
         }
+        mDescriptors = mCPUDescriptorHeapPage.allocate(totalDescriptors); // Descriptor Allocation
 
         createDescription.staticSamplers = getStaticSamplers();
 
-        return dx12::RootSignature(device, createDescription);
+        if (msRootSignatures.find(rootSignatureID) == msRootSignatures.end())
+        {
+            msRootSignatures.emplace(rootSignatureID, dx12::RootSignature(device, createDescription));
+        }
+
+        return msRootSignatures.at(rootSignatureID);
+    }
+
+    dx12::DescriptorHandle& ShaderInput::getDescriptorTableAt(const unsigned int layoutIndex)
+    {
+        unsigned int descriptorOffset = 0;
+
+        for (unsigned int i = 0; i < layoutIndex; ++i)
+        {
+            const Parameter& parameter = mParametersLayout.at(i);
+            for (const Range& range : parameter.ranges)
+            {
+                descriptorOffset += range.count;
+            }
+        }
+
+        return mDescriptors + (descriptorOffset * mCPUDescriptorHeapPage.getDescriptorSize());
+    }
+
+    dx12::DescriptorHandle& ShaderInput::getDescriptorRangeAt(const unsigned int layoutIndex, const unsigned int parameterIndex)
+    {
+        dx12::DescriptorHandle& tableHandle = getDescriptorTableAt(layoutIndex);
+
+        unsigned int rangeOffset = 0;
+        for (unsigned int i = 0; i < parameterIndex; ++i)
+        {
+            const Range& range = mParametersLayout.at(layoutIndex).ranges.at(i);
+            rangeOffset += range.count;
+        }
+
+        tableHandle += (rangeOffset * mCPUDescriptorHeapPage.getDescriptorSize());
+        return tableHandle;
+    }
+
+    dx12::DescriptorHandle& ShaderInput::getDescriptorHandleAt(const unsigned int layoutIndex, const unsigned int parameterIndex, const unsigned int rangeIndex)
+    {
+        dx12::DescriptorHandle& handle = getDescriptorRangeAt(layoutIndex, parameterIndex);
+        handle += (rangeIndex * mCPUDescriptorHeapPage.getDescriptorSize());
+        return handle;
     }
 }

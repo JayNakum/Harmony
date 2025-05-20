@@ -44,7 +44,7 @@ namespace graphics
                 if (newState == resource.getTransitioningState())
                 {
                     barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_END_ONLY;
-                    resource.setTransitioningState(GPUResourceStates::Invalid);
+                    resource.setTransitioningState(GPUResourceStates::Common);
                 }
                 else
                 {

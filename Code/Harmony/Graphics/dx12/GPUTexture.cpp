@@ -27,6 +27,7 @@ namespace graphics
             createDescription.format = mDescription.format;
             createDescription.sampleCount = mDescription.sampleCount;
             createDescription.sampleQuality = mDescription.sampleQuality;
+            createDescription.resourceFlags = mDescription.resourceFlags;
 
             return createDescription;
         }
@@ -150,7 +151,9 @@ namespace graphics
             HASSERT(mDescription.type == Type::Color, "Cannot create RTV for a Depth RenderTarget.");
 
             mTexture.setResource(baseResource);
-            device->CreateRenderTargetView(mTexture.get(), nullptr, rtvHandle);
+            HASSERT(mTexture.get() != nullptr, "mTexture is null.");
+            ID3D12Resource* res = mTexture.get();
+            device->CreateRenderTargetView(res, nullptr, rtvHandle);
         }
 
         void RenderTarget::createRenderTargetView(Device& device, DescriptorHandle& rtvHandle, uint32_t mipSlice, uint32_t arraySlice)

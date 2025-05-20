@@ -11,6 +11,7 @@ project "Engine"
   includedirs
   {
     "%{prj_src.Harmony.Engine}/",
+    
     "%{prj_src.Harmony.Core}/",
     "%{prj_src.Harmony.Graphics}/"
   }

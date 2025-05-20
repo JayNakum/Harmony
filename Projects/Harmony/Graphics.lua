@@ -11,7 +11,13 @@ project "Graphics"
   includedirs
   {
     "%{prj_src.Harmony.Graphics}/",
+
     "%{prj_src.Harmony.Core}/"
+  }
+
+  links
+  {
+    "Core" 
   }
 
   filter "platforms:Windows"

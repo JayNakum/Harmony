@@ -24,6 +24,7 @@ namespace graphics
     void CommandContext::reset(const uint64_t completedFence)
     {
         dx12::CommandAllocator commandAllocator = mCommandAllocatorPool.requestCommandAllocator(mDevice, completedFence);
+        mCommandList->Close();
         mCommandList->Reset(commandAllocator.get(), nullptr);
     }
 
@@ -34,16 +35,12 @@ namespace graphics
 
     void CommandContext::copyBuffer(dx12::GPUResource& destination, dx12::GPUResource& source)
     {
-        mCommandList.transitionResource(source, GPUResourceStates::CopySource);
-        mCommandList.transitionResource(destination, GPUResourceStates::CopyDestination);
         flushResourceBarriers();
         mCommandList->CopyResource(destination.get(), source.get());
     }
 
     void CommandContext::copyBufferRegion(dx12::GPUResource& destination, const size_t destinationOffset, dx12::GPUResource& source, const size_t sourceOffset, const size_t numBytes)
     {
-        mCommandList.transitionResource(source, GPUResourceStates::CopySource);
-        mCommandList.transitionResource(destination, GPUResourceStates::CopyDestination);
         flushResourceBarriers();
         mCommandList->CopyBufferRegion(destination.get(), destinationOffset, source.get(), sourceOffset, numBytes);
     }
@@ -71,8 +68,6 @@ namespace graphics
 
     void CommandContext::copyTextureRegion(dx12::GPUResource& destination, const unsigned int destinationX, const unsigned int destinationY, const unsigned int destinationZ, dx12::GPUResource& source, Box& sourceRect)
     {
-        mCommandList.transitionResource(source, GPUResourceStates::CopySource);
-        mCommandList.transitionResource(destination, GPUResourceStates::CopyDestination);
         flushResourceBarriers();
 
         D3D12_TEXTURE_COPY_LOCATION destLoc = CD3DX12_TEXTURE_COPY_LOCATION(destination.get(), 0);
@@ -175,16 +170,10 @@ namespace graphics
     }
 
 
-    void GraphicContext::clearColor(dx12::DescriptorHandle& target, float color[4], const Box* rect)
+    void GraphicContext::clearColor(dx12::DescriptorHandle& target, const float color[4])
     {
         flushResourceBarriers();
-        const D3D12_RECT d3dRect{
-            rect->left,
-            rect->top,
-            rect->right,
-            rect->bottom
-        };
-        mCommandList->ClearRenderTargetView(target, color, (rect == nullptr) ? 0 : 1, &d3dRect);
+        mCommandList->ClearRenderTargetView(target, color, 0, nullptr);
     }
 
     void GraphicContext::setRootSignature(const dx12::RootSignature& rootSignature)
@@ -293,7 +282,7 @@ namespace graphics
 
     void GraphicContext::setDescriptorTable(const unsigned int rootIndex, const dx12::DescriptorHandle& firstHandle)
     {
-        mCommandList->SetGraphicsRootDescriptorTable(rootIndex, firstHandle);
+        mCommandList->SetGraphicsRootDescriptorTable(rootIndex, firstHandle.getGPUHandle());
     }
 
     void GraphicContext::setIndexBuffer(const dx12::BufferView& view)
@@ -311,7 +300,7 @@ namespace graphics
             d3dViews[i] = dx12::BufferView::toD3DVertexBufferView(views[i]);
         }
 
-        mCommandList->IASetVertexBuffers(slot, count, d3dViews.data());
+        mCommandList->IASetVertexBuffers((UINT)slot, (UINT)count, d3dViews.data());
     }
 
     void GraphicContext::draw(const unsigned int vertexCount, const unsigned int vertexStartOffset)

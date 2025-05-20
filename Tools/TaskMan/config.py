@@ -11,7 +11,7 @@ TASKS = {
             'working_dir': '.',
         }
     },
-    'clean build': {
+    'clean build dir': {
         'func': delete_folder,
         'kwargs': {
             'folder_path': 'Build',

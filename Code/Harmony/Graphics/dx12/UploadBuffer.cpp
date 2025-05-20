@@ -41,7 +41,6 @@ namespace graphics
             GPUResource::Description description{};
             description.width = mBufferSize;
             description.dimension = GPUResourceDimension::Buffer;
-
             return description;
         }
 

@@ -39,7 +39,7 @@ namespace graphics
         struct Parameter
         {
             const ShaderVisibility shaderVisibility;
-            std::vector<Range> ranges;
+            const std::vector<Range> ranges;
         };
 
         // Scoped shader inputs.
@@ -73,30 +73,28 @@ namespace graphics
     private:
         static const std::array<dx12::StaticSampler, 6> getStaticSamplers();
 
+        std::string createRootSignatureID();
+
         // Creates the root signature and allocated descriptors in CPU heap.
-        dx12::RootSignature initialize(const std::string& name);
+        dx12::RootSignature& initialize(const std::string& rootSignatureID);
+
+        dx12::DescriptorHandle& getDescriptorTableAt(const unsigned int layoutIndex);
+        dx12::DescriptorHandle& getDescriptorRangeAt(const unsigned int layoutIndex, const unsigned int parameterIndex);
+        dx12::DescriptorHandle& getDescriptorHandleAt(const unsigned int layoutIndex, const unsigned int parameterIndex, const unsigned int rangeIndex);
 
     private:
         GraphicContext& mContext;
+        dx12::DescriptorHandle mDescriptors;
+        DescriptorHeapWithAllocator::Page& mCPUDescriptorHeapPage;
+
+        dx12::RootSignature& mRootSignature;
 
         const std::vector<Constants>& mConstantsLayout;
         const std::vector<Parameter>& mParametersLayout;
-        dx12::RootSignature mRootSignature;
-
-        DescriptorHeapWithAllocator::Page& mCPUDescriptorHeapPage;
 
         using RootConstants = std::vector<dx12::DWParam>;
         std::vector<RootConstants> mRootConstants;
 
-        struct ShaderDescriptorTableLayout // struct Range
-        {
-            dx12::DescriptorHandle descriptorRange;
-            unsigned int count = 1;
-        };
-        struct ShaderDescriptorLayout // struct Parameter
-        {
-            std::vector<ShaderDescriptorTableLayout> ranges;
-        };
-        std::vector<ShaderDescriptorLayout> mDescriptors;
+        static std::unordered_map<std::string, dx12::RootSignature> msRootSignatures;
     };
 }
