@@ -17,9 +17,21 @@ namespace graphics
             const Description createDescription = describeResource();
             D3D12_RESOURCE_DESC resourceDescription = GPUResource::toD3DResourceDesc(createDescription);
 
+            const D3D12_CLEAR_VALUE clearValue{
+                resourceDescription.Format,
+                {
+                    createDescription.clearColor[0],
+                    createDescription.clearColor[1],
+                    createDescription.clearColor[2],
+                    createDescription.clearColor[3]
+                }
+            };
+
             HRESULT hResult = device->CreateCommittedResource(
                 &heapProperties, D3D12_HEAP_FLAG_NONE, &resourceDescription,
-                toD3DResourceStates(mUsageState), {}, IID_PPV_ARGS(getAddressOf())
+                toD3DResourceStates(mUsageState),
+                createDescription.dimension == GPUResourceDimension::Buffer ? nullptr : &clearValue,
+                IID_PPV_ARGS(getAddressOf())
             );
             HASSERT(SUCCEEDED(hResult), "Failed to create committed resource %s.\n%s", createDescription.name, utility::translateErrorCode(hResult));
 
@@ -31,9 +43,21 @@ namespace graphics
             const Description createDescription = describeResource();
             D3D12_RESOURCE_DESC resourceDescription = GPUResource::toD3DResourceDesc(createDescription);
 
+            const D3D12_CLEAR_VALUE clearValue{
+                resourceDescription.Format,
+                {
+                    createDescription.clearColor[0],
+                    createDescription.clearColor[1],
+                    createDescription.clearColor[2],
+                    createDescription.clearColor[3]
+                }
+            };
+
             HRESULT hResult = device->CreatePlacedResource(
                 (backingHeap.get()), heapOffset, &resourceDescription,
-                toD3DResourceStates(mUsageState), nullptr, IID_PPV_ARGS(getAddressOf())
+                toD3DResourceStates(mUsageState),
+                createDescription.dimension == GPUResourceDimension::Buffer ? nullptr : &clearValue,
+                IID_PPV_ARGS(getAddressOf())
             );
             HASSERT(SUCCEEDED(hResult), "Failed to create placed resource %s.\n%s", createDescription.name, utility::translateErrorCode(hResult));
             setD3DName(mResource.Get(), utility::toWideString(createDescription.name).c_str());

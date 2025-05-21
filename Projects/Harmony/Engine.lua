@@ -2,6 +2,9 @@ project "Engine"
   location "%{wks.location}/Harmony/Engine"
   kind "StaticLib"
 
+  targetdir (target_dir)
+  objdir (obj_dir)
+
   files
   {
     "%{prj_src.Harmony.Engine}/**.h",

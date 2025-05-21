@@ -30,8 +30,6 @@ workspace "Harmony"
   language "C++"
   cppdialect "C++20"
   staticruntime "on"
-  targetdir (target_dir)
-  objdir (obj_dir)
 
 group "Platform"
   include "Platform/Windows"

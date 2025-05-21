@@ -6,6 +6,7 @@ namespace graphics
 
     ShaderInput::ShaderInput(GraphicContext& context, const std::vector<Constants>& constantsLayout, const std::vector<Parameter>& parametersLayout)
         : mContext(context),
+        mDescriptors(),
         mCPUDescriptorHeapPage(context.getShaderViewHeapPage()),
         mConstantsLayout(constantsLayout),
         mParametersLayout(parametersLayout),
@@ -84,6 +85,8 @@ namespace graphics
 
     void ShaderInput::finalize()
     {
+        mContext.bindDescriptorHeaps();
+
         unsigned int rootIndex = 0;
 
         {// Finalize root constants
@@ -106,8 +109,6 @@ namespace graphics
                 dx12::DescriptorHandle gpuHandle = gpuStartHandle + cpuOffset;
                 mContext.commandList()->SetGraphicsRootDescriptorTable(rootIndex++, gpuHandle.getGPUHandle());
             }
-
-            mContext.bindDescriptorHeaps();
         }
     }
 
@@ -166,13 +167,15 @@ namespace graphics
 
     std::string ShaderInput::createRootSignatureID()
     {
+        static unsigned int i = 0;
         std::string rootSignatureID = "ROOT SIGNATURE";
+        rootSignatureID += std::to_string(i++);
 
-        /*for (const Constants& constants : mConstantsLayout)
+        for (const Constants& constants : mConstantsLayout)
         {
             rootSignatureID += toString(constants.shaderVisibility);
             rootSignatureID += std::to_string(constants.count);
-        }*/
+        }
 
         for (const Parameter& parameter : mParametersLayout)
         {

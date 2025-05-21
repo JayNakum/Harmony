@@ -199,6 +199,9 @@ namespace graphics
 
                     // Ignoring InitialState D3D12_RESOURCE_STATE_COPY_DEST. Buffers are effectively created in state D3D12_RESOURCE_STATE_COMMON.
                     D3D12_MESSAGE_ID_CREATERESOURCE_STATE_IGNORED,
+
+                    // Ignoring The clear values do not match those passed to resource creation. The clear operation is typically slower as a result; but will still clear to the desired value.
+                    D3D12_MESSAGE_ID_CLEARRENDERTARGETVIEW_MISMATCHINGCLEARVALUE
                 };
 
                 D3D12_INFO_QUEUE_FILTER newFilter = {};

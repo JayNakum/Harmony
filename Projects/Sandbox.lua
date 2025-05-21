@@ -2,6 +2,9 @@ project "Sandbox"
   location "%{wks.location}/Sandbox"
   kind "WindowedApp"
 
+  targetdir (target_dir)
+  objdir (obj_dir)
+  
   files
   {
     "%{prj_src.Sandbox}/**.h",

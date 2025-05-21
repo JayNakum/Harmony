@@ -38,6 +38,7 @@ namespace graphics
                 GPUResourceDimension dimension = GPUResourceDimension::Unknown;
                 Format format = DefaultFormats::UNKNOWN;
                 GPUResourceFlags resourceFlags = GPUResourceFlags::None;
+                float clearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
                 uint64_t alignment = 0;
                 unsigned int sampleCount = 1;
                 unsigned int sampleQuality = 0;

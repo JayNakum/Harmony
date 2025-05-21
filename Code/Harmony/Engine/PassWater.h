@@ -9,7 +9,7 @@ namespace engine
         class Water
         {
         public:
-            Water() = default;
+            Water(graphics::GraphicContext& context);
 
             struct InputOutputs
             {
@@ -19,6 +19,12 @@ namespace engine
             void render(graphics::GraphicContext& context, InputOutputs& inputOutputs);
 
             ~Water() = default;
+
+        private:
+            graphics::dx12::GraphicsPipelineState initialize(graphics::GraphicContext& context);
+
+        private:
+            graphics::dx12::GraphicsPipelineState mTrianglePSO;
         };
     }
 }

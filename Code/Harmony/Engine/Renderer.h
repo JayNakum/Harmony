@@ -42,10 +42,6 @@ namespace engine
         ~Renderer();
 
     private:
-        renderPass::Water waterPass;
-        renderPass::Present presentPass;
-
-    private:
         graphics::dx12::Device mDevice;
         graphics::dx12::CommandQueue mGraphicsQueue;
 
@@ -61,5 +57,13 @@ namespace engine
         unsigned int mClientHeight;
 
         graphics::dx12::RenderTarget::Description mRenderTargetDescription;
+
+    private:
+        graphics::dx12::UploadBuffer* intermediateBuffer;
+        graphics::dx12::ByteAddressBuffer* vertexBuffer;
+        graphics::dx12::RenderTarget* waterRT;
+        graphics::dx12::DescriptorHandle waterRTV;
+        renderPass::Water* mWaterPass;
+        renderPass::Present* mPresentPass;
     };
 }

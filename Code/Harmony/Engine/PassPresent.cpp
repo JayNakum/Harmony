@@ -31,6 +31,10 @@ namespace engine
 {
     namespace renderPass
     {
+        Present::Present(graphics::GraphicContext& context)
+            : mPresentPSO(initialize(context))
+        {}
+
         void Present::render(graphics::GraphicContext& context, InputOutputs& inputOutputs)
         {
             const graphics::ShaderInput::Parameter slot1{ graphics::ShaderVisibility::Pixel,
@@ -44,25 +48,8 @@ namespace engine
                 graphics::dx12::GPUTexture::ShaderResourceViewInfo::getSRVInfo(inputOutputs.inPresentTexture.describeResource()),
                 0
             );
-
-            graphics::dx12::GraphicsPipelineState::Description psoDesc;
-            psoDesc.name = "present pso";
-            psoDesc.rootSignature = &(presentSI.getRootSignature());
-            psoDesc.vertexShader = graphics::GraphicContext::compileShader(
-                "ScreenQuadVS",
-                shaders::ScreenQuadVS,
-                "vs_5_0"
-            );
-            psoDesc.pixelShader = graphics::GraphicContext::compileShader(
-                "BufferCopyPS",
-                shaders::BufferCopyPS,
-                "ps_5_0"
-            );
-            psoDesc.numRenderTargets = 1;
-            psoDesc.rtvFormats[0] = graphics::DefaultFormats::R8G8B8A8_UNORM;
-            graphics::dx12::GraphicsPipelineState presentPSO(context.getDevice(), psoDesc);
-
-            context.setPipelineState(presentPSO);
+            presentSI.finalize();
+            context.setPipelineState(mPresentPSO);
 
             graphics::ViewPort viewport{};
             viewport.x = 0;
@@ -83,6 +70,34 @@ namespace engine
             context.clearColor(inputOutputs.inRTV, clearColor);
             context.setPrimitiveTopology(graphics::PrimitiveTopology::TriangleList);
             context.draw(3);
+        }
+
+        graphics::dx12::GraphicsPipelineState Present::initialize(graphics::GraphicContext& context)
+        {
+            const graphics::ShaderInput::Parameter slot1{ graphics::ShaderVisibility::Pixel,
+                {{graphics::DescriptorRangeType::SRV, 1}}
+            };
+            const std::vector<graphics::ShaderInput::Parameter> parametersLayout = { slot1 };
+
+            graphics::ShaderInput presentSI(context, {/*no constants*/ }, parametersLayout);
+
+            graphics::dx12::GraphicsPipelineState::Description psoDesc;
+            psoDesc.name = "present pso";
+            psoDesc.rootSignature = &(presentSI.getRootSignature());
+            psoDesc.vertexShader = graphics::GraphicContext::compileShader(
+                "ScreenQuadVS",
+                shaders::ScreenQuadVS,
+                "vs_5_0"
+            );
+            psoDesc.pixelShader = graphics::GraphicContext::compileShader(
+                "BufferCopyPS",
+                shaders::BufferCopyPS,
+                "ps_5_0"
+            );
+            psoDesc.numRenderTargets = 1;
+            psoDesc.rtvFormats[0] = graphics::DefaultFormats::R8G8B8A8_UNORM;
+
+            return graphics::dx12::GraphicsPipelineState(context.getDevice(), psoDesc);
         }
     }
 }

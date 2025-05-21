@@ -87,10 +87,10 @@ namespace graphics
         dx12::DescriptorHandle mDescriptors;
         DescriptorHeapWithAllocator::Page& mCPUDescriptorHeapPage;
 
-        dx12::RootSignature& mRootSignature;
-
         const std::vector<Constants>& mConstantsLayout;
         const std::vector<Parameter>& mParametersLayout;
+
+        dx12::RootSignature& mRootSignature;
 
         using RootConstants = std::vector<dx12::DWParam>;
         std::vector<RootConstants> mRootConstants;

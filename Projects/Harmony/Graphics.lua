@@ -2,6 +2,9 @@ project "Graphics"
   location "%{wks.location}/Harmony/Graphics"
   kind "StaticLib"
 
+  targetdir (target_dir)
+  objdir (obj_dir)
+  
   files
   {
     "%{prj_src.Harmony.Graphics}/**.h",

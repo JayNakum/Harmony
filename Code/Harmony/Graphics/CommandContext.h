@@ -77,7 +77,7 @@ namespace graphics
         void bindDescriptorHeaps();
 
         // flush existing commands to the GPU and keep the context alive
-        // uint64_t finish(const bool waitForCompletion = false);
+        void finish();
 
         inline void flushResourceBarriers() { mCommandList.flushResourceBarriers(); }
 

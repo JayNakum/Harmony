@@ -3,6 +3,9 @@ project "Windows"
   kind "StaticLib"
   systemversion "latest"
 
+  targetdir (target_dir)
+  objdir (obj_dir)
+  
   files
   {
     "%{prj_src.Platform.Windows}/**.h",
