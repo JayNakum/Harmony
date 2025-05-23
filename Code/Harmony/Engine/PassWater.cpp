@@ -49,8 +49,8 @@ namespace engine
 
             context.setRenderTargets(inputOutputs.inRTV);
 
-            //const float clearColor[4] = { 0.118f, 0.106f, 0.180f, 1.0f };
-            const float clearColor[4] = { 1.0f, 0.0f, 0.0f, 1.0f };
+            const float clearColor[4] = { 0.118f, 0.106f, 0.180f, 1.0f };
+            //const float clearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
             context.clearColor(inputOutputs.inRTV, clearColor);
 
             context.setPrimitiveTopology(graphics::PrimitiveTopology::TriangleList);

@@ -70,6 +70,7 @@ namespace graphics
 
         ~ShaderInput() = default;
 
+        static std::unordered_map<std::string, dx12::RootSignature> msRootSignatures;
     private:
         static const std::array<dx12::StaticSampler, 6> getStaticSamplers();
 
@@ -95,6 +96,5 @@ namespace graphics
         using RootConstants = std::vector<dx12::DWParam>;
         std::vector<RootConstants> mRootConstants;
 
-        static std::unordered_map<std::string, dx12::RootSignature> msRootSignatures;
     };
 }

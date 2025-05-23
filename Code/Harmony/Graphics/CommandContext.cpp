@@ -194,12 +194,12 @@ namespace graphics
     void GraphicContext::setViewport(const ViewPort& viewport)
     {
         const D3D12_VIEWPORT d3dViewPort{
-            viewport.x,
-            viewport.y,
-            viewport.width,
-            viewport.height,
-            viewport.minDepth,
-            viewport.maxDepth
+            (FLOAT)viewport.x,
+            (FLOAT)viewport.y,
+            (FLOAT)viewport.width,
+            (FLOAT)viewport.height,
+            (FLOAT)viewport.minDepth,
+            (FLOAT)viewport.maxDepth
         };
 
         mCommandList->RSSetViewports(1, &d3dViewPort);
@@ -210,10 +210,10 @@ namespace graphics
         HASSERT(rect.left < rect.right && rect.top < rect.bottom, "Invalid scissor rect.");
 
         const D3D12_RECT d3dRect{
-            rect.left,
-            rect.top,
-            rect.right,
-            rect.bottom
+            (UINT)rect.left,
+            (UINT)rect.top,
+            (UINT)rect.right,
+            (UINT)rect.bottom
         };
 
         mCommandList->RSSetScissorRects(1, &d3dRect);

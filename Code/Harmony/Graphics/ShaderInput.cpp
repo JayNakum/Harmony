@@ -167,9 +167,8 @@ namespace graphics
 
     std::string ShaderInput::createRootSignatureID()
     {
-        static unsigned int i = 0;
         std::string rootSignatureID = "ROOT SIGNATURE";
-        rootSignatureID += std::to_string(i++);
+        return rootSignatureID;
 
         for (const Constants& constants : mConstantsLayout)
         {
@@ -187,7 +186,6 @@ namespace graphics
             }
         }
 
-        return rootSignatureID;
     }
 
     dx12::RootSignature& ShaderInput::initialize(const std::string& rootSignatureID)

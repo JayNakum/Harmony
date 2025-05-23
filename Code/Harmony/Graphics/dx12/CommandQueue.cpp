@@ -57,15 +57,21 @@ namespace graphics
             mLastCompletedFenceValue = fenceValue;
         }
 
-        const uint64_t CommandQueue::executeCommandList(dx12::CommandList& commandList)
+        const uint64_t CommandQueue::executeCommandLists(std::vector<dx12::CommandList> commandLists)
         {
             std::lock_guard<std::mutex> scopedLockGuard(mFenceMutex);
 
-            HRESULT hResult = commandList->Close();
-            HASSERT(SUCCEEDED(hResult), "Failed to close command list.\n%s", utility::translateErrorCode(hResult));
+            std::vector<ID3D12CommandList*> d3dCommandLists;
+            d3dCommandLists.reserve(commandLists.size());
+            for (CommandList commandList : commandLists)
+            {
+                HRESULT hResult = commandList->Close();
+                HASSERT(SUCCEEDED(hResult), "Failed to close command list.\n%s", utility::translateErrorCode(hResult));
 
-            ID3D12CommandList* list = commandList.get();
-            mCommandQueue->ExecuteCommandLists(1, &list);
+                d3dCommandLists.push_back(commandList.get());
+            }
+
+            mCommandQueue->ExecuteCommandLists(d3dCommandLists.size(), d3dCommandLists.data());
 
             return incrementFenceNoMutex();
         }

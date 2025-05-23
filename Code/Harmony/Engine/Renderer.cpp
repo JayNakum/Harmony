@@ -1,5 +1,7 @@
 #include "Renderer.h"
 
+#include "ShaderInput.h"
+
 struct Vertex
 {
     float position[4];
@@ -83,7 +85,7 @@ namespace engine
         initContext.transitionResource(*vertexBuffer, graphics::GPUResourceStates::VertexAndConstantBuffer, true);
 
 
-        graphics::dx12::RenderTarget::Description description = mRenderTargetDescription;
+        /*graphics::dx12::RenderTarget::Description description = mRenderTargetDescription;
         description.textureDescription.name = "water render target";
         description.textureDescription.clearColor[0] = 0.118f;
         description.textureDescription.clearColor[1] = 0.106f;
@@ -92,14 +94,13 @@ namespace engine
         waterRT = new graphics::dx12::RenderTarget(description);
         waterRT->getTexture().createCommitted(initContext.getDevice());
         waterRTV = mRTVPage.allocate(1);
-        waterRT->createRenderTargetView(initContext.getDevice(), waterRTV);
+        waterRT->createRenderTargetView(initContext.getDevice(), waterRTV);*/
 
         mWaterPass = new renderPass::Water(initContext);
 
-        mPresentPass = new renderPass::Present(initContext);
+        //mPresentPass = new renderPass::Present(initContext);
 
-
-        mGraphicsQueue.executeCommandList(initContext.commandList());
+        mGraphicsQueue.executeCommandLists({ initContext.commandList() });
         mGraphicsQueue.waitForIdle();
 
         //discardGraphicContext(initContext);
@@ -124,32 +125,32 @@ namespace engine
 
         graphics::dx12::BufferView vertexBufferView = vertexBuffer->vertexBufferView(sizeof(Vertex));
 
-        contextWater.transitionResource(waterRT->getTexture(), graphics::GPUResourceStates::RenderTarget, true);
+        contextWater.transitionResource(mSwapchain.getCurrentBackBuffer().getTexture(), graphics::GPUResourceStates::RenderTarget, true);
 
         renderPass::Water::InputOutputs waterIO{
             vertexBufferView,
-            waterRTV
+            mSwapchain.getCurrentBackBufferView()
         };
         mWaterPass->render(contextWater, waterIO);
 
+        contextWater.transitionResource(mSwapchain.getCurrentBackBuffer().getTexture(), graphics::GPUResourceStates::Present, true);
         // PRESENT PASS
-        graphics::GraphicContext& contextPresent = aquireGraphicContext("present");
+        //graphics::GraphicContext& contextPresent = aquireGraphicContext("present");
 
-        contextPresent.transitionResource(waterRT->getTexture(), graphics::GPUResourceStates::PixelShaderResource, true);
+        //contextPresent.transitionResource(waterRT->getTexture(), graphics::GPUResourceStates::PixelShaderResource, true);
 
-        contextPresent.transitionResource(mSwapchain.getCurrentBackBuffer().getTexture(), graphics::GPUResourceStates::RenderTarget, true);
+        //contextPresent.transitionResource(mSwapchain.getCurrentBackBuffer().getTexture(), graphics::GPUResourceStates::RenderTarget, true);
 
-        renderPass::Present::InputOutputs presentIO{
-            mClientWidth, mClientHeight,
-            waterRT->getTexture(),
-            mSwapchain.getCurrentBackBufferView()
-        };
-        mPresentPass->render(contextPresent, presentIO);
+        //renderPass::Present::InputOutputs presentIO{
+        //	mClientWidth, mClientHeight,
+        //	waterRT->getTexture(),
+        //	mSwapchain.getCurrentBackBufferView()
+        //};
+        //mPresentPass->render(contextPresent, presentIO);
 
-        contextPresent.transitionResource(mSwapchain.getCurrentBackBuffer().getTexture(), graphics::GPUResourceStates::Present, true);
+        //contextPresent.transitionResource(mSwapchain.getCurrentBackBuffer().getTexture(), graphics::GPUResourceStates::Present, true);
 
-        mGraphicsQueue.executeCommandList(contextWater.commandList());
-        mGraphicsQueue.executeCommandList(contextPresent.commandList());
+        mGraphicsQueue.executeCommandLists({ contextWater.commandList() });
 
         mSwapchain.present();
 
@@ -158,10 +159,11 @@ namespace engine
 
     Renderer::~Renderer()
     {
+        graphics::ShaderInput::msRootSignatures.clear();
         delete intermediateBuffer;
         delete vertexBuffer;
-        delete waterRT;
+        // delete waterRT;
         delete mWaterPass;
-        delete mPresentPass;
+        //delete mPresentPass;
     }
 }
