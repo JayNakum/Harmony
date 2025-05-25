@@ -30,12 +30,14 @@ namespace graphics
             const unsigned int count = 1;
         };
 
+        // Descriptor Table Entry
         struct Range
         {
             const DescriptorRangeType type;
             const unsigned int count = 1;
         };
 
+        // Descriptor Table
         struct Parameter
         {
             const ShaderVisibility shaderVisibility;
@@ -85,7 +87,9 @@ namespace graphics
 
     private:
         GraphicContext& mContext;
+
         dx12::DescriptorHandle mDescriptors;
+        unsigned int mDescriptorsCount;
         DescriptorHeapWithAllocator::Page& mCPUDescriptorHeapPage;
 
         const std::vector<Constants>& mConstantsLayout;
@@ -95,6 +99,5 @@ namespace graphics
 
         using RootConstants = std::vector<dx12::DWParam>;
         std::vector<RootConstants> mRootConstants;
-
     };
 }

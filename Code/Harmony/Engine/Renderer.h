@@ -27,7 +27,7 @@ namespace engine
         {
             graphics::GraphicContext& context = mCommandContextPool.requestGraphicContext(mDevice, mShaderViewsHeap);
             context.setName(name);
-            context.reset(mGraphicsQueue.getCompletedFence());
+            context.reset(mGraphicsQueue.incrementFence());
             return context;
         }
 
@@ -59,7 +59,6 @@ namespace engine
         graphics::dx12::RenderTarget::Description mRenderTargetDescription;
 
     private:
-        graphics::dx12::UploadBuffer* intermediateBuffer;
         graphics::dx12::ByteAddressBuffer* vertexBuffer;
         graphics::dx12::RenderTarget* waterRT;
         graphics::dx12::DescriptorHandle waterRTV;

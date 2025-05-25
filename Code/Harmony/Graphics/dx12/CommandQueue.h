@@ -35,16 +35,17 @@ namespace graphics
             // Checks if the fenceValue is reached or not.
             bool isFenceComplete(const uint64_t fenceValue);
 
-            inline const uint64_t getCompletedFence() { return mFence->GetCompletedValue(); }
-
-            // Waits for the passed fence value.
+            // CPU Waits for the passed fence value.
             void waitForFence(const uint64_t fenceValue);
+
+            // GPU Waits for the passed fence value.
+            void stallForFence(Fence fence);
 
             // Flushes the entire command queue.
             inline void waitForIdle() { waitForFence(incrementFence()); }
 
             // Executes the commandlist and returns the incremented fence.
-            const uint64_t executeCommandLists(std::vector<dx12::CommandList> commandList);
+            const uint64_t executeCommandLists(dx12::CommandList commandList[], const unsigned int count = 1);
 
             // Executes multiple commandlists and returns the incremented fence.
             // const uint64_t executeCommandLists(dx12::CommandList commandList[], const size_t count = 1);

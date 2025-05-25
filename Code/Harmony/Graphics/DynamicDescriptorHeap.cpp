@@ -21,7 +21,8 @@ namespace graphics
                 MAX_DESCRIPTORS_COUNT,
                 graphics::DescriptorHeapFlags::GPUVisible
             }
-        )
+        ),
+        mCurrentGPUPage(mGPUHeap.allocatePage())
     {}
 
     DescriptorHeapWithAllocator::Page DynamicDescriptorHeap::allocatePage()
@@ -29,12 +30,22 @@ namespace graphics
         return mCPUHeap.allocatePage();
     }
 
-    dx12::DescriptorHandle DynamicDescriptorHeap::finalize(const DescriptorHeapWithAllocator::Page& cpuPage)
+    dx12::DescriptorHandle DynamicDescriptorHeap::finalize(const dx12::DescriptorHandle& allocationStart, const unsigned int descriptorsCount)
     {
-        DescriptorHeapWithAllocator::Page gpuPage = mGPUHeap.allocatePage();
+        if (descriptorsCount <= 0)
+        {
+            return dx12::DescriptorHandle();
+        }
 
-        mGPUHeap.copyDescriptorsFrom(mDevice, gpuPage.getStartHandle(), { cpuPage.getStartHandle() }, { (unsigned int)(cpuPage.getUsedHandlesCount()) });
+        if (!mCurrentGPUPage.canAllocate(descriptorsCount))
+        {
+            mCurrentGPUPage = mGPUHeap.allocatePage();
+        }
 
-        return gpuPage.getStartHandle();
+        dx12::DescriptorHandle allocationHandle = mCurrentGPUPage.allocate(descriptorsCount);
+
+        mGPUHeap.copyDescriptorsFrom(mDevice, allocationHandle, { allocationStart }, { descriptorsCount });
+
+        return allocationHandle;
     }
 }

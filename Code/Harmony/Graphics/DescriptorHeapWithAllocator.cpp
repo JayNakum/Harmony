@@ -17,7 +17,7 @@ namespace graphics
 
     dx12::DescriptorHandle DescriptorHeapWithAllocator::Page::allocate(const size_t count)
     {
-        HASSERT_SOFT(canAllocate(count), "Descriptor Heap out of space. Trying to allocate %d descriptors but available space is %d. Overwriting from the beginning.", count, mNumFreeDescriptors);
+        HASSERT_SOFT_ONCE(canAllocate(count), "Descriptor Heap out of space. Trying to allocate %d descriptors but available space is %d. Overwriting from the beginning.", count, mNumFreeDescriptors);
 
         if (!canAllocate(count)) // Ring allocation
         {

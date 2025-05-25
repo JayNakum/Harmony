@@ -73,11 +73,11 @@ namespace graphics
 
         void setPredication(dx12::GPUResource& buffer, const size_t bufferOffset, bool equalZero);
 
-        const dx12::DescriptorHandle copyDescriptorsToGPU();
+        const dx12::DescriptorHandle copyDescriptorsToGPU(const dx12::DescriptorHandle& allocationStart, const unsigned int descriptorsCount = 1);
         void bindDescriptorHeaps();
 
         // flush existing commands to the GPU and keep the context alive
-        void finish();
+        void finish(const uint64_t completedFenceValue);
 
         inline void flushResourceBarriers() { mCommandList.flushResourceBarriers(); }
 
@@ -91,6 +91,7 @@ namespace graphics
 
     protected:
         CommandAllocatorPool mCommandAllocatorPool;
+        dx12::CommandAllocator* mCurrentCommandAllocator;
         dx12::CommandList mCommandList;
     };
 }

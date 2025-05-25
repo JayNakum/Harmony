@@ -7,6 +7,7 @@ namespace graphics
     ShaderInput::ShaderInput(GraphicContext& context, const std::vector<Constants>& constantsLayout, const std::vector<Parameter>& parametersLayout)
         : mContext(context),
         mDescriptors(),
+        mDescriptorsCount(0),
         mCPUDescriptorHeapPage(context.getShaderViewHeapPage()),
         mConstantsLayout(constantsLayout),
         mParametersLayout(parametersLayout),
@@ -89,25 +90,35 @@ namespace graphics
 
         unsigned int rootIndex = 0;
 
-        {// Finalize root constants
-            HASSERT(mConstantsLayout.size() == mRootConstants.size(), "Mismatch in layout size (%d) and root constants size (%s).", mConstantsLayout.size(), mRootConstants.size());
+        // Finalize root constants
+        HASSERT(mConstantsLayout.size() == mRootConstants.size(), "Mismatch in layout size (%d) and root constants size (%s).", mConstantsLayout.size(), mRootConstants.size());
 
-            while (rootIndex < mRootConstants.size())
-            {
-                RootConstants& constants = mRootConstants.at(rootIndex);
-                mContext.commandList()->SetComputeRoot32BitConstants(rootIndex++, (UINT)constants.size(), constants.data(), 0);
-            }
+        while (rootIndex < mRootConstants.size())
+        {
+            RootConstants& constants = mRootConstants.at(rootIndex);
+            mContext.commandList()->SetComputeRoot32BitConstants(rootIndex++, (UINT)constants.size(), constants.data(), 0);
         }
-        {// Finalize descriptor tables
-            const dx12::DescriptorHandle gpuStartHandle = mContext.copyDescriptorsToGPU();
-            for (unsigned int i = 0; i < mParametersLayout.size(); ++i)
-            {
-                const Parameter& param = mParametersLayout[i];
-                dx12::DescriptorHandle handle = getDescriptorTableAt(i);
 
-                uint32_t cpuOffset = mCPUDescriptorHeapPage.getByteOffsetOfHandle(handle);
-                dx12::DescriptorHandle gpuHandle = gpuStartHandle + cpuOffset;
-                mContext.commandList()->SetGraphicsRootDescriptorTable(rootIndex++, gpuHandle.getGPUHandle());
+        // Finalize descriptor tables
+        const dx12::DescriptorHandle gpuStartHandle = mContext.copyDescriptorsToGPU(mDescriptors, mDescriptorsCount);
+
+        unsigned int descriptorOffset = 0;
+
+        for (unsigned int i = 0; i < mParametersLayout.size(); ++i)
+        {
+            // Calculate the GPU Handle
+            // Since the all the descriptors are allocated in a single allocation, they are expected to be linear.
+            // And since the copyToGPU happens on all the descriptors at once, it is safe to assume that the GPU Heap will have all the descriptors linearly placed.
+            // Meaning that we start with offset = 0, and then we add the number of descriptors per table to the offset.
+            dx12::DescriptorHandle gpuHandle = gpuStartHandle + (descriptorOffset * mCPUDescriptorHeapPage.getDescriptorSize());
+
+            mContext.commandList()->SetGraphicsRootDescriptorTable(rootIndex++, gpuHandle.getGPUHandle());
+
+            // Calculate the next offset.
+            const Parameter& parameter = mParametersLayout.at(i);
+            for (const Range& range : parameter.ranges)
+            {
+                descriptorOffset += range.count;
             }
         }
     }
@@ -167,8 +178,7 @@ namespace graphics
 
     std::string ShaderInput::createRootSignatureID()
     {
-        std::string rootSignatureID = "ROOT SIGNATURE";
-        return rootSignatureID;
+        std::string rootSignatureID = "";
 
         for (const Constants& constants : mConstantsLayout)
         {
@@ -186,6 +196,7 @@ namespace graphics
             }
         }
 
+        return rootSignatureID;
     }
 
     dx12::RootSignature& ShaderInput::initialize(const std::string& rootSignatureID)
@@ -194,7 +205,7 @@ namespace graphics
         dx12::Device& device = mContext.getDevice();
 
         dx12::RootSignature::Description createDescription;
-        createDescription.name = mContext.getName() + " root signature";
+        createDescription.name = rootSignatureID;
 
         unsigned int nextConstant32 = 0;
         for (const Constants& constants : mConstantsLayout)
@@ -215,7 +226,6 @@ namespace graphics
         unsigned int nextUAV = 0;
         unsigned int nextSampler = 0;
 
-        unsigned int totalDescriptors = 0; // Descriptor Allocation
         for (const Parameter& parameter : mParametersLayout)
         {
             HASSERT(parameter.ranges.size() > 0, "No descriptor ranges found.");
@@ -249,10 +259,10 @@ namespace graphics
 
                 rootParameter.setTableRange(rangeIndex, range.type, shaderRegister, range.count);
 
-                totalDescriptors += range.count; // Descriptor Allocation
+                mDescriptorsCount += range.count; // Descriptor Allocation
             }
         }
-        mDescriptors = mCPUDescriptorHeapPage.allocate(totalDescriptors); // Descriptor Allocation
+        mDescriptors = mCPUDescriptorHeapPage.allocate(mDescriptorsCount); // Descriptor Allocation
 
         createDescription.staticSamplers = getStaticSamplers();
 

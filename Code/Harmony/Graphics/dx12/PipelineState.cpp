@@ -29,7 +29,7 @@ namespace graphics
             // TODO: Stream Output
 
             // Blend State
-            d3dDescription.BlendState = BlendDescription::toD3DBlendDesc(createDescription.blendDescription);
+            d3dDescription.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 
             d3dDescription.SampleMask = D3D12_DEFAULT_SAMPLE_MASK;
 

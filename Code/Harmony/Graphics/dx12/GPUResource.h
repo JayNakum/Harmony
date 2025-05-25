@@ -25,9 +25,6 @@ namespace graphics
         class GPUResource
         {
         public:
-            static constexpr D3D12_GPU_VIRTUAL_ADDRESS NULL_ADDRESS = (D3D12_GPU_VIRTUAL_ADDRESS)0;
-            static constexpr D3D12_GPU_VIRTUAL_ADDRESS INVALID_ADDRESS = (D3D12_GPU_VIRTUAL_ADDRESS)-1;
-
             struct Description
             {
                 std::string name;

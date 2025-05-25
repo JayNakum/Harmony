@@ -16,7 +16,7 @@ namespace graphics
         class DescriptorHandle
         {
         public:
-            static constexpr uint32_t INVALID_ADDRESS = -1;
+            static constexpr uint32_t INVALID_ADDRESS = 0x1deadb0b;
 
             DescriptorHandle()
             {
@@ -75,7 +75,6 @@ namespace graphics
 
             const D3D12_CPU_DESCRIPTOR_HANDLE* operator&() const { return &mCPUHandle; }
             operator D3D12_CPU_DESCRIPTOR_HANDLE() const { return mCPUHandle; }
-            //operator D3D12_GPU_DESCRIPTOR_HANDLE() const { return mGPUHandle; }
 
         private:
             D3D12_CPU_DESCRIPTOR_HANDLE mCPUHandle;

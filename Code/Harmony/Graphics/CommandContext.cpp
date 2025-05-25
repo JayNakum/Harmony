@@ -12,8 +12,12 @@ namespace graphics
         mShaderViewsHeap(descriptorHeap),
         mShaderViewsHeapCPUPage(mShaderViewsHeap.allocatePage()),
         mCommandAllocatorPool(mType),
-        mCommandList(mDevice, dx12::CommandList::Description{ "new " + toString(mType) + " commandList", mType, mCommandAllocatorPool.requestCommandAllocator(mDevice, 0)})
-    {}
+        mCurrentCommandAllocator(&mCommandAllocatorPool.requestCommandAllocator(mDevice, 0)),
+        mCommandList(mDevice, dx12::CommandList::Description{ toString(mType) + " commandList", mType, *mCurrentCommandAllocator})
+    {
+        HRESULT hResult = mCommandList->Close();
+        HASSERT(SUCCEEDED(hResult), "Failed to close command list.\n%s", utility::translateErrorCode(hResult));
+    }
 
     void CommandContext::setName(const std::string & name)
     {
@@ -23,9 +27,8 @@ namespace graphics
 
     void CommandContext::reset(const uint64_t completedFence)
     {
-        dx12::CommandAllocator commandAllocator = mCommandAllocatorPool.requestCommandAllocator(mDevice, completedFence);
-        mCommandList->Close();
-        mCommandList->Reset(commandAllocator.get(), nullptr);
+        mCurrentCommandAllocator = &mCommandAllocatorPool.requestCommandAllocator(mDevice, completedFence);
+        mCommandList->Reset(mCurrentCommandAllocator->get(), nullptr);
     }
 
     void CommandContext::transitionResource(dx12::GPUResource& resource, const GPUResourceStates newState, const bool flushImmediate)
@@ -99,15 +102,26 @@ namespace graphics
             equalZero ? D3D12_PREDICATION_OP_EQUAL_ZERO : D3D12_PREDICATION_OP_NOT_EQUAL_ZERO);
     }
 
-    const dx12::DescriptorHandle CommandContext::copyDescriptorsToGPU()
+    const dx12::DescriptorHandle CommandContext::copyDescriptorsToGPU(const dx12::DescriptorHandle& allocationStart, const unsigned int descriptorsCount)
     {
-        return mShaderViewsHeap.finalize(mShaderViewsHeapCPUPage);
+        return mShaderViewsHeap.finalize(allocationStart, descriptorsCount);
     }
 
     void CommandContext::bindDescriptorHeaps()
     {
         ID3D12DescriptorHeap* heap = mShaderViewsHeap.getGPUHeap().get();
         mCommandList->SetDescriptorHeaps(1, &heap);
+    }
+
+    void CommandContext::finish(const uint64_t completedFenceValue)
+    {
+        flushResourceBarriers();
+
+        HRESULT hResult = mCommandList->Close();
+        HASSERT(SUCCEEDED(hResult), "Failed to close command list.\n%s", utility::translateErrorCode(hResult));
+
+        mCommandAllocatorPool.discardCommandAllocator(completedFenceValue, *mCurrentCommandAllocator);
+        mCurrentCommandAllocator = nullptr;
     }
 
     /*uint64_t CommandContext::finish(bool waitForCompletion)

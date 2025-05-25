@@ -54,7 +54,6 @@ def delete_folder(folder_path:str, working_dir:str) -> bool:
         print(f"[INFO] Deleting {full_path}")
         shutil.rmtree(full_path)
         print(f"[INFO] {full_path} deleted successfully.")
-        return True
     else:
-        print(f"[INFO] {full_path} directory not found")
-        return False
+        print(f"[INFO] {full_path} directory not found.")
+    return True

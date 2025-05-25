@@ -12,8 +12,8 @@ namespace graphics
             : CommandObject(createDescription.type),
             mCommandQueue(nullptr),
             mFence(device, createDescription.name + "fence"),
-            mNextFenceValue((uint64_t)mType << 56 | 1),
-            mLastCompletedFenceValue((uint64_t)mType << 56)
+            mNextFenceValue(1),
+            mLastCompletedFenceValue(0)
         {
             D3D12_COMMAND_QUEUE_DESC createDesc{};
             createDesc.Type = toD3DCommandListType(mType);
@@ -25,7 +25,7 @@ namespace graphics
             setD3DName(mCommandQueue.Get(), utility::toWideString(createDescription.name).c_str());
 
             // Encode type at the top bit of the fence.
-            mFence->Signal((uint64_t)mType << 56);
+            mFence->Signal(0);
         }
 
         const uint64_t CommandQueue::incrementFence()
@@ -57,18 +57,20 @@ namespace graphics
             mLastCompletedFenceValue = fenceValue;
         }
 
-        const uint64_t CommandQueue::executeCommandLists(std::vector<dx12::CommandList> commandLists)
+        void CommandQueue::stallForFence(Fence fence)
+        {
+            mCommandQueue->Wait(fence.get(), fence->GetCompletedValue());
+        }
+
+        const uint64_t CommandQueue::executeCommandLists(dx12::CommandList commandLists[], const unsigned int count)
         {
             std::lock_guard<std::mutex> scopedLockGuard(mFenceMutex);
 
             std::vector<ID3D12CommandList*> d3dCommandLists;
-            d3dCommandLists.reserve(commandLists.size());
-            for (CommandList commandList : commandLists)
+            d3dCommandLists.reserve(count);
+            for (unsigned int i = 0; i < count; ++i)
             {
-                HRESULT hResult = commandList->Close();
-                HASSERT(SUCCEEDED(hResult), "Failed to close command list.\n%s", utility::translateErrorCode(hResult));
-
-                d3dCommandLists.push_back(commandList.get());
+                d3dCommandLists.push_back(commandLists[i].get());
             }
 
             mCommandQueue->ExecuteCommandLists(d3dCommandLists.size(), d3dCommandLists.data());

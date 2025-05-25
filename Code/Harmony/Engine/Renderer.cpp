@@ -53,7 +53,6 @@ namespace engine
     {
         graphics::GraphicContext& initContext = aquireGraphicContext("init context");
 
-
         Vertex triangleVertices[] =
         {
             { { 0.0f, 0.25f, 0.0f, 1.0f }, { 0.835f, 0.518f, 0.988f, 1.0f } },
@@ -63,11 +62,11 @@ namespace engine
 
         size_t numBytes = sizeof(triangleVertices);
 
-        intermediateBuffer = new graphics::dx12::UploadBuffer(initContext.getDevice(), { "intermediate buffer", numBytes });
+        graphics::dx12::UploadBuffer intermediateBuffer(initContext.getDevice(), { "intermediate buffer", numBytes });
         {
-            void* intermediateDst = intermediateBuffer->map();
+            void* intermediateDst = intermediateBuffer.map();
             memcpy(intermediateDst, triangleVertices, numBytes);
-            intermediateBuffer->unmap();
+            intermediateBuffer.unmap();
         }
         graphics::dx12::GPUResource::Description createDesc;
         createDesc.name = "vertex buffer";
@@ -80,12 +79,12 @@ namespace engine
 
         //initContext.transitionResource(vertexBuffer, graphics::GPUResourceStates::CopyDestination, true);
 
-        initContext.transitionResource(*intermediateBuffer, graphics::GPUResourceStates::CopySource, true);
-        initContext.copyBufferRegion(*vertexBuffer, 0, *intermediateBuffer, 0, numBytes);
+        initContext.transitionResource(intermediateBuffer, graphics::GPUResourceStates::CopySource, true);
+        initContext.copyBufferRegion(*vertexBuffer, 0, intermediateBuffer, 0, numBytes);
         initContext.transitionResource(*vertexBuffer, graphics::GPUResourceStates::VertexAndConstantBuffer, true);
 
 
-        /*graphics::dx12::RenderTarget::Description description = mRenderTargetDescription;
+        graphics::dx12::RenderTarget::Description description = mRenderTargetDescription;
         description.textureDescription.name = "water render target";
         description.textureDescription.clearColor[0] = 0.118f;
         description.textureDescription.clearColor[1] = 0.106f;
@@ -94,16 +93,19 @@ namespace engine
         waterRT = new graphics::dx12::RenderTarget(description);
         waterRT->getTexture().createCommitted(initContext.getDevice());
         waterRTV = mRTVPage.allocate(1);
-        waterRT->createRenderTargetView(initContext.getDevice(), waterRTV);*/
+        waterRT->createRenderTargetView(initContext.getDevice(), waterRTV);
 
         mWaterPass = new renderPass::Water(initContext);
 
-        //mPresentPass = new renderPass::Present(initContext);
+        mPresentPass = new renderPass::Present(initContext);
 
-        mGraphicsQueue.executeCommandLists({ initContext.commandList() });
-        mGraphicsQueue.waitForIdle();
+        initContext.finish(mGraphicsQueue.incrementFence());
 
-        //discardGraphicContext(initContext);
+        graphics::dx12::CommandList batchedCommandLists[1] = { initContext.commandList() };
+        uint64_t fence = mGraphicsQueue.executeCommandLists(batchedCommandLists);
+        mGraphicsQueue.waitForFence(fence);
+
+        discardGraphicContext(initContext);
     }
 
     void Renderer::resize(const unsigned int width, const unsigned int height)
@@ -125,45 +127,55 @@ namespace engine
 
         graphics::dx12::BufferView vertexBufferView = vertexBuffer->vertexBufferView(sizeof(Vertex));
 
-        contextWater.transitionResource(mSwapchain.getCurrentBackBuffer().getTexture(), graphics::GPUResourceStates::RenderTarget, true);
+        contextWater.transitionResource(waterRT->getTexture(), graphics::GPUResourceStates::RenderTarget, true);
 
         renderPass::Water::InputOutputs waterIO{
+            mClientWidth, mClientHeight,
             vertexBufferView,
-            mSwapchain.getCurrentBackBufferView()
+            waterRTV
         };
         mWaterPass->render(contextWater, waterIO);
 
-        contextWater.transitionResource(mSwapchain.getCurrentBackBuffer().getTexture(), graphics::GPUResourceStates::Present, true);
+        contextWater.finish(mGraphicsQueue.incrementFence());
+
         // PRESENT PASS
-        //graphics::GraphicContext& contextPresent = aquireGraphicContext("present");
+        graphics::GraphicContext& contextPresent = aquireGraphicContext("present");
 
-        //contextPresent.transitionResource(waterRT->getTexture(), graphics::GPUResourceStates::PixelShaderResource, true);
+        contextPresent.transitionResource(waterRT->getTexture(), graphics::GPUResourceStates::PixelShaderResource, true);
 
-        //contextPresent.transitionResource(mSwapchain.getCurrentBackBuffer().getTexture(), graphics::GPUResourceStates::RenderTarget, true);
+        contextPresent.transitionResource(mSwapchain.getCurrentBackBuffer().getTexture(), graphics::GPUResourceStates::RenderTarget, true);
 
-        //renderPass::Present::InputOutputs presentIO{
-        //	mClientWidth, mClientHeight,
-        //	waterRT->getTexture(),
-        //	mSwapchain.getCurrentBackBufferView()
-        //};
-        //mPresentPass->render(contextPresent, presentIO);
+        renderPass::Present::InputOutputs presentIO{
+        	mClientWidth, mClientHeight,
+        	waterRT->getTexture(),
+        	mSwapchain.getCurrentBackBufferView()
+        };
+        mPresentPass->render(contextPresent, presentIO);
 
-        //contextPresent.transitionResource(mSwapchain.getCurrentBackBuffer().getTexture(), graphics::GPUResourceStates::Present, true);
+        contextPresent.transitionResource(mSwapchain.getCurrentBackBuffer().getTexture(), graphics::GPUResourceStates::Present, true);
 
-        mGraphicsQueue.executeCommandLists({ contextWater.commandList() });
+        contextPresent.finish(mGraphicsQueue.incrementFence());
+
+        graphics::dx12::CommandList batchedCommandLists[2] = { contextWater.commandList(), contextPresent.commandList() };
+        uint64_t fence = mGraphicsQueue.executeCommandLists(batchedCommandLists, 2);
 
         mSwapchain.present();
 
-        mGraphicsQueue.waitForIdle();
+        mGraphicsQueue.waitForFence(fence);
+
+        discardGraphicContext(contextWater);
+        discardGraphicContext(contextPresent);
     }
 
     Renderer::~Renderer()
     {
+        mGraphicsQueue.waitForFence(mGraphicsQueue.incrementFence());
+
         graphics::ShaderInput::msRootSignatures.clear();
-        delete intermediateBuffer;
+
         delete vertexBuffer;
-        // delete waterRT;
+        delete waterRT;
         delete mWaterPass;
-        //delete mPresentPass;
+        delete mPresentPass;
     }
 }

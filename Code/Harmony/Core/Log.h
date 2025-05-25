@@ -62,7 +62,7 @@ if (!(bool)(condition)) \
 }
 
 // BREAK and DEBUGLOG ONCE IF condition is FALSE
-#define HASSERT_SOFT_ONCE(category, message, ...) \
+#define HASSERT_SOFT_ONCE(condition, message, ...) \
 { \
 static bool sTriggeredLog = false; \
 if (!(bool)(condition) && !sTriggeredLog) \

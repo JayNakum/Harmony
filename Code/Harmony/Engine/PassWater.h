@@ -13,6 +13,8 @@ namespace engine
 
             struct InputOutputs
             {
+                unsigned int width, height;
+
                 graphics::dx12::BufferView inVertexBuffer;
                 graphics::dx12::DescriptorHandle inRTV;
             };
