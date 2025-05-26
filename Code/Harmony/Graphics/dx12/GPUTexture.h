@@ -130,8 +130,8 @@ namespace graphics
             // baseResource is expected to have called setD3DName for debugging
             void createFromSwapchain(Device& device, DescriptorHandle& rtvHandle, ID3D12Resource* baseResource);
 
-            void createRenderTargetView(Device& device, DescriptorHandle& rtvHandle, uint32_t mipSlice = 0, uint32_t arraySlice = 0);
-            void createDepthStencilView(Device& device, DescriptorHandle& dsvHandle, uint32_t mipSlice = 0, uint32_t arraySlice = 0, bool readOnly = false); // TODO: Support multiple read only depth and stencil views
+            void createRenderTargetView(Device& device, DescriptorHandle& rtvHandle, const uint32_t mipSlice = 0, const uint32_t arraySlice = 0);
+            void createDepthStencilView(Device& device, DescriptorHandle& dsvHandle, const uint32_t mipSlice = 0, const uint32_t arraySlice = 0, const bool readOnlyDepth = false, const bool readOnlyStencil = false);
 
             inline const Description& getDescription() const { return mDescription; }
             inline const GPUTexture& getTexture() const { return mTexture; }

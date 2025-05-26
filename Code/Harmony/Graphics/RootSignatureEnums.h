@@ -205,7 +205,6 @@ namespace graphics
             //MAXIMUM_MIN_MAG_LINEAR_MIP_POINT,
             //MAXIMUM_MIN_MAG_MIP_LINEAR,
             //MAXIMUM_ANISOTROPIC
-            // TODO: Add other filters support as needed
         };
     }
 

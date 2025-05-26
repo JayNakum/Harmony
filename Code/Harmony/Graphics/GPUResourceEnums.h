@@ -10,7 +10,6 @@ namespace graphics
         AllowRenderTarget = 1 << 0,
         AllowDepthStencil = 1 << 1,
         AllowUnorderedAccess = 1 << 2
-        // TODO: Add support for the following flags
         // DenyShaderResource,
         // AllowCrossAdapter,
         // AllowSimultaneousAccess,

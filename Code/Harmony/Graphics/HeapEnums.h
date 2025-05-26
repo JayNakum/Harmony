@@ -8,7 +8,9 @@ namespace graphics
     {
         Default, // Local
         Upload, // Host visible
-        // TODO: Add support for D3D12_HEAP_TYPE_READBACK, D3D12_HEAP_TYPE_CUSTOM, D3D12_HEAP_TYPE_GPU_UPLOAD
+        Readback,
+        GPUUpload,
+        Custom
     };
 
     inline static const std::string toString(const HeapType e)
@@ -21,6 +23,12 @@ namespace graphics
             return "Default";
         case HeapType::Upload:
             return "Upload";
+        case HeapType::Readback:
+            return "Readback";
+        case HeapType::GPUUpload:
+            return "GPUUpload";
+        case HeapType::Custom:
+            return "Custom";
         }
     }
 }

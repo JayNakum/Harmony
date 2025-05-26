@@ -6,8 +6,6 @@
 #include "Device.h"
 #include "CommandQueue.h"
 
-#include "SwapchainEnums.h"
-
 #include "DescriptorHandle.h"
 #include "Format.h"
 #include "GPUTexture.h"

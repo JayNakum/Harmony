@@ -38,7 +38,7 @@ namespace windows
     public:
         struct Description
         {
-            const wchar_t* title = L"Harmony";
+            const std::wstring title = L"Harmony";
             unsigned int width = 0;
             unsigned int height = 0;
             bool isFullScreen = false;
@@ -57,6 +57,8 @@ namespace windows
             return result;
         }
         bool pollEvents();
+
+        void appendWindowText(const std::string& text);
 
         ~Window();
 

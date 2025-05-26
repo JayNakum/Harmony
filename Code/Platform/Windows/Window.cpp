@@ -284,7 +284,7 @@ namespace windows
         const unsigned int x = (wr.right - mDescription.width) / 2;
         const unsigned int y = (wr.bottom - mDescription.height) / 2;
 
-        mHandle = CreateWindow(WindowClass::getName(), mDescription.title,
+        mHandle = CreateWindow(WindowClass::getName(), mDescription.title.c_str(),
                                WS_OVERLAPPEDWINDOW,
                                x, y, mDescription.width, mDescription.height,
                                nullptr, nullptr, WindowClass::getInstance(), this);
@@ -311,12 +311,19 @@ namespace windows
         return mIsRunning;
     }
 
+    void Window::appendWindowText(const std::string& text)
+    {
+        std::wstring windowText = mDescription.title;
+        windowText += utility::toWideString(text);
+
+        SetWindowText(mHandle, windowText.c_str());
+    }
+
     Window::~Window()
     {
         DestroyWindow(mHandle);
 
         mHandle = NULL;
-        mDescription = { 0 };
     }
 
 

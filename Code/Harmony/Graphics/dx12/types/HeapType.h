@@ -19,6 +19,12 @@ namespace graphics
                 return D3D12_HEAP_TYPE::D3D12_HEAP_TYPE_DEFAULT;
             case HeapType::Upload:
                 return D3D12_HEAP_TYPE::D3D12_HEAP_TYPE_UPLOAD;
+            case HeapType::Readback:
+                return D3D12_HEAP_TYPE::D3D12_HEAP_TYPE_READBACK;
+            case HeapType::GPUUpload:
+                return D3D12_HEAP_TYPE::D3D12_HEAP_TYPE_GPU_UPLOAD;
+            case HeapType::Custom:
+                return D3D12_HEAP_TYPE::D3D12_HEAP_TYPE_CUSTOM;
             }
         }
     }

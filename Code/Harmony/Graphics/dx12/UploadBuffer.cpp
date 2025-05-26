@@ -19,7 +19,7 @@ namespace graphics
             static Heap::Description description{};
             description.name = "temp upload heap description";
             description.sizeInBytes = 0;
-            description.type = HeapType::Upload;
+            description.type = HeapType::GPUUpload;
             static D3D12_HEAP_PROPERTIES heapProperties = Heap::toD3DHeapProperties(description);
 
             // Upload buffers must be 1-dimensional

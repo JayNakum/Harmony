@@ -54,8 +54,7 @@ namespace graphics
         enum class Kind
         {
             Uncompressed,
-            Compressed,
-            // TODO: Extend with additional kinds if needed.
+            Compressed
         };
 
     public:

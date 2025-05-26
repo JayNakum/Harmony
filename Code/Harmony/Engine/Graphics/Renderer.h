@@ -21,7 +21,7 @@ namespace engine
     class Renderer
     {
     public:
-        Renderer(const HWND handle, const unsigned int clientWidth, const unsigned int clientHeight);
+        Renderer(const HWND windowHandle, const unsigned int clientWidth, const unsigned int clientHeight);
 
         inline graphics::GraphicContext& aquireGraphicContext(const std::string& name)
         {

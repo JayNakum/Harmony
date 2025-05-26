@@ -74,7 +74,7 @@ namespace graphics
 
         void Swapchain::resize(Device& device, const unsigned int width, const unsigned int height, std::array<DescriptorHandle, BACK_BUFFER_COUNT> rtvHandles)
         {
-            //checkHDRSupport();
+            checkHDRSupport();
 
             // Reset the render target texture.
             for (size_t i = 0; i < BACK_BUFFER_COUNT; ++i)
@@ -104,8 +104,9 @@ namespace graphics
 
         void Swapchain::present(const unsigned int interval)
         {
-            HRESULT hResult = mSwapChain->Present(interval, 0);
-
+            UINT presentInterval = (!mTearingSupport) ? interval : 0;
+            UINT presentFlags = (mTearingSupport) ? DXGI_PRESENT_ALLOW_TEARING : 0;
+            HRESULT hResult = mSwapChain->Present(presentInterval, presentFlags);
             HASSERT(SUCCEEDED(hResult), "Failed to present swapchain.\n%s", utility::translateErrorCode(hResult));
         }
 

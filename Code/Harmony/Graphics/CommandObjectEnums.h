@@ -8,8 +8,7 @@ namespace graphics
     {
         Direct,
         Compute,
-        Copy,
-        // TODO: add support for Bundle type command lists
+        Copy
     };
 
     inline static const std::string toString(const CommandListType e)

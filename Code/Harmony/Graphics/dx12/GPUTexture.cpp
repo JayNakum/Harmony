@@ -156,7 +156,7 @@ namespace graphics
             device->CreateRenderTargetView(res, nullptr, rtvHandle);
         }
 
-        void RenderTarget::createRenderTargetView(Device& device, DescriptorHandle& rtvHandle, uint32_t mipSlice, uint32_t arraySlice)
+        void RenderTarget::createRenderTargetView(Device& device, DescriptorHandle& rtvHandle, const uint32_t mipSlice, const uint32_t arraySlice)
         {
             HASSERT(mDescription.type == Type::Color, "Cannot create RTV for a Depth RenderTarget.");
 
@@ -184,14 +184,22 @@ namespace graphics
             device->CreateRenderTargetView(mTexture.get(), &rtvDesc, rtvHandle);
         }
 
-        void RenderTarget::createDepthStencilView(Device& device, DescriptorHandle& dsvHandle, uint32_t mipSlice, uint32_t arraySlice, bool readOnly)
+        void RenderTarget::createDepthStencilView(Device& device, DescriptorHandle& dsvHandle, const uint32_t mipSlice, const uint32_t arraySlice, const bool readOnlyDepth, const bool readOnlyStencil)
         {
             HASSERT(mDescription.type == Type::Depth, "Cannot create DSV for a Color RenderTarget.");
 
             D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc{};
             dsvDesc.Format = toDXGIFormat(mTexture.describeResource().format);
 
-            dsvDesc.Flags = readOnly ? D3D12_DSV_FLAG_READ_ONLY_DEPTH | D3D12_DSV_FLAG_READ_ONLY_STENCIL : D3D12_DSV_FLAG_NONE;
+            dsvDesc.Flags = D3D12_DSV_FLAG_NONE;
+            if (readOnlyDepth)
+            {
+                dsvDesc.Flags |= D3D12_DSV_FLAG_READ_ONLY_DEPTH;
+            }
+            if (readOnlyStencil)
+            {
+                dsvDesc.Flags |= D3D12_DSV_FLAG_READ_ONLY_STENCIL;
+            }
 
             switch (mTexture.describeResource().dimension)
             {

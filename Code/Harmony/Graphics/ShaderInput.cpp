@@ -199,7 +199,6 @@ namespace graphics
 
     dx12::RootSignature& ShaderInput::initialize(const std::string& rootSignatureID)
     {
-        // TODO: validate layout using reflections
         dx12::Device& device = mContext.getDevice();
 
         dx12::RootSignature::Description createDescription;

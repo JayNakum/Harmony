@@ -10,7 +10,7 @@ struct Vertex
 
 namespace engine
 {
-    Renderer::Renderer(const HWND handle, unsigned int clientWidth, unsigned int clientHeight)
+    Renderer::Renderer(const HWND windowHandle, unsigned int clientWidth, unsigned int clientHeight)
         : mDevice(),
         mGraphicsQueue(mDevice, {"global graphics queue", graphics::CommandListType::Direct}),
         mCommandContextPool(),
@@ -29,7 +29,7 @@ namespace engine
             mDevice, mGraphicsQueue,
             {
                 "swapchain",
-                handle
+                windowHandle
             },
             {
                 mRTVPage.allocate(1),
