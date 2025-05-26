@@ -8,6 +8,7 @@ namespace engine
         mRenderer(mWindow.getHandle(), mWindow.getDescription().width, mWindow.getDescription().height)
     {}
 
+    uint64_t Engine::msFrameIndex = 0;
     void Engine::run()
     {
         float deltaTime = 0.0f;
@@ -36,6 +37,7 @@ namespace engine
             mRenderer.render();
 
             calculateFPS(deltaTime);
+            ++msFrameIndex;
         }
     }
 

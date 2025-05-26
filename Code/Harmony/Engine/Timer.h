@@ -17,7 +17,7 @@ namespace engine
 
         // Returns the time since last restart or construction, in seconds
         float elapsed() const;
-        
+
         // Resets the timer to now
         void reset();
 

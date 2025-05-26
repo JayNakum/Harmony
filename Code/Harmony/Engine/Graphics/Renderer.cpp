@@ -168,7 +168,7 @@ namespace engine
         graphics::dx12::CommandList batchedCommandLists[2] = { contextWater.commandList(), contextPresent.commandList() };
         uint64_t fence = mGraphicsQueue.executeCommandLists(batchedCommandLists, 2);
 
-        mSwapchain.present();
+        mSwapchain.present(1);
 
         mGraphicsQueue.waitForFence(fence);
 
