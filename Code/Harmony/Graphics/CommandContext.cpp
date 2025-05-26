@@ -1,6 +1,7 @@
 #include "CommandContext.h"
 
 #include "dx12/types/PrimitiveTopology.h"
+#include "dx12/types/DescriptorHeapType.h"
 
 #include "Log.h"
 
@@ -100,6 +101,16 @@ namespace graphics
         mCommandList->SetPredication(
             buffer.get(), bufferOffset,
             equalZero ? D3D12_PREDICATION_OP_EQUAL_ZERO : D3D12_PREDICATION_OP_NOT_EQUAL_ZERO);
+    }
+
+    const void CommandContext::copyDescriptorsSimple(const dx12::DescriptorHandle& source, const dx12::DescriptorHandle& destination, unsigned int count, const DescriptorHeapType type)
+    {
+        mDevice->CopyDescriptorsSimple(
+            count,
+            destination,
+            source,
+            dx12::toD3DDescriptorHeapType(type)
+        );
     }
 
     const dx12::DescriptorHandle CommandContext::copyDescriptorsToGPU(const dx12::DescriptorHandle& allocationStart, const unsigned int descriptorsCount)

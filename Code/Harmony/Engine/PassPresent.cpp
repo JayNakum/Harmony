@@ -44,8 +44,7 @@ namespace engine
 
             graphics::ShaderInput presentSI(context, {/*no constants*/}, parametersLayout);
             presentSI.setResource(
-                inputOutputs.inPresentTexture,
-                graphics::dx12::GPUTexture::ShaderResourceViewInfo::getSRVInfo(inputOutputs.inPresentTexture.describeResource()),
+                inputOutputs.inPresentTextureSRV,
                 0
             );
             presentSI.finalize();

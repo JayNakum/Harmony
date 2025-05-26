@@ -73,6 +73,8 @@ namespace graphics
 
         void setPredication(dx12::GPUResource& buffer, const size_t bufferOffset, bool equalZero);
 
+        const void copyDescriptorsSimple(const dx12::DescriptorHandle& source, const dx12::DescriptorHandle& destination, unsigned int count = 1, const DescriptorHeapType type = DescriptorHeapType::ShaderViews);
+
         const dx12::DescriptorHandle copyDescriptorsToGPU(const dx12::DescriptorHandle& allocationStart, const unsigned int descriptorsCount = 1);
         void bindDescriptorHeaps();
 

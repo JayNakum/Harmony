@@ -16,7 +16,7 @@ namespace engine
                 unsigned int width;
                 unsigned int height;
 
-                graphics::dx12::GPUTexture inPresentTexture;
+                graphics::dx12::DescriptorHandle inPresentTextureSRV;
 
                 graphics::dx12::DescriptorHandle inRTV;
             };

@@ -1,5 +1,7 @@
 #include "CommandAllocatorPool.h"
 
+#include "Log.h"
+
 namespace graphics
 {
     CommandAllocatorPool::CommandAllocatorPool(const CommandListType type)
@@ -11,6 +13,8 @@ namespace graphics
         std::lock_guard<std::mutex> scopedLockGuard(mPoolMutex);
 
         updateAvailableQueue(completedFenceValue);
+
+        HASSERT(mCmdAllocatorPool.size() <= MAX_COMMAND_ALLOCATORS, "Command Allocator Pool Budget exceeded.");
 
         if (!mAvailableQueue.empty())
         {

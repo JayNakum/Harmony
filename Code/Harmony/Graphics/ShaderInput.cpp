@@ -23,8 +23,11 @@ namespace graphics
 
     const dx12::DescriptorHandle ShaderInput::setResource(const dx12::DescriptorHandle& cpuHandle, const unsigned int layoutIndex, const unsigned int parameterIndex, const unsigned int rangeIndex)
     {
-        getDescriptorHandleAt(layoutIndex, parameterIndex, rangeIndex) = cpuHandle;
-        return cpuHandle;
+        dx12::DescriptorHandle handle = getDescriptorHandleAt(layoutIndex, parameterIndex, rangeIndex);
+
+        mContext.copyDescriptorsSimple(cpuHandle, handle);
+
+        return handle;
     }
 
     const dx12::DescriptorHandle ShaderInput::setResource(const dx12::ByteAddressBuffer& buffer, const unsigned int layoutIndex, const unsigned int parameterIndex, const unsigned int rangeIndex)
@@ -110,16 +113,11 @@ namespace graphics
             // Since the all the descriptors are allocated in a single allocation, they are expected to be linear.
             // And since the copyToGPU happens on all the descriptors at once, it is safe to assume that the GPU Heap will have all the descriptors linearly placed.
             // Meaning that we start with offset = 0, and then we add the number of descriptors per table to the offset.
+            descriptorOffset += getDescriptorTableOffsetAt(i);
+
             dx12::DescriptorHandle gpuHandle = gpuStartHandle + (descriptorOffset * mCPUDescriptorHeapPage.getDescriptorSize());
 
             mContext.commandList()->SetGraphicsRootDescriptorTable(rootIndex++, gpuHandle.getGPUHandle());
-
-            // Calculate the next offset.
-            const Parameter& parameter = mParametersLayout.at(i);
-            for (const Range& range : parameter.ranges)
-            {
-                descriptorOffset += range.count;
-            }
         }
     }
 
@@ -274,25 +272,25 @@ namespace graphics
         return msRootSignatures.at(rootSignatureID);
     }
 
-    dx12::DescriptorHandle& ShaderInput::getDescriptorTableAt(const unsigned int layoutIndex)
+    const unsigned int ShaderInput::getDescriptorTableOffsetAt(const unsigned int layoutIndex)
     {
-        unsigned int descriptorOffset = 0;
+        unsigned int tableOffset = 0;
 
         for (unsigned int i = 0; i < layoutIndex; ++i)
         {
             const Parameter& parameter = mParametersLayout.at(i);
             for (const Range& range : parameter.ranges)
             {
-                descriptorOffset += range.count;
+                tableOffset += range.count;
             }
         }
 
-        return mDescriptors + (descriptorOffset * mCPUDescriptorHeapPage.getDescriptorSize());
+        return tableOffset;
     }
 
-    dx12::DescriptorHandle& ShaderInput::getDescriptorRangeAt(const unsigned int layoutIndex, const unsigned int parameterIndex)
+    const unsigned int ShaderInput::getDescriptorRangeOffsetAt(const unsigned int layoutIndex, const unsigned int parameterIndex)
     {
-        dx12::DescriptorHandle& tableHandle = getDescriptorTableAt(layoutIndex);
+        const unsigned int tableOffset = getDescriptorTableOffsetAt(layoutIndex);
 
         unsigned int rangeOffset = 0;
         for (unsigned int i = 0; i < parameterIndex; ++i)
@@ -301,14 +299,17 @@ namespace graphics
             rangeOffset += range.count;
         }
 
-        tableHandle += (rangeOffset * mCPUDescriptorHeapPage.getDescriptorSize());
-        return tableHandle;
+        return tableOffset + rangeOffset;
     }
 
     dx12::DescriptorHandle& ShaderInput::getDescriptorHandleAt(const unsigned int layoutIndex, const unsigned int parameterIndex, const unsigned int rangeIndex)
     {
-        dx12::DescriptorHandle& handle = getDescriptorRangeAt(layoutIndex, parameterIndex);
-        handle += (rangeIndex * mCPUDescriptorHeapPage.getDescriptorSize());
+        const unsigned int rangeOffset = getDescriptorRangeOffsetAt(layoutIndex, parameterIndex);
+
+        dx12::DescriptorHandle handle = mDescriptors;
+
+        handle += ((rangeOffset + rangeIndex) * (unsigned int)mCPUDescriptorHeapPage.getDescriptorSize());
+
         return handle;
     }
 }

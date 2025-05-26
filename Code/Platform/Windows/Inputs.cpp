@@ -248,7 +248,7 @@ namespace windows
         hResult = mMouse->SetDataFormat(&c_dfDIMouse2);
         HASSERT(SUCCEEDED(hResult), "Mouse SetDataFormat failed.\n%s", utility::translateErrorCode(hResult));
 
-        hResult = mMouse->SetCooperativeLevel(mWindowHandle, DISCL_FOREGROUND | DISCL_EXCLUSIVE);
+        hResult = mMouse->SetCooperativeLevel(mWindowHandle, DISCL_FOREGROUND | DISCL_NONEXCLUSIVE);
         HASSERT(SUCCEEDED(hResult), "Mouse SetCooperativeLevel failed.\n%s", utility::translateErrorCode(hResult));
 
         zeroInputs();

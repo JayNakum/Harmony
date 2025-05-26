@@ -92,6 +92,8 @@ namespace engine
         description.textureDescription.clearColor[3] = 1.0f;
         waterRT = new graphics::dx12::RenderTarget(description);
         waterRT->getTexture().createCommitted(initContext.getDevice());
+        waterSRV = mShaderViewsHeap.allocatePage().allocate(1);
+
         waterRTV = mRTVPage.allocate(1);
         waterRT->createRenderTargetView(initContext.getDevice(), waterRTV);
 
@@ -110,6 +112,8 @@ namespace engine
 
     void Renderer::resize(const unsigned int width, const unsigned int height)
     {
+        mGraphicsQueue.waitForFence(mGraphicsQueue.incrementFence());
+
         mRenderTargetDescription.textureDescription.width = width;
         mRenderTargetDescription.textureDescription.height = height;
 
@@ -136,6 +140,11 @@ namespace engine
         };
         mWaterPass->render(contextWater, waterIO);
 
+        waterRT->getTexture().createShaderResourceView(mDevice, waterSRV,
+            graphics::dx12::GPUTexture::ShaderResourceViewInfo::getSRVInfo(
+                waterRT->getTexture().describeResource()
+            ));
+
         contextWater.finish(mGraphicsQueue.incrementFence());
 
         // PRESENT PASS
@@ -147,7 +156,7 @@ namespace engine
 
         renderPass::Present::InputOutputs presentIO{
         	mClientWidth, mClientHeight,
-        	waterRT->getTexture(),
+            waterSRV,
         	mSwapchain.getCurrentBackBufferView()
         };
         mPresentPass->render(contextPresent, presentIO);

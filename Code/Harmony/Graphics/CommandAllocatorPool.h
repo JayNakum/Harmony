@@ -13,6 +13,7 @@ namespace graphics
     */
     class CommandAllocatorPool : public CommandObject
     {
+        static constexpr unsigned int MAX_COMMAND_ALLOCATORS = 16;
     public:
         // TODO: Cache in a couple allocators already and put them in available queue
         CommandAllocatorPool(const CommandListType type);

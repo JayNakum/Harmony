@@ -1,10 +1,14 @@
 #include "CommandContextPool.h"
 
+#include "Log.h"
+
 namespace graphics
 {
     GraphicContext& CommandContextPool::requestGraphicContext(dx12::Device& device, DynamicDescriptorHeap& descriptorHeap)
     {
         std::lock_guard<std::mutex> scopedLockGuard(mGraphicPoolMutex);
+
+        HASSERT(msGraphicContextPool.size() <= MAX_CONTEXTS, "Graphic Context Pool Budget exceeded.");
 
         if (!mGraphicAvailableQueue.empty())
         {

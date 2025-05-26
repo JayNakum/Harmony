@@ -2,8 +2,6 @@
 
 #include "common.h"
 
-#include "CommandListManager.h"
-
 #include "CommandContext.h"
 
 namespace graphics
@@ -14,6 +12,7 @@ namespace graphics
     */
     class CommandContextPool
     {
+        static constexpr unsigned int MAX_CONTEXTS = 16;
     public:
         CommandContextPool() = default;
 

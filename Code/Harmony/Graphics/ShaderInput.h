@@ -81,8 +81,8 @@ namespace graphics
         // Creates the root signature and allocated descriptors in CPU heap.
         dx12::RootSignature& initialize(const std::string& rootSignatureID);
 
-        dx12::DescriptorHandle& getDescriptorTableAt(const unsigned int layoutIndex);
-        dx12::DescriptorHandle& getDescriptorRangeAt(const unsigned int layoutIndex, const unsigned int parameterIndex);
+        const unsigned int getDescriptorTableOffsetAt(const unsigned int layoutIndex);
+        const unsigned int getDescriptorRangeOffsetAt(const unsigned int layoutIndex, const unsigned int parameterIndex);
         dx12::DescriptorHandle& getDescriptorHandleAt(const unsigned int layoutIndex, const unsigned int parameterIndex, const unsigned int rangeIndex);
 
     private:
