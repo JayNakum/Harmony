@@ -5,7 +5,11 @@
 #include "Window.h"
 #include "Inputs.h"
 #include "Timer.h"
-#include "Graphics/Renderer.h"
+
+namespace engine
+{
+    class Renderer;
+}
 
 namespace engine
 {
@@ -18,7 +22,7 @@ namespace engine
 
         void run();
 
-        ~Engine() = default;
+        ~Engine();
 
     private:
         void update(const float deltaTime);
@@ -31,6 +35,6 @@ namespace engine
 
         static uint64_t msFrameIndex;
         Timer mFrameTimer;
-        Renderer mRenderer;
+        Renderer* mRenderer;
     };
 }

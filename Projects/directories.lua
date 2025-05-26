@@ -12,6 +12,7 @@ prj_src["Sandbox"] = "%{code_path}/Sandbox"
 
 prj_src["Harmony"] = {}
 prj_src["Harmony"]["Core"] = "%{code_path}/Harmony/Core"
+prj_src["Harmony"]["Maths"] = "%{code_path}/Harmony/Maths"
 prj_src["Harmony"]["Graphics"] = "%{code_path}/Harmony/Graphics"
 prj_src["Harmony"]["Engine"] = "%{code_path}/Harmony/Engine"
 

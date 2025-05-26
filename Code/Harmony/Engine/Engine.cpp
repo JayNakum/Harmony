@@ -1,12 +1,16 @@
 ﻿#include "Engine.h"
 
+#include "Graphics/Renderer.h"
+
 namespace engine
 {
     Engine::Engine(windows::Window& mainWindow)
         : mWindow(mainWindow),
         mInputs(mWindow.getHandle()),
-        mRenderer(mWindow.getHandle(), mWindow.getDescription().width, mWindow.getDescription().height)
-    {}
+        mRenderer(nullptr)
+    {
+        mRenderer = new Renderer(mWindow.getHandle(), mWindow.getDescription().width, mWindow.getDescription().height);
+    }
 
     uint64_t Engine::msFrameIndex = 0;
     void Engine::run()
@@ -21,7 +25,7 @@ namespace engine
 
             if (mWindow.didResize())
             {
-                mRenderer.resize(mWindow.getDescription().width, mWindow.getDescription().height);
+                mRenderer->resize(mWindow.getDescription().width, mWindow.getDescription().height);
             }
 
             static double accumulator = 0.0f;
@@ -34,11 +38,16 @@ namespace engine
                 // physics update(fixedTimeStep)
             }
 
-            mRenderer.render();
+            mRenderer->render();
 
             calculateFPS(deltaTime);
             ++msFrameIndex;
         }
+    }
+
+    Engine::~Engine()
+    {
+        delete mRenderer;
     }
 
     void Engine::calculateFPS(const float deltaTime)

@@ -1,7 +1,6 @@
 #include "GPUBuffer.h"
 
 #include "Log.h"
-#include "Maths.h"
 
 namespace graphics
 {

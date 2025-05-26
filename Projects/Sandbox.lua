@@ -22,8 +22,7 @@ project "Sandbox"
   links
   {
     "Core",
-    "Engine",
-    "Graphics"
+    "Engine"
   }
 
   filter "platforms:Windows"

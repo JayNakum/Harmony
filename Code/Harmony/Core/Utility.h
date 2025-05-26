@@ -38,6 +38,37 @@ namespace utility
 }
 
 /*
+* Byte alignment utilities
+*/
+namespace maths
+{
+    template <typename T> inline T alignUpWithMask(T value, size_t mask)
+    {
+        return (T)(((size_t)value + mask) & ~mask);
+    }
+
+    template <typename T> inline T alignDownWithMask(T value, size_t mask)
+    {
+        return (T)((size_t)value & ~mask);
+    }
+
+    template <typename T> inline T alignUp(T value, size_t alignment)
+    {
+        return alignUpWithMask(value, alignment - 1);
+    }
+
+    template <typename T> inline T alignDown(T value, size_t alignment)
+    {
+        return alignDownWithMask(value, alignment - 1);
+    }
+
+    template <typename T> inline bool isAligned(T value, size_t alignment)
+    {
+        return 0 == ((size_t)value & (alignment - 1));
+    }
+}
+
+/*
 * Enum cast to its underlying type.
 * Mostly used for using enums as array index.
 */

@@ -59,11 +59,11 @@ namespace engine
         graphics::dx12::RenderTarget::Description mRenderTargetDescription;
 
     private:
-        graphics::dx12::ByteAddressBuffer* vertexBuffer;
         graphics::dx12::RenderTarget* waterRT;
-        graphics::dx12::DescriptorHandle waterSRV;
         graphics::dx12::DescriptorHandle waterRTV;
         renderPass::Water* mWaterPass;
+
+        graphics::dx12::DescriptorHandle waterSRV;
         renderPass::Present* mPresentPass;
     };
 }

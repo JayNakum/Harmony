@@ -37,12 +37,46 @@ namespace engine
 {
     namespace renderPass
     {
+        struct Vertex
+        {
+            float position[4];
+            float color[4];
+        };
+
         Water::Water(graphics::GraphicContext& context)
-            : mTrianglePSO(initialize(context)) {}
+            : mTrianglePSO(initialize(context))
+        {
+            Vertex triangleVertices[] =
+            {
+                { { 0.0f, 0.25f, 0.0f, 1.0f }, { 0.835f, 0.518f, 0.988f, 1.0f } },
+                { { 0.25f, -0.25f, 0.0f, 1.0f }, { 0.694f, 0.392f, 0.804f, 1.0f } },
+                { { -0.25f, -0.25f, 0.0f, 1.0f }, { 0.796f, 0.643f, 0.914f, 1.0f } }
+            };
+
+            size_t numBytes = sizeof(triangleVertices);
+
+            mIntermediateVertexBuffer = new graphics::dx12::UploadBuffer(context.getDevice(), { "intermediate buffer", numBytes });
+            {
+                void* intermediateDst = mIntermediateVertexBuffer->map();
+                memcpy(intermediateDst, triangleVertices, numBytes);
+                mIntermediateVertexBuffer->unmap();
+            }
+            graphics::dx12::GPUResource::Description createDesc;
+            createDesc.name = "vertex buffer";
+            createDesc.width = numBytes;
+            createDesc.dimension = graphics::GPUResourceDimension::Buffer;
+            mVertexBuffer = new graphics::dx12::ByteAddressBuffer(createDesc);
+
+            mVertexBuffer->createCommitted(context.getDevice());
+
+            context.transitionResource(*mIntermediateVertexBuffer, graphics::GPUResourceStates::CopySource, true);
+            context.copyBufferRegion(*mVertexBuffer, 0, *mIntermediateVertexBuffer, 0, numBytes);
+            context.transitionResource(*mVertexBuffer, graphics::GPUResourceStates::VertexAndConstantBuffer, true);
+        }
 
         void Water::render(graphics::GraphicContext& context, InputOutputs& inputOutputs)
         {
-            graphics::ShaderInput triangleSI(context, {/*no constants*/ }, {/*no parameters*/ });
+            graphics::ShaderInput triangleSI(context, { /*no constants*/ }, { /*no parameters*/ });
             triangleSI.finalize();
 
             context.setPipelineState(mTrianglePSO);
@@ -68,8 +102,17 @@ namespace engine
             context.clearColor(inputOutputs.inRTV, clearColor);
 
             context.setPrimitiveTopology(graphics::PrimitiveTopology::TriangleList);
-            context.setVertexBuffer(0, &inputOutputs.inVertexBuffer);
+
+            graphics::dx12::BufferView vertexBufferView = mVertexBuffer->vertexBufferView(sizeof(Vertex));
+
+            context.setVertexBuffer(0, &vertexBufferView);
             context.drawInstanced(3, 1);
+        }
+
+        Water::~Water()
+        {
+            delete mIntermediateVertexBuffer;
+            delete mVertexBuffer;
         }
 
         graphics::dx12::GraphicsPipelineState Water::initialize(graphics::GraphicContext& context)

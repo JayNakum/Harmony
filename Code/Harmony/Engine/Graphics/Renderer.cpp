@@ -2,11 +2,6 @@
 
 #include "ShaderInput.h"
 
-struct Vertex
-{
-    float position[4];
-    float color[4];
-};
 
 namespace engine
 {
@@ -53,37 +48,6 @@ namespace engine
     {
         graphics::GraphicContext& initContext = aquireGraphicContext("init context");
 
-        Vertex triangleVertices[] =
-        {
-            { { 0.0f, 0.25f, 0.0f, 1.0f }, { 0.835f, 0.518f, 0.988f, 1.0f } },
-            { { 0.25f, -0.25f, 0.0f, 1.0f }, { 0.694f, 0.392f, 0.804f, 1.0f } },
-            { { -0.25f, -0.25f, 0.0f, 1.0f }, { 0.796f, 0.643f, 0.914f, 1.0f } }
-        };
-
-        size_t numBytes = sizeof(triangleVertices);
-
-        graphics::dx12::UploadBuffer intermediateBuffer(initContext.getDevice(), { "intermediate buffer", numBytes });
-        {
-            void* intermediateDst = intermediateBuffer.map();
-            memcpy(intermediateDst, triangleVertices, numBytes);
-            intermediateBuffer.unmap();
-        }
-        graphics::dx12::GPUResource::Description createDesc;
-        createDesc.name = "vertex buffer";
-        createDesc.width = numBytes;
-        createDesc.dimension = graphics::GPUResourceDimension::Buffer;
-        vertexBuffer = new graphics::dx12::ByteAddressBuffer(createDesc);
-
-        vertexBuffer->createCommitted(initContext.getDevice());
-
-
-        //initContext.transitionResource(vertexBuffer, graphics::GPUResourceStates::CopyDestination, true);
-
-        initContext.transitionResource(intermediateBuffer, graphics::GPUResourceStates::CopySource, true);
-        initContext.copyBufferRegion(*vertexBuffer, 0, intermediateBuffer, 0, numBytes);
-        initContext.transitionResource(*vertexBuffer, graphics::GPUResourceStates::VertexAndConstantBuffer, true);
-
-
         graphics::dx12::RenderTarget::Description description = mRenderTargetDescription;
         description.textureDescription.name = "water render target";
         description.textureDescription.clearColor[0] = 0.118f;
@@ -129,13 +93,10 @@ namespace engine
         // WATER PASS
         graphics::GraphicContext& contextWater = aquireGraphicContext("water");
 
-        graphics::dx12::BufferView vertexBufferView = vertexBuffer->vertexBufferView(sizeof(Vertex));
-
         contextWater.transitionResource(waterRT->getTexture(), graphics::GPUResourceStates::RenderTarget, true);
 
         renderPass::Water::InputOutputs waterIO{
             mClientWidth, mClientHeight,
-            vertexBufferView,
             waterRTV
         };
         mWaterPass->render(contextWater, waterIO);
@@ -182,7 +143,6 @@ namespace engine
 
         graphics::ShaderInput::msRootSignatures.clear();
 
-        delete vertexBuffer;
         delete waterRT;
         delete mWaterPass;
         delete mPresentPass;
