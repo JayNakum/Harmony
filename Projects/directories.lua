@@ -1,7 +1,7 @@
 -- DEFINED PATHS --
 action = _ACTION or "null"
-target_dir = "%{wks.location}/../Bin/%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}/%{prj.name}"
-obj_dir = "%{wks.location}/../Obj/%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}/%{prj.name}"
+target_dir = "%{wks.location}/../Bin/%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
+obj_dir = "%{wks.location}/../Obj/%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
 code_path = "%{wks.location}/../../Code"
 vendors_path = "%{wks.location}/../../Vendors"

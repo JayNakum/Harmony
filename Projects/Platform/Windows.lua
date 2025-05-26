@@ -3,8 +3,8 @@ project "Windows"
   kind "StaticLib"
   systemversion "latest"
 
-  targetdir (target_dir)
-  objdir (obj_dir)
+  targetdir ("%{target_dir}/%{prj.name}")
+  objdir ("%{obj_dir}/%{prj.name}")
   
   files
   {

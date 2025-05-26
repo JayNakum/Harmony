@@ -2,8 +2,8 @@ project "Graphics"
   location "%{wks.location}/Harmony/Graphics"
   kind "StaticLib"
 
-  targetdir (target_dir)
-  objdir (obj_dir)
+  targetdir ("%{target_dir}/%{prj.name}")
+  objdir ("%{obj_dir}/%{prj.name}")
   
   files
   {
