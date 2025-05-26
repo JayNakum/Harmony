@@ -94,6 +94,7 @@ namespace graphics
     protected:
         CommandAllocatorPool mCommandAllocatorPool;
         dx12::CommandAllocator* mCurrentCommandAllocator;
+        dx12::CommandList::Description mCmdListDesc;
         dx12::CommandList mCommandList;
     };
 }

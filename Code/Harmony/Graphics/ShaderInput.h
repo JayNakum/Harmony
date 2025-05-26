@@ -83,7 +83,7 @@ namespace graphics
 
         const unsigned int getDescriptorTableOffsetAt(const unsigned int layoutIndex);
         const unsigned int getDescriptorRangeOffsetAt(const unsigned int layoutIndex, const unsigned int parameterIndex);
-        dx12::DescriptorHandle& getDescriptorHandleAt(const unsigned int layoutIndex, const unsigned int parameterIndex, const unsigned int rangeIndex);
+        dx12::DescriptorHandle getDescriptorHandleAt(const unsigned int layoutIndex, const unsigned int parameterIndex, const unsigned int rangeIndex);
 
     private:
         GraphicContext& mContext;

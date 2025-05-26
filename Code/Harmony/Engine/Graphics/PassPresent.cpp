@@ -4,7 +4,7 @@
 
 namespace shaders
 {
-    static constexpr char* ScreenQuadVS = R"###(
+    static const char* ScreenQuadVS = R"###(
 void main(
     in uint vertexID : SV_VertexID,
     out float4 position : SV_Position,
@@ -17,7 +17,7 @@ void main(
 }
 )###";
 
-    static constexpr char* BufferCopyPS = R"###(
+    static const char* BufferCopyPS = R"###(
 Texture2D colorTex : register(t0);
 
 float4 main(float4 position : SV_Position) : SV_Target0

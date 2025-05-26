@@ -14,7 +14,8 @@ namespace graphics
         mShaderViewsHeapCPUPage(mShaderViewsHeap.allocatePage()),
         mCommandAllocatorPool(mType),
         mCurrentCommandAllocator(&mCommandAllocatorPool.requestCommandAllocator(mDevice, 0)),
-        mCommandList(mDevice, dx12::CommandList::Description{ toString(mType) + " commandList", mType, *mCurrentCommandAllocator})
+        mCmdListDesc{ toString(mType) + " commandList", mType, *mCurrentCommandAllocator },
+        mCommandList(mDevice, mCmdListDesc)
     {
         HRESULT hResult = mCommandList->Close();
         HASSERT(SUCCEEDED(hResult), "Failed to close command list.\n%s", utility::translateErrorCode(hResult));
@@ -134,25 +135,6 @@ namespace graphics
         mCommandAllocatorPool.discardCommandAllocator(completedFenceValue, *mCurrentCommandAllocator);
         mCurrentCommandAllocator = nullptr;
     }
-
-    /*uint64_t CommandContext::finish(bool waitForCompletion)
-    {
-        flushResourceBarriers();
-
-        HASSERT(mCurrentCommandAllocator != nullptr, "Command allocator not found.");
-
-        dx12::CommandQueue& queue = mCommandListManager.getCommandQueue(mType);
-        uint64_t fence = queue.executeCommandList(mCommandList);
-        mCommandListManager.discardAllocator(*mCurrentCommandAllocator);
-        mCurrentCommandAllocator = nullptr;
-
-        if (waitForCompletion)
-        {
-            mCommandListManager.waitForFence(fence);
-        }
-
-        return fence;
-    }*/
 
     CommandContext::~CommandContext()
     {

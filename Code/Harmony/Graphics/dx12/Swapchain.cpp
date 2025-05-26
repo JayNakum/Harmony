@@ -96,7 +96,7 @@ namespace graphics
             {
                 Microsoft::WRL::ComPtr<ID3D12Resource> backBufferResource;
                 HRESULT hr = mSwapChain->GetBuffer(i, IID_PPV_ARGS(&backBufferResource));
-                HASSERT(SUCCEEDED(hr), "Failed to get swapchain back buffer.\n%s", utility::translateErrorCode(hr))
+                HASSERT(SUCCEEDED(hr), "Failed to get swapchain back buffer.\n%s", utility::translateErrorCode(hr));
 
                 mBackBuffers[i].createFromSwapchain(device, rtvHandles[i], backBufferResource.Get());
             }

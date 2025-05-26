@@ -4,7 +4,7 @@
 
 namespace shaders
 {
-    static constexpr char* TriangleVS = R"###(
+    static const char* TriangleVS = R"###(
 struct PSInput
 {
     float4 position : SV_POSITION;
@@ -20,7 +20,7 @@ PSInput main(float4 position : POSITION, float4 color : COLOR)
 }
 )###";
 
-    static constexpr char* TrianglePS = R"###(
+    static const char* TrianglePS = R"###(
 struct PSInput
 {
     float4 position : SV_POSITION;

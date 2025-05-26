@@ -301,7 +301,7 @@ namespace graphics
         return tableOffset + rangeOffset;
     }
 
-    dx12::DescriptorHandle& ShaderInput::getDescriptorHandleAt(const unsigned int layoutIndex, const unsigned int parameterIndex, const unsigned int rangeIndex)
+    dx12::DescriptorHandle ShaderInput::getDescriptorHandleAt(const unsigned int layoutIndex, const unsigned int parameterIndex, const unsigned int rangeIndex)
     {
         const unsigned int rangeOffset = getDescriptorRangeOffsetAt(layoutIndex, parameterIndex);
 
