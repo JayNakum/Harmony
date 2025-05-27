@@ -354,7 +354,7 @@ namespace windows
         //static WindowsMessageMap mm;
         //OutputDebugString(utility::toWideString(mm(msg, lParam, wParam)).c_str());
 #endif
-
+        static HMONITOR lastMonitor = nullptr;
         switch (msg)
         {
         case WM_CLOSE:
@@ -362,11 +362,23 @@ namespace windows
             PostQuitMessage(0);
             return 0;
         }
-        case WM_DISPLAYCHANGE:
+		case WM_DISPLAYCHANGE:
         case WM_SIZE:
         {
-            onResize((UINT)(UINT64)lParam & 0xFFFF, (UINT)(UINT64)lParam >> 16);
+			UINT clientWidth = LOWORD(lParam);
+			UINT clientHeight = HIWORD(lParam);
+            onResize(clientWidth, clientHeight);
         }
+		case WM_WINDOWPOSCHANGED:
+		{
+			HMONITOR hMon = MonitorFromWindow(hWnd, MONITOR_DEFAULTTONEAREST);
+			if (hMon != lastMonitor)
+			{
+				lastMonitor = hMon;
+                onMonitorChanged();
+			}
+		}
+		break;
         }
         return DefWindowProc(hWnd, msg, wParam, lParam);
     }

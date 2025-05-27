@@ -139,7 +139,7 @@ namespace engine
                 "ps_5_0"
             );
             psoDesc.numRenderTargets = 1;
-            psoDesc.rtvFormats[0] = graphics::DefaultFormats::R8G8B8A8_UNORM;
+            psoDesc.rtvFormats[0] = graphics::DefaultFormats::R16G16B16A16_UNORM;
             psoDesc.cullMode = graphics::CullMode::None;
             return graphics::dx12::GraphicsPipelineState(context.getDevice(), psoDesc);
         }

@@ -70,6 +70,11 @@ namespace windows
             mDidResize = true;
         }
 
+        inline void onMonitorChanged()
+        {
+            mDidResize = true;
+        }
+
     private:
         Description mDescription;
         bool mDidResize;

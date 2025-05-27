@@ -35,7 +35,7 @@ namespace engine
             while (accumulator >= fixedTimeStep)
             {
                 accumulator -= fixedTimeStep;
-                // physics update(fixedTimeStep)
+                // fixedUpdates(fixedTimeStep)
             }
 
             mRenderer->render();

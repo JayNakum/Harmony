@@ -41,7 +41,7 @@ namespace engine
                 clientHeight,
                 1, 1,
                 graphics::GPUResourceDimension::Texture2D,
-                graphics::DefaultFormats::R8G8B8A8_UNORM,
+                graphics::DefaultFormats::R16G16B16A16_UNORM,
                 graphics::GPUResourceFlags::AllowRenderTarget,
             }
         }
@@ -76,6 +76,9 @@ namespace engine
 
     void Renderer::resize(const unsigned int width, const unsigned int height)
     {
+        mClientWidth = width;
+        mClientHeight = height;
+
         mGraphicsQueue.waitForFence(mGraphicsQueue.incrementFence());
 
         mRenderTargetDescription.textureDescription.width = width;
