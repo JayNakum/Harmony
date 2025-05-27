@@ -105,7 +105,7 @@ namespace engine
 
             graphics::dx12::BufferView vertexBufferView = mVertexBuffer->vertexBufferView(sizeof(Vertex));
 
-            context.setVertexBuffer(0, &vertexBufferView);
+            context.setVertexBuffers(0, &vertexBufferView);
             context.drawInstanced(3, 1);
         }
 

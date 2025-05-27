@@ -362,23 +362,23 @@ namespace windows
             PostQuitMessage(0);
             return 0;
         }
-		case WM_DISPLAYCHANGE:
+        case WM_DISPLAYCHANGE:
         case WM_SIZE:
         {
-			UINT clientWidth = LOWORD(lParam);
-			UINT clientHeight = HIWORD(lParam);
+            UINT clientWidth = LOWORD(lParam);
+            UINT clientHeight = HIWORD(lParam);
             onResize(clientWidth, clientHeight);
         }
-		case WM_WINDOWPOSCHANGED:
-		{
-			HMONITOR hMon = MonitorFromWindow(hWnd, MONITOR_DEFAULTTONEAREST);
-			if (hMon != lastMonitor)
-			{
-				lastMonitor = hMon;
+        case WM_WINDOWPOSCHANGED:
+        {
+            HMONITOR hMon = MonitorFromWindow(hWnd, MONITOR_DEFAULTTONEAREST);
+            if (hMon != lastMonitor)
+            {
+                lastMonitor = hMon;
                 onMonitorChanged();
-			}
-		}
-		break;
+            }
+        }
+        break;
         }
         return DefWindowProc(hWnd, msg, wParam, lParam);
     }

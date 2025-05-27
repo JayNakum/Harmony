@@ -143,7 +143,7 @@ namespace graphics
         void setDescriptorTable(const unsigned int rootIndex, const dx12::DescriptorHandle& firstHandle);
 
         void setIndexBuffer(const dx12::BufferView& view);
-        void setVertexBuffer(unsigned int slot, const dx12::BufferView views[], const size_t count = 1);
+        void setVertexBuffers(unsigned int slot, const dx12::BufferView views[], const size_t count = 1);
 
         void draw(const unsigned int vertexCount, const unsigned int vertexStartOffset = 0);
         void drawIndexed(const unsigned int indexCount, const unsigned int startIndexLocation = 0, const int baseVertexLocation = 0);

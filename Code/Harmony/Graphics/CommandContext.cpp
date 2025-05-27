@@ -298,7 +298,7 @@ namespace graphics
         mCommandList->IASetIndexBuffer(&d3dView);
     }
 
-    void GraphicContext::setVertexBuffer(unsigned int slot, const dx12::BufferView views[], const size_t count)
+    void GraphicContext::setVertexBuffers(unsigned int slot, const dx12::BufferView views[], const size_t count)
     {
         std::vector<D3D12_VERTEX_BUFFER_VIEW> d3dViews(count);
 

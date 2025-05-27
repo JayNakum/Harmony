@@ -2,7 +2,6 @@
 
 #include "ShaderInput.h"
 
-
 namespace engine
 {
     Renderer::Renderer(const HWND windowHandle, unsigned int clientWidth, unsigned int clientHeight)

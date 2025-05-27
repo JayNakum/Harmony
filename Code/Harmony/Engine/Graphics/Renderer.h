@@ -16,8 +16,18 @@
 #include "PassWater.h"
 #include "PassPresent.h"
 
+#include "Maths.h"
+
 namespace engine
 {
+    struct RenderItem
+    {
+        graphics::dx12::BufferView vertexBuffer;
+        graphics::dx12::BufferView indexBuffer;
+        graphics::PrimitiveTopology primitiveTopology;
+        mat4f modelMatrix;
+    };
+
     class Renderer
     {
     public:
