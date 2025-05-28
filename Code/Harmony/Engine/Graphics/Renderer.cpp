@@ -4,7 +4,7 @@
 
 namespace engine
 {
-    Renderer::Renderer(const HWND windowHandle, unsigned int clientWidth, unsigned int clientHeight)
+    Renderer::Renderer(const HWND windowHandle)
         : mDevice(),
         mGraphicsQueue(mDevice, {"global graphics queue", graphics::CommandListType::Direct}),
         mCommandContextPool(),
@@ -31,13 +31,11 @@ namespace engine
                 mRTVPage.allocate(1)
             }
         ),
-        mClientWidth(clientWidth), mClientHeight(clientHeight),
         mRenderTargetDescription{
             graphics::dx12::RenderTarget::Type::Color,
             {
                 "default render target",
-                clientWidth,
-                clientHeight,
+                0, 0,
                 1, 1,
                 graphics::GPUResourceDimension::Texture2D,
                 graphics::DefaultFormats::R16G16B16A16_UNORM,
@@ -75,9 +73,6 @@ namespace engine
 
     void Renderer::resize(const unsigned int width, const unsigned int height)
     {
-        mClientWidth = width;
-        mClientHeight = height;
-
         mGraphicsQueue.waitForFence(mGraphicsQueue.incrementFence());
 
         mRenderTargetDescription.textureDescription.width = width;
@@ -90,7 +85,7 @@ namespace engine
         mSwapchain.resize(mDevice, width, height, { mRTVPage.allocate(1), mRTVPage.allocate(1), mRTVPage.allocate(1) });
     }
 
-    void Renderer::render()
+    void Renderer::render(const GraphicScene& scene)
     {
         // WATER PASS
         graphics::GraphicContext& contextWater = aquireGraphicContext("water");

@@ -38,10 +38,25 @@ namespace engine
                 // fixedUpdates(fixedTimeStep)
             }
 
-            mRenderer->render();
+            
+            FrameConstants frame;
+            frame.deltaTime = deltaTime;
+            frame.totalTime = mFrameTimer.elapsed();
+            frame.frameIndex = Engine::msFrameIndex;
+
+            PassConstants pass;
+            pass.renderTargetSize = vec2f(mWindow.getDescription().width, mWindow.getDescription().height);
+            pass.invRenderTargetSize = 1.0f / pass.renderTargetSize;
+
+            pass.nearZ = 0.0f;
+            pass.farZ = 100.0f;
+            
+            mRenderer->setConstants(frame, pass);
+            
+            mRenderer->render({});
+            ++msFrameIndex;
 
             calculateFPS(deltaTime);
-            ++msFrameIndex;
         }
     }
 
@@ -53,9 +68,9 @@ namespace engine
     void Engine::calculateFPS(const float deltaTime)
     {
         static float fpsTimer = 0.0f;
-        static int frameCount = 0;
+        static unsigned int frameCount = 0;
 
-        frameCount++;
+        ++frameCount;
         fpsTimer += deltaTime;
 
         if (fpsTimer >= 1.0f)
@@ -63,12 +78,13 @@ namespace engine
             int fps = frameCount;
             float msPerFrame = 1000.0f / std::max(fps, 1);
 
-            std::ostringstream oss;
-            oss << " | FPS " << fps << " (" << msPerFrame << "ms)";
-            mWindow.appendWindowText(oss.str());
+            std::string fpsString = " | FPS " + std::to_string(fps) +
+                " (" + std::to_string(msPerFrame) + "ms)";
 
-            frameCount = 0;
+            mWindow.appendWindowText(fpsString);
+
             fpsTimer = 0.0f;
+            frameCount = 0;
         }
     }
 }
