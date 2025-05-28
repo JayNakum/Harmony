@@ -12,25 +12,50 @@ namespace graphics
         // Maps graphics::ShaderVisibility with D3D12_SHADER_VISIBILITY
         inline static const D3D12_SHADER_VISIBILITY toD3DShaderVisibility(const ShaderVisibility e)
         {
-            switch (e)
+            unsigned int count = 0;
+            D3D12_SHADER_VISIBILITY result = D3D12_SHADER_VISIBILITY_ALL;
+            if (hasFlag(e, ShaderVisibility::Vertex))
             {
-            case ShaderVisibility::All:
-                return D3D12_SHADER_VISIBILITY::D3D12_SHADER_VISIBILITY_ALL;
-            case ShaderVisibility::Vertex:
-                return D3D12_SHADER_VISIBILITY::D3D12_SHADER_VISIBILITY_VERTEX;
-            case ShaderVisibility::Hull:
-                return D3D12_SHADER_VISIBILITY::D3D12_SHADER_VISIBILITY_HULL;
-            case ShaderVisibility::Domain:
-                return D3D12_SHADER_VISIBILITY::D3D12_SHADER_VISIBILITY_DOMAIN;
-            case ShaderVisibility::Geometry:
-                return D3D12_SHADER_VISIBILITY::D3D12_SHADER_VISIBILITY_GEOMETRY;
-            case ShaderVisibility::Pixel:
-                return D3D12_SHADER_VISIBILITY::D3D12_SHADER_VISIBILITY_PIXEL;
-            case ShaderVisibility::Amplification:
-                return D3D12_SHADER_VISIBILITY::D3D12_SHADER_VISIBILITY_AMPLIFICATION;
-            case ShaderVisibility::Mesh:
-                return D3D12_SHADER_VISIBILITY::D3D12_SHADER_VISIBILITY_MESH;
+                result = D3D12_SHADER_VISIBILITY::D3D12_SHADER_VISIBILITY_VERTEX;
+                ++count;
             }
+            if (hasFlag(e, ShaderVisibility::Hull))
+            {
+                result = D3D12_SHADER_VISIBILITY::D3D12_SHADER_VISIBILITY_HULL;
+                ++count;
+            }
+            if (hasFlag(e, ShaderVisibility::Domain))
+            {
+                result = D3D12_SHADER_VISIBILITY::D3D12_SHADER_VISIBILITY_DOMAIN;
+                ++count;
+            }
+            if (hasFlag(e, ShaderVisibility::Geometry))
+            {
+                result = D3D12_SHADER_VISIBILITY::D3D12_SHADER_VISIBILITY_GEOMETRY;
+                ++count;
+            }
+            if (hasFlag(e, ShaderVisibility::Pixel))
+            {
+                result = D3D12_SHADER_VISIBILITY::D3D12_SHADER_VISIBILITY_PIXEL;
+                ++count;
+            }
+            if (hasFlag(e, ShaderVisibility::Amplification))
+            {
+                result = D3D12_SHADER_VISIBILITY::D3D12_SHADER_VISIBILITY_AMPLIFICATION;
+                ++count;
+            }
+            if (hasFlag(e, ShaderVisibility::Mesh))
+            {
+                result = D3D12_SHADER_VISIBILITY::D3D12_SHADER_VISIBILITY_MESH;
+                ++count;
+            }
+
+            if (count != 1 || hasFlag(e, ShaderVisibility::All))
+            {
+                result = D3D12_SHADER_VISIBILITY::D3D12_SHADER_VISIBILITY_ALL;
+            }
+
+            return result;
         }
     }
 }

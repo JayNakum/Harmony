@@ -69,30 +69,69 @@ namespace graphics
         Mesh = 1 << 6,
         All = Vertex | Hull | Domain | Geometry | Pixel | Amplification | Mesh
     };
+    inline static const ShaderVisibility operator|(ShaderVisibility a, ShaderVisibility b)
+    {
+        return static_cast<ShaderVisibility>(static_cast<uint32_t>(a) | static_cast<uint32_t>(b));
+    }
+    inline static const ShaderVisibility& operator|=(ShaderVisibility& a, ShaderVisibility b)
+    {
+        a = a | b;
+        return a;
+    }
+    inline static const ShaderVisibility operator&(ShaderVisibility a, ShaderVisibility b)
+    {
+        return static_cast<ShaderVisibility>(static_cast<uint32_t>(a) & static_cast<uint32_t>(b));
+    }
+
+    inline static const bool hasFlag(ShaderVisibility flags, ShaderVisibility check)
+    {
+        return (flags & check) != ShaderVisibility::None;
+    }
 
     inline static const std::string toString(const ShaderVisibility e)
     {
-        switch (e)
+        std::string result;
+
+        if (hasFlag(e, ShaderVisibility::All))
         {
-        default:
-            return "";
-        case ShaderVisibility::All:
-            return "All";
-        case ShaderVisibility::Vertex:
-            return "Vertex";
-        case ShaderVisibility::Hull:
-            return "Hull";
-        case ShaderVisibility::Domain:
-            return "Domain";
-        case ShaderVisibility::Geometry:
-            return "Geometry";
-        case ShaderVisibility::Pixel:
-            return "Pixel";
-        case ShaderVisibility::Amplification:
-            return "Amplification";
-        case ShaderVisibility::Mesh:
-            return "Mesh";
+            result += "All";
         }
+        else
+        {
+            if (hasFlag(e, ShaderVisibility::Vertex))
+            {
+                result += "Vertex";
+            }
+            if (hasFlag(e, ShaderVisibility::Hull))
+            {
+                result += "Hull";
+            }
+            if (hasFlag(e, ShaderVisibility::Domain))
+            {
+                result += "Domain";
+            }
+            if (hasFlag(e, ShaderVisibility::Geometry))
+            {
+                result += "Geometry";
+            }
+            if (hasFlag(e, ShaderVisibility::Pixel))
+            {
+                result += "Pixel";
+            }
+            if (hasFlag(e, ShaderVisibility::Amplification))
+            {
+                result += "Amplification";
+            }
+            if (hasFlag(e, ShaderVisibility::Mesh))
+            {
+                result += "Mesh";
+            }
+        }
+
+        if (result.empty())
+            result = "";
+
+        return result;
     }
 
     enum class RootSignatureFlags
@@ -133,37 +172,66 @@ namespace graphics
 
     inline static const std::string toString(const RootSignatureFlags e)
     {
-        switch (e)
+        std::string result;
+
+        if (hasFlag(e, RootSignatureFlags::None))
         {
-        default:
-            return "";
-        case RootSignatureFlags::None:
-            return "None";
-        case RootSignatureFlags::AllowInputAssemblerInputLayout:
-            return "AllowInputAssemblerInputLayout";
-        case RootSignatureFlags::DenyVertexShaderRootAccess:
-            return "DenyVertexShaderRootAccess";
-        case RootSignatureFlags::DenyHullShaderRootAccess:
-            return "DenyHullShaderRootAccess";
-        case RootSignatureFlags::DenyDomainShaderRootAccess:
-            return "DenyDomainShaderRootAccess";
-        case RootSignatureFlags::DenyGeometryShaderRootAccess:
-            return "DenyGeometryShaderRootAccess";
-        case RootSignatureFlags::DenyPixelShaderRootAccess:
-            return "DenyPixelShaderRootAccess";
-        case RootSignatureFlags::AllowStreamOutput:
-            return "AllowStreamOutput";
-        case RootSignatureFlags::LocalRootSignature:
-            return "LocalRootSignature";
-        case RootSignatureFlags::DenyAmplificationShaderRootAccess:
-            return "DenyAmplificationShaderRootAccess";
-        case RootSignatureFlags::DenyMeshShaderRootAccess:
-            return "DenyMeshShaderRootAccess";
-        case RootSignatureFlags::ShaderViewHeapDirectlyIndexed:
-            return "ShaderViewHeapDirectlyIndexed";
-        case RootSignatureFlags::SamplerHeapDirectlyIndexed:
-            return "SamplerHeapDirectlyIndexed";
+            result += "None";
         }
+        if (hasFlag(e, RootSignatureFlags::AllowInputAssemblerInputLayout))
+        {
+            result += "AllowInputAssemblerInputLayout";
+        }
+        if (hasFlag(e, RootSignatureFlags::DenyVertexShaderRootAccess))
+        {
+            result += "DenyVertexShaderRootAccess";
+        }
+        if (hasFlag(e, RootSignatureFlags::DenyHullShaderRootAccess))
+        {
+            result += "DenyHullShaderRootAccess";
+        }
+        if (hasFlag(e, RootSignatureFlags::DenyDomainShaderRootAccess))
+        {
+            result += "DenyDomainShaderRootAccess";
+        }
+        if (hasFlag(e, RootSignatureFlags::DenyGeometryShaderRootAccess))
+        {
+            result += "DenyGeometryShaderRootAccess";
+        }
+        if (hasFlag(e, RootSignatureFlags::DenyPixelShaderRootAccess))
+        {
+            result += "DenyPixelShaderRootAccess";
+        }
+        if (hasFlag(e, RootSignatureFlags::AllowStreamOutput))
+        {
+            result += "AllowStreamOutput";
+        }
+        if (hasFlag(e, RootSignatureFlags::LocalRootSignature))
+        {
+            result += "LocalRootSignature";
+        }
+        if (hasFlag(e, RootSignatureFlags::DenyAmplificationShaderRootAccess))
+        {
+            result += "DenyAmplificationShaderRootAccess";
+        }
+        if (hasFlag(e, RootSignatureFlags::DenyMeshShaderRootAccess))
+        {
+            result += "DenyMeshShaderRootAccess";
+        }
+        if (hasFlag(e, RootSignatureFlags::ShaderViewHeapDirectlyIndexed))
+        {
+            result += "ShaderViewHeapDirectlyIndexed";
+        }
+        if (hasFlag(e, RootSignatureFlags::SamplerHeapDirectlyIndexed))
+        {
+            result += "SamplerHeapDirectlyIndexed";
+        }
+        if (result.empty())
+        {
+            result = "";
+        }
+
+        return result;
     }
 
     namespace sampler

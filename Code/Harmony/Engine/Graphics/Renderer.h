@@ -67,21 +67,62 @@ namespace engine
     class ResourceManager
     {
     public:
-        enum class ResourceType
+        ResourceManager(graphics::dx12::Device& device);
+
+        inline const graphics::dx12::DescriptorHandle createRTVs(const unsigned int count = 1)
         {
-            Buffer,
-            Texture,
-            RenderTarget
+            if (!mCurrentRTVPage.canAllocate(count))
+            {
+                mCurrentRTVPage = mRTVDescriptorHeapCPU.allocatePage();
+            }
+
+            return mCurrentRTVPage.allocate(count);
+        }
+
+        struct CreateInfo
+        {
+            std::string id;
+            union
+            {
+                graphics::dx12::GPUTexture::Description resourceDescription;
+            };
+            graphics::GPUResourceStates resourceStates;
         };
+        const graphics::dx12::DescriptorHandle create(graphics::CommandContext& context, const CreateInfo& createInfo);
 
-        const std::string createResource(const ResourceType type);
+        void initialize(const std::string& id, size_t rowPitchBytes, const void* initialData);
 
-        void readResource(const std::string& id, const graphics::ShaderVisibility visibility);
-        void writeResource(const std::string& id, const graphics::ShaderVisibility visibility);
+        const graphics::dx12::DescriptorHandle read(const std::string& id, graphics::CommandContext& context, const graphics::dx12::GPUTexture::ShaderResourceViewInfo& view);
+        inline const graphics::dx12::DescriptorHandle read(const std::string& id, graphics::CommandContext& context)
+        {
+            const graphics::dx12::GPUTexture& resource = mTextures.at(id);
+            return read(id, context, graphics::dx12::GPUTexture::ShaderResourceViewInfo::getSRVInfo(resource.describeResource()));
+        }
+
+        const graphics::dx12::DescriptorHandle write(const std::string& id, graphics::CommandContext& context, const graphics::dx12::GPUTexture::ShaderResourceViewInfo& view);
+        inline const graphics::dx12::DescriptorHandle write(const std::string& id, graphics::CommandContext& context)
+        {
+            const graphics::dx12::GPUTexture& resource = mTextures.at(id);
+            return write(id, context, graphics::dx12::GPUTexture::ShaderResourceViewInfo::getSRVInfo(resource.describeResource()));
+        }
+
+        const graphics::dx12::DescriptorHandle createRT(const std::string& id, graphics::CommandContext& context, const graphics::dx12::RenderTarget::Description createDescription);
 
     private:
-        std::unordered_map<std::string, graphics::dx12::ByteAddressBuffer> mByteAddressBuffers;
+        static const graphics::GPUResourceStates getResourceStates(const graphics::ShaderVisibility visibility);
+
+    private:
+        graphics::dx12::Heap mTexturesHeap;
         std::unordered_map<std::string, graphics::dx12::GPUTexture> mTextures;
+
+    private:
+        graphics::DescriptorHeapWithAllocator mRTVDescriptorHeapCPU;
+        graphics::DescriptorHeapWithAllocator::Page mCurrentRTVPage;
+
+        graphics::DynamicDescriptorHeap mShaderViewsHeap;
+        graphics::DescriptorHeapWithAllocator::Page mCurrentShaderViewsPage;
+
+        std::unordered_map<std::string, graphics::dx12::DescriptorHandle> mDescriptors;
     };
 
     class Renderer
@@ -115,11 +156,7 @@ namespace engine
 
         graphics::CommandContextPool mCommandContextPool;
 
-        graphics::DynamicDescriptorHeap mShaderViewsHeap;
-        graphics::DescriptorHeapWithAllocator::Page mCurrentShaderViewsPage;
-
-        graphics::DescriptorHeapWithAllocator mRTVDescriptorHeapCPU;
-        graphics::DescriptorHeapWithAllocator::Page mCurrentRTVPage;
+        ResourceManager mResourceManager;
 
         graphics::dx12::Swapchain mSwapchain;
 
@@ -128,11 +165,7 @@ namespace engine
         PassConstants mPassConstants;
 
     private:
-        graphics::dx12::RenderTarget* waterRT;
-        graphics::dx12::DescriptorHandle waterRTV;
         renderPass::Water* mWaterPass;
-
-        graphics::dx12::DescriptorHandle waterSRV;
         renderPass::Present* mPresentPass;
     };
 }

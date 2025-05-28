@@ -9,7 +9,7 @@ namespace engine
         mInputs(mWindow.getHandle()),
         mRenderer(nullptr)
     {
-        mRenderer = new Renderer(mWindow.getHandle(), mWindow.getDescription().width, mWindow.getDescription().height);
+        mRenderer = new Renderer(mWindow.getHandle());
     }
 
     uint64_t Engine::msFrameIndex = 0;
@@ -38,7 +38,7 @@ namespace engine
                 // fixedUpdates(fixedTimeStep)
             }
 
-            
+
             FrameConstants frame;
             frame.deltaTime = deltaTime;
             frame.totalTime = mFrameTimer.elapsed();
@@ -50,9 +50,9 @@ namespace engine
 
             pass.nearZ = 0.0f;
             pass.farZ = 100.0f;
-            
+
             mRenderer->setConstants(frame, pass);
-            
+
             mRenderer->render({});
             ++msFrameIndex;
 

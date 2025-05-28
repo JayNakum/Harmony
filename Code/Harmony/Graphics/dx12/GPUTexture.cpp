@@ -9,10 +9,10 @@ namespace graphics
     namespace dx12
     {
         GPUTexture::GPUTexture(const Description& createDescription)
-            : mDescription(createDescription)
+            : GPUResource(createDescription.initialState),
+            mDescription(createDescription)
         {
             destroy();
-            mUsageState = GPUResourceStates::CopyDestination; // Since the resource is created on default heap, it expects some data to be copied to.
         }
 
         const GPUResource::Description GPUTexture::describeResource() const

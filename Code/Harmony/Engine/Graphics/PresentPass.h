@@ -13,12 +13,9 @@ namespace engine
 
             struct InputOutputs
             {
-                unsigned int width;
-                unsigned int height;
+                graphics::dx12::DescriptorHandle inRTV;
 
                 graphics::dx12::DescriptorHandle inPresentTextureSRV;
-
-                graphics::dx12::DescriptorHandle inRTV;
             };
             void render(graphics::GraphicContext& context, InputOutputs& inputOutputs);
 

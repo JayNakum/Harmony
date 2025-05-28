@@ -7,10 +7,10 @@ namespace graphics
     namespace dx12
     {
         GPUBuffer::GPUBuffer(const Description& createDescription)
-            : mDescription(createDescription)
+            : GPUResource(createDescription.initialState),
+            mDescription(createDescription)
         {
             destroy();
-            mUsageState = GPUResourceStates::CopyDestination; // Since the resource is created on default heap, it expects some data to be copied to.
         }
 
         const GPUResource::Description GPUBuffer::describeResource() const

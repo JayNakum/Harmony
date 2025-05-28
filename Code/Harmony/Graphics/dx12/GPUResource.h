@@ -34,6 +34,7 @@ namespace graphics
                 uint16_t mipLevels = 1;
                 GPUResourceDimension dimension = GPUResourceDimension::Unknown;
                 Format format = DefaultFormats::UNKNOWN;
+                GPUResourceStates initialState = GPUResourceStates::Common;
                 GPUResourceFlags resourceFlags = GPUResourceFlags::None;
                 float clearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
                 uint64_t alignment = 0;
@@ -41,14 +42,9 @@ namespace graphics
                 unsigned int sampleQuality = 0;
             };
 
-            GPUResource()
+            GPUResource(const GPUResourceStates initialState)
                 : mResource(nullptr),
-                mUsageState(GPUResourceStates::Common),
-                mTransitioningState(GPUResourceStates::Common) {}
-
-            GPUResource(ID3D12Resource* resource, const GPUResourceStates currentUsageState)
-                : mResource(resource),
-                mUsageState(currentUsageState),
+                mUsageState(initialState),
                 mTransitioningState(GPUResourceStates::Common) {}
 
             void setResource(ID3D12Resource* resource)

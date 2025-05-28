@@ -8,17 +8,6 @@ namespace engine
         : mDevice(),
         mGraphicsQueue(mDevice, {"global graphics queue", graphics::CommandListType::Direct}),
         mCommandContextPool(),
-        mShaderViewsHeap(mDevice),
-        mRTVDescriptorHeapCPU(
-            mDevice,
-            {
-                "cpu visible render target view descriptor heap",
-                graphics::DescriptorHeapType::RenderTarget,
-                512,
-                graphics::DescriptorHeapFlags::CPUVisible
-            }
-        ),
-        mRTVPage(mRTVDescriptorHeapCPU.allocatePage()),
         mSwapchain(
             mDevice, mGraphicsQueue,
             {
@@ -26,26 +15,15 @@ namespace engine
                 windowHandle
             },
             {
-                mRTVPage.allocate(1),
-                mRTVPage.allocate(1),
-                mRTVPage.allocate(1)
+                mCurrentRTVPage.allocate(1),
+                mCurrentRTVPage.allocate(1),
+                mCurrentRTVPage.allocate(1)
             }
-        ),
-        mRenderTargetDescription{
-            graphics::dx12::RenderTarget::Type::Color,
-            {
-                "default render target",
-                0, 0,
-                1, 1,
-                graphics::GPUResourceDimension::Texture2D,
-                graphics::DefaultFormats::R16G16B16A16_UNORM,
-                graphics::GPUResourceFlags::AllowRenderTarget,
-            }
-        }
+        )
     {
         graphics::GraphicContext& initContext = aquireGraphicContext("init context");
 
-        graphics::dx12::RenderTarget::Description description = mRenderTargetDescription;
+        graphics::dx12::RenderTarget::Description description{};
         description.textureDescription.name = "water render target";
         description.textureDescription.clearColor[0] = 0.118f;
         description.textureDescription.clearColor[1] = 0.106f;
@@ -55,7 +33,7 @@ namespace engine
         waterRT->getTexture().createCommitted(initContext.getDevice());
         waterSRV = mShaderViewsHeap.allocatePage().allocate(1);
 
-        waterRTV = mRTVPage.allocate(1);
+        waterRTV = mCurrentRTVPage.allocate(1);
         waterRT->createRenderTargetView(initContext.getDevice(), waterRTV);
 
         mWaterPass = new renderPass::Water(initContext);
@@ -75,14 +53,11 @@ namespace engine
     {
         mGraphicsQueue.waitForFence(mGraphicsQueue.incrementFence());
 
-        mRenderTargetDescription.textureDescription.width = width;
-        mRenderTargetDescription.textureDescription.height = height;
-
-        if (!mRTVPage.canAllocate(3))
+        if (!mCurrentRTVPage.canAllocate(3))
         {
-            mRTVPage = mRTVDescriptorHeapCPU.allocatePage();
+            mCurrentRTVPage = mRTVDescriptorHeapCPU.allocatePage();
         }
-        mSwapchain.resize(mDevice, width, height, { mRTVPage.allocate(1), mRTVPage.allocate(1), mRTVPage.allocate(1) });
+        mSwapchain.resize(mDevice, width, height, { mCurrentRTVPage.allocate(1), mCurrentRTVPage.allocate(1), mCurrentRTVPage.allocate(1) });
     }
 
     void Renderer::render(const GraphicScene& scene)
@@ -93,7 +68,6 @@ namespace engine
         contextWater.transitionResource(waterRT->getTexture(), graphics::GPUResourceStates::RenderTarget, true);
 
         renderPass::Water::InputOutputs waterIO{
-            mClientWidth, mClientHeight,
             waterRTV
         };
         mWaterPass->render(contextWater, waterIO);
@@ -113,9 +87,8 @@ namespace engine
         contextPresent.transitionResource(mSwapchain.getCurrentBackBuffer().getTexture(), graphics::GPUResourceStates::RenderTarget, true);
 
         renderPass::Present::InputOutputs presentIO{
-        	mClientWidth, mClientHeight,
-            waterSRV,
-        	mSwapchain.getCurrentBackBufferView()
+        	mSwapchain.getCurrentBackBufferView(),
+            waterSRV
         };
         mPresentPass->render(contextPresent, presentIO);
 
@@ -143,5 +116,64 @@ namespace engine
         delete waterRT;
         delete mWaterPass;
         delete mPresentPass;
+    }
+}
+
+namespace engine
+{
+    ResourceManager::ResourceManager(graphics::dx12::Device& device)
+        :
+        mRTVDescriptorHeapCPU(
+            device,
+            {
+                "cpu visible render target view descriptor heap",
+                graphics::DescriptorHeapType::RenderTarget,
+                512,
+                graphics::DescriptorHeapFlags::CPUVisible
+            }
+        ),
+        mCurrentRTVPage(mRTVDescriptorHeapCPU.allocatePage()),
+        mShaderViewsHeap(device),
+        mCurrentShaderViewsPage(mShaderViewsHeap.allocatePage())
+    {}
+
+    const graphics::dx12::DescriptorHandle ResourceManager::create(graphics::CommandContext& context, const CreateInfo& createInfo)
+    {
+        graphics::dx12::Device& device = context.getDevice();
+        createInfo.resourceDescription.initialState = graphics::GPUResourceStates::CopyDestination;
+        mDescriptors.emplace(createInfo.id, mCurrentShaderViewsPage.allocate());
+        graphics::dx12::GPUTexture& resource = mTextures.at(createInfo.id);
+        resource.createCommitted(device);
+
+        mTextures.emplace(createInfo.id, createInfo.resourceDescription);
+        graphics::dx12::DescriptorHandle& handle = mDescriptors.at(createInfo.id);
+        resource.createShaderResourceView(device, handle, graphics::dx12::GPUTexture::ShaderResourceViewInfo::getSRVInfo(resource.describeResource()));
+
+
+        return handle;
+    }
+
+    const graphics::dx12::DescriptorHandle ResourceManager::read(const std::string& id, graphics::CommandContext& context, const graphics::dx12::GPUTexture::ShaderResourceViewInfo& view)
+    {
+        return graphics::dx12::DescriptorHandle();
+    }
+
+    const graphics::dx12::DescriptorHandle ResourceManager::write(const std::string& id, graphics::CommandContext& context, const graphics::dx12::GPUTexture::ShaderResourceViewInfo& view)
+    {
+        return graphics::dx12::DescriptorHandle();
+    }
+
+    const graphics::dx12::DescriptorHandle ResourceManager::createRT(const std::string& id, graphics::CommandContext& context, const graphics::dx12::RenderTarget::Description createDescription)
+    {
+        graphics::dx12::DescriptorHandle handle = createRTVs(1);
+
+
+
+        return handle;
+    }
+
+    const graphics::GPUResourceStates ResourceManager::getResourceStates(const graphics::ShaderVisibility visibility)
+    {
+
     }
 }

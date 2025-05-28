@@ -39,19 +39,30 @@ namespace graphics
 
     inline static const std::string toString(const GPUResourceFlags e)
     {
-        switch (e)
+        std::string result;
+
+        if (hasFlag(e, GPUResourceFlags::None))
         {
-        default:
-            return "";
-        case GPUResourceFlags::None:
-            return "None";
-        case GPUResourceFlags::AllowRenderTarget:
-            return "AllowRenderTarget";
-        case GPUResourceFlags::AllowDepthStencil:
-            return "AllowDepthStencil";
-        case GPUResourceFlags::AllowUnorderedAccess:
-            return "AllowUnorderedAccess";
+            result += "None";
         }
+        if (hasFlag(e, GPUResourceFlags::AllowRenderTarget))
+        {
+            result += "AllowRenderTarget";
+        }
+        if (hasFlag(e, GPUResourceFlags::AllowDepthStencil))
+        {
+            result += "AllowDepthStencil";
+        }
+        if (hasFlag(e, GPUResourceFlags::AllowUnorderedAccess))
+        {
+            result += "AllowUnorderedAccess";
+        }
+        if (result.empty())
+        {
+            result = "";
+        }
+
+        return result;
     }
 
     enum class GPUResourceStates
@@ -99,51 +110,94 @@ namespace graphics
 
     inline static const std::string toString(const GPUResourceStates e)
     {
-        switch (e)
+        std::string result;
+
+        if (hasFlag(e, GPUResourceStates::Common))
         {
-        default:
-            return "";
-        case GPUResourceStates::Common:
-            return "Common";
-        case GPUResourceStates::VertexAndConstantBuffer:
-            return "VertexAndConstantBuffer";
-        case GPUResourceStates::IndexBuffer:
-            return "IndexBuffer";
-        case GPUResourceStates::RenderTarget:
-            return "RenderTarget";
-        case GPUResourceStates::UnorderedAccess:
-            return "UnorderedAccess";
-        case GPUResourceStates::DepthWrite:
-            return "DepthWrite";
-        case GPUResourceStates::DepthRead:
-            return "DepthRead";
-        case GPUResourceStates::NonPixelShaderResource:
-            return "NonPixelShaderResource";
-        case GPUResourceStates::PixelShaderResource:
-            return "PixelShaderResource";
-        case GPUResourceStates::StreamOut:
-            return "StreamOut";
-        case GPUResourceStates::IndirectArgument:
-            return "IndirectArgument";
-        case GPUResourceStates::CopyDestination:
-            return "CopyDestination";
-        case GPUResourceStates::CopySource:
-            return "CopySource";
-        case GPUResourceStates::ResolveDestination:
-            return "ResolveDestination";
-        case GPUResourceStates::ResolveSource:
-            return "ResolveSource";
-        case GPUResourceStates::ShadingRateResource:
-            return "ShadingRateResource";
-        case GPUResourceStates::GenericRead:
-            return "GenericRead";
-        case GPUResourceStates::AllShaderResource:
-            return "AllShaderResource";
-        case GPUResourceStates::Present:
-            return "Present";
-        case GPUResourceStates::Predication:
-            return "Predication";
+            result += "Common";
         }
+        if (hasFlag(e, GPUResourceStates::VertexAndConstantBuffer))
+        {
+            result += "VertexAndConstantBuffer";
+        }
+        if (hasFlag(e, GPUResourceStates::IndexBuffer))
+        {
+            result += "IndexBuffer";
+        }
+        if (hasFlag(e, GPUResourceStates::RenderTarget))
+        {
+            result += "RenderTarget";
+        }
+        if (hasFlag(e, GPUResourceStates::UnorderedAccess))
+        {
+            result += "UnorderedAccess";
+        }
+        if (hasFlag(e, GPUResourceStates::DepthWrite))
+        {
+            result += "DepthWrite";
+        }
+        if (hasFlag(e, GPUResourceStates::DepthRead))
+        {
+            result += "DepthRead";
+        }
+        if (hasFlag(e, GPUResourceStates::NonPixelShaderResource))
+        {
+            result += "NonPixelShaderResource";
+        }
+        if (hasFlag(e, GPUResourceStates::PixelShaderResource))
+        {
+            result += "PixelShaderResource";
+        }
+        if (hasFlag(e, GPUResourceStates::StreamOut))
+        {
+            result += "StreamOut";
+        }
+        if (hasFlag(e, GPUResourceStates::IndirectArgument))
+        {
+            result += "IndirectArgument";
+        }
+        if (hasFlag(e, GPUResourceStates::CopyDestination))
+        {
+            result += "CopyDestination";
+        }
+        if (hasFlag(e, GPUResourceStates::CopySource))
+        {
+            result += "CopySource";
+        }
+        if (hasFlag(e, GPUResourceStates::ResolveDestination))
+        {
+            result += "ResolveDestination";
+        }
+        if (hasFlag(e, GPUResourceStates::ResolveSource))
+        {
+            result += "ResolveSource";
+        }
+        if (hasFlag(e, GPUResourceStates::ShadingRateResource))
+        {
+            result += "ShadingRateResource";
+        }
+        if (hasFlag(e, GPUResourceStates::GenericRead))
+        {
+            result += "GenericRead";
+        }
+        if (hasFlag(e, GPUResourceStates::AllShaderResource))
+        {
+            result += "AllShaderResource";
+        }
+        if (hasFlag(e, GPUResourceStates::Present))
+        {
+            result += "Present";
+        }
+        if (hasFlag(e, GPUResourceStates::Predication))
+        {
+            result += "Predication";
+        }
+        if (result.empty())
+        {
+            result = "";
+        }
+
+        return result;
     }
 
     enum class GPUResourceDimension
