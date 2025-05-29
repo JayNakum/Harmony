@@ -4,29 +4,66 @@
 
 namespace shaders
 {
-    static const char* TriangleVS = R"###(
-struct PSInput
+    static const char* WaterVS = R"###(
+cbuffer cbFrame : register(b0)
+{
+    uint64_t frameIndex;
+	float totalTime;
+    float deltaTime;
+
+	float4x4 gView;
+	float4x4 gInvView;
+
+	float4x4 gProj;
+	float4x4 gInvProj;
+
+	float4x4 gViewProj;
+	float4x4 gInvViewProj;
+
+	float3 gEyePosW;
+	uint32_t cbFramePad0;
+
+	float2 gRenderTargetSize;
+	float2 gInvRenderTargetSize;
+
+	float gNearZ;
+	float gFarZ;
+	uint64_t cbFramePad1;
+};
+
+cbuffer cbPass : register(b1)
+{
+    float3 gWindDirection;
+	uint32_t cbPassPad0;
+};
+
+cbuffer cbObject : register(b2)
+{
+    float4x4 gWorld;
+};
+
+struct VSOut
 {
     float4 position : SV_POSITION;
     float4 color : COLOR;
 };
 
-PSInput main(float4 position : POSITION, float4 color : COLOR)
+VSOut main(float4 position : POSITION, float4 color : COLOR)
 {
-    PSInput result;
+    VSOut result;
     result.position = position;
     result.color = color;
     return result;
 }
 )###";
 
-    static const char* TrianglePS = R"###(
-struct PSInput
+    static const char* WaterPS = R"###(
+struct VSOut
 {
     float4 position : SV_POSITION;
     float4 color : COLOR;
 };
-float4 main(PSInput input) : SV_TARGET
+float4 main(VSOut input) : SV_TARGET
 {
     return input.color;
 }
@@ -56,7 +93,7 @@ namespace engine
                 }
             },
             mRenderTarget(nullptr),
-            mTrianglePSO(initialize(context))
+            mWaterPSO(initialize(context))
         {
             Vertex triangleVertices[] =
             {
@@ -74,7 +111,7 @@ namespace engine
                 mIntermediateVertexBuffer->unmap();
             }
             graphics::dx12::GPUResource::Description createDesc;
-            createDesc.name = "vertex buffer";
+            createDesc.name = "water vertex buffer";
             createDesc.width = numBytes;
             createDesc.dimension = graphics::GPUResourceDimension::Buffer;
             mVertexBuffer = new graphics::dx12::ByteAddressBuffer(createDesc);
@@ -88,14 +125,19 @@ namespace engine
             context.transitionResource(*mVertexBuffer, graphics::GPUResourceStates::VertexAndConstantBuffer, true);
         }
 
+        void Water::freeUploadResources()
+        {
+			delete mIntermediateVertexBuffer;
+        }
+
         Water::Outputs Water::render(graphics::GraphicContext& context, Inputs& passInputs)
         {
             {// Pre Render
-                if (mRTDescription.textureDescription.width != passInputs.pass.renderTargetSize.x ||
-                    mRTDescription.textureDescription.height != passInputs.pass.renderTargetSize.y)
+                if (mRTDescription.textureDescription.width != passInputs.frame.renderTargetSize.x ||
+                    mRTDescription.textureDescription.height != passInputs.frame.renderTargetSize.y)
                 {
-                    mRTDescription.textureDescription.width = passInputs.pass.renderTargetSize.x;
-                    mRTDescription.textureDescription.height = passInputs.pass.renderTargetSize.y;
+                    mRTDescription.textureDescription.width = passInputs.frame.renderTargetSize.x;
+                    mRTDescription.textureDescription.height = passInputs.frame.renderTargetSize.y;
 
                     if (mRenderTarget != nullptr)
                     {
@@ -111,12 +153,25 @@ namespace engine
                 context.transitionResource(mRenderTarget->getTexture(), graphics::GPUResourceStates::RenderTarget, true);
             }
 
-
             {// Render
-                graphics::ShaderInput triangleSI(context, { /*no constants*/ }, { /*no parameters*/ });
-                triangleSI.finalize();
+                const graphics::ShaderInput::Parameter slot1{
+                    graphics::ShaderVisibility::Vertex | graphics::ShaderVisibility::Pixel,
+                    {{graphics::DescriptorRangeType::CBV, 1}}
+                };
+				const graphics::ShaderInput::Parameter slot2{
+					graphics::ShaderVisibility::Vertex,
+					{{graphics::DescriptorRangeType::CBV, 1}}
+				};
+				const graphics::ShaderInput::Parameter slot2{
+					graphics::ShaderVisibility::Vertex,
+					{{graphics::DescriptorRangeType::CBV, 1}}
+				};
+                const std::vector<graphics::ShaderInput::Parameter> parametersLayout = {slot1};
 
-                context.setPipelineState(mTrianglePSO);
+                graphics::ShaderInput waterSI(context, {/*no constants*/}, parametersLayout);
+                waterSI.finalize();
+
+                context.setPipelineState(mWaterPSO);
 
                 context.setRenderTargets(mRTV);
 
@@ -153,33 +208,45 @@ namespace engine
 
         Water::~Water()
         {
-            delete mIntermediateVertexBuffer;
             delete mVertexBuffer;
             delete mRenderTarget;
         }
 
         graphics::dx12::GraphicsPipelineState Water::initialize(graphics::GraphicContext& context)
         {
-            graphics::ShaderInput triangleSI(context, {/*no constants*/ }, {/*no parameters*/ });
+			const graphics::ShaderInput::Parameter slot1{
+					graphics::ShaderVisibility::Vertex | graphics::ShaderVisibility::Pixel,
+					{{graphics::DescriptorRangeType::CBV, 1}}
+			};
+			const graphics::ShaderInput::Parameter slot2{
+				graphics::ShaderVisibility::Vertex,
+				{{graphics::DescriptorRangeType::CBV, 1}}
+			};
+			const graphics::ShaderInput::Parameter slot2{
+				graphics::ShaderVisibility::Vertex,
+				{{graphics::DescriptorRangeType::CBV, 1}}
+			};
+			const std::vector<graphics::ShaderInput::Parameter> parametersLayout = { slot1 };
+            graphics::ShaderInput waterSI(context, {/*no constants*/}, parametersLayout);
 
             // Pipeline State
             graphics::dx12::GraphicsPipelineState::Description psoDesc;
-            psoDesc.name = "triangle pso";
+            psoDesc.name = "water pso";
             psoDesc.inputLayout = {
                 {"POSITION", graphics::DefaultFormats::R32G32B32A32_FLOAT, 0, graphics::InputClassification::PerVertex},
                 {"COLOR", graphics::DefaultFormats::R32G32B32A32_FLOAT, 16, graphics::InputClassification::PerVertex},
             };
-            psoDesc.rootSignature = &(triangleSI.getRootSignature());
+            psoDesc.rootSignature = &(waterSI.getRootSignature());
 
             psoDesc.vertexShader = graphics::GraphicContext::compileShader(
-                "TriangleVS",
-                shaders::TriangleVS,
-                "vs_5_0"
+                "WaterVS",
+                shaders::WaterVS,
+                "vs_6_4"
             );
             psoDesc.pixelShader = graphics::GraphicContext::compileShader(
-                "TrianglePS",
-                shaders::TrianglePS,
-                "ps_5_0"
+                "WaterPS",
+                shaders::WaterPS,
+                "ps_6_4"
             );
             psoDesc.numRenderTargets = 1;
             psoDesc.rtvFormats[0] = graphics::DefaultFormats::R16G16B16A16_UNORM;

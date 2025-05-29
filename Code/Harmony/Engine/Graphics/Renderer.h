@@ -51,7 +51,7 @@ namespace engine
 
         void resize(const unsigned int width, const unsigned int height);
 
-        void render(const FrameConstants frame, const PassConstants pass);
+        void render(const FrameConstants frame);
 
         ~Renderer();
 

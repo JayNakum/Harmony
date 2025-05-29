@@ -45,6 +45,8 @@ namespace engine
         mGraphicsQueue.waitForFence(fence);
 
         discardGraphicContext(initContext);
+
+        mWaterPass->freeUploadResources();
     }
 
     void Renderer::resize(const unsigned int width, const unsigned int height)
@@ -54,14 +56,13 @@ namespace engine
         mSwapchain.resize(mDevice, width, height, { mSwapchainRTVPage.allocate(1), mSwapchainRTVPage.allocate(1), mSwapchainRTVPage.allocate(1) });
     }
 
-    void Renderer::render(const FrameConstants frame, const PassConstants pass)
+    void Renderer::render(const FrameConstants frame)
     {
         // WATER PASS
         graphics::GraphicContext& contextWater = aquireGraphicContext("water");
 
         renderPass::Water::Inputs waterInputs{
-            frame,
-            pass
+            frame
         };
         renderPass::Water::Outputs waterOutput = mWaterPass->render(contextWater, waterInputs);
 
@@ -72,7 +73,6 @@ namespace engine
 
         renderPass::Present::Inputs presentInputs{
             frame,
-            pass,
             waterOutput.outputRender,
             mSwapchain.getCurrentBackBuffer().getTexture(),
             mSwapchain.getCurrentBackBufferView()

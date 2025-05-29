@@ -13,7 +13,6 @@ namespace engine
             struct Inputs
             {
                 FrameConstants frame;
-                PassConstants pass;
             };
 
             struct Outputs
@@ -22,6 +21,8 @@ namespace engine
             };
 
             Water(graphics::GraphicContext& context);
+
+            void freeUploadResources();
 
             Outputs render(graphics::GraphicContext& context, Inputs& passInputs);
 
@@ -35,7 +36,7 @@ namespace engine
             graphics::dx12::RenderTarget* mRenderTarget;
             graphics::dx12::DescriptorHandle mRTV;
 
-            graphics::dx12::GraphicsPipelineState mTrianglePSO;
+            graphics::dx12::GraphicsPipelineState mWaterPSO;
 
             graphics::dx12::UploadBuffer* mIntermediateVertexBuffer;
             graphics::dx12::ByteAddressBuffer* mVertexBuffer;

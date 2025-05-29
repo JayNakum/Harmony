@@ -13,7 +13,6 @@ namespace engine
             struct Inputs
             {
                 FrameConstants frame;
-                PassConstants pass;
                 graphics::dx12::GPUTexture& inFinalOutput;
                 graphics::dx12::GPUTexture& inSwapchainBackbuffer;
                 graphics::dx12::DescriptorHandle inSwapchainRTV;

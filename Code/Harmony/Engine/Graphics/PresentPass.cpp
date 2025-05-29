@@ -66,8 +66,8 @@ namespace engine
                 graphics::ViewPort viewport{};
                 viewport.x = 0;
                 viewport.y = 0;
-                viewport.width = (float)passInputs.pass.renderTargetSize.x;
-                viewport.height = (float)passInputs.pass.renderTargetSize.y;
+                viewport.width = (float)passInputs.frame.renderTargetSize.x;
+                viewport.height = (float)passInputs.frame.renderTargetSize.y;
                 context.setViewport(viewport);
 
                 graphics::Box scissor{};
@@ -104,12 +104,12 @@ namespace engine
             psoDesc.vertexShader = graphics::GraphicContext::compileShader(
                 "ScreenQuadVS",
                 shaders::ScreenQuadVS,
-                "vs_5_0"
+                "vs_6_4"
             );
             psoDesc.pixelShader = graphics::GraphicContext::compileShader(
                 "BufferCopyPS",
                 shaders::BufferCopyPS,
-                "ps_5_0"
+                "ps_6_4"
             );
             psoDesc.numRenderTargets = 1;
             psoDesc.rtvFormats[0] = graphics::DefaultFormats::R8G8B8A8_UNORM;

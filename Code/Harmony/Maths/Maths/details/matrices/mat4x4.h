@@ -664,7 +664,7 @@ inline mat4x4<T> lookAtRH(const vec3<T>& eye, const vec3<T>& center, const vec3<
 }
 
 template <typename T>
-inline mat4x4<float> perspectiveProjection(float fov, float aspect, float near, float far)
+inline mat4x4<float> perspectiveProjection(float fov, float aspect, float nearVal, float farVal)
 {
     // const float DEG2RAD = M_PI / 180.0f;
     float yScale = 1.0f / std::tan(fov / 2);
@@ -673,8 +673,8 @@ inline mat4x4<float> perspectiveProjection(float fov, float aspect, float near, 
     return mat4x4<float> (
         { xScale, 0.0f, 0.0f, 0.0f },
         { 0.0f, yScale, 0.0f, 0.0f },
-        { 0.0f, 0.0f, far / (far - near), 1.0f },
-        { 0.0f, 0.0f, (-near * far) / (far - near), 0.0f }
+        { 0.0f, 0.0f, (farVal / (farVal - nearVal)), 1.0f },
+        { 0.0f, 0.0f, ((-nearVal * farVal) / (farVal - nearVal)), 0.0f }
     );
 }
 
