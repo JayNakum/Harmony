@@ -51,9 +51,7 @@ namespace engine
             pass.nearZ = 0.0f;
             pass.farZ = 100.0f;
 
-            mRenderer->setConstants(frame, pass);
-
-            mRenderer->render({});
+            mRenderer->render(frame, pass);
             ++msFrameIndex;
 
             calculateFPS(deltaTime);

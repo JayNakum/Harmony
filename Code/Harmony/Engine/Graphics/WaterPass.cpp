@@ -44,7 +44,19 @@ namespace engine
         };
 
         Water::Water(graphics::GraphicContext& context)
-            : mTrianglePSO(initialize(context))
+            : mRTDescription{
+                graphics::dx12::RenderTarget::Type::Color,
+                {
+                    "water render target",
+                    0, 0,
+                    1, 1,
+                    graphics::GPUResourceDimension::Texture2D,
+                    graphics::DefaultFormats::R16G16B16A16_UNORM,
+                    graphics::GPUResourceFlags::AllowRenderTarget,
+                }
+            },
+            mRenderTarget(nullptr),
+            mTrianglePSO(initialize(context))
         {
             Vertex triangleVertices[] =
             {
@@ -68,51 +80,82 @@ namespace engine
             mVertexBuffer = new graphics::dx12::ByteAddressBuffer(createDesc);
 
             mVertexBuffer->createCommitted(context.getDevice());
-
             context.transitionResource(*mIntermediateVertexBuffer, graphics::GPUResourceStates::CopySource, true);
+            context.transitionResource(*mVertexBuffer, graphics::GPUResourceStates::CopyDestination, true);
+
             context.copyBufferRegion(*mVertexBuffer, 0, *mIntermediateVertexBuffer, 0, numBytes);
+
             context.transitionResource(*mVertexBuffer, graphics::GPUResourceStates::VertexAndConstantBuffer, true);
         }
 
-        void Water::render(graphics::GraphicContext& context, InputOutputs& inputOutputs)
+        Water::Outputs Water::render(graphics::GraphicContext& context, Inputs& passInputs)
         {
-            graphics::ShaderInput triangleSI(context, { /*no constants*/ }, { /*no parameters*/ });
-            triangleSI.finalize();
+            {// Pre Render
+                if (mRTDescription.textureDescription.width != passInputs.pass.renderTargetSize.x ||
+                    mRTDescription.textureDescription.height != passInputs.pass.renderTargetSize.y)
+                {
+                    mRTDescription.textureDescription.width = passInputs.pass.renderTargetSize.x;
+                    mRTDescription.textureDescription.height = passInputs.pass.renderTargetSize.y;
 
-            context.setPipelineState(mTrianglePSO);
+                    if (mRenderTarget != nullptr)
+                    {
+                        delete mRenderTarget;
+                    }
+                    mRenderTarget = new graphics::dx12::RenderTarget(mRTDescription);
+                    mRenderTarget->getTexture().createCommitted(context.getDevice());
 
-            context.setRenderTargets(inputOutputs.inRTV);
+                    mRTV = context.allocateDescriptors(graphics::DescriptorHeapType::RenderTarget);
+                    mRenderTarget->createRenderTargetView(context.getDevice(), mRTV);
+                }
 
-            graphics::ViewPort viewport{};
-            viewport.x = 0;
-            viewport.y = 0;
-            viewport.width = (float)inputOutputs.width;
-            viewport.height = (float)inputOutputs.height;
-            context.setViewport(viewport);
+                context.transitionResource(mRenderTarget->getTexture(), graphics::GPUResourceStates::RenderTarget, true);
+            }
 
-            graphics::Box scissor{};
-            scissor.left = (unsigned int)viewport.x;
-            scissor.top = (unsigned int)viewport.y;
-            scissor.right = (unsigned int)viewport.x + (unsigned int)viewport.width;
-            scissor.bottom = (unsigned int)viewport.y + (unsigned int)viewport.height;
-            context.setScissor(scissor);
 
-            const float clearColor[4] = { 0.118f, 0.106f, 0.180f, 1.0f };
-            //const float clearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
-            context.clearColor(inputOutputs.inRTV, clearColor);
+            {// Render
+                graphics::ShaderInput triangleSI(context, { /*no constants*/ }, { /*no parameters*/ });
+                triangleSI.finalize();
 
-            context.setPrimitiveTopology(graphics::PrimitiveTopology::TriangleList);
+                context.setPipelineState(mTrianglePSO);
 
-            graphics::dx12::BufferView vertexBufferView = mVertexBuffer->vertexBufferView(sizeof(Vertex));
+                context.setRenderTargets(mRTV);
 
-            context.setVertexBuffers(0, &vertexBufferView);
-            context.drawInstanced(3, 1);
+                graphics::ViewPort viewport{};
+                viewport.x = 0;
+                viewport.y = 0;
+                viewport.width = (float)mRenderTarget->getTexture().describeResource().width;
+                viewport.height = (float)mRenderTarget->getTexture().describeResource().height;
+                context.setViewport(viewport);
+
+                graphics::Box scissor{};
+                scissor.left = (unsigned int)viewport.x;
+                scissor.top = (unsigned int)viewport.y;
+                scissor.right = (unsigned int)viewport.x + (unsigned int)viewport.width;
+                scissor.bottom = (unsigned int)viewport.y + (unsigned int)viewport.height;
+                context.setScissor(scissor);
+
+                const float clearColor[4] = { 0.118f, 0.106f, 0.180f, 1.0f };
+                //const float clearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+                context.clearColor(mRTV, clearColor);
+
+                context.setPrimitiveTopology(graphics::PrimitiveTopology::TriangleList);
+
+                graphics::dx12::BufferView vertexBufferView = mVertexBuffer->vertexBufferView(sizeof(Vertex));
+
+                context.setVertexBuffers(0, &vertexBufferView);
+                context.drawInstanced(3, 1);
+            }
+
+            {// Post Render
+                return Outputs{ mRenderTarget->getTexture() };
+            }
         }
 
         Water::~Water()
         {
             delete mIntermediateVertexBuffer;
             delete mVertexBuffer;
+            delete mRenderTarget;
         }
 
         graphics::dx12::GraphicsPipelineState Water::initialize(graphics::GraphicContext& context)

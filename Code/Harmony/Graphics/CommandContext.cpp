@@ -7,11 +7,13 @@
 
 namespace graphics
 {
-    CommandContext::CommandContext(const CommandListType type, dx12::Device& device, DynamicDescriptorHeap& descriptorHeap)
+    CommandContext::CommandContext(const CommandListType type, dx12::Device& device, DynamicDescriptorHeap& shaderViewsDescriptorHeap, DescriptorHeapWithAllocator& renderTargetViewsCPUDescriptorHeap)
         : CommandObject(type),
         mDevice(device),
-        mShaderViewsHeap(descriptorHeap),
+        mShaderViewsHeap(shaderViewsDescriptorHeap),
         mShaderViewsHeapCPUPage(mShaderViewsHeap.allocatePage()),
+        mRenderTargetViewsHeapCPU(renderTargetViewsCPUDescriptorHeap),
+        mRenderTargetViewsHeapCPUPage(mRenderTargetViewsHeapCPU.allocatePage()),
         mCommandAllocatorPool(mType),
         mCurrentCommandAllocator(&mCommandAllocatorPool.requestCommandAllocator(mDevice, 0)),
         mCmdListDesc{ toString(mType) + " commandList", mType, *mCurrentCommandAllocator },
@@ -31,6 +33,22 @@ namespace graphics
     {
         mCurrentCommandAllocator = &mCommandAllocatorPool.requestCommandAllocator(mDevice, completedFence);
         mCommandList->Reset(mCurrentCommandAllocator->get(), nullptr);
+    }
+
+    const dx12::DescriptorHandle CommandContext::allocateDescriptors(const DescriptorHeapType type, const unsigned int count)
+    {
+        switch (type)
+        {
+        default:
+            HASSERT(false, "Unsupported descriptor heap type.");
+            return dx12::DescriptorHandle();
+
+        case DescriptorHeapType::ShaderViews:
+            return mShaderViewsHeapCPUPage.allocate(count);
+
+        case DescriptorHeapType::RenderTarget:
+            return mRenderTargetViewsHeapCPUPage.allocate(count);
+        }
     }
 
     void CommandContext::transitionResource(dx12::GPUResource& resource, const GPUResourceStates newState, const bool flushImmediate)
@@ -143,8 +161,10 @@ namespace graphics
 
 namespace graphics
 {
-    GraphicContext::GraphicContext(dx12::Device& device, DynamicDescriptorHeap& descriptorHeap)
-        : CommandContext(CommandListType::Direct, device, descriptorHeap) {}
+    GraphicContext::GraphicContext(dx12::Device& device,
+        DynamicDescriptorHeap& shaderViewsDescriptorHeap,
+        DescriptorHeapWithAllocator& renderTargetViewsCPUDescriptorHeap)
+        : CommandContext(CommandListType::Direct, device, shaderViewsDescriptorHeap, renderTargetViewsCPUDescriptorHeap) {}
 
     const dx12::Blob GraphicContext::compileShader(const char* shaderName, const char* shaderCode, const char* targetProfile, const char* entryPoint)
     {

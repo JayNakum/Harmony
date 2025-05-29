@@ -126,6 +126,7 @@ namespace graphics
             };
 
             RenderTarget(const Description& createDescription);
+            RenderTarget(const Type type, GPUTexture& texture);
 
             // baseResource is expected to have called setD3DName for debugging
             void createFromSwapchain(Device& device, DescriptorHandle& rtvHandle, ID3D12Resource* baseResource);

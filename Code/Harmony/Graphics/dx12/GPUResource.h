@@ -34,8 +34,8 @@ namespace graphics
                 uint16_t mipLevels = 1;
                 GPUResourceDimension dimension = GPUResourceDimension::Unknown;
                 Format format = DefaultFormats::UNKNOWN;
-                GPUResourceStates initialState = GPUResourceStates::Common;
                 GPUResourceFlags resourceFlags = GPUResourceFlags::None;
+                GPUResourceStates initialState = GPUResourceStates::Common;
                 float clearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
                 uint64_t alignment = 0;
                 unsigned int sampleCount = 1;
@@ -95,7 +95,7 @@ namespace graphics
         public:
             static const D3D12_RESOURCE_DESC toD3DResourceDesc(const Description& description);
 
-        public:
+        protected:
             Microsoft::WRL::ComPtr<ID3D12Resource> mResource;
             GPUResourceStates mUsageState;
             GPUResourceStates mTransitioningState;

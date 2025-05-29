@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CommandContext.h"
+#include "CommonConstants.h"
 
 namespace engine
 {
@@ -9,13 +10,20 @@ namespace engine
         class Water
         {
         public:
+            struct Inputs
+            {
+                FrameConstants frame;
+                PassConstants pass;
+            };
+
+            struct Outputs
+            {
+                graphics::dx12::GPUTexture& outputRender;
+            };
+
             Water(graphics::GraphicContext& context);
 
-            struct InputOutputs
-            {
-                graphics::dx12::DescriptorHandle inRTV;
-            };
-            void render(graphics::GraphicContext& context, InputOutputs& inputOutputs);
+            Outputs render(graphics::GraphicContext& context, Inputs& passInputs);
 
             ~Water();
 
@@ -23,6 +31,10 @@ namespace engine
             graphics::dx12::GraphicsPipelineState initialize(graphics::GraphicContext& context);
 
         private:
+            graphics::dx12::RenderTarget::Description mRTDescription;
+            graphics::dx12::RenderTarget* mRenderTarget;
+            graphics::dx12::DescriptorHandle mRTV;
+
             graphics::dx12::GraphicsPipelineState mTrianglePSO;
 
             graphics::dx12::UploadBuffer* mIntermediateVertexBuffer;

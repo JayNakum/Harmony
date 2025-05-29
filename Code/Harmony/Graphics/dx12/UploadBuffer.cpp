@@ -10,7 +10,8 @@ namespace graphics
     namespace dx12
     {
         UploadBuffer::UploadBuffer(Device& device, const Description& createDescription)
-            : mBufferSize(createDescription.bufferSize)
+            : GPUResource(GPUResourceStates::GenericRead),
+            mDescription(createDescription)
         {
             destroy();
 
@@ -25,8 +26,6 @@ namespace graphics
             // Upload buffers must be 1-dimensional
             D3D12_RESOURCE_DESC createDesc = GPUResource::toD3DResourceDesc(describeResource());
 
-            mUsageState = GPUResourceStates::GenericRead;
-
             HRESULT hResult = device->CreateCommittedResource(
                 &heapProperties, D3D12_HEAP_FLAG_NONE, &createDesc,
                 dx12::toD3DResourceStates(mUsageState), nullptr, IID_PPV_ARGS(&mResource));
@@ -39,7 +38,9 @@ namespace graphics
         const GPUResource::Description UploadBuffer::describeResource() const
         {
             GPUResource::Description description{};
-            description.width = mBufferSize;
+
+            description.name = mDescription.name;
+            description.width = mDescription.bufferSize;
             description.dimension = GPUResourceDimension::Buffer;
             return description;
         }
@@ -47,7 +48,7 @@ namespace graphics
         void* UploadBuffer::map()
         {
             void* memory = nullptr;
-            CD3DX12_RANGE range = CD3DX12_RANGE(0, mBufferSize);
+            CD3DX12_RANGE range = CD3DX12_RANGE(0, mDescription.bufferSize);
             HRESULT hResult = mResource->Map(0, &range, &memory);
             HASSERT(SUCCEEDED(hResult), "Failed to map upload buffer resource.\n%s", utility::translateErrorCode(hResult));
             return memory;
@@ -55,7 +56,7 @@ namespace graphics
 
         void UploadBuffer::unmap(const size_t begin, const size_t end)
         {
-            CD3DX12_RANGE range = CD3DX12_RANGE(begin, std::min(end, mBufferSize));
+            CD3DX12_RANGE range = CD3DX12_RANGE(begin, std::min(end, mDescription.bufferSize));
             mResource->Unmap(0, &range);
         }
     }

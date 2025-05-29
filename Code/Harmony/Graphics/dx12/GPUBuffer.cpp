@@ -16,6 +16,7 @@ namespace graphics
         const GPUResource::Description GPUBuffer::describeResource() const
         {
             GPUResource::Description description{};
+            description.name = mDescription.name;
             description.width = mDescription.width;
             description.dimension = GPUResourceDimension::Buffer;
             return description;

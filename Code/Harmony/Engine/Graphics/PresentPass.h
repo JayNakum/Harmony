@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CommandContext.h"
+#include "CommonConstants.h"
 
 namespace engine
 {
@@ -9,15 +10,19 @@ namespace engine
         class Present
         {
         public:
+            struct Inputs
+            {
+                FrameConstants frame;
+                PassConstants pass;
+                graphics::dx12::GPUTexture& inFinalOutput;
+                graphics::dx12::GPUTexture& inSwapchainBackbuffer;
+                graphics::dx12::DescriptorHandle inSwapchainRTV;
+            };
+
+        public:
             Present(graphics::GraphicContext& context);
 
-            struct InputOutputs
-            {
-                graphics::dx12::DescriptorHandle inRTV;
-
-                graphics::dx12::DescriptorHandle inPresentTextureSRV;
-            };
-            void render(graphics::GraphicContext& context, InputOutputs& inputOutputs);
+            void render(graphics::GraphicContext& context, Inputs& passInputs);
 
             ~Present() = default;
 
@@ -26,6 +31,8 @@ namespace engine
 
         private:
             graphics::dx12::GraphicsPipelineState mPresentPSO;
+
+            graphics::dx12::DescriptorHandle mFinalSRV;
         };
     }
 }

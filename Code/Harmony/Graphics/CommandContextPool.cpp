@@ -4,7 +4,7 @@
 
 namespace graphics
 {
-    GraphicContext& CommandContextPool::requestGraphicContext(dx12::Device& device, DynamicDescriptorHeap& descriptorHeap)
+    GraphicContext& CommandContextPool::requestGraphicContext(dx12::Device& device, DynamicDescriptorHeap& shaderViewsDescriptorHeap, DescriptorHeapWithAllocator& renderTargetViewsCPUDescriptorHeap)
     {
         std::lock_guard<std::mutex> scopedLockGuard(mGraphicPoolMutex);
 
@@ -17,7 +17,7 @@ namespace graphics
             return *context;
         }
 
-        GraphicContext* newContext = new GraphicContext(device, descriptorHeap);
+        GraphicContext* newContext = new GraphicContext(device, shaderViewsDescriptorHeap, renderTargetViewsCPUDescriptorHeap);
         msGraphicContextPool.emplace_back(newContext);
         return *(newContext);
     }

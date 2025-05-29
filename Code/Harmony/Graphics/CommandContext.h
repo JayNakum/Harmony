@@ -38,7 +38,8 @@ namespace graphics
     protected:
         // Command context is only ever meant to be created, initialized or reset via the Context Manager
         CommandContext(const CommandListType type, dx12::Device& device,
-                       DynamicDescriptorHeap& descriptorHeap);
+            DynamicDescriptorHeap& shaderViewsDescriptorHeap,
+            DescriptorHeapWithAllocator& renderTargetViewsDescriptorHeap);
 
     public:
         void setName(const std::string& name);
@@ -51,8 +52,8 @@ namespace graphics
         inline const dx12::Device& getDevice() const { return mDevice; }
         inline dx12::Device& getDevice() { return mDevice; }
 
-        inline const DescriptorHeapWithAllocator::Page& getShaderViewHeapPage() const { return mShaderViewsHeapCPUPage; }
-        inline DescriptorHeapWithAllocator::Page& getShaderViewHeapPage() { return mShaderViewsHeapCPUPage; }
+        inline const size_t getDescriptorSize() const { return mRenderTargetViewsHeapCPU.getDescriptorSize(); }
+        const dx12::DescriptorHandle allocateDescriptors(const DescriptorHeapType type, const unsigned int count = 1);
 
         void transitionResource(dx12::GPUResource& resource, const GPUResourceStates newState, const bool flushImmediate = false);
 
@@ -91,6 +92,9 @@ namespace graphics
         DynamicDescriptorHeap& mShaderViewsHeap;
         DescriptorHeapWithAllocator::Page mShaderViewsHeapCPUPage;
 
+        DescriptorHeapWithAllocator& mRenderTargetViewsHeapCPU;
+        DescriptorHeapWithAllocator::Page mRenderTargetViewsHeapCPUPage;
+
     protected:
         CommandAllocatorPool mCommandAllocatorPool;
         dx12::CommandAllocator* mCurrentCommandAllocator;
@@ -114,7 +118,9 @@ namespace graphics
     class GraphicContext : public CommandContext
     {
     public:
-        GraphicContext(dx12::Device& device, DynamicDescriptorHeap& descriptorHeap);
+        GraphicContext(dx12::Device& device,
+            DynamicDescriptorHeap& shaderViewsDescriptorHeap,
+            DescriptorHeapWithAllocator& renderTargetViewsDescriptorHeap);
 
         static const dx12::Blob compileShader(const char* shaderName, const char* shaderCode, const char* targetProfile, const char* entryPoint = "main");
 

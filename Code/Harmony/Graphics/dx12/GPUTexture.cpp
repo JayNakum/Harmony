@@ -19,6 +19,7 @@ namespace graphics
         {
             GPUResource::Description createDescription{};
 
+            createDescription.name = mDescription.name;
             createDescription.width = mDescription.width;
             createDescription.height = mDescription.height;
             createDescription.mipLevels = mDescription.mipLevels;
@@ -139,6 +140,16 @@ namespace graphics
     {
         RenderTarget::RenderTarget(const Description& createDescription)
             : mDescription(createDescription), mTexture(createDescription.textureDescription)
+        {
+            bool isValidColorFlag = hasFlag(mDescription.textureDescription.resourceFlags, GPUResourceFlags::AllowRenderTarget) && (mDescription.type == Type::Color);
+            bool isValidDepthFlag = hasFlag(mDescription.textureDescription.resourceFlags, GPUResourceFlags::AllowDepthStencil) && (mDescription.type == Type::Depth);
+
+            HASSERT(isValidColorFlag || isValidDepthFlag, "Invalid GPUResourceFlag %s for render target.", toString(mDescription.textureDescription.resourceFlags));
+        }
+
+        RenderTarget::RenderTarget(const Type type, GPUTexture& texture)
+            : mDescription{type, texture.describeResource()},
+            mTexture(texture)
         {
             bool isValidColorFlag = hasFlag(mDescription.textureDescription.resourceFlags, GPUResourceFlags::AllowRenderTarget) && (mDescription.type == Type::Color);
             bool isValidDepthFlag = hasFlag(mDescription.textureDescription.resourceFlags, GPUResourceFlags::AllowDepthStencil) && (mDescription.type == Type::Depth);

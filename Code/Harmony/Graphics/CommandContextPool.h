@@ -19,7 +19,7 @@ namespace graphics
         // Allocates a new context for the given command list type.
         // If an available context exists, it is reset and reused.
         // Otherwise, a new one is created and initialized.
-        GraphicContext& requestGraphicContext(dx12::Device& device, DynamicDescriptorHeap& descriptorHeap);
+        GraphicContext& requestGraphicContext(dx12::Device& device, DynamicDescriptorHeap& shaderViewsDescriptorHeap, DescriptorHeapWithAllocator& renderTargetViewsCPUDescriptorHeap);
 
         // Puts the context in available queue for future use.
         // This doesn't delete or reset the context. The context is reset first when requested via allocateContext().

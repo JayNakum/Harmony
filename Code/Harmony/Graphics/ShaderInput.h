@@ -90,7 +90,6 @@ namespace graphics
 
         dx12::DescriptorHandle mDescriptors;
         unsigned int mDescriptorsCount;
-        DescriptorHeapWithAllocator::Page& mCPUDescriptorHeapPage;
 
         const std::vector<Constants>& mConstantsLayout;
         const std::vector<Parameter>& mParametersLayout;

@@ -8,6 +8,17 @@ namespace engine
         : mDevice(),
         mGraphicsQueue(mDevice, {"global graphics queue", graphics::CommandListType::Direct}),
         mCommandContextPool(),
+        mShaderViewsHeap(mDevice),
+        mRTVDescriptorHeapCPU(
+            mDevice,
+            {
+                "cpu visible render target view descriptor heap",
+                graphics::DescriptorHeapType::RenderTarget,
+                1024,
+                graphics::DescriptorHeapFlags::CPUVisible
+            }
+        ),
+        mSwapchainRTVPage(mRTVDescriptorHeapCPU.allocatePage()),
         mSwapchain(
             mDevice, mGraphicsQueue,
             {
@@ -15,26 +26,13 @@ namespace engine
                 windowHandle
             },
             {
-                mCurrentRTVPage.allocate(1),
-                mCurrentRTVPage.allocate(1),
-                mCurrentRTVPage.allocate(1)
+                mSwapchainRTVPage.allocate(1),
+                mSwapchainRTVPage.allocate(1),
+                mSwapchainRTVPage.allocate(1)
             }
         )
     {
         graphics::GraphicContext& initContext = aquireGraphicContext("init context");
-
-        graphics::dx12::RenderTarget::Description description{};
-        description.textureDescription.name = "water render target";
-        description.textureDescription.clearColor[0] = 0.118f;
-        description.textureDescription.clearColor[1] = 0.106f;
-        description.textureDescription.clearColor[2] = 0.180f;
-        description.textureDescription.clearColor[3] = 1.0f;
-        waterRT = new graphics::dx12::RenderTarget(description);
-        waterRT->getTexture().createCommitted(initContext.getDevice());
-        waterSRV = mShaderViewsHeap.allocatePage().allocate(1);
-
-        waterRTV = mCurrentRTVPage.allocate(1);
-        waterRT->createRenderTargetView(initContext.getDevice(), waterRTV);
 
         mWaterPass = new renderPass::Water(initContext);
 
@@ -53,54 +51,43 @@ namespace engine
     {
         mGraphicsQueue.waitForFence(mGraphicsQueue.incrementFence());
 
-        if (!mCurrentRTVPage.canAllocate(3))
-        {
-            mCurrentRTVPage = mRTVDescriptorHeapCPU.allocatePage();
-        }
-        mSwapchain.resize(mDevice, width, height, { mCurrentRTVPage.allocate(1), mCurrentRTVPage.allocate(1), mCurrentRTVPage.allocate(1) });
+        mSwapchain.resize(mDevice, width, height, { mSwapchainRTVPage.allocate(1), mSwapchainRTVPage.allocate(1), mSwapchainRTVPage.allocate(1) });
     }
 
-    void Renderer::render(const GraphicScene& scene)
+    void Renderer::render(const FrameConstants frame, const PassConstants pass)
     {
         // WATER PASS
         graphics::GraphicContext& contextWater = aquireGraphicContext("water");
 
-        contextWater.transitionResource(waterRT->getTexture(), graphics::GPUResourceStates::RenderTarget, true);
-
-        renderPass::Water::InputOutputs waterIO{
-            waterRTV
+        renderPass::Water::Inputs waterInputs{
+            frame,
+            pass
         };
-        mWaterPass->render(contextWater, waterIO);
-
-        waterRT->getTexture().createShaderResourceView(mDevice, waterSRV,
-            graphics::dx12::GPUTexture::ShaderResourceViewInfo::getSRVInfo(
-                waterRT->getTexture().describeResource()
-            ));
+        renderPass::Water::Outputs waterOutput = mWaterPass->render(contextWater, waterInputs);
 
         contextWater.finish(mGraphicsQueue.incrementFence());
 
         // PRESENT PASS
         graphics::GraphicContext& contextPresent = aquireGraphicContext("present");
 
-        contextPresent.transitionResource(waterRT->getTexture(), graphics::GPUResourceStates::PixelShaderResource, true);
-
-        contextPresent.transitionResource(mSwapchain.getCurrentBackBuffer().getTexture(), graphics::GPUResourceStates::RenderTarget, true);
-
-        renderPass::Present::InputOutputs presentIO{
-        	mSwapchain.getCurrentBackBufferView(),
-            waterSRV
+        renderPass::Present::Inputs presentInputs{
+            frame,
+            pass,
+            waterOutput.outputRender,
+            mSwapchain.getCurrentBackBuffer().getTexture(),
+            mSwapchain.getCurrentBackBufferView()
         };
-        mPresentPass->render(contextPresent, presentIO);
-
-        contextPresent.transitionResource(mSwapchain.getCurrentBackBuffer().getTexture(), graphics::GPUResourceStates::Present, true);
+        mPresentPass->render(contextPresent, presentInputs);
 
         contextPresent.finish(mGraphicsQueue.incrementFence());
 
+
+        // EXECUTE COMMAND LISTS
         graphics::dx12::CommandList batchedCommandLists[2] = { contextWater.commandList(), contextPresent.commandList() };
         uint64_t fence = mGraphicsQueue.executeCommandLists(batchedCommandLists, 2);
 
+        // PRESENT
         mSwapchain.present(1);
-
         mGraphicsQueue.waitForFence(fence);
 
         discardGraphicContext(contextWater);
@@ -113,67 +100,7 @@ namespace engine
 
         graphics::ShaderInput::msRootSignatures.clear();
 
-        delete waterRT;
         delete mWaterPass;
         delete mPresentPass;
-    }
-}
-
-namespace engine
-{
-    ResourceManager::ResourceManager(graphics::dx12::Device& device)
-        :
-        mRTVDescriptorHeapCPU(
-            device,
-            {
-                "cpu visible render target view descriptor heap",
-                graphics::DescriptorHeapType::RenderTarget,
-                512,
-                graphics::DescriptorHeapFlags::CPUVisible
-            }
-        ),
-        mCurrentRTVPage(mRTVDescriptorHeapCPU.allocatePage()),
-        mShaderViewsHeap(device),
-        mCurrentShaderViewsPage(mShaderViewsHeap.allocatePage())
-    {}
-
-    const graphics::dx12::DescriptorHandle ResourceManager::create(graphics::CommandContext& context, const CreateInfo& createInfo)
-    {
-        graphics::dx12::Device& device = context.getDevice();
-        createInfo.resourceDescription.initialState = graphics::GPUResourceStates::CopyDestination;
-        mDescriptors.emplace(createInfo.id, mCurrentShaderViewsPage.allocate());
-        graphics::dx12::GPUTexture& resource = mTextures.at(createInfo.id);
-        resource.createCommitted(device);
-
-        mTextures.emplace(createInfo.id, createInfo.resourceDescription);
-        graphics::dx12::DescriptorHandle& handle = mDescriptors.at(createInfo.id);
-        resource.createShaderResourceView(device, handle, graphics::dx12::GPUTexture::ShaderResourceViewInfo::getSRVInfo(resource.describeResource()));
-
-
-        return handle;
-    }
-
-    const graphics::dx12::DescriptorHandle ResourceManager::read(const std::string& id, graphics::CommandContext& context, const graphics::dx12::GPUTexture::ShaderResourceViewInfo& view)
-    {
-        return graphics::dx12::DescriptorHandle();
-    }
-
-    const graphics::dx12::DescriptorHandle ResourceManager::write(const std::string& id, graphics::CommandContext& context, const graphics::dx12::GPUTexture::ShaderResourceViewInfo& view)
-    {
-        return graphics::dx12::DescriptorHandle();
-    }
-
-    const graphics::dx12::DescriptorHandle ResourceManager::createRT(const std::string& id, graphics::CommandContext& context, const graphics::dx12::RenderTarget::Description createDescription)
-    {
-        graphics::dx12::DescriptorHandle handle = createRTVs(1);
-
-
-
-        return handle;
-    }
-
-    const graphics::GPUResourceStates ResourceManager::getResourceStates(const graphics::ShaderVisibility visibility)
-    {
-
     }
 }

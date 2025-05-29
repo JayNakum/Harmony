@@ -35,40 +35,58 @@ namespace engine
             : mPresentPSO(initialize(context))
         {}
 
-        void Present::render(graphics::GraphicContext& context, InputOutputs& inputOutputs)
+        void Present::render(graphics::GraphicContext& context, Inputs& passInputs)
         {
-            const graphics::ShaderInput::Parameter slot1{ graphics::ShaderVisibility::Pixel,
-                {{graphics::DescriptorRangeType::SRV, 1}}
-            };
-            const std::vector<graphics::ShaderInput::Parameter> parametersLayout = { slot1 };
+            {// Pre Render
 
-            graphics::ShaderInput presentSI(context, {/*no constants*/}, parametersLayout);
-            presentSI.setResource(
-                inputOutputs.inPresentTextureSRV,
-                0
-            );
-            presentSI.finalize();
-            context.setPipelineState(mPresentPSO);
+                mFinalSRV = context.allocateDescriptors(graphics::DescriptorHeapType::ShaderViews);
 
-            graphics::ViewPort viewport{};
-            viewport.x = 0;
-            viewport.y = 0;
-            viewport.width = (float)inputOutputs.width;
-            viewport.height = (float)inputOutputs.height;
-            context.setViewport(viewport);
+                passInputs.inFinalOutput.createShaderResourceView(context.getDevice(), mFinalSRV,
+                    graphics::dx12::GPUTexture::ShaderResourceViewInfo::getSRVInfo(
+                        passInputs.inFinalOutput.describeResource()
+                    )
+                );
 
-            graphics::Box scissor{};
-            scissor.left = (unsigned int)viewport.x;
-            scissor.top = (unsigned int)viewport.y;
-            scissor.right = (unsigned int)viewport.x + (unsigned int)viewport.width;
-            scissor.bottom = (unsigned int)viewport.y + (unsigned int)viewport.height;
-            context.setScissor(scissor);
+                context.transitionResource(passInputs.inFinalOutput, graphics::GPUResourceStates::PixelShaderResource);
 
-            context.setRenderTargets(inputOutputs.inRTV);
-            const float clearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
-            context.clearColor(inputOutputs.inRTV, clearColor);
-            context.setPrimitiveTopology(graphics::PrimitiveTopology::TriangleList);
-            context.draw(3);
+                context.transitionResource(passInputs.inSwapchainBackbuffer, graphics::GPUResourceStates::RenderTarget, true);
+            }
+
+            {// Render
+                const graphics::ShaderInput::Parameter slot1{ graphics::ShaderVisibility::Pixel,
+                                {{graphics::DescriptorRangeType::SRV, 1}}
+                };
+                const std::vector<graphics::ShaderInput::Parameter> parametersLayout = { slot1 };
+
+                graphics::ShaderInput presentSI(context, {/*no constants*/}, parametersLayout);
+                presentSI.setResource(mFinalSRV, 0);
+                presentSI.finalize();
+                context.setPipelineState(mPresentPSO);
+
+                graphics::ViewPort viewport{};
+                viewport.x = 0;
+                viewport.y = 0;
+                viewport.width = (float)passInputs.pass.renderTargetSize.x;
+                viewport.height = (float)passInputs.pass.renderTargetSize.y;
+                context.setViewport(viewport);
+
+                graphics::Box scissor{};
+                scissor.left = (unsigned int)viewport.x;
+                scissor.top = (unsigned int)viewport.y;
+                scissor.right = (unsigned int)viewport.x + (unsigned int)viewport.width;
+                scissor.bottom = (unsigned int)viewport.y + (unsigned int)viewport.height;
+                context.setScissor(scissor);
+
+                context.setRenderTargets(passInputs.inSwapchainRTV);
+                const float clearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+                context.clearColor(passInputs.inSwapchainRTV, clearColor);
+                context.setPrimitiveTopology(graphics::PrimitiveTopology::TriangleList);
+                context.draw(3);
+            }
+
+            {// Post Render
+                context.transitionResource(passInputs.inSwapchainBackbuffer, graphics::GPUResourceStates::Present, true);
+            }
         }
 
         graphics::dx12::GraphicsPipelineState Present::initialize(graphics::GraphicContext& context)

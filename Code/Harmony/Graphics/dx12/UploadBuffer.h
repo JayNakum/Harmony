@@ -38,7 +38,7 @@ namespace graphics
             // Unmaps the resource from begin to end/mBufferSize
             void unmap(const size_t begin = 0, const size_t end = -1);
 
-            inline const size_t getSize() const { return mBufferSize; }
+            inline const size_t getSize() const { return mDescription.bufferSize; }
 
             // Calls destroy which frees the ComPtr<ID3D12Resource>
             virtual ~UploadBuffer()
@@ -47,7 +47,7 @@ namespace graphics
             }
 
         private:
-            const size_t mBufferSize;
+            const Description mDescription;
         };
     }
 }

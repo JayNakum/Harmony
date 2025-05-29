@@ -25,7 +25,7 @@ namespace engine
         ~Engine();
 
     private:
-        void update(const float deltaTime);
+        //void update(const float deltaTime);
 
         void calculateFPS(const float deltaTime);
 

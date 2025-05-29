@@ -8,7 +8,6 @@ namespace graphics
         : mContext(context),
         mDescriptors(),
         mDescriptorsCount(0),
-        mCPUDescriptorHeapPage(context.getShaderViewHeapPage()),
         mConstantsLayout(constantsLayout),
         mParametersLayout(parametersLayout),
         mRootSignature(initialize(createRootSignatureID()))
@@ -115,7 +114,7 @@ namespace graphics
             // Meaning that we start with offset = 0, and then we add the number of descriptors per table to the offset.
             descriptorOffset += getDescriptorTableOffsetAt(i);
 
-            dx12::DescriptorHandle gpuHandle = gpuStartHandle + (descriptorOffset * mCPUDescriptorHeapPage.getDescriptorSize());
+            dx12::DescriptorHandle gpuHandle = gpuStartHandle + (descriptorOffset * mContext.getDescriptorSize());
 
             mContext.commandList()->SetGraphicsRootDescriptorTable(rootIndex++, gpuHandle.getGPUHandle());
         }
@@ -259,7 +258,7 @@ namespace graphics
                 mDescriptorsCount += range.count; // Descriptor Allocation
             }
         }
-        mDescriptors = mCPUDescriptorHeapPage.allocate(mDescriptorsCount); // Descriptor Allocation
+        mDescriptors = mContext.allocateDescriptors(DescriptorHeapType::ShaderViews, mDescriptorsCount); // Descriptor Allocation
 
         createDescription.staticSamplers = getStaticSamplers();
 
@@ -307,7 +306,7 @@ namespace graphics
 
         dx12::DescriptorHandle handle = mDescriptors;
 
-        handle += ((rangeOffset + rangeIndex) * (unsigned int)mCPUDescriptorHeapPage.getDescriptorSize());
+        handle += ((rangeOffset + rangeIndex) * (unsigned int)mContext.getDescriptorSize());
 
         return handle;
     }
