@@ -1,19 +1,13 @@
 #include "WaterPass.h"
 
-#include "ShaderInput.h"
+#include "GeometryGenerator.h"
+
+#include "Maths.h"
 
 namespace shaders
 {
     static const char* WaterVS = R"###(
-cbuffer cbFrame : register(b0)
-{
-    float totalTime;
-    float deltaTime;
-    uint cbFramePadding0;
-    uint cbFramePadding1;
-};
-
-cbuffer cbPass : register(b1)
+cbuffer cbPass : register(b0)
 {
     float4x4 gView;
     float4x4 gInvView;
@@ -34,37 +28,40 @@ cbuffer cbPass : register(b1)
 
     float2 gRenderTargetSize;
     float2 gInvRenderTargetSize;
+    uint _cbPassPaddingFinal[20];
 };
 
-cbuffer cbObject : register(b2)
+struct VSInput
 {
-    float4x4 gWorld;
+    float3 position : POSITION;
+    float3 normal : NORMAL;
+    float3 tangentU : TANGENT;
+    float2 textureCoord : TEXCOORD0;
 };
 
-struct VSOut
+struct VSOutput
 {
     float4 position : SV_POSITION;
-    float4 color : COLOR;
 };
 
-VSOut main(float4 position : POSITION, float4 color : COLOR)
+VSOutput main(VSInput input)
 {
-    VSOut result;
-    result.position = position;
-    result.color = color;
+    VSOutput result;
+    float4x4 mvp = mul(gView, gProj);
+
+    result.position = mul(float4(input.position, 1.0f), mvp);
     return result;
 }
 )###";
 
     static const char* WaterPS = R"###(
-struct VSOut
+struct VSOutput
 {
     float4 position : SV_POSITION;
-    float4 color : COLOR;
 };
-float4 main(VSOut input) : SV_TARGET
+float4 main(VSOutput input) : SV_TARGET
 {
-    return input.color;
+    return float4(1.0f, 1.0f, 1.0f, 1.0f);
 }
 )###";
 }
@@ -73,12 +70,6 @@ namespace engine
 {
     namespace renderPass
     {
-        struct Vertex
-        {
-            float position[4];
-            float color[4];
-        };
-
         Water::Water(graphics::GraphicContext& context)
             : mRTDescription{
                 graphics::dx12::RenderTarget::Type::Color,
@@ -92,41 +83,16 @@ namespace engine
                 }
             },
             mRenderTarget(nullptr),
-            mWaterPSO(initialize(context))
+            mWaterPSO(initialize(context)),
+            mPassCB(nullptr),
+            mWaterRI(nullptr)
         {
-            Vertex triangleVertices[] =
-            {
-                { { 0.0f, 0.25f, 0.0f, 1.0f }, { 0.835f, 0.518f, 0.988f, 1.0f } },
-                { { 0.25f, -0.25f, 0.0f, 1.0f }, { 0.694f, 0.392f, 0.804f, 1.0f } },
-                { { -0.25f, -0.25f, 0.0f, 1.0f }, { 0.796f, 0.643f, 0.914f, 1.0f } }
-            };
-
-            size_t numBytes = sizeof(triangleVertices);
-
-            mIntermediateVertexBuffer = new graphics::dx12::UploadBuffer(context.getDevice(), { "intermediate buffer", numBytes });
-            {
-                void* intermediateDst = mIntermediateVertexBuffer->map();
-                memcpy(intermediateDst, triangleVertices, numBytes);
-                mIntermediateVertexBuffer->unmap();
-            }
-            graphics::dx12::GPUResource::Description createDesc;
-            createDesc.name = "water vertex buffer";
-            createDesc.width = numBytes;
-            createDesc.dimension = graphics::GPUResourceDimension::Buffer;
-            mVertexBuffer = new graphics::dx12::ByteAddressBuffer(createDesc);
-
-            mVertexBuffer->createCommitted(context.getDevice());
-            context.transitionResource(*mIntermediateVertexBuffer, graphics::GPUResourceStates::CopySource, true);
-            context.transitionResource(*mVertexBuffer, graphics::GPUResourceStates::CopyDestination, true);
-
-            context.copyBufferRegion(*mVertexBuffer, 0, *mIntermediateVertexBuffer, 0, numBytes);
-
-            context.transitionResource(*mVertexBuffer, graphics::GPUResourceStates::VertexAndConstantBuffer, true);
+            prepareRenderItem(context);
         }
 
         void Water::freeUploadResources()
         {
-            delete mIntermediateVertexBuffer;
+            mWaterRI->geometry.disposeUploaders();
         }
 
         Water::Outputs Water::render(graphics::GraphicContext& context, Inputs& passInputs)
@@ -147,27 +113,23 @@ namespace engine
 
                     mRTV = context.allocateDescriptors(graphics::DescriptorHeapType::RenderTarget);
                     mRenderTarget->createRenderTargetView(context.getDevice(), mRTV);
+
+                    float fov = 0.25f * M_PI;
+                    float aspectRatio = (float)passInputs.width / (float)passInputs.height;
+                    mPass.nearZ = 0.01f;
+                    mPass.farZ = 1000.0f;
+                    mProjection = perspectiveProjection(fov, aspectRatio, mPass.nearZ, mPass.farZ);
                 }
 
                 context.transitionResource(mRenderTarget->getTexture(), graphics::GPUResourceStates::RenderTarget, true);
+
+                updateCamera();
+                updateConstantBuffers(context, passInputs.frame);
             }
 
             {// Render
-                const graphics::ShaderInput::Parameter slot1{
-                    graphics::ShaderVisibility::Vertex | graphics::ShaderVisibility::Pixel,
-                    {{graphics::DescriptorRangeType::CBV, 1}}
-                };
-                const graphics::ShaderInput::Parameter slot2{
-                    graphics::ShaderVisibility::Vertex,
-                    {{graphics::DescriptorRangeType::CBV, 1}}
-                };
-                const graphics::ShaderInput::Parameter slot3{
-                    graphics::ShaderVisibility::Vertex,
-                    {{graphics::DescriptorRangeType::CBV, 1}}
-                };
-                const std::vector<graphics::ShaderInput::Parameter> parametersLayout = {slot1, slot2, slot3};
-
-                graphics::ShaderInput waterSI(context, {/*no constants*/}, parametersLayout);
+                graphics::ShaderInput waterSI(context, {/*no constants*/}, mParametersLayout);
+                waterSI.setResource(*mPassCB, 0);
                 waterSI.finalize();
 
                 context.setPipelineState(mWaterPSO);
@@ -192,12 +154,16 @@ namespace engine
                 //const float clearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
                 context.clearColor(mRTV, clearColor);
 
-                context.setPrimitiveTopology(graphics::PrimitiveTopology::TriangleList);
-
-                graphics::dx12::BufferView vertexBufferView = mVertexBuffer->vertexBufferView(sizeof(Vertex));
-
+                graphics::dx12::BufferView vertexBufferView = mWaterRI->geometry.vertexBufferView();
                 context.setVertexBuffers(0, &vertexBufferView);
-                context.drawInstanced(3, 1);
+
+                graphics::dx12::BufferView indexBufferView = mWaterRI->geometry.indexBufferView();
+                context.setIndexBuffer(indexBufferView);
+
+                context.setPrimitiveTopology(mWaterRI->primitiveTopology);
+
+                const SubmeshGeometry drawData = mWaterRI->geometry.drawArgs.at("water submesh");
+                context.drawIndexedInstanced(drawData.indexCount, 1, 0, 0, 0);
             }
 
             {// Post Render
@@ -207,33 +173,32 @@ namespace engine
 
         Water::~Water()
         {
-            delete mVertexBuffer;
+            delete mWaterRI->geometry.vertexBuffer;
+            delete mWaterRI->geometry.indexBuffer;
+            delete mWaterRI;
+
+            delete mPassCB;
+
             delete mRenderTarget;
         }
 
         graphics::dx12::GraphicsPipelineState Water::initialize(graphics::GraphicContext& context)
         {
             const graphics::ShaderInput::Parameter slot1{
-                graphics::ShaderVisibility::Vertex | graphics::ShaderVisibility::Pixel,
-                {{graphics::DescriptorRangeType::CBV, 1}}
-            };
-            const graphics::ShaderInput::Parameter slot2{
                 graphics::ShaderVisibility::Vertex,
                 {{graphics::DescriptorRangeType::CBV, 1}}
             };
-            const graphics::ShaderInput::Parameter slot3{
-                graphics::ShaderVisibility::Vertex,
-                {{graphics::DescriptorRangeType::CBV, 1}}
-            };
-            const std::vector<graphics::ShaderInput::Parameter> parametersLayout = { slot1, slot2, slot3 };
-            graphics::ShaderInput waterSI(context, {/*no constants*/}, parametersLayout);
+            mParametersLayout.emplace_back(slot1);
+            graphics::ShaderInput waterSI(context, {/*no constants*/}, mParametersLayout);
 
             // Pipeline State
             graphics::dx12::GraphicsPipelineState::Description psoDesc;
             psoDesc.name = "water pso";
             psoDesc.inputLayout = {
-                {"POSITION", graphics::DefaultFormats::R32G32B32A32_FLOAT, 0, graphics::InputClassification::PerVertex},
-                {"COLOR", graphics::DefaultFormats::R32G32B32A32_FLOAT, 16, graphics::InputClassification::PerVertex},
+                {"POSITION", graphics::DefaultFormats::R32G32B32_FLOAT, 0, graphics::InputClassification::PerVertex},
+                {"NORMAL", graphics::DefaultFormats::R32G32B32_FLOAT, 12, graphics::InputClassification::PerVertex},
+                {"TANGENT", graphics::DefaultFormats::R32G32B32_FLOAT, 24, graphics::InputClassification::PerVertex},
+                {"TEXCOORD", graphics::DefaultFormats::R32G32_FLOAT, 36, graphics::InputClassification::PerVertex},
             };
             psoDesc.rootSignature = &(waterSI.getRootSignature());
 
@@ -251,6 +216,107 @@ namespace engine
             psoDesc.rtvFormats[0] = graphics::DefaultFormats::R16G16B16A16_UNORM;
             psoDesc.cullMode = graphics::CullMode::None;
             return graphics::dx12::GraphicsPipelineState(context.getDevice(), psoDesc);
+        }
+
+        void Water::prepareRenderItem(graphics::GraphicContext& context)
+        {
+            GeometryGenerator geoGen;
+            GeometryGenerator::MeshData grid = geoGen.createGrid(20.0f, 30.0f, 60, 40);
+
+            SubmeshGeometry waterSubmesh;
+            waterSubmesh.indexCount = (unsigned int)grid.getIndices16().size();
+
+            // Vertex Buffer
+            const size_t vbByteSize = grid.vertices.size() * sizeof(GeometryGenerator::Vertex);
+            graphics::dx12::UploadBuffer* vertexBufferUploader = new graphics::dx12::UploadBuffer(context.getDevice(), { "water vb uploader", vbByteSize });
+            {
+                void* intermediateDst = vertexBufferUploader->map();
+                memcpy(intermediateDst, grid.vertices.data(), vbByteSize);
+                vertexBufferUploader->unmap();
+            }
+
+            graphics::dx12::GPUResource::Description createVBDesc;
+            createVBDesc.name = "water vertex buffer";
+            createVBDesc.width = vbByteSize;
+            createVBDesc.dimension = graphics::GPUResourceDimension::Buffer;
+            graphics::dx12::ByteAddressBuffer* vertexBuffer = new graphics::dx12::ByteAddressBuffer(createVBDesc);
+            vertexBuffer->createCommitted(context.getDevice());
+
+            context.transitionResource(*vertexBufferUploader, graphics::GPUResourceStates::CopySource, true);
+            context.transitionResource(*vertexBuffer, graphics::GPUResourceStates::CopyDestination, true);
+            context.copyBufferRegion(*vertexBuffer, 0, *vertexBufferUploader, 0, vbByteSize);
+            context.transitionResource(*vertexBuffer, graphics::GPUResourceStates::VertexAndConstantBuffer, true);
+
+
+            // Index Buffer
+            const size_t ibByteSize = grid.getIndices16().size() * sizeof(uint16_t);
+
+            graphics::dx12::UploadBuffer* indexBufferUploader = new graphics::dx12::UploadBuffer(context.getDevice(), { "vater ib uploader", ibByteSize });
+            {
+                void* intermediateDst = indexBufferUploader->map();
+                memcpy(intermediateDst, grid.getIndices16().data(), ibByteSize);
+                indexBufferUploader->unmap();
+            }
+
+            graphics::dx12::GPUResource::Description createIBDesc;
+            createIBDesc.name = "water index buffer";
+            createIBDesc.width = ibByteSize;
+            createIBDesc.dimension = graphics::GPUResourceDimension::Buffer;
+            graphics::dx12::ByteAddressBuffer* indexBuffer = new graphics::dx12::ByteAddressBuffer(createIBDesc);
+            indexBuffer->createCommitted(context.getDevice());
+
+            context.transitionResource(*indexBufferUploader, graphics::GPUResourceStates::CopySource, true);
+            context.transitionResource(*indexBuffer, graphics::GPUResourceStates::CopyDestination, true);
+            context.copyBufferRegion(*indexBuffer, 0, *indexBufferUploader, 0, ibByteSize);
+            context.transitionResource(*indexBuffer, graphics::GPUResourceStates::IndexBuffer, true);
+
+
+            // Water Mesh Geometry
+            MeshGeometry geo;
+            geo.name = "water mesh geometry";
+            geo.vertexBufferUploader = vertexBufferUploader;
+            geo.vertexBuffer = vertexBuffer;
+            geo.indexBufferUploader = indexBufferUploader;
+            geo.indexBuffer = indexBuffer;
+            geo.vertexByteStride = sizeof(GeometryGenerator::Vertex);
+            geo.drawArgs["water submesh"] = waterSubmesh;
+
+            mWaterRI = new RenderItem(geo);
+        }
+
+        void Water::updateCamera()
+        {
+            vec3f pos = mEyePos;
+            vec3f target(0.0f);
+            vec3f up(0.0f, 1.0f, 0.0f);
+
+            mView = lookAtLH<float>(pos, target, up);
+        }
+
+        void Water::updateConstantBuffers(graphics::GraphicContext& context, const FrameConstants& frame)
+        {
+            if (mPassCB)
+            {
+                delete mPassCB;
+            }
+
+            mPass.view = transpose(mView);
+            mPass.invView = inverse(mView);
+            mPass.eyePosition = mEyePos;
+            mPass.projection = transpose(mProjection);
+            mPass.invProjection = inverse(mProjection);
+            mPass.viewProjection = mView * mProjection;
+            mPass.invViewProjection = inverse(mPass.viewProjection);
+            mPass.renderTargetSize.x = mRTDescription.textureDescription.width;
+            mPass.renderTargetSize.y = mRTDescription.textureDescription.height;
+            mPass.invRenderTargetSize = 1 / mPass.renderTargetSize;
+
+            mPassCB = new graphics::dx12::UploadBuffer(context.getDevice(), { "water pass cbuffer", sizeof(PassConstants) });
+            {
+                void* bufferDest = mPassCB->map();
+                memcpy(bufferDest, &mPass, sizeof(PassConstants));
+                mPassCB->unmap();
+            }
         }
     }
 }

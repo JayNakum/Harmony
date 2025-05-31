@@ -36,6 +36,7 @@ namespace engine
 
         vec2f renderTargetSize;
         vec2f invRenderTargetSize;
+        const std::array<uint32_t, 20> _passPaddingFinal = { 0x1deadb0b };
     };
-    static_assert(sizeof(PassConstants) % 16 == 0, "Must be aligned");
+    static_assert(sizeof(PassConstants) % 256 == 0, "Must be aligned");
 }

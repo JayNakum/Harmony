@@ -58,6 +58,11 @@ namespace graphics
             const unsigned int layoutIndex, const unsigned int parameterIndex = 0, const unsigned int rangeIndex = 0);
 
         // Set a buffer at the specified layoutIndex, parameterIndex and rangeIndex.
+        const dx12::DescriptorHandle setResource(const dx12::UploadBuffer& buffer, const unsigned int layoutIndex, const unsigned int parameterIndex = 0, const unsigned int rangeIndex = 0);
+        const dx12::DescriptorHandle setResource(const dx12::UploadBuffer& buffer, const uint64_t sizeInBytes, const unsigned int offsetInBytes,
+                                                 const unsigned int layoutIndex, const unsigned int parameterIndex = 0, const unsigned int rangeIndex = 0);
+
+        // Set a buffer at the specified layoutIndex, parameterIndex and rangeIndex.
         const dx12::DescriptorHandle setResource(const dx12::ByteAddressBuffer& buffer, const unsigned int layoutIndex, const unsigned int parameterIndex = 0, const unsigned int rangeIndex = 0);
         const dx12::DescriptorHandle setResource(const dx12::ByteAddressBuffer& buffer, const uint64_t sizeInBytes, const unsigned int offsetInBytes,
             const unsigned int layoutIndex, const unsigned int parameterIndex = 0, const unsigned int rangeIndex = 0);

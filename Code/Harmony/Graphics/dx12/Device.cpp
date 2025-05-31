@@ -106,7 +106,9 @@ namespace graphics
                     MaxSize = desc.DedicatedVideoMemory;
 
                     if (mDevice != nullptr)
+                    {
                         mDevice->Release();
+                    }
 
                     mDevice = pDevice.Detach();
 

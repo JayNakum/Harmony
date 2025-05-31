@@ -92,40 +92,37 @@ namespace graphics
     {
         std::string result;
 
-        if (hasFlag(e, ShaderVisibility::All))
+        if (hasFlag(e, ShaderVisibility::Vertex))
         {
-            result += "All";
+            result += "Vertex";
         }
-        else
+        if (hasFlag(e, ShaderVisibility::Hull))
         {
-            if (hasFlag(e, ShaderVisibility::Vertex))
-            {
-                result += "Vertex";
-            }
-            if (hasFlag(e, ShaderVisibility::Hull))
-            {
-                result += "Hull";
-            }
-            if (hasFlag(e, ShaderVisibility::Domain))
-            {
-                result += "Domain";
-            }
-            if (hasFlag(e, ShaderVisibility::Geometry))
-            {
-                result += "Geometry";
-            }
-            if (hasFlag(e, ShaderVisibility::Pixel))
-            {
-                result += "Pixel";
-            }
-            if (hasFlag(e, ShaderVisibility::Amplification))
-            {
-                result += "Amplification";
-            }
-            if (hasFlag(e, ShaderVisibility::Mesh))
-            {
-                result += "Mesh";
-            }
+            result += "Hull";
+        }
+        if (hasFlag(e, ShaderVisibility::Domain))
+        {
+            result += "Domain";
+        }
+        if (hasFlag(e, ShaderVisibility::Geometry))
+        {
+            result += "Geometry";
+        }
+        if (hasFlag(e, ShaderVisibility::Pixel))
+        {
+            result += "Pixel";
+        }
+        if (hasFlag(e, ShaderVisibility::Amplification))
+        {
+            result += "Amplification";
+        }
+        if (hasFlag(e, ShaderVisibility::Mesh))
+        {
+            result += "Mesh";
+        }
+        if (e == ShaderVisibility::All)
+        {
+            result = "All";
         }
 
         if (result.empty())
