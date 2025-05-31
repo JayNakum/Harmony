@@ -22,15 +22,6 @@
 
 namespace engine
 {
-    struct RenderItem
-    {
-        graphics::dx12::BufferView vertexBuffer;
-        graphics::dx12::BufferView indexBuffer;
-        graphics::PrimitiveTopology primitiveTopology;
-
-        mat4f modelMatrix;
-    };
-
     class Renderer
     {
     public:
@@ -67,6 +58,7 @@ namespace engine
         graphics::DescriptorHeapWithAllocator::Page mSwapchainRTVPage;
 
         graphics::dx12::Swapchain mSwapchain;
+        unsigned int mClientWidth, mClientHeight;
 
     private:
         renderPass::Water* mWaterPass;

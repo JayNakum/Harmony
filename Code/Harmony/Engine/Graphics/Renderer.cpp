@@ -30,7 +30,8 @@ namespace engine
                 mSwapchainRTVPage.allocate(1),
                 mSwapchainRTVPage.allocate(1)
             }
-        )
+        ),
+        mClientWidth(0), mClientHeight(0)
     {
         graphics::GraphicContext& initContext = aquireGraphicContext("init context");
 
@@ -51,6 +52,9 @@ namespace engine
 
     void Renderer::resize(const unsigned int width, const unsigned int height)
     {
+        mClientWidth = width;
+        mClientHeight = height;
+
         mGraphicsQueue.waitForFence(mGraphicsQueue.incrementFence());
 
         mSwapchain.resize(mDevice, width, height, { mSwapchainRTVPage.allocate(1), mSwapchainRTVPage.allocate(1), mSwapchainRTVPage.allocate(1) });
@@ -62,7 +66,8 @@ namespace engine
         graphics::GraphicContext& contextWater = aquireGraphicContext("water");
 
         renderPass::Water::Inputs waterInputs{
-            frame
+            frame,
+            mClientWidth, mClientHeight
         };
         renderPass::Water::Outputs waterOutput = mWaterPass->render(contextWater, waterInputs);
 
@@ -73,6 +78,7 @@ namespace engine
 
         renderPass::Present::Inputs presentInputs{
             frame,
+            mClientWidth, mClientHeight,
             waterOutput.outputRender,
             mSwapchain.getCurrentBackBuffer().getTexture(),
             mSwapchain.getCurrentBackBufferView()

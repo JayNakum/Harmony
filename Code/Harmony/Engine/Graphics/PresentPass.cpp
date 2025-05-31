@@ -54,7 +54,7 @@ namespace engine
 
             {// Render
                 const graphics::ShaderInput::Parameter slot1{ graphics::ShaderVisibility::Pixel,
-                                {{graphics::DescriptorRangeType::SRV, 1}}
+                    {{graphics::DescriptorRangeType::SRV, 1}}
                 };
                 const std::vector<graphics::ShaderInput::Parameter> parametersLayout = { slot1 };
 
@@ -66,8 +66,8 @@ namespace engine
                 graphics::ViewPort viewport{};
                 viewport.x = 0;
                 viewport.y = 0;
-                viewport.width = (float)passInputs.frame.renderTargetSize.x;
-                viewport.height = (float)passInputs.frame.renderTargetSize.y;
+                viewport.width = (float)passInputs.width;
+                viewport.height = (float)passInputs.height;
                 context.setViewport(viewport);
 
                 graphics::Box scissor{};
@@ -104,12 +104,12 @@ namespace engine
             psoDesc.vertexShader = graphics::GraphicContext::compileShader(
                 "ScreenQuadVS",
                 shaders::ScreenQuadVS,
-                "vs_6_4"
+                "vs_5_0"
             );
             psoDesc.pixelShader = graphics::GraphicContext::compileShader(
                 "BufferCopyPS",
                 shaders::BufferCopyPS,
-                "ps_6_4"
+                "ps_5_0"
             );
             psoDesc.numRenderTargets = 1;
             psoDesc.rtvFormats[0] = graphics::DefaultFormats::R8G8B8A8_UNORM;

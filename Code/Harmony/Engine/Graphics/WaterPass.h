@@ -13,6 +13,7 @@ namespace engine
             struct Inputs
             {
                 FrameConstants frame;
+                unsigned int width, height;
             };
 
             struct Outputs

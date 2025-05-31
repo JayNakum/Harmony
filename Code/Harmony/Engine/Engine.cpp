@@ -38,20 +38,11 @@ namespace engine
                 // fixedUpdates(fixedTimeStep)
             }
 
-
             FrameConstants frame;
             frame.deltaTime = deltaTime;
             frame.totalTime = mFrameTimer.elapsed();
-            frame.frameIndex = Engine::msFrameIndex;
 
-            PassConstants pass;
-            pass.renderTargetSize = vec2f(mWindow.getDescription().width, mWindow.getDescription().height);
-            pass.invRenderTargetSize = 1.0f / pass.renderTargetSize;
-
-            pass.nearZ = 0.0f;
-            pass.farZ = 100.0f;
-
-            mRenderer->render(frame, pass);
+            mRenderer->render(frame);
             ++msFrameIndex;
 
             calculateFPS(deltaTime);

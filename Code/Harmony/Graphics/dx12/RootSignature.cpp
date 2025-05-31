@@ -70,42 +70,33 @@ namespace graphics
 
             for (const RootParameter& param : parameters)
             {
-                switch (param.getShaderVisibility())
+                if (hasFlag(param.getShaderVisibility(), ShaderVisibility::Vertex))
                 {
-                default:
-                    HASSERT_SOFT(false, "Invalid root parameter shader visibility.");
-                    return D3D12_ROOT_SIGNATURE_FLAGS::D3D12_ROOT_SIGNATURE_FLAG_NONE;
-
-                case ShaderVisibility::All:
-                    flags &= ~(D3D12_ROOT_SIGNATURE_FLAGS::D3D12_ROOT_SIGNATURE_FLAG_DENY_VERTEX_SHADER_ROOT_ACCESS |
-                               D3D12_ROOT_SIGNATURE_FLAGS::D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
-                               D3D12_ROOT_SIGNATURE_FLAGS::D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
-                               D3D12_ROOT_SIGNATURE_FLAGS::D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS |
-                               D3D12_ROOT_SIGNATURE_FLAGS::D3D12_ROOT_SIGNATURE_FLAG_DENY_PIXEL_SHADER_ROOT_ACCESS |
-                               D3D12_ROOT_SIGNATURE_FLAGS::D3D12_ROOT_SIGNATURE_FLAG_DENY_AMPLIFICATION_SHADER_ROOT_ACCESS |
-                               D3D12_ROOT_SIGNATURE_FLAGS::D3D12_ROOT_SIGNATURE_FLAG_DENY_MESH_SHADER_ROOT_ACCESS);
-                    break;
-                case ShaderVisibility::Vertex:
                     flags &= ~(D3D12_ROOT_SIGNATURE_FLAGS::D3D12_ROOT_SIGNATURE_FLAG_DENY_VERTEX_SHADER_ROOT_ACCESS);
-                    break;
-                case ShaderVisibility::Hull:
+                }
+                if (hasFlag(param.getShaderVisibility(), ShaderVisibility::Hull))
+                {
                     flags &= ~(D3D12_ROOT_SIGNATURE_FLAGS::D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS);
-                    break;
-                case ShaderVisibility::Domain:
+                }
+                if (hasFlag(param.getShaderVisibility(), ShaderVisibility::Domain))
+                {
                     flags &= ~(D3D12_ROOT_SIGNATURE_FLAGS::D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS);
-                    break;
-                case ShaderVisibility::Geometry:
+                }
+                if (hasFlag(param.getShaderVisibility(), ShaderVisibility::Geometry))
+                {
                     flags &= ~(D3D12_ROOT_SIGNATURE_FLAGS::D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS);
-                    break;
-                case ShaderVisibility::Pixel:
+                }
+                if (hasFlag(param.getShaderVisibility(), ShaderVisibility::Pixel))
+                {
                     flags &= ~(D3D12_ROOT_SIGNATURE_FLAGS::D3D12_ROOT_SIGNATURE_FLAG_DENY_PIXEL_SHADER_ROOT_ACCESS);
-                    break;
-                case ShaderVisibility::Amplification:
+                }
+                if (hasFlag(param.getShaderVisibility(), ShaderVisibility::Amplification))
+                {
                     flags &= ~(D3D12_ROOT_SIGNATURE_FLAGS::D3D12_ROOT_SIGNATURE_FLAG_DENY_AMPLIFICATION_SHADER_ROOT_ACCESS);
-                    break;
-                case ShaderVisibility::Mesh:
+                }
+                if (hasFlag(param.getShaderVisibility(), ShaderVisibility::Mesh))
+                {
                     flags &= ~(D3D12_ROOT_SIGNATURE_FLAGS::D3D12_ROOT_SIGNATURE_FLAG_DENY_MESH_SHADER_ROOT_ACCESS);
-                    break;
                 }
             }
 

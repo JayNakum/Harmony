@@ -7,34 +7,33 @@ namespace shaders
     static const char* WaterVS = R"###(
 cbuffer cbFrame : register(b0)
 {
-    uint64_t frameIndex;
-	float totalTime;
+    float totalTime;
     float deltaTime;
-
-	float4x4 gView;
-	float4x4 gInvView;
-
-	float4x4 gProj;
-	float4x4 gInvProj;
-
-	float4x4 gViewProj;
-	float4x4 gInvViewProj;
-
-	float3 gEyePosW;
-	uint32_t cbFramePad0;
-
-	float2 gRenderTargetSize;
-	float2 gInvRenderTargetSize;
-
-	float gNearZ;
-	float gFarZ;
-	uint64_t cbFramePad1;
+    uint cbFramePadding0;
+    uint cbFramePadding1;
 };
 
 cbuffer cbPass : register(b1)
 {
-    float3 gWindDirection;
-	uint32_t cbPassPad0;
+    float4x4 gView;
+    float4x4 gInvView;
+
+    float3 gEyePosW;
+    uint cbPassPadding0;
+
+    float4x4 gProj;
+    float4x4 gInvProj;
+
+    float gNearZ;
+    float gFarZ;
+    uint cbPassPadding1;
+    uint cbPassPadding2;
+
+    float4x4 gViewProj;
+    float4x4 gInvViewProj;
+
+    float2 gRenderTargetSize;
+    float2 gInvRenderTargetSize;
 };
 
 cbuffer cbObject : register(b2)
@@ -127,17 +126,17 @@ namespace engine
 
         void Water::freeUploadResources()
         {
-			delete mIntermediateVertexBuffer;
+            delete mIntermediateVertexBuffer;
         }
 
         Water::Outputs Water::render(graphics::GraphicContext& context, Inputs& passInputs)
         {
             {// Pre Render
-                if (mRTDescription.textureDescription.width != passInputs.frame.renderTargetSize.x ||
-                    mRTDescription.textureDescription.height != passInputs.frame.renderTargetSize.y)
+                if (mRTDescription.textureDescription.width != passInputs.width ||
+                    mRTDescription.textureDescription.height != passInputs.height)
                 {
-                    mRTDescription.textureDescription.width = passInputs.frame.renderTargetSize.x;
-                    mRTDescription.textureDescription.height = passInputs.frame.renderTargetSize.y;
+                    mRTDescription.textureDescription.width = passInputs.width;
+                    mRTDescription.textureDescription.height = passInputs.height;
 
                     if (mRenderTarget != nullptr)
                     {
@@ -158,15 +157,15 @@ namespace engine
                     graphics::ShaderVisibility::Vertex | graphics::ShaderVisibility::Pixel,
                     {{graphics::DescriptorRangeType::CBV, 1}}
                 };
-				const graphics::ShaderInput::Parameter slot2{
-					graphics::ShaderVisibility::Vertex,
-					{{graphics::DescriptorRangeType::CBV, 1}}
-				};
-				const graphics::ShaderInput::Parameter slot2{
-					graphics::ShaderVisibility::Vertex,
-					{{graphics::DescriptorRangeType::CBV, 1}}
-				};
-                const std::vector<graphics::ShaderInput::Parameter> parametersLayout = {slot1};
+                const graphics::ShaderInput::Parameter slot2{
+                    graphics::ShaderVisibility::Vertex,
+                    {{graphics::DescriptorRangeType::CBV, 1}}
+                };
+                const graphics::ShaderInput::Parameter slot3{
+                    graphics::ShaderVisibility::Vertex,
+                    {{graphics::DescriptorRangeType::CBV, 1}}
+                };
+                const std::vector<graphics::ShaderInput::Parameter> parametersLayout = {slot1, slot2, slot3};
 
                 graphics::ShaderInput waterSI(context, {/*no constants*/}, parametersLayout);
                 waterSI.finalize();
@@ -214,19 +213,19 @@ namespace engine
 
         graphics::dx12::GraphicsPipelineState Water::initialize(graphics::GraphicContext& context)
         {
-			const graphics::ShaderInput::Parameter slot1{
-					graphics::ShaderVisibility::Vertex | graphics::ShaderVisibility::Pixel,
-					{{graphics::DescriptorRangeType::CBV, 1}}
-			};
-			const graphics::ShaderInput::Parameter slot2{
-				graphics::ShaderVisibility::Vertex,
-				{{graphics::DescriptorRangeType::CBV, 1}}
-			};
-			const graphics::ShaderInput::Parameter slot2{
-				graphics::ShaderVisibility::Vertex,
-				{{graphics::DescriptorRangeType::CBV, 1}}
-			};
-			const std::vector<graphics::ShaderInput::Parameter> parametersLayout = { slot1 };
+            const graphics::ShaderInput::Parameter slot1{
+                graphics::ShaderVisibility::Vertex | graphics::ShaderVisibility::Pixel,
+                {{graphics::DescriptorRangeType::CBV, 1}}
+            };
+            const graphics::ShaderInput::Parameter slot2{
+                graphics::ShaderVisibility::Vertex,
+                {{graphics::DescriptorRangeType::CBV, 1}}
+            };
+            const graphics::ShaderInput::Parameter slot3{
+                graphics::ShaderVisibility::Vertex,
+                {{graphics::DescriptorRangeType::CBV, 1}}
+            };
+            const std::vector<graphics::ShaderInput::Parameter> parametersLayout = { slot1, slot2, slot3 };
             graphics::ShaderInput waterSI(context, {/*no constants*/}, parametersLayout);
 
             // Pipeline State
@@ -241,12 +240,12 @@ namespace engine
             psoDesc.vertexShader = graphics::GraphicContext::compileShader(
                 "WaterVS",
                 shaders::WaterVS,
-                "vs_6_4"
+                "vs_5_0"
             );
             psoDesc.pixelShader = graphics::GraphicContext::compileShader(
                 "WaterPS",
                 shaders::WaterPS,
-                "ps_6_4"
+                "ps_5_0"
             );
             psoDesc.numRenderTargets = 1;
             psoDesc.rtvFormats[0] = graphics::DefaultFormats::R16G16B16A16_UNORM;
