@@ -45,6 +45,7 @@ namespace engine
             graphics::dx12::RenderTarget* mRenderTarget;
             graphics::dx12::DescriptorHandle mRTV;
 
+            std::vector<graphics::ShaderInput::Constant> mConstantsLayout;
             std::vector<graphics::ShaderInput::Parameter> mParametersLayout;
             graphics::dx12::GraphicsPipelineState mWaterPSO;
 

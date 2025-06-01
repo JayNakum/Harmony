@@ -25,7 +25,7 @@ namespace engine
         graphics::dx12::ByteAddressBuffer* indexBuffer = nullptr;
 
         unsigned int vertexByteStride = 0;
-        graphics::Format indexFormat = graphics::DefaultFormats::R16_UINT;
+        bool is32BitIndices = false;
 
         std::unordered_map<std::string, SubmeshGeometry> drawArgs;
 
@@ -36,7 +36,7 @@ namespace engine
 
         inline const graphics::dx12::BufferView indexBufferView() const
         {
-            return indexBuffer->indexBufferView();
+            return indexBuffer->indexBufferView(0, is32BitIndices);
         }
 
         inline void disposeUploaders()

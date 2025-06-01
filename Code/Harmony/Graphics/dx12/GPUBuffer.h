@@ -65,7 +65,7 @@ namespace graphics
             // Creates an index buffer view of the entire buffer.
             inline const BufferView indexBufferView(const size_t startIndex = 0, const bool is32Bits = false) const
             {
-                size_t offset = startIndex * is32Bits ? 32 : 16;
+                size_t offset = startIndex * (is32Bits ? sizeof(uint32_t) : sizeof(uint16_t));
                 return indexBufferView((uint32_t)(mDescription.width - offset), offset, is32Bits);
             }
 

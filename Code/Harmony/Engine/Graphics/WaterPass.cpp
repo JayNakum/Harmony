@@ -7,7 +7,12 @@
 namespace shaders
 {
     static const char* WaterVS = R"###(
-cbuffer cbPass : register(b0)
+cbuffer cbFrame : register(b0)
+{
+    float gTotalTime;
+};
+
+cbuffer cbPass : register(b1)
 {
     float4x4 gView;
     float4x4 gInvView;
@@ -42,6 +47,8 @@ struct VSInput
 struct VSOutput
 {
     float4 position : SV_POSITION;
+    float3 normal : NORMAL;
+    float waveHeight : TEXCOORD0;
 };
 
 VSOutput main(VSInput input)
@@ -49,7 +56,11 @@ VSOutput main(VSInput input)
     VSOutput result;
     float4x4 mvp = mul(gView, gProj);
 
-    result.position = mul(float4(input.position, 1.0f), mvp);
+    float wave = sin(input.position.x + (gTotalTime));
+
+    result.position = mul(float4(input.position.x, wave, input.position.z, 1.0f), mvp);
+    result.waveHeight = wave;
+    result.normal = input.normal;
     return result;
 }
 )###";
@@ -58,10 +69,15 @@ VSOutput main(VSInput input)
 struct VSOutput
 {
     float4 position : SV_POSITION;
+    float3 normal : NORMAL;
+    float waveHeight : TEXCOORD0;
 };
 float4 main(VSOutput input) : SV_TARGET
 {
-    return float4(1.0f, 1.0f, 1.0f, 1.0f);
+    float A = 0.5;
+    float t = saturate((input.waveHeight + A) / (2*A));
+    float3 color = lerp(float3(0.1,0.1,0.3), float3(0.8,0.9,1.0), t);
+    return float4(color, 1.0f);
 }
 )###";
 }
@@ -128,11 +144,14 @@ namespace engine
             }
 
             {// Render
-                graphics::ShaderInput waterSI(context, {/*no constants*/}, mParametersLayout);
+                graphics::ShaderInput waterSI(context, mConstantsLayout, mParametersLayout);
+                context.setPipelineState(mWaterPSO);
+
+                graphics::dx12::DWParam totalTime = passInputs.frame.totalTime;
+                waterSI.setConstant(passInputs.frame.totalTime, 0);
                 waterSI.setResource(*mPassCB, 0);
                 waterSI.finalize();
 
-                context.setPipelineState(mWaterPSO);
 
                 context.setRenderTargets(mRTV);
 
@@ -184,12 +203,24 @@ namespace engine
 
         graphics::dx12::GraphicsPipelineState Water::initialize(graphics::GraphicContext& context)
         {
-            const graphics::ShaderInput::Parameter slot1{
+            const graphics::ShaderInput::Constant slot1
+            {
+                graphics::ShaderVisibility::Vertex | graphics::ShaderVisibility::Pixel,
+            };
+            /*const graphics::ShaderInput::Constants slot2
+            {
+                graphics::ShaderVisibility::Vertex | graphics::ShaderVisibility::Pixel,
+                1
+            };*/
+            mConstantsLayout.emplace_back(slot1);
+            //mConstantsLayout.emplace_back(slot2);
+
+            const graphics::ShaderInput::Parameter slot3{
                 graphics::ShaderVisibility::Vertex,
                 {{graphics::DescriptorRangeType::CBV, 1}}
             };
-            mParametersLayout.emplace_back(slot1);
-            graphics::ShaderInput waterSI(context, {/*no constants*/}, mParametersLayout);
+            mParametersLayout.emplace_back(slot3);
+            graphics::ShaderInput waterSI(context, mConstantsLayout, mParametersLayout);
 
             // Pipeline State
             graphics::dx12::GraphicsPipelineState::Description psoDesc;
