@@ -8,7 +8,7 @@ namespace shaders
 {
     static const char* GerstnerWaveWaterShader = R"###(
 static const uint NUM_WAVES = 3;
-static const float PI = 3.14159265358979323846f;
+static const float PI = 3.14159265358979323826264;
 static const float G = 9.81f;
 
 cbuffer cbFrame : register(b0)
