@@ -3,12 +3,6 @@
 #include "Maths/Vectors.h"
 #include "mat3x3.h"
 
-#define _USE_MATH_DEFINES
-#include <cmath>
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
-#endif
-
 template <typename T>
 class mat4x4
 {

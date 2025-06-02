@@ -40,7 +40,7 @@ namespace engine
 
             FrameConstants frame;
             frame.deltaTime = deltaTime;
-            frame.totalTime = mFrameTimer.elapsed();
+            frame.totalTime = mFrameTimer.total();
 
             mRenderer->render(frame);
             ++msFrameIndex;

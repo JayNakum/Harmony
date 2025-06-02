@@ -15,6 +15,9 @@ namespace engine
         // Reset the timer and return elapsed time in seconds
         float restart();
 
+        // Returns the time since construction, in seconds
+        float total() const;
+
         // Returns the time since last restart or construction, in seconds
         float elapsed() const;
 
@@ -24,6 +27,7 @@ namespace engine
         ~Timer();
 
     private:
+        TimePoint mStart;
         TimePoint mLast;
     };
 }

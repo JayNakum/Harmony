@@ -6,13 +6,36 @@
 
 namespace shaders
 {
-    static const char* WaterVS = R"###(
+    static const char* GerstnerWaveWaterShader = R"###(
+static const uint NUM_WAVES = 3;
+static const float PI = 3.14159265358979323846f;
+static const float G = 9.81f;
+
 cbuffer cbFrame : register(b0)
 {
     float gTotalTime;
+    float gDeltaTime;
+    uint _framePadding0;
+    uint _framePadding1;
 };
 
-cbuffer cbPass : register(b1)
+struct WaterParams
+{
+    float amplitude;
+    float2 windDirection;
+    float steepness;
+    float wavelength;
+    float _waterParamsPadding0;
+    float _waterParamsPadding1;
+    float _waterParamsPadding2;
+};
+
+cbuffer cbWaterParams : register(b1)
+{
+    WaterParams gWaterParams[NUM_WAVES];
+};
+
+cbuffer cbPass : register(b2)
 {
     float4x4 gView;
     float4x4 gInvView;
@@ -48,36 +71,74 @@ struct VSOutput
 {
     float4 position : SV_POSITION;
     float3 normal : NORMAL;
+
     float waveHeight : TEXCOORD0;
 };
 
-VSOutput main(VSInput input)
+float calculatePhase(float3 vertex, float waveLength, float2 direction, float t)
+{
+    float k = (2 * PI) / waveLength;
+    float angularFreq = sqrt(G * k);
+    float phase = (k * (direction.x * vertex.x + direction.y * vertex.z)) - (angularFreq * t);
+
+    return phase;
+}
+
+float3 calculateOffsets(float3 vertex, float amplitude, float2 direction, float steepness, float waveLength, float t)
+{
+    float phase = calculatePhase(vertex, waveLength, direction, t);
+    float dx = (steepness * amplitude * direction.x * cos(phase));
+    float dy = amplitude * sin(phase);
+    float dz = (steepness * amplitude * direction.y * cos(phase));
+
+    return float3(dx, dy, dz);
+}
+
+VSOutput vsMain(VSInput input)
 {
     VSOutput result;
     float4x4 mvp = mul(gView, gProj);
 
-    float wave = sin(input.position.x + (gTotalTime));
+    float3 waveOffset = float3(0.0f, 0.0f, 0.0f);
 
-    result.position = mul(float4(input.position.x, wave, input.position.z, 1.0f), mvp);
-    result.waveHeight = wave;
+    [unroll]
+    for(uint i = 0; i < NUM_WAVES; ++i)
+    {
+        waveOffset += calculateOffsets(
+                        input.position,
+                        gWaterParams[i].amplitude,
+                        gWaterParams[i].windDirection,
+                        gWaterParams[i].steepness,
+                        gWaterParams[i].wavelength, gTotalTime);
+    }
+
+    float3 wave = input.position;
+    wave.x += waveOffset.x;
+    wave.y = waveOffset.y;
+    wave.z += waveOffset.z;
+    result.position = mul(float4(wave, 1.0f), mvp);
+    result.waveHeight = wave.y;
     result.normal = input.normal;
     return result;
 }
-)###";
 
-    static const char* WaterPS = R"###(
-struct VSOutput
+float4 psMain(VSOutput input) : SV_TARGET
 {
-    float4 position : SV_POSITION;
-    float3 normal : NORMAL;
-    float waveHeight : TEXCOORD0;
-};
-float4 main(VSOutput input) : SV_TARGET
-{
-    float A = 0.5;
-    float t = saturate((input.waveHeight + A) / (2*A));
-    float3 color = lerp(float3(0.1,0.1,0.3), float3(0.8,0.9,1.0), t);
-    return float4(color, 1.0f);
+    float3 deepColor = float3(0.0f, 0.3f, 0.5f);
+    float3 peakColor = float3(1.0f, 1.0f, 1.0f);
+
+    // compute wave min max
+    float maxAmplitude = 0.0f;
+    for (int i = 0; i < NUM_WAVES; ++i)
+    {
+        maxAmplitude += gWaterParams[i].amplitude;
+    }
+
+    float normalizedHeight = saturate(input.waveHeight / maxAmplitude);
+
+    float3 finalColor = lerp(deepColor, peakColor, normalizedHeight);
+
+    return float4(finalColor, 1.0f);
 }
 )###";
 }
@@ -130,7 +191,7 @@ namespace engine
                     mRTV = context.allocateDescriptors(graphics::DescriptorHeapType::RenderTarget);
                     mRenderTarget->createRenderTargetView(context.getDevice(), mRTV);
 
-                    float fov = 0.25f * M_PI;
+                    float fov = 0.25f * (float)M_PI;
                     float aspectRatio = (float)passInputs.width / (float)passInputs.height;
                     mPass.nearZ = 0.01f;
                     mPass.farZ = 1000.0f;
@@ -147,11 +208,18 @@ namespace engine
                 graphics::ShaderInput waterSI(context, mConstantsLayout, mParametersLayout);
                 context.setPipelineState(mWaterPSO);
 
-                graphics::dx12::DWParam totalTime = passInputs.frame.totalTime;
-                waterSI.setConstant(passInputs.frame.totalTime, 0);
+                waterSI.setConstants({passInputs.frame.totalTime, passInputs.frame.deltaTime, 0x1deadb0b, 0x1deadb0b }, 0);
+
+                WaterParams params
+                {
+                    { 0.2f, 0.1f, 0.15f }, // amplitude
+                    { vec2f(1.0f, 0.0f), vec2f(0.707f, 0.707f), vec2f(-0.5f, 0.866f) }, // directions
+                    { 0.2f,  0.15f, 0.25f }, // steepness
+                    { 6.0f,  3.0f, 4.5f } // wavelength
+                };
+                setWaterParams(params, waterSI, 1);
                 waterSI.setResource(*mPassCB, 0);
                 waterSI.finalize();
-
 
                 context.setRenderTargets(mRTV);
 
@@ -169,8 +237,7 @@ namespace engine
                 scissor.bottom = (unsigned int)viewport.y + (unsigned int)viewport.height;
                 context.setScissor(scissor);
 
-                const float clearColor[4] = { 0.118f, 0.106f, 0.180f, 1.0f };
-                //const float clearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+                const float clearColor[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
                 context.clearColor(mRTV, clearColor);
 
                 graphics::dx12::BufferView vertexBufferView = mWaterRI->geometry.vertexBufferView();
@@ -201,19 +268,38 @@ namespace engine
             delete mRenderTarget;
         }
 
+        void Water::setWaterParams(const WaterParams& params, graphics::ShaderInput& waterSI, const unsigned int constantsLayoutIndex) const
+        {
+            graphics::ShaderInput::RootConstants constants;
+
+            for (unsigned int i = 0; i < WaterParams::NUM_WAVES; ++i)
+            {
+                constants.push_back(params.amplitudes[i]);
+                constants.push_back(params.windDirections[i].x);
+                constants.push_back(params.windDirections[i].y);
+                constants.push_back(params.steepnesses[i]);
+                constants.push_back(params.wavelengths[i]);
+                constants.push_back(params._waterParamsPadding0[i]);
+                constants.push_back(params._waterParamsPadding1[i]);
+                constants.push_back(params._waterParamsPadding2[i]);
+            }
+            waterSI.setConstants(constants, constantsLayoutIndex);
+        }
+
         graphics::dx12::GraphicsPipelineState Water::initialize(graphics::GraphicContext& context)
         {
-            const graphics::ShaderInput::Constant slot1
+            const graphics::ShaderInput::Constants slot1
             {
                 graphics::ShaderVisibility::Vertex | graphics::ShaderVisibility::Pixel,
+                4
             };
-            /*const graphics::ShaderInput::Constants slot2
+            const graphics::ShaderInput::Constants slot2
             {
                 graphics::ShaderVisibility::Vertex | graphics::ShaderVisibility::Pixel,
-                1
-            };*/
+                32
+            };
             mConstantsLayout.emplace_back(slot1);
-            //mConstantsLayout.emplace_back(slot2);
+            mConstantsLayout.emplace_back(slot2);
 
             const graphics::ShaderInput::Parameter slot3{
                 graphics::ShaderVisibility::Vertex,
@@ -235,13 +321,15 @@ namespace engine
 
             psoDesc.vertexShader = graphics::GraphicContext::compileShader(
                 "WaterVS",
-                shaders::WaterVS,
-                "vs_5_0"
+                shaders::GerstnerWaveWaterShader,
+                "vs_5_0",
+                "vsMain"
             );
             psoDesc.pixelShader = graphics::GraphicContext::compileShader(
                 "WaterPS",
-                shaders::WaterPS,
-                "ps_5_0"
+                shaders::GerstnerWaveWaterShader,
+                "ps_5_0",
+                "psMain"
             );
             psoDesc.numRenderTargets = 1;
             psoDesc.rtvFormats[0] = graphics::DefaultFormats::R16G16B16A16_UNORM;
@@ -252,7 +340,7 @@ namespace engine
         void Water::prepareRenderItem(graphics::GraphicContext& context)
         {
             GeometryGenerator geoGen;
-            GeometryGenerator::MeshData grid = geoGen.createGrid(20.0f, 30.0f, 60, 40);
+            GeometryGenerator::MeshData grid = geoGen.createGrid(30.0f, 30.0f, 60, 60);
 
             SubmeshGeometry waterSubmesh;
             waterSubmesh.indexCount = (unsigned int)grid.getIndices16().size();
@@ -338,8 +426,8 @@ namespace engine
             mPass.invProjection = inverse(mProjection);
             mPass.viewProjection = mView * mProjection;
             mPass.invViewProjection = inverse(mPass.viewProjection);
-            mPass.renderTargetSize.x = mRTDescription.textureDescription.width;
-            mPass.renderTargetSize.y = mRTDescription.textureDescription.height;
+            mPass.renderTargetSize.x = (float)mRTDescription.textureDescription.width;
+            mPass.renderTargetSize.y = (float)mRTDescription.textureDescription.height;
             mPass.invRenderTargetSize = 1 / mPass.renderTargetSize;
 
             mPassCB = new graphics::dx12::UploadBuffer(context.getDevice(), { "water pass cbuffer", sizeof(PassConstants) });

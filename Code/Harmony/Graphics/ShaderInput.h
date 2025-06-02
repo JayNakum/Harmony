@@ -24,10 +24,13 @@ namespace graphics
     class ShaderInput
     {
     public:
-        struct Constant
+        struct Constants
         {
             const ShaderVisibility shaderVisibility;
+            const unsigned int count = 1;
         };
+
+        using RootConstants = std::vector<dx12::DWParam>;
 
         // Descriptor Table Entry
         struct Range
@@ -46,11 +49,11 @@ namespace graphics
         // Scoped shader inputs.
         // 32bit constants are expected at the top of root parameters
         // Layout is expected in order of shader registers.
-        ShaderInput(GraphicContext& context, const std::vector<Constant>& constantsLayout, const std::vector<Parameter>& parametersLayout);
+        ShaderInput(GraphicContext& context, const std::vector<Constants>& constantsLayout, const std::vector<Parameter>& parametersLayout);
 
         const dx12::RootSignature& getRootSignature() const { return mRootSignature; }
 
-        const void setConstant(const dx12::DWParam value, const unsigned int layoutIndex);
+        const void setConstants(const RootConstants values, const unsigned int layoutIndex);
 
         // Set a CPU descriptor handle at the specified layoutIndex, parameterIndex and rangeIndex.
         const dx12::DescriptorHandle setResource(const dx12::DescriptorHandle& cpuHandle,
@@ -94,9 +97,10 @@ namespace graphics
 
         dx12::DescriptorHandle mDescriptors;
         unsigned int mDescriptorsCount;
-        std::vector<dx12::DWParam> mRootConstants;
 
-        const std::vector<Constant>& mConstantLayout;
+        std::vector<RootConstants> mRootConstants;
+
+        const std::vector<Constants>& mConstantLayout;
         const std::vector<Parameter>& mParametersLayout;
 
         dx12::RootSignature& mRootSignature;

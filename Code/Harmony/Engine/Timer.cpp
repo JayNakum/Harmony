@@ -15,6 +15,13 @@ namespace engine
         return elapsed.count(); // in seconds
     }
 
+    float Timer::total() const
+    {
+        TimePoint now = Clock::now();
+        std::chrono::duration<float> total = now - mStart;
+        return total.count();
+    }
+
     float Timer::elapsed() const
     {
         TimePoint now = Clock::now();
@@ -25,6 +32,7 @@ namespace engine
     void Timer::reset()
     {
         mLast = Clock::now();
+        mStart = Clock::now();
     }
 
     Timer::~Timer()
