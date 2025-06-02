@@ -54,7 +54,9 @@ namespace graphics
 
             std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> srcHandles(numSrcRanges);
             for (UINT i = 0; i < numSrcRanges; ++i)
+            {
                 srcHandles[i] = srcStarts[i];
+            }
 
             device->CopyDescriptors(
                 1, // Number of destination ranges

@@ -50,7 +50,7 @@ namespace graphics
 
         mPageOffset += PAGE_SIZE;
 
-        if (mPageOffset > mMaxDescriptors)
+        if (mPageOffset >= mMaxDescriptors)
         {
             HASSERT_SOFT(false, "Descriptor Heap out of space. Overwriting from the beginning.");
             mPageOffset = 0;
