@@ -211,10 +211,10 @@ namespace engine
 
                 WaterParams params
                 {
-                    { 0.2f, 0.1f, 0.15f }, // amplitude
-                    { vec2f(1.0f, 0.0f), vec2f(0.707f, 0.707f), vec2f(-0.5f, 0.866f) }, // directions
-                    { 0.2f,  0.15f, 0.25f }, // steepness
-                    { 6.0f,  3.0f, 4.5f } // wavelength
+                    { 0.2f, 0.1f, 0.15f },
+                    { vec2f(1,0), vec2f(-0.5f,0.866f), vec2f(-0.5f,-0.866f) },
+                    { 0.80f, 0.60f, 0.40f },
+                    { 10.0f, 6.0f, 3.0f }
                 };
                 setWaterParams(params, waterSI, 1);
                 waterSI.setResource(*mPassCB, 0);
@@ -295,7 +295,7 @@ namespace engine
             const graphics::ShaderInput::Constants slot2
             {
                 graphics::ShaderVisibility::Vertex | graphics::ShaderVisibility::Pixel,
-                32
+                28
             };
             mConstantsLayout.emplace_back(slot1);
             mConstantsLayout.emplace_back(slot2);
@@ -339,7 +339,7 @@ namespace engine
         void Water::prepareRenderItem(graphics::GraphicContext& context)
         {
             GeometryGenerator geoGen;
-            GeometryGenerator::MeshData grid = geoGen.createGrid(30.0f, 30.0f, 60, 60);
+            GeometryGenerator::MeshData grid = geoGen.createGrid(30.0f, 30.0f, 256, 256);
 
             SubmeshGeometry waterSubmesh;
             waterSubmesh.indexCount = (unsigned int)grid.getIndices16().size();

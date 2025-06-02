@@ -71,7 +71,7 @@ namespace engine
 
         private:
             PassConstants mPass;
-            vec3f mEyePos = { 0.0f, 1.5f, -15.0f };
+            vec3f mEyePos = { 0.0f, 2.5f, -15.0f };
             mat4f mView;
             mat4f mProjection;
         };
