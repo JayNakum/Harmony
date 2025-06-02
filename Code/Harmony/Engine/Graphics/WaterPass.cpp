@@ -100,7 +100,6 @@ VSOutput vsMain(VSInput input)
     float4x4 mvp = mul(gView, gProj);
 
     float3 waveOffset = float3(0.0f, 0.0f, 0.0f);
-
     [unroll]
     for(uint i = 0; i < NUM_WAVES; ++i)
     {
@@ -113,9 +112,9 @@ VSOutput vsMain(VSInput input)
     }
 
     float3 wave = input.position;
-    wave.x += waveOffset.x;
+    wave.x -= waveOffset.x;
     wave.y = waveOffset.y;
-    wave.z += waveOffset.z;
+    wave.z -= waveOffset.z;
     result.position = mul(float4(wave, 1.0f), mvp);
     result.waveHeight = wave.y;
     result.normal = input.normal;
