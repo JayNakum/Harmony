@@ -211,10 +211,10 @@ namespace engine
 
                 WaterParams params
                 {
-                    { 0.2f, 0.1f, 0.15f },
-                    { vec2f(1,0), vec2f(-0.5f,0.866f), vec2f(-0.5f,-0.866f) },
-                    { 0.80f, 0.60f, 0.40f },
-                    { 10.0f, 6.0f, 3.0f }
+                    { 0.2f, 0.1f, 0.15f }, // amplitude
+                    { vec2f(1,0), vec2f(-0.5f,0.866f), vec2f(-0.5f,-0.866f) }, // direction
+                    { 0.80f, 0.60f, 0.40f }, // steepness
+                    { 10.0f, 6.0f, 3.0f } // wavelength
                 };
                 setWaterParams(params, waterSI, 1);
                 waterSI.setResource(*mPassCB, 0);

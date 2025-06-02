@@ -111,8 +111,8 @@ namespace engine
 
         meshData.vertices.push_back(topVertex);
 
-        float phiStep = M_PI / stackCount;
-        float thetaStep = 2.0f * M_PI / sliceCount;
+        float phiStep = (float)M_PI / (float)stackCount;
+        float thetaStep = (float)(2.0f * M_PI) / (float)sliceCount;
 
         // Compute vertices for each stack ring (do not count the poles as rings).
         for (uint32_t i = 1; i <= stackCount - 1; ++i)
@@ -140,8 +140,8 @@ namespace engine
 
                 v.normal = normalize(v.position);
 
-                v.textureCoord.x = theta / (2 * M_PI);
-                v.textureCoord.y = phi / M_PI;
+                v.textureCoord.x = (float)theta / (float)(2 * M_PI);
+                v.textureCoord.y = (float)phi / (float)M_PI;
 
                 meshData.vertices.push_back(v);
             }
@@ -353,12 +353,12 @@ namespace engine
 
             // Put in [0, 2pi].
             if (theta < 0.0f)
-                theta += (2 * M_PI);
+                theta += (float)(2 * M_PI);
 
             float phi = acosf(meshData.vertices[i].position.y / radius);
 
-            meshData.vertices[i].textureCoord.x = theta / (2 * M_PI);
-            meshData.vertices[i].textureCoord.y = phi / M_PI;
+            meshData.vertices[i].textureCoord.x = (float)theta / (float)(2 * M_PI);
+            meshData.vertices[i].textureCoord.y = (float)phi / (float)M_PI;
 
             // Partial derivative of P with respect to theta
             meshData.vertices[i].tangentU.x = -radius * sinf(phi) * sinf(theta);
@@ -393,7 +393,7 @@ namespace engine
             float r = bottomRadius + i * radiusStep;
 
             // vertices of ring
-            float dTheta = 2.0f * M_PI / sliceCount;
+            float dTheta = (float)(2.0f * M_PI) / (float)sliceCount;
             for (uint32_t j = 0; j <= sliceCount; ++j)
             {
                 Vertex vertex;
@@ -471,7 +471,7 @@ namespace engine
         uint32_t baseIndex = (uint32_t)meshData.vertices.size();
 
         float y = 0.5f * height;
-        float dTheta = 2.0f * M_PI / sliceCount;
+        float dTheta = (float)(2.0f * M_PI) / (float)sliceCount;
 
         // Duplicate cap ring vertices because the texture coordinates and normals differ.
         for (uint32_t i = 0; i <= sliceCount; ++i)
@@ -512,7 +512,7 @@ namespace engine
         float y = -0.5f * height;
 
         // vertices of ring
-        float dTheta = 2.0f * M_PI / sliceCount;
+        float dTheta = (float)(2.0f * M_PI) / (float)sliceCount;
         for (uint32_t i = 0; i <= sliceCount; ++i)
         {
             float x = bottomRadius * cosf(i * dTheta);
