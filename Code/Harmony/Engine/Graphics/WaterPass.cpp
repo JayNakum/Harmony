@@ -72,7 +72,7 @@ struct VSOutput
     float4 position : SV_POSITION;
     float3 normal : NORMAL;
 
-    float waveHeight : TEXCOORD0;
+    float normalizedHeight : TEXCOORD0;
 };
 
 float calculatePhase(float3 vertex, float waveLength, float2 direction, float t)
@@ -112,11 +112,19 @@ VSOutput vsMain(VSInput input)
     }
 
     float3 wave = input.position;
-    wave.x -= waveOffset.x;
+    wave.x += waveOffset.x;
     wave.y = waveOffset.y;
-    wave.z -= waveOffset.z;
+    wave.z += waveOffset.z;
     result.position = mul(float4(wave, 1.0f), mvp);
-    result.waveHeight = wave.y;
+
+    // compute wave min max
+    float maxAmplitude = 0.0f;
+    for (int i = 0; i < NUM_WAVES; ++i)
+    {
+        maxAmplitude += gWaterParams[i].amplitude;
+    }
+    result.normalizedHeight = saturate(wave.y / maxAmplitude);
+
     result.normal = input.normal;
     return result;
 }
@@ -126,16 +134,7 @@ float4 psMain(VSOutput input) : SV_TARGET
     float3 deepColor = float3(0.0f, 0.3f, 0.5f);
     float3 peakColor = float3(1.0f, 1.0f, 1.0f);
 
-    // compute wave min max
-    float maxAmplitude = 0.0f;
-    for (int i = 0; i < NUM_WAVES; ++i)
-    {
-        maxAmplitude += gWaterParams[i].amplitude;
-    }
-
-    float normalizedHeight = saturate(input.waveHeight / maxAmplitude);
-
-    float3 finalColor = lerp(deepColor, peakColor, normalizedHeight);
+    float3 finalColor = lerp(deepColor, peakColor, input.normalizedHeight);
 
     return float4(finalColor, 1.0f);
 }
