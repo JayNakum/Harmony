@@ -1,4 +1,4 @@
-#include "WaterPass.h"
+﻿#include "WaterPass.h"
 
 #include "GeometryGenerator.h"
 
@@ -77,7 +77,7 @@ struct VSOutput
 
 float calculatePhase(float3 vertex, float waveLength, float2 direction, float t)
 {
-    float k = (2 * PI) / waveLength;
+    float k = (2.0f * PI) / waveLength;
     float angularFreq = sqrt(G * k);
     float phase = (k * (direction.x * vertex.x + direction.y * vertex.z)) - (angularFreq * t);
 
@@ -94,10 +94,41 @@ float3 calculateOffsets(float3 vertex, float amplitude, float2 direction, float 
     return float3(dx, dy, dz);
 }
 
+float3 calculateOffsetsRadial(float2 center, float3 vertex, float amplitude, float2 direction, float steepness, float waveLength, float t)
+{
+    // Compute the radial direction for the vertex
+    float2 radial = vertex.xz - center;
+    float distance = length(radial);
+    if (distance > 0.0001f)
+    {
+        radial /= distance; // Normalize
+    }
+    else
+    {
+        radial = radial/ max(distance, 0.0001f); // float2(1, 0); // Fallback if exactly at center
+    }
+
+    // newPhase = k * radius - angularFreq * t
+    float k = (2.0f * PI) / waveLength;
+    float angularFreq = sqrt(G * k);
+    float phase = (k * distance) - (angularFreq * t);
+
+    // the offsets move in radial direction instead
+    float dx = steepness * radial.x * cos(phase);
+    float dy = amplitude * sin(phase);
+    float dz = (steepness * radial.y * cos(phase));
+
+    return float3(dx, dy, dz);
+}
+
 VSOutput vsMain(VSInput input)
 {
     VSOutput result;
     float4x4 mvp = mul(gView, gProj);
+
+    const float2 center = float2(0.0f, 0.0f);
+    const float swirlSpeed = 3.0f;
+    const float swirlFallOff = 10.0f;
 
     float3 waveOffset = float3(0.0f, 0.0f, 0.0f);
     [unroll]
@@ -111,11 +142,33 @@ VSOutput vsMain(VSInput input)
                         gWaterParams[i].wavelength, gTotalTime);
     }
 
-    float3 wave = input.position;
-    wave.x += waveOffset.x;
-    wave.y = waveOffset.y;
-    wave.z += waveOffset.z;
-    result.position = mul(float4(wave, 1.0f), mvp);
+    float3 displaced = input.position;
+    displaced.x += waveOffset.x;
+    displaced.y = waveOffset.y;
+    displaced.z += waveOffset.z;
+
+    float2 centeredXZ = displaced.xz - center;
+    float r = length(centeredXZ);
+
+    float factor = saturate(1.0f - (r / swirlFallOff));
+    float rawAngle = swirlSpeed * gTotalTime;
+    float wrapped = fmod(rawAngle, 4.0f * PI);
+    float swirlAngle = wrapped * factor;
+
+    float s = sin(swirlAngle);
+    float c = cos(swirlAngle);
+    float2 v = centeredXZ;
+    float2 rotatedXZ = float2(
+        v.x * c - v.y * s,
+        v.x * s + v.y * c
+    );
+
+    float3 finalPosition = float3(
+        center.x + rotatedXZ.x,
+        displaced.y - (swirlSpeed * factor),
+        center.y + rotatedXZ.y
+    );
+    result.position = mul(float4(finalPosition, 1.0f), mvp);
 
     // compute wave min max
     float maxAmplitude = 0.0f;
@@ -123,7 +176,7 @@ VSOutput vsMain(VSInput input)
     {
         maxAmplitude += gWaterParams[i].amplitude;
     }
-    result.normalizedHeight = saturate(wave.y / maxAmplitude);
+    result.normalizedHeight = saturate(displaced.y / maxAmplitude);
 
     result.normal = input.normal;
     return result;
@@ -235,7 +288,7 @@ namespace engine
                 scissor.bottom = (unsigned int)viewport.y + (unsigned int)viewport.height;
                 context.setScissor(scissor);
 
-                const float clearColor[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+                const float clearColor[4] = { 0.1f, 0.1f, 0.1f, 1.0f };
                 context.clearColor(mRTV, clearColor);
 
                 graphics::dx12::BufferView vertexBufferView = mWaterRI->geometry.vertexBufferView();
