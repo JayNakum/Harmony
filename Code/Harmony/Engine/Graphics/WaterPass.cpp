@@ -8,7 +8,7 @@ namespace shaders
 {
     static const char* GerstnerWaveWaterShader = R"###(
 static const uint NUM_WAVES = 3;
-static const float PI = 3.14159265358979323826264;
+static const float PI = 3.14159265358979323826264f;
 static const float G = 9.81f;
 
 cbuffer cbFrame : register(b0)
@@ -21,13 +21,12 @@ cbuffer cbFrame : register(b0)
 
 struct WaterParams
 {
-    float amplitude;
     float2 windDirection;
+    float2 waveCenter; // RADIAL WAVES
+    float amplitude;
     float steepness;
     float wavelength;
-    float _waterParamsPadding0;
-    float _waterParamsPadding1;
-    float _waterParamsPadding2;
+    uint _waterParamsPadding0;
 };
 
 cbuffer cbWaterParams : register(b1)
@@ -75,18 +74,31 @@ struct VSOutput
     float normalizedHeight : TEXCOORD0;
 };
 
-float calculatePhase(float3 vertex, float waveLength, float2 direction, float t)
+float calculateWavePhase(float3 vertex, float waveLength, float distance, float t)
 {
     float k = (2.0f * PI) / waveLength;
     float angularFreq = sqrt(G * k);
-    float phase = (k * (direction.x * vertex.x + direction.y * vertex.z)) - (angularFreq * t);
+    float phase = (k * distance) - (angularFreq * t);
 
     return phase;
 }
 
-float3 calculateOffsets(float3 vertex, float amplitude, float2 direction, float steepness, float waveLength, float t)
+float3 calculateWaveOffsets(float3 vertex, float2 direction, float amplitude, float steepness, float waveLength, float t)
 {
-    float phase = calculatePhase(vertex, waveLength, direction, t);
+    float distance = (direction.x * vertex.x + direction.y * vertex.z);
+
+    // RADIAL WAVES
+    //float distance = length(radial);
+    //if (distance > 0.0001f)
+    //{
+    //    direction /= distance; // Normalize
+    //}
+    //else
+    //{
+    //    direction /= max(distance, 0.0001f); // float2(1, 0); // Fallback if exactly at center
+    //}
+
+    float phase = calculateWavePhase(vertex, waveLength, distance, t);
     float dx = (steepness * amplitude * direction.x * cos(phase));
     float dy = amplitude * sin(phase);
     float dz = (steepness * amplitude * direction.y * cos(phase));
@@ -94,60 +106,44 @@ float3 calculateOffsets(float3 vertex, float amplitude, float2 direction, float 
     return float3(dx, dy, dz);
 }
 
-float3 calculateOffsetsRadial(float2 center, float3 vertex, float amplitude, float2 direction, float steepness, float waveLength, float t)
+float3 simulateWaves(float3 vertex)
 {
-    // Compute the radial direction for the vertex
-    float2 radial = vertex.xz - center;
-    float distance = length(radial);
-    if (distance > 0.0001f)
-    {
-        radial /= distance; // Normalize
-    }
-    else
-    {
-        radial = radial/ max(distance, 0.0001f); // float2(1, 0); // Fallback if exactly at center
-    }
-
-    // newPhase = k * radius - angularFreq * t
-    float k = (2.0f * PI) / waveLength;
-    float angularFreq = sqrt(G * k);
-    float phase = (k * distance) - (angularFreq * t);
-
-    // the offsets move in radial direction instead
-    float dx = steepness * radial.x * cos(phase);
-    float dy = amplitude * sin(phase);
-    float dz = (steepness * radial.y * cos(phase));
-
-    return float3(dx, dy, dz);
-}
-
-VSOutput vsMain(VSInput input)
-{
-    VSOutput result;
-    float4x4 mvp = mul(gView, gProj);
-
-    const float2 center = float2(0.0f, 0.0f);
-    const float swirlSpeed = 3.0f;
-    const float swirlFallOff = 10.0f;
+    // RADIAL WAVES
+    //const float2 center = float2(0.0f, 0.0f);
 
     float3 waveOffset = float3(0.0f, 0.0f, 0.0f);
     [unroll]
     for(uint i = 0; i < NUM_WAVES; ++i)
     {
-        waveOffset += calculateOffsets(
-                        input.position,
-                        gWaterParams[i].amplitude,
-                        gWaterParams[i].windDirection,
-                        gWaterParams[i].steepness,
-                        gWaterParams[i].wavelength, gTotalTime);
+        float2 direction = gWaterParams[i].windDirection;
+
+        // RADIAL WAVES
+        //float2 direction = vertex.xz - center;
+
+        waveOffset += calculateWaveOffsets(
+                            vertex,
+                            direction,
+                            gWaterParams[i].amplitude,
+                            gWaterParams[i].steepness,
+                            gWaterParams[i].wavelength,
+                            gTotalTime
+                        );
     }
 
-    float3 displaced = input.position;
-    displaced.x += waveOffset.x;
-    displaced.y = waveOffset.y;
-    displaced.z += waveOffset.z;
+    return float3(
+        vertex.x + waveOffset.x,
+        waveOffset.y,
+        vertex.z + waveOffset.z
+    );
+}
 
-    float2 centeredXZ = displaced.xz - center;
+float3 simulateWhirlpool(float3 vertex)
+{
+    const float2 center = float2(0.0f, 0.0f);
+    const float swirlSpeed = 3.0f;
+    const float swirlFallOff = 10.0f;
+
+    float2 centeredXZ = vertex.xz - center;
     float r = length(centeredXZ);
 
     float factor = saturate(1.0f - (r / swirlFallOff));
@@ -163,11 +159,21 @@ VSOutput vsMain(VSInput input)
         v.x * s + v.y * c
     );
 
-    float3 finalPosition = float3(
+    return float3(
         center.x + rotatedXZ.x,
-        displaced.y - (swirlSpeed * factor),
+        vertex.y - (swirlSpeed * factor), // sink down
         center.y + rotatedXZ.y
     );
+}
+
+VSOutput vsMain(VSInput input)
+{
+    VSOutput result;
+
+    float3 displacedPosition = simulateWaves(input.position);
+    float3 finalPosition = simulateWhirlpool(displacedPosition);
+
+    float4x4 mvp = mul(gView, gProj);
     result.position = mul(float4(finalPosition, 1.0f), mvp);
 
     // compute wave min max
@@ -176,7 +182,7 @@ VSOutput vsMain(VSInput input)
     {
         maxAmplitude += gWaterParams[i].amplitude;
     }
-    result.normalizedHeight = saturate(displaced.y / maxAmplitude);
+    result.normalizedHeight = saturate(displacedPosition.y / maxAmplitude);
 
     result.normal = input.normal;
     return result;
@@ -263,8 +269,9 @@ namespace engine
 
                 WaterParams params
                 {
+                    { vec2f(1.0f,0.0f), vec2f(-0.5f,0.866f), vec2f(-0.5f,-0.866f) }, // direction
+                    { vec2f(0.0f,0.0f), vec2f(0.0f,0.0f), vec2f(0.0f,0.0f) }, // center
                     { 0.2f, 0.1f, 0.15f }, // amplitude
-                    { vec2f(1,0), vec2f(-0.5f,0.866f), vec2f(-0.5f,-0.866f) }, // direction
                     { 0.80f, 0.60f, 0.40f }, // steepness
                     { 10.0f, 6.0f, 3.0f } // wavelength
                 };
@@ -325,14 +332,14 @@ namespace engine
 
             for (unsigned int i = 0; i < WaterParams::NUM_WAVES; ++i)
             {
+                constants.push_back(params.directions[i].x);
+                constants.push_back(params.directions[i].y);
+                constants.push_back(params.centers[i].x);
+                constants.push_back(params.centers[i].y);
                 constants.push_back(params.amplitudes[i]);
-                constants.push_back(params.windDirections[i].x);
-                constants.push_back(params.windDirections[i].y);
                 constants.push_back(params.steepnesses[i]);
                 constants.push_back(params.wavelengths[i]);
                 constants.push_back(params._waterParamsPadding0[i]);
-                constants.push_back(params._waterParamsPadding1[i]);
-                constants.push_back(params._waterParamsPadding2[i]);
             }
             waterSI.setConstants(constants, constantsLayoutIndex);
         }

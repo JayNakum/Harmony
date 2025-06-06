@@ -37,13 +37,12 @@ namespace engine
             {
                 static constexpr unsigned int NUM_WAVES = 3;
 
+                vec2f directions[NUM_WAVES];
+                vec2f centers[NUM_WAVES];
                 float amplitudes[NUM_WAVES];
-                vec2f windDirections[NUM_WAVES];
                 float steepnesses[NUM_WAVES];
                 float wavelengths[NUM_WAVES];
                 const uint32_t _waterParamsPadding0[NUM_WAVES] = { 0x1deadb0b, 0x1deadb0b, 0x1deadb0b };
-                const uint32_t _waterParamsPadding1[NUM_WAVES] = { 0x1deadb0b, 0x1deadb0b, 0x1deadb0b };
-                const uint32_t _waterParamsPadding2[NUM_WAVES] = { 0x1deadb0b, 0x1deadb0b, 0x1deadb0b };
             };
 
             void setWaterParams(const WaterParams& params, graphics::ShaderInput& waterSI, const unsigned int constantsLayoutIndex = 0) const;
