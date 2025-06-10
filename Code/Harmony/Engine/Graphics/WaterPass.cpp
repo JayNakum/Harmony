@@ -7,8 +7,8 @@
 namespace shaders
 {
     static const char* GerstnerWaveWaterShader = R"###(
-static const uint NUM_WAVES = 3;
 static const float PI = 3.14159265358979323826264f;
+static const float TWO_PI = 2.0f * PI;
 static const float G = 9.81f;
 
 cbuffer cbFrame : register(b0)
@@ -19,43 +19,61 @@ cbuffer cbFrame : register(b0)
     uint _framePadding1;
 };
 
-struct WaterParams
-{
-    float2 windDirection;
-    float2 waveCenter; // RADIAL WAVES
-    float amplitude;
-    float steepness;
-    float wavelength;
-    uint _waterParamsPadding0;
-};
-
-cbuffer cbWaterParams : register(b1)
-{
-    WaterParams gWaterParams[NUM_WAVES];
-};
-
-cbuffer cbPass : register(b2)
+cbuffer cbPass : register(b1)
 {
     float4x4 gView;
     float4x4 gInvView;
 
     float3 gEyePosW;
-    uint cbPassPadding0;
+    uint _passPadding0;
 
     float4x4 gProj;
     float4x4 gInvProj;
 
     float gNearZ;
     float gFarZ;
-    uint cbPassPadding1;
-    uint cbPassPadding2;
+    uint _passPadding1;
+    uint _passPadding2;
 
     float4x4 gViewProj;
     float4x4 gInvViewProj;
 
     float2 gRenderTargetSize;
     float2 gInvRenderTargetSize;
-    uint _cbPassPaddingFinal[20];
+    uint _passPaddingFinal[5];
+};
+
+static const uint NUM_WAVES = 3;
+struct WaveParams
+{
+    float2 windDirection;
+    float2 waveCenter; // RADIAL WAVES
+    float amplitude;
+    float steepness;
+    float wavelength;
+    uint _waveParamsPadding0;
+};
+
+static const uint NUM_WHIRLPOOLS = 1;
+struct WhirlpoolParams
+{
+    float2 whirlpoolCenter;
+    float swirlRadius;
+    float wrappedSwirlAngle;
+
+    float sinkRadius;
+    float sinkDepth;
+    uint _whirlpoolParamsPaddingFinal[2];
+};
+
+cbuffer cbWaterParams : register(b2)
+{
+    WaveParams gWaveParams[NUM_WAVES];
+
+    WhirlpoolParams gWhirlpoolParams[NUM_WHIRLPOOLS];
+
+    float gWavesMaxHeight;
+    uint _whirlpoolParamsPaddingFinal[3];
 };
 
 struct VSInput
@@ -74,9 +92,9 @@ struct VSOutput
     float normalizedHeight : TEXCOORD0;
 };
 
-float calculateWavePhase(float3 vertex, float waveLength, float distance, float t)
+float calculateWavePhase(float waveLength, float distance, float t)
 {
-    float k = (2.0f * PI) / waveLength;
+    float k = TWO_PI / waveLength;
     float angularFreq = sqrt(G * k);
     float phase = (k * distance) - (angularFreq * t);
 
@@ -98,10 +116,13 @@ float3 calculateWaveOffsets(float3 vertex, float2 direction, float amplitude, fl
     //    direction /= max(distance, 0.0001f); // float2(1, 0); // Fallback if exactly at center
     //}
 
-    float phase = calculateWavePhase(vertex, waveLength, distance, t);
-    float dx = (steepness * amplitude * direction.x * cos(phase));
-    float dy = amplitude * sin(phase);
-    float dz = (steepness * amplitude * direction.y * cos(phase));
+    float phase = calculateWavePhase(waveLength, distance, t);
+    float phaseCosine = cos(phase);
+    float phaseSine = sin(phase);
+
+    float dx = (steepness * amplitude * direction.x * phaseCosine);
+    float dy = amplitude * phaseSine;
+    float dz = (steepness * amplitude * direction.y * phaseCosine);
 
     return float3(dx, dy, dz);
 }
@@ -115,7 +136,7 @@ float3 simulateWaves(float3 vertex)
     [unroll]
     for(uint i = 0; i < NUM_WAVES; ++i)
     {
-        float2 direction = gWaterParams[i].windDirection;
+        float2 direction = gWaveParams[i].windDirection;
 
         // RADIAL WAVES
         //float2 direction = vertex.xz - center;
@@ -123,9 +144,9 @@ float3 simulateWaves(float3 vertex)
         waveOffset += calculateWaveOffsets(
                             vertex,
                             direction,
-                            gWaterParams[i].amplitude,
-                            gWaterParams[i].steepness,
-                            gWaterParams[i].wavelength,
+                            gWaveParams[i].amplitude,
+                            gWaveParams[i].steepness,
+                            gWaveParams[i].wavelength,
                             gTotalTime
                         );
     }
@@ -139,30 +160,26 @@ float3 simulateWaves(float3 vertex)
 
 float3 simulateWhirlpool(float3 vertex)
 {
-    const float2 center = float2(0.0f, 0.0f);
-    const float swirlSpeed = 3.0f;
-    const float swirlFallOff = 10.0f;
+    float2 centeredXZ = vertex.xz - gWhirlpoolParams[0].whirlpoolCenter;
+    float radius = length(centeredXZ);
 
-    float2 centeredXZ = vertex.xz - center;
-    float r = length(centeredXZ);
+    float factor = saturate(1.0f - (radius / gWhirlpoolParams[0].swirlRadius));
+    float swirlAngle = gWhirlpoolParams[0].wrappedSwirlAngle * factor;
 
-    float factor = saturate(1.0f - (r / swirlFallOff));
-    float rawAngle = swirlSpeed * gTotalTime;
-    float wrapped = fmod(rawAngle, 4.0f * PI);
-    float swirlAngle = wrapped * factor;
-
-    float s = sin(swirlAngle);
-    float c = cos(swirlAngle);
-    float2 v = centeredXZ;
+    float swirlAngleCosine = cos(swirlAngle);
+    float swirlAngleSine = sin(swirlAngle);
     float2 rotatedXZ = float2(
-        v.x * c - v.y * s,
-        v.x * s + v.y * c
+        centeredXZ.x * swirlAngleCosine - centeredXZ.y * swirlAngleSine,
+        centeredXZ.x * swirlAngleSine + centeredXZ.y * swirlAngleCosine
     );
 
+    float sinkFactor = saturate(1.0f - (radius / gWhirlpoolParams[0].sinkRadius));
+    float dySink = gWhirlpoolParams[0].sinkDepth * sinkFactor;
+
     return float3(
-        center.x + rotatedXZ.x,
-        vertex.y - (swirlSpeed * factor), // sink down
-        center.y + rotatedXZ.y
+        gWhirlpoolParams[0].whirlpoolCenter.x + rotatedXZ.x,
+        vertex.y - dySink, // sink down
+        gWhirlpoolParams[0].whirlpoolCenter.y + rotatedXZ.y
     );
 }
 
@@ -176,11 +193,10 @@ VSOutput vsMain(VSInput input)
     float4x4 mvp = mul(gView, gProj);
     result.position = mul(float4(finalPosition, 1.0f), mvp);
 
-    // compute wave min max
     float maxAmplitude = 0.0f;
     for (int i = 0; i < NUM_WAVES; ++i)
     {
-        maxAmplitude += gWaterParams[i].amplitude;
+        maxAmplitude += gWaveParams[i].amplitude;
     }
     result.normalizedHeight = saturate(displacedPosition.y / maxAmplitude);
 
@@ -219,6 +235,7 @@ namespace engine
             mRenderTarget(nullptr),
             mWaterPSO(initialize(context)),
             mPassCB(nullptr),
+            mWaterParamsCB(nullptr),
             mWaterRI(nullptr)
         {
             prepareRenderItem(context);
@@ -256,27 +273,16 @@ namespace engine
                 }
 
                 context.transitionResource(mRenderTarget->getTexture(), graphics::GPUResourceStates::RenderTarget, true);
-
-                updateCamera();
-                updateConstantBuffers(context, passInputs.frame);
             }
 
             {// Render
                 graphics::ShaderInput waterSI(context, mConstantsLayout, mParametersLayout);
                 context.setPipelineState(mWaterPSO);
 
-                waterSI.setConstants({passInputs.frame.totalTime, passInputs.frame.deltaTime, 0x1deadb0b, 0x1deadb0b }, 0);
+                updateCamera();
+                setCommonParams(context, waterSI, passInputs.frame);
+                setWaterParams(context, waterSI, passInputs.frame, 1);
 
-                WaterParams params
-                {
-                    { vec2f(1.0f,0.0f), vec2f(-0.5f,0.866f), vec2f(-0.5f,-0.866f) }, // direction
-                    { vec2f(0.0f,0.0f), vec2f(0.0f,0.0f), vec2f(0.0f,0.0f) }, // center
-                    { 0.2f, 0.1f, 0.15f }, // amplitude
-                    { 0.80f, 0.60f, 0.40f }, // steepness
-                    { 10.0f, 6.0f, 3.0f } // wavelength
-                };
-                setWaterParams(params, waterSI, 1);
-                waterSI.setResource(*mPassCB, 0);
                 waterSI.finalize();
 
                 context.setRenderTargets(mRTV);
@@ -295,8 +301,8 @@ namespace engine
                 scissor.bottom = (unsigned int)viewport.y + (unsigned int)viewport.height;
                 context.setScissor(scissor);
 
-                const float clearColor[4] = { 0.1f, 0.1f, 0.1f, 1.0f };
-                context.clearColor(mRTV, clearColor);
+                const float color[4] = { 0.1f, 0.1f, 0.1f, 1.0f };
+                context.clearColor(mRTV, color);
 
                 graphics::dx12::BufferView vertexBufferView = mWaterRI->geometry.vertexBufferView();
                 context.setVertexBuffers(0, &vertexBufferView);
@@ -321,49 +327,133 @@ namespace engine
             delete mWaterRI->geometry.indexBuffer;
             delete mWaterRI;
 
+            delete mWaterParamsCB;
             delete mPassCB;
 
             delete mRenderTarget;
         }
 
-        void Water::setWaterParams(const WaterParams& params, graphics::ShaderInput& waterSI, const unsigned int constantsLayoutIndex) const
+        void Water::updateCamera()
         {
-            graphics::ShaderInput::RootConstants constants;
+            vec3f pos = mEyePos;
+            vec3f target(0.0f);
+            vec3f up(0.0f, 1.0f, 0.0f);
 
-            for (unsigned int i = 0; i < WaterParams::NUM_WAVES; ++i)
+            mView = lookAtLH<float>(pos, target, up);
+        }
+
+        void Water::setCommonParams(graphics::GraphicContext& context, graphics::ShaderInput& waterSI, const FrameConstants& frame)
+        {
+            waterSI.setConstants({ frame.totalTime, frame.deltaTime, 0x1deadb0b, 0x1deadb0b }, 0);
+
+            if (mPassCB)
             {
-                constants.push_back(params.directions[i].x);
-                constants.push_back(params.directions[i].y);
-                constants.push_back(params.centers[i].x);
-                constants.push_back(params.centers[i].y);
-                constants.push_back(params.amplitudes[i]);
-                constants.push_back(params.steepnesses[i]);
-                constants.push_back(params.wavelengths[i]);
-                constants.push_back(params._waterParamsPadding0[i]);
+                delete mPassCB;
             }
-            waterSI.setConstants(constants, constantsLayoutIndex);
+
+            mPass.view = transpose(mView);
+            mPass.invView = inverse(mView);
+            mPass.eyePosition = mEyePos;
+            mPass.projection = transpose(mProjection);
+            mPass.invProjection = inverse(mProjection);
+            mPass.viewProjection = mView * mProjection;
+            mPass.invViewProjection = inverse(mPass.viewProjection);
+            mPass.renderTargetSize.x = (float)mRTDescription.textureDescription.width;
+            mPass.renderTargetSize.y = (float)mRTDescription.textureDescription.height;
+            mPass.invRenderTargetSize = 1 / mPass.renderTargetSize;
+
+            mPassCB = new graphics::dx12::UploadBuffer(context.getDevice(), { "water pass cbuffer", sizeof(PassConstants) });
+            {
+                void* bufferDest = mPassCB->map();
+                memcpy(bufferDest, &mPass, sizeof(PassConstants));
+                mPassCB->unmap();
+            }
+
+            waterSI.setResource(*mPassCB, 0);
+        }
+
+        void Water::setWaterParams(graphics::GraphicContext& context, graphics::ShaderInput& waterSI, const FrameConstants& frame, const unsigned int paramsLayoutIndex)
+        {
+            if (mWaterParamsCB)
+            {
+                delete mWaterParamsCB;
+            }
+
+            WaterParams waterParams;
+            {
+                waterParams.waveParams[0].direction = vec2f(1.0f, 0.0f);
+                waterParams.waveParams[0].center = vec2f(0.0f, 0.0f);
+                waterParams.waveParams[0].amplitude = 0.2f;
+                waterParams.waveParams[0].steepness = 0.80f;
+                waterParams.waveParams[0].wavelength = 10.0f;
+
+                waterParams.waveParams[1].direction = vec2f(-0.5f, 0.866f);
+                waterParams.waveParams[1].center = vec2f(0.0f, 0.0f);
+                waterParams.waveParams[1].amplitude = 0.1f;
+                waterParams.waveParams[1].steepness = 0.60f;
+                waterParams.waveParams[1].wavelength = 6.0f;
+
+                waterParams.waveParams[2].direction = vec2f(-0.5f, -0.866f);
+                waterParams.waveParams[2].center = vec2f(0.0f, 0.0f);
+                waterParams.waveParams[2].amplitude = 0.15f;
+                waterParams.waveParams[2].steepness = 0.40f;
+                waterParams.waveParams[2].wavelength = 3.0f;
+            }
+            {
+                const float swirlSpeed = 5.0f;
+
+                mCurrentSwirlAngle += swirlSpeed * frame.deltaTime;
+
+                if (mCurrentSwirlAngle > 40.0f)
+                {
+                    mCurrentSwirlAngle = std::fmod(mCurrentSwirlAngle, (M_PI));
+                }
+
+                waterParams.whirlpoolParams[0].center = vec2f(0.0f, 0.0f);
+                waterParams.whirlpoolParams[0].swirlRadius = 10.0f;
+                waterParams.whirlpoolParams[0].wrappedSwirlAngle = (float)mCurrentSwirlAngle;
+                waterParams.whirlpoolParams[0].sinkRadius = 8.0f;
+                waterParams.whirlpoolParams[0].sinkDepth = 2.0f;
+            }
+            {
+                float maxAmplitude = 0.0f;
+                for (int i = 0; i < WaterParams::NUM_WAVES; ++i)
+                {
+                    maxAmplitude += waterParams.waveParams[i].amplitude;
+                }
+                waterParams.wavesMaxHeight = maxAmplitude;
+            }
+
+            mWaterParamsCB = new graphics::dx12::UploadBuffer(context.getDevice(), { "water params cbuffer", sizeof(WaterParams) });
+            {
+                void* bufferDest = mWaterParamsCB->map();
+                memcpy(bufferDest, &waterParams, sizeof(WaterParams));
+                mWaterParamsCB->unmap();
+            }
+
+            waterSI.setResource(*mWaterParamsCB, paramsLayoutIndex);
         }
 
         graphics::dx12::GraphicsPipelineState Water::initialize(graphics::GraphicContext& context)
         {
-            const graphics::ShaderInput::Constants slot1
+            const graphics::ShaderInput::Constants frameConstants
             {
-                graphics::ShaderVisibility::Vertex | graphics::ShaderVisibility::Pixel,
+                graphics::ShaderVisibility::Vertex,
                 4
             };
-            const graphics::ShaderInput::Constants slot2
-            {
-                graphics::ShaderVisibility::Vertex | graphics::ShaderVisibility::Pixel,
-                28
-            };
-            mConstantsLayout.emplace_back(slot1);
-            mConstantsLayout.emplace_back(slot2);
+            mConstantsLayout.emplace_back(frameConstants); // slot 0
 
-            const graphics::ShaderInput::Parameter slot3{
+            const graphics::ShaderInput::Parameter passConstants{
                 graphics::ShaderVisibility::Vertex,
                 {{graphics::DescriptorRangeType::CBV, 1}}
             };
-            mParametersLayout.emplace_back(slot3);
+            const graphics::ShaderInput::Parameter waterParams{
+                graphics::ShaderVisibility::Vertex,
+                {{graphics::DescriptorRangeType::CBV, 1}}
+            };
+            mParametersLayout.emplace_back(passConstants); // slot 1
+            mParametersLayout.emplace_back(waterParams); // slot 2
+
             graphics::ShaderInput waterSI(context, mConstantsLayout, mParametersLayout);
 
             // Pipeline State
@@ -424,7 +514,6 @@ namespace engine
             context.copyBufferRegion(*vertexBuffer, 0, *vertexBufferUploader, 0, vbByteSize);
             context.transitionResource(*vertexBuffer, graphics::GPUResourceStates::VertexAndConstantBuffer, true);
 
-
             // Index Buffer
             const size_t ibByteSize = grid.getIndices16().size() * sizeof(uint16_t);
 
@@ -447,7 +536,6 @@ namespace engine
             context.copyBufferRegion(*indexBuffer, 0, *indexBufferUploader, 0, ibByteSize);
             context.transitionResource(*indexBuffer, graphics::GPUResourceStates::IndexBuffer, true);
 
-
             // Water Mesh Geometry
             MeshGeometry geo;
             geo.name = "water mesh geometry";
@@ -459,41 +547,6 @@ namespace engine
             geo.drawArgs["water submesh"] = waterSubmesh;
 
             mWaterRI = new RenderItem(geo);
-        }
-
-        void Water::updateCamera()
-        {
-            vec3f pos = mEyePos;
-            vec3f target(0.0f);
-            vec3f up(0.0f, 1.0f, 0.0f);
-
-            mView = lookAtLH<float>(pos, target, up);
-        }
-
-        void Water::updateConstantBuffers(graphics::GraphicContext& context, const FrameConstants& frame)
-        {
-            if (mPassCB)
-            {
-                delete mPassCB;
-            }
-
-            mPass.view = transpose(mView);
-            mPass.invView = inverse(mView);
-            mPass.eyePosition = mEyePos;
-            mPass.projection = transpose(mProjection);
-            mPass.invProjection = inverse(mProjection);
-            mPass.viewProjection = mView * mProjection;
-            mPass.invViewProjection = inverse(mPass.viewProjection);
-            mPass.renderTargetSize.x = (float)mRTDescription.textureDescription.width;
-            mPass.renderTargetSize.y = (float)mRTDescription.textureDescription.height;
-            mPass.invRenderTargetSize = 1 / mPass.renderTargetSize;
-
-            mPassCB = new graphics::dx12::UploadBuffer(context.getDevice(), { "water pass cbuffer", sizeof(PassConstants) });
-            {
-                void* bufferDest = mPassCB->map();
-                memcpy(bufferDest, &mPass, sizeof(PassConstants));
-                mPassCB->unmap();
-            }
         }
     }
 }

@@ -9,9 +9,7 @@ namespace engine
     {
         float totalTime = 0.0f;
         float deltaTime = 0.0f;
-        const uint32_t _framePadding0 = 0x1deadb0b;
-        const uint32_t _framePadding1 = 0x1deadb0b;
-
+        const uint32_t _framePaddingFinal[2] = { 0x1deadb0b, 0x1deadb0b };
     };
     static_assert(sizeof(FrameConstants) % 16 == 0, "Must be aligned");
 
@@ -36,7 +34,12 @@ namespace engine
 
         vec2f renderTargetSize;
         vec2f invRenderTargetSize;
-        const std::array<uint32_t, 20> _passPaddingFinal = { 0x1deadb0b };
+        const uint32_t _passPaddingFinal[20] = {
+            0x1deadb0b, 0x1deadb0b, 0x1deadb0b, 0x1deadb0b, 0x1deadb0b,
+            0x1deadb0b, 0x1deadb0b, 0x1deadb0b, 0x1deadb0b, 0x1deadb0b,
+            0x1deadb0b, 0x1deadb0b, 0x1deadb0b, 0x1deadb0b, 0x1deadb0b,
+            0x1deadb0b, 0x1deadb0b, 0x1deadb0b, 0x1deadb0b, 0x1deadb0b
+        };
     };
     static_assert(sizeof(PassConstants) % 256 == 0, "Must be aligned");
 }
