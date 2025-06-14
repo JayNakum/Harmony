@@ -9,28 +9,9 @@ namespace graphics
     namespace dx12
     {
         GPUTexture::GPUTexture(const Description& createDescription)
-            : GPUResource(createDescription.initialState),
-            mDescription(createDescription)
+            : GPUResource(createDescription)
         {
-            destroy();
-        }
-
-        const GPUResource::Description GPUTexture::describeResource() const
-        {
-            GPUResource::Description createDescription{};
-
-            createDescription.name = mDescription.name;
-            createDescription.width = mDescription.width;
-            createDescription.height = mDescription.height;
-            createDescription.mipLevels = mDescription.mipLevels;
-            createDescription.dimension = mDescription.dimension;
-            createDescription.depth = mDescription.depth;
-            createDescription.format = mDescription.format;
-            createDescription.sampleCount = mDescription.sampleCount;
-            createDescription.sampleQuality = mDescription.sampleQuality;
-            createDescription.resourceFlags = mDescription.resourceFlags;
-
-            return createDescription;
+            HASSERT(createDescription.dimension != GPUResourceDimension::Buffer, "Invalid resource dimension for texture.");
         }
 
         void GPUTexture::createShaderResourceView(Device& device, DescriptorHandle& srvHandle, const ShaderResourceViewInfo& viewInfo) const
@@ -148,7 +129,7 @@ namespace graphics
         }
 
         RenderTarget::RenderTarget(const Type type, GPUTexture& texture)
-            : mDescription{type, texture.describeResource()},
+            : mDescription{type, texture.getDescription()},
             mTexture(texture)
         {
             bool isValidColorFlag = hasFlag(mDescription.textureDescription.resourceFlags, GPUResourceFlags::AllowRenderTarget) && (mDescription.type == Type::Color);
@@ -172,8 +153,8 @@ namespace graphics
             HASSERT(mDescription.type == Type::Color, "Cannot create RTV for a Depth RenderTarget.");
 
             D3D12_RENDER_TARGET_VIEW_DESC rtvDesc{};
-            rtvDesc.Format = toDXGIFormat(mTexture.describeResource().format);
-            switch (mTexture.describeResource().dimension)
+            rtvDesc.Format = toDXGIFormat(mTexture.getDescription().format);
+            switch (mTexture.getDescription().dimension)
             {
             case GPUResourceDimension::Texture2D:
                 rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
@@ -184,11 +165,11 @@ namespace graphics
                 rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DARRAY;
                 rtvDesc.Texture2DArray.MipSlice = mipSlice;
                 rtvDesc.Texture2DArray.FirstArraySlice = arraySlice;
-                rtvDesc.Texture2DArray.ArraySize = mTexture.describeResource().depth;
+                rtvDesc.Texture2DArray.ArraySize = mTexture.getDescription().depth;
                 break;
 
             default:
-                HASSERT(false, "Unsupported resource dimension %s for RTV creation.", toString(mTexture.describeResource().dimension));
+                HASSERT(false, "Unsupported resource dimension %s for RTV creation.", toString(mTexture.getDescription().dimension));
                 return;
             }
 
@@ -200,7 +181,7 @@ namespace graphics
             HASSERT(mDescription.type == Type::Depth, "Cannot create DSV for a Color RenderTarget.");
 
             D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc{};
-            dsvDesc.Format = toDXGIFormat(mTexture.describeResource().format);
+            dsvDesc.Format = toDXGIFormat(mTexture.getDescription().format);
 
             dsvDesc.Flags = D3D12_DSV_FLAG_NONE;
             if (readOnlyDepth)
@@ -212,7 +193,7 @@ namespace graphics
                 dsvDesc.Flags |= D3D12_DSV_FLAG_READ_ONLY_STENCIL;
             }
 
-            switch (mTexture.describeResource().dimension)
+            switch (mTexture.getDescription().dimension)
             {
             case GPUResourceDimension::Texture2D:
                 dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
@@ -223,11 +204,11 @@ namespace graphics
                 dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2DARRAY;
                 dsvDesc.Texture2DArray.MipSlice = mipSlice;
                 dsvDesc.Texture2DArray.FirstArraySlice = arraySlice;
-                dsvDesc.Texture2DArray.ArraySize = mTexture.describeResource().depth;
+                dsvDesc.Texture2DArray.ArraySize = mTexture.getDescription().depth;
                 break;
 
             default:
-                HASSERT(false, "Unsupported resource dimension %s for DSV creation.", toString(mTexture.describeResource().dimension));
+                HASSERT(false, "Unsupported resource dimension %s for DSV creation.", toString(mTexture.getDescription().dimension));
                 return;
             }
 

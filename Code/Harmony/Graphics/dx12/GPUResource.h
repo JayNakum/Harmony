@@ -42,9 +42,10 @@ namespace graphics
                 unsigned int sampleQuality = 0;
             };
 
-            GPUResource(const GPUResourceStates initialState)
+            GPUResource(const Description& description)
                 : mResource(nullptr),
-                mUsageState(initialState),
+                mDescription(description),
+                mUsageState(description.initialState),
                 mTransitioningState(GPUResourceStates::Common) {}
 
             void setResource(ID3D12Resource* resource)
@@ -52,8 +53,10 @@ namespace graphics
                 mResource = resource;
             }
 
+            inline const Description getDescription() const { return mDescription; }
+
             // Create a committed resource.
-            void createCommitted(Device& device);
+            void createCommitted(Device& device, const HeapType heapType = HeapType::Default);
 
             // Sub-Allocate a buffer out of a pre-allocated heap.
             void createPlaced(Device& device, Heap& backingHeap, uint64_t heapOffset);
@@ -66,20 +69,7 @@ namespace graphics
 
             inline const D3D12_GPU_VIRTUAL_ADDRESS getGPUVirtualAddress() const { return mResource->GetGPUVirtualAddress(); }
 
-            virtual const GPUResource::Description describeResource() const { return Description(); }
-
-            // Sets the ComPtr to null
-            virtual void destroy()
-            {
-                if (mResource)
-                {
-                    mResource = nullptr;
-                }
-            }
-
-            ~GPUResource()
-            {
-            }
+            virtual ~GPUResource() {}
 
             // Returns ComPtr::GetAddressOf().
             ID3D12Resource** getAddressOf() { return mResource.GetAddressOf(); }
@@ -97,6 +87,7 @@ namespace graphics
 
         protected:
             Microsoft::WRL::ComPtr<ID3D12Resource> mResource;
+            Description mDescription;
             GPUResourceStates mUsageState;
             GPUResourceStates mTransitioningState;
         };

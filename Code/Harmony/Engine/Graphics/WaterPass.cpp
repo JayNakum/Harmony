@@ -290,8 +290,8 @@ namespace engine
                 graphics::ViewPort viewport{};
                 viewport.x = 0;
                 viewport.y = 0;
-                viewport.width = (float)mRenderTarget->getTexture().describeResource().width;
-                viewport.height = (float)mRenderTarget->getTexture().describeResource().height;
+                viewport.width = (float)mRenderTarget->getTexture().getDescription().width;
+                viewport.height = (float)mRenderTarget->getTexture().getDescription().height;
                 context.setViewport(viewport);
 
                 graphics::Box scissor{};
@@ -362,7 +362,9 @@ namespace engine
             mPass.renderTargetSize.y = (float)mRTDescription.textureDescription.height;
             mPass.invRenderTargetSize = 1 / mPass.renderTargetSize;
 
-            mPassCB = new graphics::dx12::UploadBuffer(context.getDevice(), { "water pass cbuffer", sizeof(PassConstants) });
+            graphics::dx12::GPUResource::Description createCBDesc { "water pass cbuffer", sizeof(PassConstants) };
+            createCBDesc.dimension = graphics::GPUResourceDimension::Buffer;
+            mPassCB = new graphics::dx12::UploadBuffer(context.getDevice(), createCBDesc);
             {
                 void* bufferDest = mPassCB->map();
                 memcpy(bufferDest, &mPass, sizeof(PassConstants));
@@ -424,7 +426,9 @@ namespace engine
                 waterParams.wavesMaxHeight = maxAmplitude;
             }
 
-            mWaterParamsCB = new graphics::dx12::UploadBuffer(context.getDevice(), { "water params cbuffer", sizeof(WaterParams) });
+            graphics::dx12::GPUResource::Description createCBDesc{ "water params cbuffer", sizeof(WaterParams) };
+            createCBDesc.dimension = graphics::GPUResourceDimension::Buffer;
+            mWaterParamsCB = new graphics::dx12::UploadBuffer(context.getDevice(), createCBDesc);
             {
                 void* bufferDest = mWaterParamsCB->map();
                 memcpy(bufferDest, &waterParams, sizeof(WaterParams));
@@ -495,17 +499,18 @@ namespace engine
 
             // Vertex Buffer
             const size_t vbByteSize = grid.vertices.size() * sizeof(GeometryGenerator::Vertex);
-            graphics::dx12::UploadBuffer* vertexBufferUploader = new graphics::dx12::UploadBuffer(context.getDevice(), { "water vb uploader", vbByteSize });
+            graphics::dx12::GPUResource::Description createVBDesc;
+            createVBDesc.name = "water vertex buffer uploader";
+            createVBDesc.width = vbByteSize;
+            createVBDesc.dimension = graphics::GPUResourceDimension::Buffer;
+            graphics::dx12::UploadBuffer* vertexBufferUploader = new graphics::dx12::UploadBuffer(context.getDevice(), createVBDesc);
             {
                 void* intermediateDst = vertexBufferUploader->map();
                 memcpy(intermediateDst, grid.vertices.data(), vbByteSize);
                 vertexBufferUploader->unmap();
             }
 
-            graphics::dx12::GPUResource::Description createVBDesc;
             createVBDesc.name = "water vertex buffer";
-            createVBDesc.width = vbByteSize;
-            createVBDesc.dimension = graphics::GPUResourceDimension::Buffer;
             graphics::dx12::ByteAddressBuffer* vertexBuffer = new graphics::dx12::ByteAddressBuffer(createVBDesc);
             vertexBuffer->createCommitted(context.getDevice());
 
@@ -516,18 +521,19 @@ namespace engine
 
             // Index Buffer
             const size_t ibByteSize = grid.getIndices16().size() * sizeof(uint16_t);
+            graphics::dx12::GPUResource::Description createIBDesc;
+            createIBDesc.name = "water index buffer uploader";
+            createIBDesc.width = ibByteSize;
+            createIBDesc.dimension = graphics::GPUResourceDimension::Buffer;
 
-            graphics::dx12::UploadBuffer* indexBufferUploader = new graphics::dx12::UploadBuffer(context.getDevice(), { "vater ib uploader", ibByteSize });
+            graphics::dx12::UploadBuffer* indexBufferUploader = new graphics::dx12::UploadBuffer(context.getDevice(), createIBDesc);
             {
                 void* intermediateDst = indexBufferUploader->map();
                 memcpy(intermediateDst, grid.getIndices16().data(), ibByteSize);
                 indexBufferUploader->unmap();
             }
 
-            graphics::dx12::GPUResource::Description createIBDesc;
             createIBDesc.name = "water index buffer";
-            createIBDesc.width = ibByteSize;
-            createIBDesc.dimension = graphics::GPUResourceDimension::Buffer;
             graphics::dx12::ByteAddressBuffer* indexBuffer = new graphics::dx12::ByteAddressBuffer(createIBDesc);
             indexBuffer->createCommitted(context.getDevice());
 

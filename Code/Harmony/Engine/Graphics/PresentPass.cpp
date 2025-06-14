@@ -43,7 +43,7 @@ namespace engine
 
                 passInputs.inFinalOutput.createShaderResourceView(context.getDevice(), mFinalSRV,
                     graphics::dx12::GPUTexture::ShaderResourceViewInfo::getSRVInfo(
-                        passInputs.inFinalOutput.describeResource()
+                        passInputs.inFinalOutput.getDescription()
                     )
                 );
 

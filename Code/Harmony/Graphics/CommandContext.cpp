@@ -266,35 +266,9 @@ namespace graphics
         mCommandList->SetGraphicsRoot32BitConstant(rootIndex, value.uintValue, offset);
     }
 
-    void GraphicContext::setConstants(const unsigned int rootIndex, dx12::DWParam x)
+    void GraphicContext::setConstants(const unsigned int rootIndex, const size_t count, const void* pConstants, const unsigned int offset)
     {
-        setConstant(rootIndex, x, 0);
-    }
-
-    void GraphicContext::setConstants(const unsigned int rootIndex, dx12::DWParam x, dx12::DWParam y)
-    {
-        setConstant(rootIndex, x, 0);
-        setConstant(rootIndex, y, 1);
-    }
-
-    void GraphicContext::setConstants(const unsigned int rootIndex, dx12::DWParam x, dx12::DWParam y, dx12::DWParam z)
-    {
-        setConstant(rootIndex, x, 0);
-        setConstant(rootIndex, y, 1);
-        setConstant(rootIndex, z, 2);
-    }
-
-    void GraphicContext::setConstants(const unsigned int rootIndex, dx12::DWParam x, dx12::DWParam y, dx12::DWParam z, dx12::DWParam w)
-    {
-        setConstant(rootIndex, x, 0);
-        setConstant(rootIndex, y, 1);
-        setConstant(rootIndex, z, 2);
-        setConstant(rootIndex, w, 3);
-    }
-
-    void GraphicContext::setConstants(const unsigned int rootIndex, const size_t count, const void* pConstants)
-    {
-        mCommandList->SetGraphicsRoot32BitConstants(rootIndex, count, pConstants, 0);
+        mCommandList->SetGraphicsRoot32BitConstants(rootIndex, count, pConstants, offset);
     }
 
     void GraphicContext::setBufferCBV(const unsigned int rootIndex, uint64_t cbv)

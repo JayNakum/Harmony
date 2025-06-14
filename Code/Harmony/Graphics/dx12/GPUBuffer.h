@@ -38,9 +38,6 @@ namespace graphics
             GPUBuffer(const Description& createDescription);
 
         public:
-            // Creates a filtered and valid GPUResource::Description based on the initData
-            virtual const GPUResource::Description describeResource() const override;
-
             // For direct root32Consts
             inline const uint64_t rootConstantBufferView() const { return getGPUVirtualAddress(); }
 
@@ -69,13 +66,7 @@ namespace graphics
                 return indexBufferView((uint32_t)(mDescription.width - offset), offset, is32Bits);
             }
 
-            virtual ~GPUBuffer()
-            {
-                destroy();
-            }
-
-        protected:
-            const Description mDescription;
+            virtual ~GPUBuffer() {}
         };
     }
 }
@@ -105,10 +96,32 @@ namespace graphics
             // Requires a pre-allocated descriptorHandle& from a descriptor heap.
             void createUnorderedAccessView(Device& device, DescriptorHandle& uavHandle, const uint64_t sizeInBytes, const unsigned int offsetInBytes = 0) const;
 
-            virtual ~ByteAddressBuffer()
-            {
-                destroy();
-            }
+            virtual ~ByteAddressBuffer() = default;
+        };
+    }
+}
+
+namespace graphics
+{
+    namespace dx12
+    {
+        /*
+        * A buffer resource in UPLOAD_HEAP.
+        */
+        class UploadBuffer : public ByteAddressBuffer
+        {
+        public:
+            // Creates a committed buffer of size Description::bufferSize
+            UploadBuffer(Device& device, const Description& createDescription);
+
+            // Maps the ID3D12Resource and returns the memory pointer.
+            void* map();
+
+            // Unmaps the resource from begin to end/mBufferSize
+            void unmap(const size_t begin = 0, const size_t end = -1);
+
+            // Calls destroy which frees the ComPtr<ID3D12Resource>
+            ~UploadBuffer() = default;
         };
     }
 }

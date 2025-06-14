@@ -7,19 +7,9 @@ namespace graphics
     namespace dx12
     {
         GPUBuffer::GPUBuffer(const Description& createDescription)
-            : GPUResource(createDescription.initialState),
-            mDescription(createDescription)
+            : GPUResource(createDescription)
         {
-            destroy();
-        }
-
-        const GPUResource::Description GPUBuffer::describeResource() const
-        {
-            GPUResource::Description description{};
-            description.name = mDescription.name;
-            description.width = mDescription.width;
-            description.dimension = GPUResourceDimension::Buffer;
-            return description;
+            HASSERT(createDescription.dimension == GPUResourceDimension::Buffer, "Invalid resource dimension for buffer.");
         }
 
         void GPUBuffer::createConstantBufferView(Device& device, DescriptorHandle& cbvHandle) const
@@ -138,6 +128,33 @@ namespace graphics
             uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_RAW;
 
             device->CreateUnorderedAccessView(mResource.Get(), nullptr, &uavDesc, uavHandle);
+        }
+    }
+}
+
+namespace graphics
+{
+    namespace dx12
+    {
+        UploadBuffer::UploadBuffer(Device& device, const Description& createDescription)
+            : ByteAddressBuffer(createDescription)
+        {
+            createCommitted(device, HeapType::Upload);
+        }
+
+        void* UploadBuffer::map()
+        {
+            void* memory = nullptr;
+            CD3DX12_RANGE range = CD3DX12_RANGE(0, mDescription.width);
+            HRESULT hResult = mResource->Map(0, &range, &memory);
+            HASSERT(SUCCEEDED(hResult), "Failed to map upload buffer resource.\n%s", utility::translateErrorCode(hResult));
+            return memory;
+        }
+
+        void UploadBuffer::unmap(const size_t begin, const size_t end)
+        {
+            CD3DX12_RANGE range = CD3DX12_RANGE(begin, std::min(end, mDescription.width));
+            mResource->Unmap(0, &range);
         }
     }
 }

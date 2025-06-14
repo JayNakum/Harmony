@@ -31,7 +31,7 @@ namespace graphics
 
     const dx12::DescriptorHandle ShaderInput::setResource(const dx12::UploadBuffer& buffer, const unsigned int layoutIndex, const unsigned int parameterIndex, const unsigned int rangeIndex)
     {
-        return setResource(buffer, buffer.describeResource().width, 0, layoutIndex, parameterIndex, rangeIndex);
+        return setResource(buffer, buffer.getDescription().width, 0, layoutIndex, parameterIndex, rangeIndex);
     }
 
     const dx12::DescriptorHandle ShaderInput::setResource(const dx12::UploadBuffer& buffer, const uint64_t sizeInBytes, const unsigned int offsetInBytes, const unsigned int layoutIndex, const unsigned int parameterIndex, const unsigned int rangeIndex)
@@ -63,7 +63,7 @@ namespace graphics
 
     const dx12::DescriptorHandle ShaderInput::setResource(const dx12::ByteAddressBuffer& buffer, const unsigned int layoutIndex, const unsigned int parameterIndex, const unsigned int rangeIndex)
     {
-        return setResource(buffer, buffer.describeResource().width, 0, layoutIndex, parameterIndex, rangeIndex);
+        return setResource(buffer, buffer.getDescription().width, 0, layoutIndex, parameterIndex, rangeIndex);
     }
 
     const dx12::DescriptorHandle ShaderInput::setResource(const dx12::ByteAddressBuffer& buffer, const uint64_t sizeInBytes, const unsigned int offsetInBytes, const unsigned int layoutIndex, const unsigned int parameterIndex, const unsigned int rangeIndex)
@@ -131,7 +131,7 @@ namespace graphics
         {
             RootConstants& constants = mRootConstants.at(rootIndex);
             auto constantPTR = constants.data();
-            mContext.commandList()->SetGraphicsRoot32BitConstants(rootIndex++, constants.size(), constants.data(), 0);
+            mContext.setConstants(rootIndex++, constants.size(), constants.data());
         }
 
         // Finalize descriptor tables
@@ -149,7 +149,7 @@ namespace graphics
 
             dx12::DescriptorHandle gpuHandle = gpuStartHandle + (descriptorOffset * mContext.getDescriptorSize());
 
-            mContext.commandList()->SetGraphicsRootDescriptorTable(rootIndex++, gpuHandle.getGPUHandle());
+            mContext.setDescriptorTable(rootIndex++, gpuHandle);
         }
     }
 

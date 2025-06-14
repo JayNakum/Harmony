@@ -136,12 +136,8 @@ namespace graphics
         void setBlendFactor(const float blendFactor[4]);
         void setPrimitiveTopology(const PrimitiveTopology Topology);
 
-        void setConstant(const unsigned int rootIndex, dx12::DWParam value, const unsigned int offset);
-        void setConstants(const unsigned int rootIndex, dx12::DWParam x);
-        void setConstants(const unsigned int rootIndex, dx12::DWParam x, dx12::DWParam y);
-        void setConstants(const unsigned int rootIndex, dx12::DWParam x, dx12::DWParam y, dx12::DWParam z);
-        void setConstants(const unsigned int rootIndex, dx12::DWParam x, dx12::DWParam y, dx12::DWParam z, dx12::DWParam w);
-        void setConstants(const unsigned int rootIndex, const size_t count, const void* pConstants);
+        void setConstant(const unsigned int rootIndex, dx12::DWParam value, const unsigned int offset = 0);
+        void setConstants(const unsigned int rootIndex, const size_t count, const void* pConstants, const unsigned int offset = 0);
 
         void setBufferCBV(const unsigned int rootIndex, uint64_t cbv);
         void setBufferSRV(const unsigned int rootIndex, const dx12::GPUBuffer& srv, const uint64_t offset = 0);

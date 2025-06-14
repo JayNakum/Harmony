@@ -21,9 +21,6 @@ namespace graphics
         public:
             GPUTexture(const Description& createDescription);
 
-            // Creates a filtered and valid GPUResource::Description based on the initData
-            const GPUResource::Description describeResource() const override;
-
             struct ShaderResourceViewInfo
             {
                 uint32_t mostDetailedMip;
@@ -92,13 +89,7 @@ namespace graphics
             // Reset the resource.
             void reset();
 
-            virtual ~GPUTexture()
-            {
-                destroy();
-            }
-
-        private:
-            Description mDescription;
+            ~GPUTexture() = default;
         };
     }
 
