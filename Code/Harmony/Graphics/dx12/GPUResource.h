@@ -69,7 +69,7 @@ namespace graphics
 
             inline const D3D12_GPU_VIRTUAL_ADDRESS getGPUVirtualAddress() const { return mResource->GetGPUVirtualAddress(); }
 
-            virtual ~GPUResource() {}
+            virtual ~GPUResource() = default;
 
             // Returns ComPtr::GetAddressOf().
             ID3D12Resource** getAddressOf() { return mResource.GetAddressOf(); }

@@ -11,7 +11,6 @@
 #include "dx12/CommandList.h"
 #include "dx12/DescriptorHeap.h"
 #include "dx12/GPUResource.h"
-#include "dx12/UploadBuffer.h"
 #include "dx12/GPUBuffer.h"
 #include "dx12/GPUTexture.h"
 #include "dx12/PipelineState.h"

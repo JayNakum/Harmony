@@ -13,7 +13,6 @@
 #include "dx12/GPUResource.h"
 #include "dx12/GPUBuffer.h"
 #include "dx12/GPUTexture.h"
-#include "dx12/UploadBuffer.h"
 
 #include "dx12/DescriptorHandle.h"
 #include "dx12/DescriptorHeap.h"

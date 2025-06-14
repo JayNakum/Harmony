@@ -137,10 +137,7 @@ namespace graphics
     namespace dx12
     {
         UploadBuffer::UploadBuffer(Device& device, const Description& createDescription)
-            : ByteAddressBuffer(createDescription)
-        {
-            createCommitted(device, HeapType::Upload);
-        }
+            : ByteAddressBuffer(createDescription) {}
 
         void* UploadBuffer::map()
         {

@@ -66,7 +66,7 @@ namespace graphics
                 return indexBufferView((uint32_t)(mDescription.width - offset), offset, is32Bits);
             }
 
-            virtual ~GPUBuffer() {}
+            virtual ~GPUBuffer() = default;
         };
     }
 }

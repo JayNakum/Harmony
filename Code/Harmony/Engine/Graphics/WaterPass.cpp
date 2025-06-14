@@ -365,6 +365,7 @@ namespace engine
             graphics::dx12::GPUResource::Description createCBDesc { "water pass cbuffer", sizeof(PassConstants) };
             createCBDesc.dimension = graphics::GPUResourceDimension::Buffer;
             mPassCB = new graphics::dx12::UploadBuffer(context.getDevice(), createCBDesc);
+            mPassCB->createCommitted(context.getDevice(), graphics::HeapType::Upload);
             {
                 void* bufferDest = mPassCB->map();
                 memcpy(bufferDest, &mPass, sizeof(PassConstants));
@@ -429,6 +430,7 @@ namespace engine
             graphics::dx12::GPUResource::Description createCBDesc{ "water params cbuffer", sizeof(WaterParams) };
             createCBDesc.dimension = graphics::GPUResourceDimension::Buffer;
             mWaterParamsCB = new graphics::dx12::UploadBuffer(context.getDevice(), createCBDesc);
+            mWaterParamsCB->createCommitted(context.getDevice(), graphics::HeapType::Upload);
             {
                 void* bufferDest = mWaterParamsCB->map();
                 memcpy(bufferDest, &waterParams, sizeof(WaterParams));
@@ -504,6 +506,7 @@ namespace engine
             createVBDesc.width = vbByteSize;
             createVBDesc.dimension = graphics::GPUResourceDimension::Buffer;
             graphics::dx12::UploadBuffer* vertexBufferUploader = new graphics::dx12::UploadBuffer(context.getDevice(), createVBDesc);
+            vertexBufferUploader->createCommitted(context.getDevice(), graphics::HeapType::Upload);
             {
                 void* intermediateDst = vertexBufferUploader->map();
                 memcpy(intermediateDst, grid.vertices.data(), vbByteSize);
@@ -527,6 +530,7 @@ namespace engine
             createIBDesc.dimension = graphics::GPUResourceDimension::Buffer;
 
             graphics::dx12::UploadBuffer* indexBufferUploader = new graphics::dx12::UploadBuffer(context.getDevice(), createIBDesc);
+            indexBufferUploader->createCommitted(context.getDevice(), graphics::HeapType::Upload);
             {
                 void* intermediateDst = indexBufferUploader->map();
                 memcpy(intermediateDst, grid.getIndices16().data(), ibByteSize);
