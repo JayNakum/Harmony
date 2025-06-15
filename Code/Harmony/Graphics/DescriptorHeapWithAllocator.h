@@ -53,9 +53,9 @@ namespace graphics
             Page(const Page& copy)
                 : mDescriptorSize(copy.mDescriptorSize), mStartHandle(copy.mStartHandle), mAllocator(copy.mAllocator) {}
 
-            void operator=(const Page& rhs)
+            inline void operator=(const Page& rhs)
             {
-                HASSERT(mAllocator.getTotalSize() == rhs.mAllocator.getTotalSize(), "Invalid copy operation");
+                HASSERT(mAllocator.getTotalSize() == rhs.mAllocator.getTotalSize(), "Invalid page copy operation.");
                 if (this != &rhs)
                 {
                     mStartHandle = rhs.mStartHandle;
