@@ -4,8 +4,6 @@
 
 #include "Utility.h"
 
-#include "Log.h"
-
 namespace graphics
 {
     namespace dx12

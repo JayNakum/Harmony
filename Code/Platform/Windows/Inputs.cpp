@@ -1,8 +1,5 @@
 #include "Inputs.h"
 
-#include "Utility.h"
-#include "Log.h"
-
 namespace windows
 {
     Inputs::Inputs(const HWND windowHandle)

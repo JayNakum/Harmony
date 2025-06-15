@@ -1,7 +1,5 @@
 #include "Fence.h"
 
-#include "Log.h"
-
 namespace graphics
 {
     namespace dx12

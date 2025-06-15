@@ -8,8 +8,6 @@
 #include "types/CullMode.h"
 #include "types/PrimitiveTopology.h"
 
-#include "Log.h"
-
 namespace graphics
 {
     namespace dx12

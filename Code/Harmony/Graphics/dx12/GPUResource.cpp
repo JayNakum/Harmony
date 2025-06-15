@@ -1,7 +1,5 @@
 #include "GPUResource.h"
 
-#include "Log.h"
-
 namespace graphics
 {
     namespace dx12

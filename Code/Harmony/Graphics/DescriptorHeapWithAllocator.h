@@ -1,6 +1,8 @@
 #pragma once
 
 #include "common.h"
+#include "Log.h"
+#include "memory/Allocators.h"
 
 #include "dx12/DescriptorHeap.h"
 
@@ -23,11 +25,9 @@ namespace graphics
         public:
             Page(dx12::DescriptorHandle starthandle, const size_t descriptorSize, const size_t pageSize);
 
+            inline const memory::ContiguousRingAllocator getAllocator() const { return mAllocator; }
             inline dx12::DescriptorHandle getStartHandle() const { return mStartHandle; }
             inline dx12::DescriptorHandle getStartHandle() { return mStartHandle; }
-
-            inline const size_t getFreeHandlesCount() const { return mNumFreeDescriptors; }
-            inline const size_t getUsedHandlesCount() const { return mPageSize - mNumFreeDescriptors; }
 
             // Calculates the page offset of the handle.
             inline const uint32_t getOffsetOfHandle(const dx12::DescriptorHandle& dHandle) const
@@ -41,12 +41,6 @@ namespace graphics
                 return (uint32_t)((dHandle.getCPUPtr() - mStartHandle.getCPUPtr()));
             }
 
-            // Checks for available space inside page.
-            inline bool canAllocate(const size_t count) const { return count <= mNumFreeDescriptors; }
-
-            // Operator overload for array like indexing.
-            inline dx12::DescriptorHandle operator[] (const size_t index) const { return mStartHandle + (INT)index * (INT)mDescriptorSize; }
-
             // Creates space for count number of descriptors inside the heap. Using ring allocation.
             // Returns the handle that points to the start of the allocation.
             // The handle will then be used for actual allocation.
@@ -57,45 +51,35 @@ namespace graphics
             void reset();
 
             Page(const Page& copy)
-                : mStartHandle(copy.mStartHandle),
-                mNumFreeDescriptors(copy.mNumFreeDescriptors),
-                mNextFreeHandle(copy.mNextFreeHandle),
-                mDescriptorSize(copy.mDescriptorSize),
-                mPageSize(copy.mPageSize)
-            {}
+                : mDescriptorSize(copy.mDescriptorSize), mStartHandle(copy.mStartHandle), mAllocator(copy.mAllocator) {}
 
             void operator=(const Page& rhs)
             {
+                HASSERT(mAllocator.getTotalSize() == rhs.mAllocator.getTotalSize(), "Invalid copy operation");
                 if (this != &rhs)
                 {
                     mStartHandle = rhs.mStartHandle;
-                    mNumFreeDescriptors = rhs.mNumFreeDescriptors;
-                    mNextFreeHandle = rhs.mNextFreeHandle;
+                    mAllocator = rhs.mAllocator;
                 }
             }
 
             ~Page();
 
         private:
-            dx12::DescriptorHandle mStartHandle;
-
-            // Keep track of the free spaces available for validation.
-            size_t mNumFreeDescriptors;
-
-            // Handle where the next allocation will be done.
-            unsigned int mNextFreeHandle;
-
             const size_t mDescriptorSize;
-            const size_t mPageSize;
+            dx12::DescriptorHandle mStartHandle;
+            memory::ContiguousRingAllocator mAllocator;
         };
 
         Page allocatePage();
+
+        inline const memory::ContiguousRingAllocator getAllocator() const { return mAllocator; }
 
         // Resets the allocation pointers.
         ~DescriptorHeapWithAllocator();
 
     private:
-        unsigned int mPageOffset;
+        memory::ContiguousRingAllocator mAllocator;
         std::mutex mHeapMutex;
     };
 }

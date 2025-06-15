@@ -104,7 +104,7 @@ namespace engine
     {
         mGraphicsQueue.waitForFence(mGraphicsQueue.incrementFence());
 
-        graphics::ShaderInput::msRootSignatures.clear();
+        graphics::ShaderInput::freeAllRootSignatures();
 
         delete mWaterPass;
         delete mPresentPass;

@@ -1,40 +1,26 @@
 #include "DescriptorHeapWithAllocator.h"
 
-#include "Log.h"
-
 namespace graphics
 {
     DescriptorHeapWithAllocator::DescriptorHeapWithAllocator(dx12::Device& device, const Description& createDescription)
-        : dx12::DescriptorHeap(device, createDescription), mPageOffset(0)
-    {
-    }
+        : dx12::DescriptorHeap(device, createDescription), mAllocator(createDescription.maxDescriptors / PAGE_SIZE) {}
 
     DescriptorHeapWithAllocator::Page::Page(dx12::DescriptorHandle starthandle, const size_t descriptorSize, const size_t pageSize)
-        : mStartHandle(starthandle), mDescriptorSize(descriptorSize), mPageSize(pageSize)
+        : mDescriptorSize(descriptorSize), mStartHandle(starthandle), mAllocator(pageSize)
     {
         reset();
     }
 
     dx12::DescriptorHandle DescriptorHeapWithAllocator::Page::allocate(const size_t count)
     {
-        if (!canAllocate(count)) // Ring allocation
-        {
-            // It is possible that there is (some space < count) available at the end of the heap but we do not care about it.
-            reset();
-        }
+        const size_t allocationByteOffset = mAllocator.allocate(count) * mDescriptorSize;
 
-        dx12::DescriptorHandle allocationHandle = mStartHandle + mNextFreeHandle;
-
-        mNextFreeHandle += (INT)(count * mDescriptorSize);
-        mNumFreeDescriptors -= count;
-
-        return allocationHandle;
+        return (mStartHandle + (INT)allocationByteOffset);
     }
 
     void DescriptorHeapWithAllocator::Page::reset()
     {
-        mNumFreeDescriptors = mPageSize;
-        mNextFreeHandle = 0;
+        mAllocator.reset();
     }
 
     DescriptorHeapWithAllocator::Page::~Page()
@@ -46,21 +32,13 @@ namespace graphics
     {
         std::lock_guard<std::mutex> scopedLockGuard(mHeapMutex);
 
-        dx12::DescriptorHandle pageStart = mHeapStart + (mPageOffset * mDescriptorSize);
+        const size_t allocationByteOffset = mAllocator.allocate() * mDescriptorSize;
 
-        mPageOffset += PAGE_SIZE;
-
-        if (mPageOffset >= mMaxDescriptors)
-        {
-            HASSERT_SOFT(false, "Descriptor Heap out of space. Overwriting from the beginning.");
-            mPageOffset = 0;
-        }
-
-        return Page(pageStart, mDescriptorSize, PAGE_SIZE);
+        return Page((mHeapStart + (INT)allocationByteOffset), mDescriptorSize, PAGE_SIZE);
     }
 
     DescriptorHeapWithAllocator::~DescriptorHeapWithAllocator()
     {
-        mPageOffset = 0;
+        mAllocator.reset();
     }
 }

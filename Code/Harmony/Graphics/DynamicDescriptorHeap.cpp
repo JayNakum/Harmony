@@ -37,7 +37,7 @@ namespace graphics
             return dx12::DescriptorHandle();
         }
 
-        if (!mCurrentGPUPage.canAllocate(descriptorsCount))
+        if (!mCurrentGPUPage.getAllocator().canAllocate(descriptorsCount))
         {
             mCurrentGPUPage = mGPUHeap.allocatePage();
         }

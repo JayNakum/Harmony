@@ -1,7 +1,5 @@
 #include "CommandAllocatorPool.h"
 
-#include "Log.h"
-
 namespace graphics
 {
     CommandAllocatorPool::CommandAllocatorPool(const CommandListType type)

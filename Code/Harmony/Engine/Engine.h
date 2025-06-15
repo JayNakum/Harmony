@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common.h"
+#include "Log.h"
 
 #include "Window.h"
 #include "Inputs.h"

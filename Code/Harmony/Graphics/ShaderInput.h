@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common.h"
+#include "Log.h"
 
 #include "DynamicDescriptorHeap.h"
 
@@ -79,7 +80,8 @@ namespace graphics
 
         ~ShaderInput() = default;
 
-        static std::unordered_map<std::string, dx12::RootSignature> msRootSignatures;
+        inline static void freeAllRootSignatures() { ShaderInput::msRootSignatures.clear(); }
+
     private:
         static const std::array<dx12::StaticSampler, 6> getStaticSamplers();
 
@@ -104,5 +106,8 @@ namespace graphics
         const std::vector<Parameter>& mParametersLayout;
 
         dx12::RootSignature& mRootSignature;
+
+    private:
+        static std::unordered_map<std::string, dx12::RootSignature> msRootSignatures;
     };
 }

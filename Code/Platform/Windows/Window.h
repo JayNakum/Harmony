@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common.h"
+#include "Log.h"
 #include "win.h"
 
 namespace windows

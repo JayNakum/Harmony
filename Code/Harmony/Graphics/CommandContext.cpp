@@ -3,8 +3,6 @@
 #include "dx12/types/PrimitiveTopology.h"
 #include "dx12/types/DescriptorHeapType.h"
 
-#include "Log.h"
-
 namespace graphics
 {
     CommandContext::CommandContext(const CommandListType type, dx12::Device& device, DynamicDescriptorHeap& shaderViewsDescriptorHeap, DescriptorHeapWithAllocator& renderTargetViewsCPUDescriptorHeap)

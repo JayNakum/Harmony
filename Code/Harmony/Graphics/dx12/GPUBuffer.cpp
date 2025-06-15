@@ -1,7 +1,5 @@
 #include "GPUBuffer.h"
 
-#include "Log.h"
-
 namespace graphics
 {
     namespace dx12
@@ -16,7 +14,7 @@ namespace graphics
         {
             size_t size = maths::alignUp(mDescription.width, 16);
 
-            createConstantBufferView(device, cbvHandle, 0, size);
+            createConstantBufferView(device, cbvHandle, size);
         }
 
         void GPUBuffer::createConstantBufferView(Device& device, DescriptorHandle& cbvHandle, size_t size, const uint32_t offset) const

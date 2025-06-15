@@ -1,7 +1,5 @@
 #include "Format.h"
 
-#include "Log.h"
-
 namespace graphics
 {
     Format DefaultFormats::getBaseFormat(const Format& format)

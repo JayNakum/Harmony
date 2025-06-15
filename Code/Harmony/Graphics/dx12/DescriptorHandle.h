@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common.h"
+#include "Log.h"
 #include "directx.h"
 
 namespace graphics

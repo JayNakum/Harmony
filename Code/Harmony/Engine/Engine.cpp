@@ -1,6 +1,6 @@
 ﻿#include "Engine.h"
 
-#include "Graphics/Renderer.h"
+#include "graphics/Renderer.h"
 
 namespace engine
 {

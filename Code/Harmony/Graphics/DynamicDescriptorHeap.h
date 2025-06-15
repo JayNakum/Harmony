@@ -1,5 +1,8 @@
 #pragma once
 
+#include "common.h"
+#include "Log.h"
+
 #include "DescriptorHeapWithAllocator.h"
 
 namespace graphics

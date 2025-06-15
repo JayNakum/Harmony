@@ -1,4 +1,5 @@
 #include "common.h"
+#include "Log.h"
 
 #include "Entrypoint.h"
 #include "Window.h"

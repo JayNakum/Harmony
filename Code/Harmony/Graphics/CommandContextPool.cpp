@@ -1,7 +1,5 @@
 #include "CommandContextPool.h"
 
-#include "Log.h"
-
 namespace graphics
 {
     GraphicContext& CommandContextPool::requestGraphicContext(dx12::Device& device, DynamicDescriptorHeap& shaderViewsDescriptorHeap, DescriptorHeapWithAllocator& renderTargetViewsCPUDescriptorHeap)
