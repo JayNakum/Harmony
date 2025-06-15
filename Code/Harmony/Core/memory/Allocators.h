@@ -3,43 +3,30 @@
 #include "common.h"
 #include "Log.h"
 
-namespace
-{
-    class Allocator
-    {
-    protected:
-        virtual inline const size_t getTotalSize() const = 0;
-        virtual inline const size_t getRemainingSize() const = 0;
-        virtual inline const bool canAllocate(const size_t count) const = 0;
-        virtual inline const size_t allocate(const size_t count) = 0;
-        virtual inline void reset() = 0;
-    };
-}
-
 namespace memory
 {
     /*
     * Simple contiguous linear allocator.
     */
-    class ContiguousLinearAllocator : Allocator
+    class ContiguousLinearAllocator
     {
     public:
         ContiguousLinearAllocator(const size_t totalCount)
             : mNextAllocationOffset(0), mTotalCount(totalCount) {}
 
-        inline const size_t getTotalSize() const override { return mTotalCount; }
+        inline const size_t getTotalSize() const { return mTotalCount; }
 
-        inline const size_t getRemainingSize() const override
+        inline const size_t getRemainingSize() const
         {
             return mTotalCount - mNextAllocationOffset;
         }
 
-        inline const bool canAllocate(const size_t count = 1) const override
+        inline const bool canAllocate(const size_t count = 1) const
         {
             return count <= getRemainingSize();
         }
 
-        inline const size_t allocate(const size_t count = 1) override
+        inline const size_t allocate(const size_t count = 1)
         {
             HASSERT(canAllocate(count), "Contiguous Allocator out of memory(%d). Trying to allocate %d. Remaining size = %d",
                     mTotalCount, count, getRemainingSize());
@@ -51,7 +38,7 @@ namespace memory
             return allocationOffset;
         }
 
-        inline void reset() override
+        inline void reset()
         {
             mNextAllocationOffset = 0;
         }
@@ -82,25 +69,25 @@ namespace memory
     *
     * Useful for smaller structs, always aligned structs and cache friendly memory structures.
     */
-    class ContiguousRingAllocator : Allocator
+    class ContiguousRingAllocator
     {
     public:
         ContiguousRingAllocator(const size_t totalCount)
             : mTotalCount(totalCount), mNextAllocationOffset(0) {}
 
-        inline const size_t getTotalSize() const override { return mTotalCount; }
+        inline const size_t getTotalSize() const { return mTotalCount; }
 
-        inline const size_t getRemainingSize() const override
+        inline const size_t getRemainingSize() const
         {
             return mTotalCount - mNextAllocationOffset;
         }
 
-        inline const bool canAllocate(const size_t count = 1) const override
+        inline const bool canAllocate(const size_t count = 1) const
         {
             return count <= getRemainingSize();
         }
 
-        inline const size_t allocate(const size_t count = 1) override
+        inline const size_t allocate(const size_t count = 1)
         {
             bool fitsInTail = canAllocate(count);
             size_t allocationOffset = mNextAllocationOffset * fitsInTail;
@@ -108,7 +95,7 @@ namespace memory
             return allocationOffset;
         }
 
-        inline void reset() override
+        inline void reset()
         {
             mNextAllocationOffset = 0;
         }
