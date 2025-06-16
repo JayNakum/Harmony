@@ -25,7 +25,7 @@ namespace graphics
         public:
             Page(dx12::DescriptorHandle starthandle, const size_t descriptorSize, const size_t pageSize);
 
-            inline const memory::ContiguousRingAllocator getAllocator() const { return mAllocator; }
+            inline const memory::RingAllocator getAllocator() const { return mAllocator; }
             inline dx12::DescriptorHandle getStartHandle() const { return mStartHandle; }
             inline dx12::DescriptorHandle getStartHandle() { return mStartHandle; }
 
@@ -68,18 +68,18 @@ namespace graphics
         private:
             const size_t mDescriptorSize;
             dx12::DescriptorHandle mStartHandle;
-            memory::ContiguousRingAllocator mAllocator;
+            memory::RingAllocator mAllocator;
         };
 
         Page allocatePage();
 
-        inline const memory::ContiguousRingAllocator getAllocator() const { return mAllocator; }
+        inline const memory::RingAllocator getAllocator() const { return mAllocator; }
 
         // Resets the allocation pointers.
         ~DescriptorHeapWithAllocator();
 
     private:
-        memory::ContiguousRingAllocator mAllocator;
+        memory::RingAllocator mAllocator;
         std::mutex mHeapMutex;
     };
 }

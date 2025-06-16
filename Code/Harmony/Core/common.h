@@ -15,6 +15,7 @@
 #include <locale>
 #include <iomanip>
 
+#include <algorithm>
 #include <array>
 #include <vector>
 #include <queue>
