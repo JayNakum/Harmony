@@ -101,9 +101,6 @@ namespace memory
         // Allocate using best fit strategy.
         inline const size_t allocate(const size_t sizeInBytes)
         {
-            // Lazy Coalesce to get the best possible free list in one go if there has been multiple deallocations.
-            coalesceFreeList();
-
             freeEmptyBlocks();
 
             // Since freeEmptyBlocks() sorts the list in descending order
@@ -135,11 +132,37 @@ namespace memory
             return allocationOffset;
         }
 
+        // Coalesce and update the freeList.
         inline void deallocate(const size_t allocationOffset, const size_t sizeInBytes)
         {
             HASSERT_SOFT(sizeInBytes > 0, "Trying to free 0 bytes of memory. freeEmptyBlocks() will trim this block.");
 
-            mFreeList.emplace_back(allocationOffset, sizeInBytes);
+            bool didCoalesce = false;
+            
+            for (size_t i = 0; i < mFreeList.size(); ++i)
+            {
+                FreeBlock& block = mFreeList[i];
+
+                if (block.offset + block.size == allocationOffset)
+                {
+                    block.size += sizeInBytes;
+                    didCoalesce = true;
+                    break;
+                }
+                
+                if (allocationOffset + sizeInBytes == block.offset)
+                {
+                    block.offset = allocationOffset;
+                    block.size += sizeInBytes;
+                    didCoalesce = true;
+                    break;
+                }
+            }
+
+            if (!didCoalesce)
+            {
+                mFreeList.emplace_back(allocationOffset, sizeInBytes);
+            }
         }
 
         inline void reset()
@@ -164,35 +187,6 @@ namespace memory
         }
 
     private:
-        // Merges adjacent blocks in the free list.
-        inline void coalesceFreeList()
-        {
-            if (mFreeList.empty())
-            {
-                return;
-            }
-
-            std::sort(mFreeList.begin(), mFreeList.end(), [](auto& a, auto& b) { return a.offset < b.offset; });
-
-            size_t i = 0;
-            for (size_t j = 1; j < mFreeList.size(); ++j)
-            {
-                FreeBlock& currentBlock = mFreeList[i];
-                FreeBlock& nextBlock = mFreeList[j];
-
-                if ((currentBlock.size > 0) &&
-                    ((currentBlock.offset + currentBlock.size) == nextBlock.offset))
-                {
-                    currentBlock.size += nextBlock.size;
-                    nextBlock.size = 0; // Set the size = 0 so that it can be batch freed while allocation.
-                }
-                else
-                {
-                    i = j;
-                }
-            }
-        }
-
         // Sorts the freeList in descending order and removes all the blocks with size 0.
         inline void freeEmptyBlocks()
         {
