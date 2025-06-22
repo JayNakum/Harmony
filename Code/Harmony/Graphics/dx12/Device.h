@@ -34,27 +34,33 @@ namespace graphics
             ~Device();
 
         public:
-            inline bool isDeviceNvidia() { return Device::getVendorIdFromDevice(*this) == vendorID_Nvidia; }
-            inline bool isDeviceAMD() { return Device::getVendorIdFromDevice(*this) == vendorID_AMD; }
-            inline bool isDeviceIntel() { return Device::getVendorIdFromDevice(*this) == vendorID_Intel; }
+            static const uint32_t getVendorIdFromDevice(Device& device);
+            inline const bool isDeviceNvidia() { return Device::getVendorIdFromDevice(*this) == vendorID_Nvidia; }
+            inline const bool isDeviceAMD() { return Device::getVendorIdFromDevice(*this) == vendorID_AMD; }
+            inline const bool isDeviceIntel() { return Device::getVendorIdFromDevice(*this) == vendorID_Intel; }
+
+            inline const bool isGPUUploadHeapSupported() const { return mSupportsGPUUploadHeap; }
 
             // Returns the raw pointer of D3D12Device.
             inline const ID3D12Device* operator->() const { return mDevice.Get(); }
             inline ID3D12Device* operator->() { return mDevice.Get(); }
 
-        public:
-            static uint32_t getVendorIdFromDevice(Device& device);
-
         private:
-            static bool isRaytracingSupported(ID3D12Device* device);
+            void checkFeaturesSupport();
+
+            static const bool isRaytracingSupported(ID3D12Device* device);
 
         private:
             Microsoft::WRL::ComPtr<ID3D12Device> mDevice;
-            bool mTypedUAVLoadSupport_R11G11B10_FLOAT;
+
+        private:
+            bool mTypedUAVLoadSupport_R11G11B10_FLOAT = false;
             bool mTypedUAVLoadSupport_R16G16B16A16_FLOAT = false;
 
             bool m4xMSAAState = false;
             unsigned int m4xMSAAQuality = 0;
+
+            bool mSupportsGPUUploadHeap = false;
         };
     }
 }

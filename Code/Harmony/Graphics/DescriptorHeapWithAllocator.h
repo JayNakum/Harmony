@@ -2,7 +2,7 @@
 
 #include "common.h"
 #include "Log.h"
-#include "memory/Allocators.h"
+#include "memory/RingAllocator.h"
 
 #include "dx12/DescriptorHeap.h"
 
@@ -14,7 +14,7 @@ namespace graphics
     */
     class DescriptorHeapWithAllocator : public dx12::DescriptorHeap
     {
-        static constexpr size_t PAGE_SIZE = 256;
+        static constexpr size_t PAGE_SIZE = 128;
 
     public:
         // Creates a DescriptorHeap and resets the allocation pointers.
@@ -72,8 +72,6 @@ namespace graphics
         };
 
         Page allocatePage();
-
-        inline const memory::RingAllocator getAllocator() const { return mAllocator; }
 
         // Resets the allocation pointers.
         ~DescriptorHeapWithAllocator();

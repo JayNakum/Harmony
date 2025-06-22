@@ -7,7 +7,7 @@ namespace graphics
     namespace dx12
     {
         Device::Device(const Configuration& config)
-            : mDevice(nullptr), mTypedUAVLoadSupport_R11G11B10_FLOAT(false), mTypedUAVLoadSupport_R16G16B16A16_FLOAT(false)
+            : mDevice(nullptr)
         {
             HRESULT hResult = S_OK;
             bool useDebugLayers = false;
@@ -217,35 +217,7 @@ namespace graphics
             }
 #endif
 
-            // To support read-modify-write operations on UAVs during post processing,
-            // need to either have the hardware do typed UAV loads of R11G11B10_FLOAT
-            // or we need to manually decode an R32_UINT representation of the same buffer.  T
-            // his code determines if we get the hardware load support.
-            D3D12_FEATURE_DATA_D3D12_OPTIONS featureData = {};
-            if (SUCCEEDED(mDevice->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS, &featureData, sizeof(featureData))))
-            {
-                if (featureData.TypedUAVLoadAdditionalFormats)
-                {
-                    D3D12_FEATURE_DATA_FORMAT_SUPPORT support =
-                    {
-                        DXGI_FORMAT_R11G11B10_FLOAT, D3D12_FORMAT_SUPPORT1_NONE, D3D12_FORMAT_SUPPORT2_NONE
-                    };
-
-                    if (SUCCEEDED(mDevice->CheckFeatureSupport(D3D12_FEATURE_FORMAT_SUPPORT, &support, sizeof(support))) &&
-                        (support.Support2 & D3D12_FORMAT_SUPPORT2_UAV_TYPED_LOAD) != 0)
-                    {
-                        mTypedUAVLoadSupport_R11G11B10_FLOAT = true;
-                    }
-
-                    support.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-
-                    if (SUCCEEDED(mDevice->CheckFeatureSupport(D3D12_FEATURE_FORMAT_SUPPORT, &support, sizeof(support))) &&
-                        (support.Support2 & D3D12_FORMAT_SUPPORT2_UAV_TYPED_LOAD) != 0)
-                    {
-                        mTypedUAVLoadSupport_R16G16B16A16_FLOAT = true;
-                    }
-                }
-            }
+            checkFeaturesSupport();
         }
 
         Device::~Device()
@@ -261,7 +233,7 @@ namespace graphics
 #endif
         }
 
-        uint32_t Device::getVendorIdFromDevice(Device& device)
+        const uint32_t Device::getVendorIdFromDevice(Device& device)
         {
             HRESULT hResult = S_OK;
             LUID luid = device->GetAdapterLuid();
@@ -286,7 +258,50 @@ namespace graphics
             return 0;
         }
 
-        bool Device::isRaytracingSupported(ID3D12Device* device)
+        void Device::checkFeaturesSupport()
+        {
+            {// D3D12_FEATURE_D3D12_OPTIONS
+                // To support read-modify-write operations on UAVs during post processing,
+                // need to either have the hardware do typed UAV loads of R11G11B10_FLOAT
+                // or we need to manually decode an R32_UINT representation of the same buffer.
+                // This code determines if we get the hardware load support.
+                D3D12_FEATURE_DATA_D3D12_OPTIONS featureData = {};
+                if (SUCCEEDED(mDevice->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS, &featureData, sizeof(featureData))))
+                {
+                    if (featureData.TypedUAVLoadAdditionalFormats)
+                    {
+                        D3D12_FEATURE_DATA_FORMAT_SUPPORT support =
+                        {
+                            DXGI_FORMAT_R11G11B10_FLOAT, D3D12_FORMAT_SUPPORT1_NONE, D3D12_FORMAT_SUPPORT2_NONE
+                        };
+
+                        if (SUCCEEDED(mDevice->CheckFeatureSupport(D3D12_FEATURE_FORMAT_SUPPORT, &support, sizeof(support))) &&
+                            (support.Support2 & D3D12_FORMAT_SUPPORT2_UAV_TYPED_LOAD) != 0)
+                        {
+                            mTypedUAVLoadSupport_R11G11B10_FLOAT = true;
+                        }
+
+                        support.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+
+                        if (SUCCEEDED(mDevice->CheckFeatureSupport(D3D12_FEATURE_FORMAT_SUPPORT, &support, sizeof(support))) &&
+                            (support.Support2 & D3D12_FORMAT_SUPPORT2_UAV_TYPED_LOAD) != 0)
+                        {
+                            mTypedUAVLoadSupport_R16G16B16A16_FLOAT = true;
+                        }
+                    }
+                }
+            }
+
+            {// D3D12_FEATURE_D3D12_OPTIONS16
+                D3D12_FEATURE_DATA_D3D12_OPTIONS16 featureData = {};
+                if (SUCCEEDED(mDevice->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS16, &featureData, sizeof(featureData))))
+                {
+                    mSupportsGPUUploadHeap = featureData.GPUUploadHeapSupported;
+                }
+            }
+        }
+
+        const bool Device::isRaytracingSupported(ID3D12Device* device)
         {
             D3D12_FEATURE_DATA_D3D12_OPTIONS5 featureSupport = {};
 

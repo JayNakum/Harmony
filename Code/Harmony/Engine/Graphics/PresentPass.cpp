@@ -1,7 +1,5 @@
 #include "PresentPass.h"
 
-#include "ShaderInput.h"
-
 namespace shaders
 {
     static const char* ScreenQuadVS = R"###(

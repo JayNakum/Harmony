@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common.h"
+#include "Log.h"
 
 #include "dx12/Device.h"
 #include "dx12/CommandQueue.h"
@@ -24,6 +25,8 @@ namespace engine
 {
     class Renderer
     {
+        static constexpr size_t MAX_RENDERTARGETS_COUNT = 128;
+
     public:
         Renderer(const HWND windowHandle);
 

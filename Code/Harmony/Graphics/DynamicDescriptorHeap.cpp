@@ -25,11 +25,6 @@ namespace graphics
         mCurrentGPUPage(mGPUHeap.allocatePage())
     {}
 
-    DescriptorHeapWithAllocator::Page DynamicDescriptorHeap::allocatePage()
-    {
-        return mCPUHeap.allocatePage();
-    }
-
     dx12::DescriptorHandle DynamicDescriptorHeap::finalize(const dx12::DescriptorHandle& allocationStart, const unsigned int descriptorsCount)
     {
         if (descriptorsCount <= 0)
@@ -37,7 +32,8 @@ namespace graphics
             return dx12::DescriptorHandle();
         }
 
-        if (!mCurrentGPUPage.getAllocator().canAllocate(descriptorsCount))
+        DEBUGLOG("DEBUG", "Descriptors = %d", mCurrentGPUPage.getAllocator().getRemainingSize());
+        if (!mCurrentGPUPage.getAllocator().canAllocate(descriptorsCount * mCPUHeap.getDescriptorSize()))
         {
             mCurrentGPUPage = mGPUHeap.allocatePage();
         }

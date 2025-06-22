@@ -19,7 +19,7 @@ namespace engine
     public:
         Engine(windows::Window& mainWindow);
 
-        static inline const uint64_t getFrameIndex() { return msFrameIndex; }
+        inline static const uint64_t getFrameIndex() { return msFrameIndex; }
 
         void run();
 

@@ -18,6 +18,8 @@ namespace graphics
         class Heap
         {
         public:
+            static constexpr uint64_t PLACEMENT_ALIGNMENT = D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT;
+
             struct Description
             {
                 std::string name;

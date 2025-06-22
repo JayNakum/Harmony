@@ -152,9 +152,7 @@ namespace graphics
         mCurrentCommandAllocator = nullptr;
     }
 
-    CommandContext::~CommandContext()
-    {
-    }
+    CommandContext::~CommandContext() {}
 }
 
 namespace graphics
@@ -235,10 +233,10 @@ namespace graphics
         HASSERT(rect.left < rect.right && rect.top < rect.bottom, "Invalid scissor rect.");
 
         const D3D12_RECT d3dRect{
-            (UINT)rect.left,
-            (UINT)rect.top,
-            (UINT)rect.right,
-            (UINT)rect.bottom
+            (LONG)rect.left,
+            (LONG)rect.top,
+            (LONG)rect.right,
+            (LONG)rect.bottom
         };
 
         mCommandList->RSSetScissorRects(1, &d3dRect);
@@ -266,7 +264,7 @@ namespace graphics
 
     void GraphicContext::setConstants(const unsigned int rootIndex, const size_t count, const void* pConstants, const unsigned int offset)
     {
-        mCommandList->SetGraphicsRoot32BitConstants(rootIndex, count, pConstants, offset);
+        mCommandList->SetGraphicsRoot32BitConstants(rootIndex, (UINT)count, pConstants, offset);
     }
 
     void GraphicContext::setBufferCBV(const unsigned int rootIndex, uint64_t cbv)

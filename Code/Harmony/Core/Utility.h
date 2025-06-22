@@ -68,6 +68,38 @@ namespace maths
     }
 }
 
+namespace memory
+{
+    constexpr size_t KB(long double kilobytes)
+    {
+        return (size_t)(kilobytes * 1024.0L);
+    }
+
+    constexpr size_t MB(long double megabytes)
+    {
+        return (size_t)(megabytes * 1024.0L * 1024.0L);
+    }
+
+    constexpr size_t GB(long double gigabytes)
+    {
+        return (size_t)(gigabytes * 1024.0L * 1024.0L * 1024.0L);
+    }
+
+    constexpr size_t TB(long double terabytes)
+    {
+        return (size_t)(terabytes * 1024.0L * 1024.0L * 1024.0L * 1024.0L);
+    }
+
+//inline constexpr size_t operator"" _KB(size_t kilobytes) { return (size_t)(kilobytes * 1024.0L); }
+//inline constexpr size_t operator"" _MB(size_t megabytes) { return (size_t)(megabytes * 1024.0L * 1024.0L); }
+//inline constexpr size_t operator"" _GB(size_t gigabytes) { return (size_t)(gigabytes * 1024.0L * 1024.0L * 1024.0L); }
+//inline constexpr size_t operator"" _TB(size_t terabytes) { return (size_t)(terabytes * 1024.0L * 1024.0L * 1024.0L * 1024.0L); }
+//inline constexpr size_t operator"" _KB(long double kilobytes) { return (size_t)(kilobytes * 1024.0L); }
+//inline constexpr size_t operator"" _MB(long double megabytes) { return (size_t)(megabytes * 1024.0L * 1024.0L); }
+//inline constexpr size_t operator"" _GB(long double gigabytes) { return (size_t)(gigabytes * 1024.0L * 1024.0L * 1024.0L); }
+//inline constexpr size_t operator"" _TB(long double terabytes) { return (size_t)(terabytes * 1024.0L * 1024.0L * 1024.0L * 1024.0L); }
+}
+
 /*
 * Enum cast to its underlying type.
 * Mostly used for using enums as array index.

@@ -9,7 +9,7 @@ namespace graphics
 {
     class DynamicDescriptorHeap
     {
-        static constexpr size_t MAX_DESCRIPTORS_COUNT = 65536;
+        static constexpr size_t MAX_DESCRIPTORS_COUNT = 1024;
 
     public:
         DynamicDescriptorHeap(dx12::Device& device);
@@ -19,7 +19,7 @@ namespace graphics
 
         // Allocates a page from CPU heap
         // So that each thread can have its own page from the cpu heap
-        DescriptorHeapWithAllocator::Page allocatePage();
+        inline DescriptorHeapWithAllocator::Page allocatePage() { return mCPUHeap.allocatePage(); }
 
         // Copies the descriptors from cpuPage to GPU heap
         dx12::DescriptorHandle finalize(const dx12::DescriptorHandle& allocationStart, const unsigned int descriptorsCount);

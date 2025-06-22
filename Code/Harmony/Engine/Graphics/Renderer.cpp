@@ -14,7 +14,7 @@ namespace engine
             {
                 "cpu visible render target view descriptor heap",
                 graphics::DescriptorHeapType::RenderTarget,
-                1024,
+                MAX_RENDERTARGETS_COUNT,
                 graphics::DescriptorHeapFlags::CPUVisible
             }
         ),

@@ -6,70 +6,12 @@
 namespace memory
 {
     /*
-    * A basic contiguous linear allocator, also known as a bump allocator or stack allocator, is a
-    * simple memory allocation strategy that allocates memory linearly, typically by incrementing a pointer.
-    *
-    * Ideal for situations where allocations are either short lived or can be deallocated all at once.
-    */
-    class LinearAllocator
-    {
-    public:
-        LinearAllocator(const size_t totalSizeInBytes)
-            : mTotalSizeInBytes(totalSizeInBytes), mNextAllocationOffset(0) {}
-
-        inline const size_t getTotalSize() const { return mTotalSizeInBytes; }
-
-        inline const size_t getRemainingSize() const
-        {
-            return mTotalSizeInBytes - mNextAllocationOffset;
-        }
-
-        inline const bool canAllocate(const size_t sizeInBytes) const
-        {
-            return sizeInBytes <= getRemainingSize();
-        }
-
-        inline const size_t allocate(const size_t sizeInBytes)
-        {
-            HASSERT(canAllocate(sizeInBytes), "Allocator out of memory(%d). Trying to allocate %d. Remaining size = %d",
-                    mTotalSizeInBytes, sizeInBytes, getRemainingSize());
-
-            size_t allocationOffset = mNextAllocationOffset + sizeInBytes;
-            mNextAllocationOffset += sizeInBytes;
-            return allocationOffset;
-        }
-
-        inline void reset()
-        {
-            mNextAllocationOffset = 0;
-        }
-
-        LinearAllocator(const LinearAllocator& copy)
-            : mTotalSizeInBytes(copy.mTotalSizeInBytes), mNextAllocationOffset(copy.mNextAllocationOffset) {}
-
-        inline void operator=(const LinearAllocator& rhs)
-        {
-            if (this != &rhs)
-            {
-                mTotalSizeInBytes = rhs.mTotalSizeInBytes;
-                mNextAllocationOffset = rhs.mNextAllocationOffset;
-            }
-        }
-
-    private:
-        size_t mTotalSizeInBytes;
-        size_t mNextAllocationOffset;
-    };
-}
-
-namespace memory
-{
-    /*
     * Linear Allocator with best fit strategy and coalescing.
     * Linear allocation means that the core allocation logic is simple.
     * Best fit ensures that we reduce fragmentation.
     * Coalescing means that even if there is fragmentation, it will eventually be reused when an adjacent resource is freed.
     *
+    * Ideal for static heaps.
     * For minimum fragmentation use for same category resources that all have same alignment.
     */
     class SuballocationAllocator
@@ -78,8 +20,11 @@ namespace memory
         struct FreeBlock { size_t offset, size; };
 
     public:
-        SuballocationAllocator(const size_t totalSizeInBytes)
-            : mTotalSizeInBytes(totalSizeInBytes), mNextAllocationOffset(0), mFreeList(mTotalSizeInBytes) {}
+        SuballocationAllocator(const size_t totalSizeInBytes, const size_t offset = 0)
+            : mTotalSizeInBytes(totalSizeInBytes),
+            mOffset(offset),
+            mNextAllocationOffset(mOffset)
+        {}
 
         inline const size_t getTotalSize() const { return mTotalSizeInBytes; }
 
@@ -95,12 +40,14 @@ namespace memory
 
         inline const size_t getUnallocatedSize() const
         {
-            return mTotalSizeInBytes - mNextAllocationOffset;
+            return (mOffset + mTotalSizeInBytes) - mNextAllocationOffset;
         }
 
         // Allocate using best fit strategy.
         inline const size_t allocate(const size_t sizeInBytes)
         {
+            size_t allocationOffset = 0x1deadb0b;
+
             // Lazy Coalesce to get the best possible free list in one go if there has been multiple deallocations.
             coalesceFreeList();
 
@@ -114,7 +61,7 @@ namespace memory
 
                 if (block.size >= sizeInBytes)
                 {
-                    size_t allocationOffset = block.offset;
+                    allocationOffset = block.offset;
                     block.offset += sizeInBytes;
                     block.size -= sizeInBytes;
                     return allocationOffset;
@@ -130,7 +77,7 @@ namespace memory
                     "Allocator out of memory trying to allocate %d bytes. Total size = %d. Fragmented size = %d. Unallocated Size = %d.",
                     sizeInBytes, mTotalSizeInBytes, getFragmentedSize(), getUnallocatedSize());
 
-            size_t allocationOffset = mNextAllocationOffset + sizeInBytes;
+            allocationOffset = mNextAllocationOffset;
             mNextAllocationOffset += sizeInBytes;
             return allocationOffset;
         }
@@ -139,23 +86,27 @@ namespace memory
         {
             HASSERT_SOFT(sizeInBytes > 0, "Trying to free 0 bytes of memory. freeEmptyBlocks() will trim this block.");
 
-            mFreeList.emplace_back(allocationOffset, sizeInBytes);
+            mFreeList.push_back({ allocationOffset, sizeInBytes });
         }
 
         inline void reset()
         {
             mFreeList.clear();
-            mNextAllocationOffset = 0;
+            mNextAllocationOffset = mOffset;
         }
 
         SuballocationAllocator(const SuballocationAllocator& copy)
-            : mTotalSizeInBytes(copy.mTotalSizeInBytes), mNextAllocationOffset(copy.mNextAllocationOffset) {}
+            : mTotalSizeInBytes(copy.mTotalSizeInBytes),
+            mOffset(copy.mOffset),
+            mNextAllocationOffset(copy.mNextAllocationOffset)
+        {}
 
         inline void operator=(const SuballocationAllocator& rhs)
         {
             if (this != &rhs)
             {
                 mTotalSizeInBytes = rhs.mTotalSizeInBytes;
+                mOffset = rhs.mOffset;
                 mNextAllocationOffset = rhs.mNextAllocationOffset;
 
                 mFreeList.clear();
@@ -210,66 +161,8 @@ namespace memory
 
     private:
         size_t mTotalSizeInBytes;
+        size_t mOffset;
         size_t mNextAllocationOffset;
         std::vector<FreeBlock> mFreeList;
-    };
-}
-
-namespace memory
-{
-    /*
-    * A ring allocator but it ensures that the allocation is contiguous.
-    * Meaning that it is possible that there is (some space < sizeInBytes) available at the end
-    * but we do not care about it and loop back.
-    *
-    * Ideal for transient or short lived resources.
-    * For minimum wastage use for smaller or aligned resources.
-    */
-    class RingAllocator
-    {
-    public:
-        RingAllocator(const size_t totalSizeInBytes)
-            : mTotalSizeInBytes(totalSizeInBytes), mNextAllocationOffset(0) {}
-
-        inline const size_t getTotalSize() const { return mTotalSizeInBytes; }
-
-        inline const size_t getRemainingSize() const
-        {
-            return mTotalSizeInBytes - mNextAllocationOffset;
-        }
-
-        inline const bool canAllocate(const size_t sizeInBytes) const
-        {
-            return sizeInBytes <= getRemainingSize();
-        }
-
-        inline const size_t allocate(const size_t sizeInBytes)
-        {
-            bool fitsInTail = canAllocate(sizeInBytes);
-            size_t allocationOffset = mNextAllocationOffset * fitsInTail;
-            mNextAllocationOffset = (allocationOffset + sizeInBytes) % mTotalSizeInBytes;
-            return allocationOffset;
-        }
-
-        inline void reset()
-        {
-            mNextAllocationOffset = 0;
-        }
-
-        RingAllocator(const RingAllocator& copy)
-            : mTotalSizeInBytes(copy.mTotalSizeInBytes), mNextAllocationOffset(copy.mNextAllocationOffset) {}
-
-        inline void operator=(const RingAllocator& rhs)
-        {
-            if (this != &rhs)
-            {
-                mTotalSizeInBytes = rhs.mTotalSizeInBytes;
-                mNextAllocationOffset = rhs.mNextAllocationOffset;
-            }
-        }
-
-    private:
-        size_t mTotalSizeInBytes;
-        size_t mNextAllocationOffset;
     };
 }
