@@ -17,10 +17,10 @@ namespace graphics
         /*
         * The class represents a texture on GPU Memory
         */
-        class GPUTexture : public GPUResource
+        class Texture : public GPUResource
         {
         public:
-            GPUTexture(const Description& createDescription);
+            Texture(const Description& createDescription);
 
             struct ShaderResourceViewInfo
             {
@@ -30,7 +30,7 @@ namespace graphics
                 uint32_t arraySize;
                 float resourceMinLODClamp;
 
-                static const ShaderResourceViewInfo getSRVInfo(const GPUTexture::Description& desc)
+                static const ShaderResourceViewInfo getSRVInfo(const Texture::Description& desc)
                 {
                     ShaderResourceViewInfo viewInfo{};
                     viewInfo.mostDetailedMip = 0;
@@ -66,7 +66,7 @@ namespace graphics
                 uint32_t firstWSlice;
                 uint32_t wSize;
 
-                static const UnorderedAccessViewInfo getUAVInfo(const GPUTexture::Description& desc)
+                static const UnorderedAccessViewInfo getUAVInfo(const Texture::Description& desc)
                 {
                     UnorderedAccessViewInfo viewInfo{};
                     viewInfo.mipSlice = 0;
@@ -90,7 +90,7 @@ namespace graphics
             // Reset the resource.
             void reset();
 
-            ~GPUTexture() = default;
+            ~Texture() = default;
         };
     }
 
@@ -100,7 +100,7 @@ namespace graphics
         * RenderTarget is an extension to the texture class with ability to create RTV and DSV.
         * It owns an instance of texture.
         * A rendertarget can be of either two types. Color or Depth.
-        * And the GPUTexture::Descripton must have an appropriate format.
+        * And the Texture::Descripton must have an appropriate format.
         */
         class RenderTarget
         {
@@ -111,14 +111,8 @@ namespace graphics
                 Depth
             };
 
-            struct Description
-            {
-                Type type;
-                GPUTexture::Description textureDescription;
-            };
-
-            RenderTarget(const Description& createDescription);
-            RenderTarget(const Type type, GPUTexture& texture);
+            RenderTarget(const Type type, Texture& texture);
+            RenderTarget(const Type type, const Texture::Description& createDescription);
 
             // baseResource is expected to have called setD3DName for debugging
             void createFromSwapchain(Device& device, DescriptorHandle& rtvHandle, ID3D12Resource* baseResource);
@@ -126,13 +120,12 @@ namespace graphics
             void createRenderTargetView(Device& device, DescriptorHandle& rtvHandle, const uint32_t mipSlice = 0, const uint32_t arraySlice = 0);
             void createDepthStencilView(Device& device, DescriptorHandle& dsvHandle, const uint32_t mipSlice = 0, const uint32_t arraySlice = 0, const bool readOnlyDepth = false, const bool readOnlyStencil = false);
 
-            inline const Description& getDescription() const { return mDescription; }
-            inline const GPUTexture& getTexture() const { return mTexture; }
-            inline GPUTexture& getTexture() { return mTexture; }
+            inline const Texture& getTexture() const { return mTexture; }
+            inline Texture& getTexture() { return mTexture; }
 
         private:
-            Description mDescription;
-            GPUTexture mTexture;
+            const Type mType;
+            Texture mTexture;
         };
     }
 }

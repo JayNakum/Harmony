@@ -19,8 +19,8 @@ namespace engine
             {
                 FrameConstants frame;
                 unsigned int width, height;
-                graphics::dx12::GPUTexture& inFinalOutput;
-                graphics::dx12::GPUTexture& inSwapchainBackbuffer;
+                graphics::dx12::Texture& inFinalOutput;
+                graphics::dx12::Texture& inSwapchainBackbuffer;
                 graphics::dx12::DescriptorHandle inSwapchainRTV;
             };
 

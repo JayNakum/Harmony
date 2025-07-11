@@ -222,15 +222,12 @@ namespace engine
     {
         Water::Water(graphics::GraphicContext& context)
             : mRTDescription{
-                graphics::dx12::RenderTarget::Type::Color,
-                {
-                    "water render target",
-                    0, 0,
-                    1, 1,
-                    graphics::GPUResourceDimension::Texture2D,
-                    graphics::DefaultFormats::R16G16B16A16_UNORM,
-                    graphics::GPUResourceFlags::AllowRenderTarget,
-                }
+                "water render target",
+                0, 0,
+                1, 1,
+                graphics::GPUResourceDimension::Texture2D,
+                graphics::DefaultFormats::R16G16B16A16_UNORM,
+                graphics::GPUResourceFlags::AllowRenderTarget,
             },
             mRenderTarget(nullptr),
             mWaterPSO(initialize(context)),
@@ -249,17 +246,17 @@ namespace engine
         Water::Outputs Water::render(graphics::GraphicContext& context, Inputs& passInputs)
         {
             {// Pre Render
-                if (mRTDescription.textureDescription.width != passInputs.width ||
-                    mRTDescription.textureDescription.height != passInputs.height)
+                if (mRTDescription.width != passInputs.width ||
+                    mRTDescription.height != passInputs.height)
                 {
-                    mRTDescription.textureDescription.width = passInputs.width;
-                    mRTDescription.textureDescription.height = passInputs.height;
+                    mRTDescription.width = passInputs.width;
+                    mRTDescription.height = passInputs.height;
 
                     if (mRenderTarget != nullptr)
                     {
                         delete mRenderTarget;
                     }
-                    mRenderTarget = new graphics::dx12::RenderTarget(mRTDescription);
+                    mRenderTarget = new graphics::dx12::RenderTarget(graphics::dx12::RenderTarget::Type::Color, mRTDescription);
                     mRenderTarget->getTexture().createCommitted(context.getDevice());
 
                     mRTV = context.allocateDescriptors(graphics::DescriptorHeapType::RenderTarget);
@@ -358,13 +355,13 @@ namespace engine
             mPass.invProjection = inverse(mProjection);
             mPass.viewProjection = mView * mProjection;
             mPass.invViewProjection = inverse(mPass.viewProjection);
-            mPass.renderTargetSize.x = (float)mRTDescription.textureDescription.width;
-            mPass.renderTargetSize.y = (float)mRTDescription.textureDescription.height;
+            mPass.renderTargetSize.x = (float)mRTDescription.width;
+            mPass.renderTargetSize.y = (float)mRTDescription.height;
             mPass.invRenderTargetSize = 1 / mPass.renderTargetSize;
 
             graphics::dx12::GPUResource::Description createCBDesc { "water pass cbuffer", sizeof(PassConstants) };
             createCBDesc.dimension = graphics::GPUResourceDimension::Buffer;
-            mPassCB = new graphics::dx12::UploadBuffer(context.getDevice(), createCBDesc);
+            mPassCB = new graphics::dx12::ByteAddressBuffer(createCBDesc);
             mPassCB->createCommitted(context.getDevice(), graphics::HeapType::Upload);
             {
                 void* bufferDest = mPassCB->map();
@@ -429,7 +426,7 @@ namespace engine
 
             graphics::dx12::GPUResource::Description createCBDesc{ "water params cbuffer", sizeof(WaterParams) };
             createCBDesc.dimension = graphics::GPUResourceDimension::Buffer;
-            mWaterParamsCB = new graphics::dx12::UploadBuffer(context.getDevice(), createCBDesc);
+            mWaterParamsCB = new graphics::dx12::ByteAddressBuffer(createCBDesc);
             mWaterParamsCB->createCommitted(context.getDevice(), graphics::HeapType::Upload);
             {
                 void* bufferDest = mWaterParamsCB->map();
@@ -505,7 +502,7 @@ namespace engine
             createVBDesc.name = "water vertex buffer uploader";
             createVBDesc.width = vbByteSize;
             createVBDesc.dimension = graphics::GPUResourceDimension::Buffer;
-            graphics::dx12::UploadBuffer* vertexBufferUploader = new graphics::dx12::UploadBuffer(context.getDevice(), createVBDesc);
+            graphics::dx12::ByteAddressBuffer* vertexBufferUploader = new graphics::dx12::ByteAddressBuffer(createVBDesc);
             vertexBufferUploader->createCommitted(context.getDevice(), graphics::HeapType::Upload);
             {
                 void* intermediateDst = vertexBufferUploader->map();
@@ -529,7 +526,7 @@ namespace engine
             createIBDesc.width = ibByteSize;
             createIBDesc.dimension = graphics::GPUResourceDimension::Buffer;
 
-            graphics::dx12::UploadBuffer* indexBufferUploader = new graphics::dx12::UploadBuffer(context.getDevice(), createIBDesc);
+            graphics::dx12::ByteAddressBuffer* indexBufferUploader = new graphics::dx12::ByteAddressBuffer(createIBDesc);
             indexBufferUploader->createCommitted(context.getDevice(), graphics::HeapType::Upload);
             {
                 void* intermediateDst = indexBufferUploader->map();

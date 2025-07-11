@@ -38,7 +38,7 @@ namespace memory
         {
             const bool fitsInTail = canAllocate(sizeInBytes);
 
-            const size_t fitMask = -(size_t)fitsInTail;
+            const long long int fitMask = -(long long int)fitsInTail;
             const size_t allocationOffset = (mNextAllocationOffset & fitMask) | (mOffset & ~fitMask);
             mNextAllocationOffset = allocationOffset + sizeInBytes;
             return allocationOffset;

@@ -29,38 +29,7 @@ namespace graphics
         return handle;
     }
 
-    const dx12::DescriptorHandle ShaderInput::setResource(const dx12::UploadBuffer& buffer, const unsigned int layoutIndex, const unsigned int parameterIndex, const unsigned int rangeIndex)
-    {
-        return setResource(buffer, buffer.getDescription().width, 0, layoutIndex, parameterIndex, rangeIndex);
-    }
-
-    const dx12::DescriptorHandle ShaderInput::setResource(const dx12::UploadBuffer& buffer, const uint64_t sizeInBytes, const unsigned int offsetInBytes, const unsigned int layoutIndex, const unsigned int parameterIndex, const unsigned int rangeIndex)
-    {
-        dx12::DescriptorHandle handle = getDescriptorHandleAt(layoutIndex, parameterIndex, rangeIndex);
-
-        const DescriptorRangeType type = mParametersLayout.at(layoutIndex).ranges.at(parameterIndex).type;
-
-        dx12::Device& device = mContext.getDevice();
-
-        switch (type)
-        {
-        case DescriptorRangeType::CBV:
-            buffer.createConstantBufferView(device, handle, sizeInBytes, offsetInBytes);
-            break;
-        case DescriptorRangeType::SRV:
-            buffer.createShaderResourceView(device, handle, sizeInBytes, offsetInBytes);
-            break;
-        case DescriptorRangeType::UAV:
-            buffer.createUnorderedAccessView(device, handle, sizeInBytes, offsetInBytes);
-            break;
-        default:
-            HASSERT(false, "Invalid DescriptorRangeType(%s) at layoutIndex(%d) paramterIndex(%d) rangeIndex(%d).", toString(type), layoutIndex, parameterIndex, rangeIndex);
-            break;
-        }
-
-        return handle;
-    }
-
+/*
     const dx12::DescriptorHandle ShaderInput::setResource(const dx12::ByteAddressBuffer& buffer, const unsigned int layoutIndex, const unsigned int parameterIndex, const unsigned int rangeIndex)
     {
         return setResource(buffer, buffer.getDescription().width, 0, layoutIndex, parameterIndex, rangeIndex);
@@ -94,7 +63,7 @@ namespace graphics
     }
 
 
-    const dx12::DescriptorHandle ShaderInput::setResource(const dx12::GPUTexture& texture, const dx12::GPUTexture::ShaderResourceViewInfo& viewInfo, const unsigned int layoutIndex, const unsigned int parameterIndex, const unsigned int rangeIndex)
+    const dx12::DescriptorHandle ShaderInput::setResource(const dx12::Texture& texture, const dx12::Texture::ShaderResourceViewInfo& viewInfo, const unsigned int layoutIndex, const unsigned int parameterIndex, const unsigned int rangeIndex)
     {
         dx12::DescriptorHandle handle = getDescriptorHandleAt(layoutIndex, parameterIndex, rangeIndex);
 
@@ -106,7 +75,7 @@ namespace graphics
         return handle;
     }
 
-    const dx12::DescriptorHandle ShaderInput::setResource(const dx12::GPUTexture& texture, const dx12::GPUTexture::UnorderedAccessViewInfo& viewInfo, const unsigned int layoutIndex, const unsigned int parameterIndex, const unsigned int rangeIndex)
+    const dx12::DescriptorHandle ShaderInput::setResource(const dx12::Texture& texture, const dx12::Texture::UnorderedAccessViewInfo& viewInfo, const unsigned int layoutIndex, const unsigned int parameterIndex, const unsigned int rangeIndex)
     {
         dx12::DescriptorHandle handle = getDescriptorHandleAt(layoutIndex, parameterIndex, rangeIndex);
 
@@ -117,6 +86,7 @@ namespace graphics
 
         return handle;
     }
+*/
 
     void ShaderInput::finalize()
     {

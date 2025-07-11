@@ -8,19 +8,20 @@ namespace graphics
     {
         Swapchain::Swapchain(Device& device, CommandQueue& queue, const Description& createDescription, std::array<DescriptorHandle, BACK_BUFFER_COUNT> rtvHandles)
             : mSwapChain(nullptr),
-            mRenderTargetDescription{
-                graphics::dx12::RenderTarget::Type::Color,
-                {
-                    "swapchain back buffer",
-                    createDescription.width,
-                    createDescription.height,
-                    1, 1,
-                    graphics::GPUResourceDimension::Texture2D,
-                    graphics::DefaultFormats::R8G8B8A8_UNORM,
-                    graphics::GPUResourceFlags::AllowRenderTarget
-                },
+            mRenderTargetDescription {
+                "swapchain back buffer",
+                createDescription.width,
+                createDescription.height,
+                1, 1,
+                GPUResourceDimension::Texture2D,
+                DefaultFormats::R8G8B8A8_UNORM,
+                GPUResourceFlags::AllowRenderTarget
             },
-            mBackBuffers{mRenderTargetDescription, mRenderTargetDescription, mRenderTargetDescription},
+            mBackBuffers{
+                RenderTarget(RenderTarget::Type::Color, mRenderTargetDescription),
+                RenderTarget(RenderTarget::Type::Color, mRenderTargetDescription),
+                RenderTarget(RenderTarget::Type::Color, mRenderTargetDescription)
+            },
             mRtvHandles(rtvHandles),
             mTearingSupport(false), mHDRSupport(false)
         {

@@ -62,6 +62,12 @@ namespace graphics
             // Sub-Allocate a buffer out of a pre-allocated heap.
             void createPlaced(Device& device, Heap& backingHeap, uint64_t heapOffset);
 
+            // Maps the ID3D12Resource and returns the memory pointer.
+            void* map();
+
+            // Unmaps the resource from begin to end/mBufferSize
+            void unmap(const size_t begin = 0, size_t end = -1);
+
             inline const GPUResourceStates getUsageState() const { return mUsageState; }
             inline void setUsageState(const GPUResourceStates newState) { mUsageState = newState; }
 

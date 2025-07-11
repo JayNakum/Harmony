@@ -1,6 +1,6 @@
 #pragma once
 
-#include "dx12/GPUBuffer.h"
+#include "dx12/Buffer.h"
 #include "PipelineStateEnums.h"
 
 #include "Maths.h"
@@ -18,10 +18,10 @@ namespace engine
     {
         std::string name;
 
-        graphics::dx12::UploadBuffer* vertexBufferUploader = nullptr;
+        graphics::dx12::ByteAddressBuffer* vertexBufferUploader = nullptr;
         graphics::dx12::ByteAddressBuffer* vertexBuffer = nullptr;
 
-        graphics::dx12::UploadBuffer* indexBufferUploader = nullptr;
+        graphics::dx12::ByteAddressBuffer* indexBufferUploader = nullptr;
         graphics::dx12::ByteAddressBuffer* indexBuffer = nullptr;
 
         unsigned int vertexByteStride = 0;

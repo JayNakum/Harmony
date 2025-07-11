@@ -1,4 +1,4 @@
-#include "GPUTexture.h"
+#include "Texture.h"
 
 #include "types/GPUResourceDimension.h"
 
@@ -6,13 +6,13 @@ namespace graphics
 {
     namespace dx12
     {
-        GPUTexture::GPUTexture(const Description& createDescription)
+        Texture::Texture(const Description& createDescription)
             : GPUResource(createDescription)
         {
             HASSERT(createDescription.dimension != GPUResourceDimension::Buffer, "Invalid resource dimension for texture.");
         }
 
-        void GPUTexture::createShaderResourceView(Device& device, DescriptorHandle& srvHandle, const ShaderResourceViewInfo& viewInfo) const
+        void Texture::createShaderResourceView(Device& device, DescriptorHandle& srvHandle, const ShaderResourceViewInfo& viewInfo) const
         {
             D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
             srvDesc.Format = toDXGIFormat(mDescription.format);
@@ -65,7 +65,7 @@ namespace graphics
             device->CreateShaderResourceView(mResource.Get(), &srvDesc, srvHandle);
         }
 
-        void GPUTexture::createUnorderedAccessView(Device& device, DescriptorHandle& uavHandle, const UnorderedAccessViewInfo& viewInfo) const
+        void Texture::createUnorderedAccessView(Device& device, DescriptorHandle& uavHandle, const UnorderedAccessViewInfo& viewInfo) const
         {
             D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc{};
             uavDesc.Format = toDXGIFormat(mDescription.format);
@@ -109,7 +109,7 @@ namespace graphics
             device->CreateUnorderedAccessView(mResource.Get(), nullptr, &uavDesc, uavHandle);
         }
 
-        void GPUTexture::reset()
+        void Texture::reset()
         {
             mResource.Reset();
         }
@@ -117,28 +117,29 @@ namespace graphics
 
     namespace dx12
     {
-        RenderTarget::RenderTarget(const Description& createDescription)
-            : mDescription(createDescription), mTexture(createDescription.textureDescription)
+        RenderTarget::RenderTarget(const Type type, Texture& texture)
+            : mType(type), mTexture(texture)
         {
-            bool isValidColorFlag = hasFlag(mDescription.textureDescription.resourceFlags, GPUResourceFlags::AllowRenderTarget) && (mDescription.type == Type::Color);
-            bool isValidDepthFlag = hasFlag(mDescription.textureDescription.resourceFlags, GPUResourceFlags::AllowDepthStencil) && (mDescription.type == Type::Depth);
+            const Texture::Description& textureDescription = mTexture.getDescription();
+            bool isValidColorFlag = hasFlag(textureDescription.resourceFlags, GPUResourceFlags::AllowRenderTarget) && (mType == Type::Color);
+            bool isValidDepthFlag = hasFlag(textureDescription.resourceFlags, GPUResourceFlags::AllowDepthStencil) && (mType == Type::Depth);
 
-            HASSERT(isValidColorFlag || isValidDepthFlag, "Invalid GPUResourceFlag %s for render target.", toString(mDescription.textureDescription.resourceFlags));
+            HASSERT(isValidColorFlag || isValidDepthFlag, "Invalid GPUResourceFlag %s for render target.", toString(textureDescription.resourceFlags));
         }
 
-        RenderTarget::RenderTarget(const Type type, GPUTexture& texture)
-            : mDescription{type, texture.getDescription()},
-            mTexture(texture)
+        RenderTarget::RenderTarget(const Type type, const Texture::Description& createDescription)
+            : mType(type), mTexture(createDescription)
         {
-            bool isValidColorFlag = hasFlag(mDescription.textureDescription.resourceFlags, GPUResourceFlags::AllowRenderTarget) && (mDescription.type == Type::Color);
-            bool isValidDepthFlag = hasFlag(mDescription.textureDescription.resourceFlags, GPUResourceFlags::AllowDepthStencil) && (mDescription.type == Type::Depth);
+            const Texture::Description& textureDescription = mTexture.getDescription();
+            bool isValidColorFlag = hasFlag(textureDescription.resourceFlags, GPUResourceFlags::AllowRenderTarget) && (mType == Type::Color);
+            bool isValidDepthFlag = hasFlag(textureDescription.resourceFlags, GPUResourceFlags::AllowDepthStencil) && (mType == Type::Depth);
 
-            HASSERT(isValidColorFlag || isValidDepthFlag, "Invalid GPUResourceFlag %s for render target.", toString(mDescription.textureDescription.resourceFlags));
+            HASSERT(isValidColorFlag || isValidDepthFlag, "Invalid GPUResourceFlag %s for render target.", toString(textureDescription.resourceFlags));
         }
 
         void RenderTarget::createFromSwapchain(Device& device, DescriptorHandle& rtvHandle, ID3D12Resource* baseResource)
         {
-            HASSERT(mDescription.type == Type::Color, "Cannot create RTV for a Depth RenderTarget.");
+            HASSERT(mType == Type::Color, "Cannot create RTV for a Depth RenderTarget.");
 
             mTexture.setResource(baseResource);
             HASSERT(mTexture.get() != nullptr, "mTexture is null.");
@@ -148,7 +149,7 @@ namespace graphics
 
         void RenderTarget::createRenderTargetView(Device& device, DescriptorHandle& rtvHandle, const uint32_t mipSlice, const uint32_t arraySlice)
         {
-            HASSERT(mDescription.type == Type::Color, "Cannot create RTV for a Depth RenderTarget.");
+            HASSERT(mType == Type::Color, "Cannot create RTV for a Depth RenderTarget.");
 
             D3D12_RENDER_TARGET_VIEW_DESC rtvDesc{};
             rtvDesc.Format = toDXGIFormat(mTexture.getDescription().format);
@@ -176,7 +177,7 @@ namespace graphics
 
         void RenderTarget::createDepthStencilView(Device& device, DescriptorHandle& dsvHandle, const uint32_t mipSlice, const uint32_t arraySlice, const bool readOnlyDepth, const bool readOnlyStencil)
         {
-            HASSERT(mDescription.type == Type::Depth, "Cannot create DSV for a Color RenderTarget.");
+            HASSERT(mType == Type::Depth, "Cannot create DSV for a Color RenderTarget.");
 
             D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc{};
             dsvDesc.Format = toDXGIFormat(mTexture.getDescription().format);

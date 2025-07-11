@@ -272,7 +272,7 @@ namespace graphics
         mCommandList->SetGraphicsRootConstantBufferView(rootIndex, (D3D12_GPU_VIRTUAL_ADDRESS)cbv);
     }
 
-    void GraphicContext::setBufferSRV(const unsigned int rootIndex, const dx12::GPUBuffer& srv, const uint64_t offset)
+    void GraphicContext::setBufferSRV(const unsigned int rootIndex, const dx12::Buffer& srv, const uint64_t offset)
     {
         mCommandList->SetGraphicsRootShaderResourceView(rootIndex, srv.getGPUVirtualAddress() + offset);
     }

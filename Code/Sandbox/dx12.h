@@ -11,8 +11,8 @@
 #include "dx12/CommandQueue.h"
 
 #include "dx12/GPUResource.h"
-#include "dx12/GPUBuffer.h"
-#include "dx12/GPUTexture.h"
+#include "dx12/Buffer.h"
+#include "dx12/Texture.h"
 
 #include "dx12/DescriptorHandle.h"
 #include "dx12/DescriptorHeap.h"

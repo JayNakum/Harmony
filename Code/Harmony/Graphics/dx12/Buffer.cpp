@@ -1,23 +1,23 @@
-#include "GPUBuffer.h"
+#include "Buffer.h"
 
 namespace graphics
 {
     namespace dx12
     {
-        GPUBuffer::GPUBuffer(const Description& createDescription)
+        Buffer::Buffer(const Description& createDescription)
             : GPUResource(createDescription)
         {
             HASSERT(createDescription.dimension == GPUResourceDimension::Buffer, "Invalid resource dimension for buffer.");
         }
 
-        void GPUBuffer::createConstantBufferView(Device& device, DescriptorHandle& cbvHandle) const
+        void Buffer::createConstantBufferView(Device& device, DescriptorHandle& cbvHandle) const
         {
             size_t size = maths::alignUp(mDescription.width, 16);
 
             createConstantBufferView(device, cbvHandle, size);
         }
 
-        void GPUBuffer::createConstantBufferView(Device& device, DescriptorHandle& cbvHandle, size_t size, const uint32_t offset) const
+        void Buffer::createConstantBufferView(Device& device, DescriptorHandle& cbvHandle, size_t size, const uint32_t offset) const
         {
             HASSERT(offset + size <= mDescription.width, "offset(%d) + size(%d) is more than total buffer size(%d).", offset, size, mDescription.width);
 
@@ -30,7 +30,7 @@ namespace graphics
             device->CreateConstantBufferView(&cbvDesc, cbvHandle);
         }
 
-        const BufferView GPUBuffer::vertexBufferView(const size_t stride, const size_t size, const size_t offset) const
+        const BufferView Buffer::vertexBufferView(const size_t stride, const size_t size, const size_t offset) const
         {
             BufferView bufferView{};
 
@@ -41,7 +41,7 @@ namespace graphics
             return bufferView;
         }
 
-        const BufferView GPUBuffer::indexBufferView(const size_t size, const size_t offset, const bool is32Bits) const
+        const BufferView Buffer::indexBufferView(const size_t size, const size_t offset, const bool is32Bits) const
         {
             BufferView bufferView{};
 
@@ -126,30 +126,6 @@ namespace graphics
             uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_RAW;
 
             device->CreateUnorderedAccessView(mResource.Get(), nullptr, &uavDesc, uavHandle);
-        }
-    }
-}
-
-namespace graphics
-{
-    namespace dx12
-    {
-        UploadBuffer::UploadBuffer(Device& device, const Description& createDescription)
-            : ByteAddressBuffer(createDescription) {}
-
-        void* UploadBuffer::map()
-        {
-            void* memory = nullptr;
-            CD3DX12_RANGE range = CD3DX12_RANGE(0, mDescription.width);
-            HRESULT hResult = mResource->Map(0, &range, &memory);
-            HASSERT(SUCCEEDED(hResult), "Failed to map upload buffer resource.\n%s", utility::translateErrorCode(hResult));
-            return memory;
-        }
-
-        void UploadBuffer::unmap(const size_t begin, const size_t end)
-        {
-            CD3DX12_RANGE range = CD3DX12_RANGE(begin, std::min(end, mDescription.width));
-            mResource->Unmap(0, &range);
         }
     }
 }

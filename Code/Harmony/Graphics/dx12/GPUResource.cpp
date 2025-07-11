@@ -60,6 +60,21 @@ namespace graphics
             setD3DName(mResource.Get(), utility::toWideString(mDescription.name).c_str());
         }
 
+        void* GPUResource::map()
+        {
+            void* memory = nullptr;
+            CD3DX12_RANGE range = CD3DX12_RANGE(0, mDescription.width);
+            HRESULT hResult = mResource->Map(0, &range, &memory);
+            HASSERT(SUCCEEDED(hResult), "Failed to map upload buffer resource.\n%s", utility::translateErrorCode(hResult));
+            return memory;
+        }
+
+        void GPUResource::unmap(const size_t begin, size_t end)
+        {
+            CD3DX12_RANGE range = CD3DX12_RANGE(begin, std::min(end, mDescription.width));
+            mResource->Unmap(0, &range);
+        }
+
         const D3D12_RESOURCE_DESC GPUResource::toD3DResourceDesc(const Description& description)
         {
             D3D12_RESOURCE_DESC createDesc{};

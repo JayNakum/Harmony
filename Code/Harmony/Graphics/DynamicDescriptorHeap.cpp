@@ -27,12 +27,8 @@ namespace graphics
 
     dx12::DescriptorHandle DynamicDescriptorHeap::finalize(const dx12::DescriptorHandle& allocationStart, const unsigned int descriptorsCount)
     {
-        if (descriptorsCount <= 0)
-        {
-            return dx12::DescriptorHandle();
-        }
+        HASSERT(descriptorsCount > 0, "Cannot cooy 0 descriptors to GPU. descriptorCount = %d.", descriptorsCount);
 
-        DEBUGLOG("DEBUG", "Descriptors = %d", mCurrentGPUPage.getAllocator().getRemainingSize());
         if (!mCurrentGPUPage.getAllocator().canAllocate(descriptorsCount * mCPUHeap.getDescriptorSize()))
         {
             mCurrentGPUPage = mGPUHeap.allocatePage();

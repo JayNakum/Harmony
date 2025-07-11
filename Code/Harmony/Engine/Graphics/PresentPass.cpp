@@ -40,7 +40,7 @@ namespace engine
                 mFinalSRV = context.allocateDescriptors(graphics::DescriptorHeapType::ShaderViews);
 
                 passInputs.inFinalOutput.createShaderResourceView(context.getDevice(), mFinalSRV,
-                    graphics::dx12::GPUTexture::ShaderResourceViewInfo::getSRVInfo(
+                    graphics::dx12::Texture::ShaderResourceViewInfo::getSRVInfo(
                         passInputs.inFinalOutput.getDescription()
                     )
                 );

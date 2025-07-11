@@ -33,10 +33,10 @@ namespace graphics
         /*
         * The class represents a buffer on GPU Memory
         */
-        class GPUBuffer : public GPUResource
+        class Buffer : public GPUResource
         {
         protected:
-            GPUBuffer(const Description& createDescription);
+            Buffer(const Description& createDescription);
 
         public:
             // For direct root32Consts
@@ -67,7 +67,7 @@ namespace graphics
                 return indexBufferView((uint32_t)(mDescription.width - offset), offset, is32Bits);
             }
 
-            virtual ~GPUBuffer() = default;
+            virtual ~Buffer() = default;
         };
     }
 }
@@ -80,12 +80,12 @@ namespace graphics
         * A ByteAddressBuffer is accessed per byte.
         * Dividing by 4 because GPU SRV views into a ByteAddressBuffer are in units of 4 bytes.
         */
-        class ByteAddressBuffer : public GPUBuffer
+        class ByteAddressBuffer : public Buffer
         {
             static constexpr unsigned int DEFAULT_ALIGNMENT = 4;
         public:
             ByteAddressBuffer(const Description& createDescription)
-                : GPUBuffer(createDescription) {}
+                : Buffer(createDescription) {}
 
             void createShaderResourceView(Device& device, DescriptorHandle& srvHandle) const;
             // Creates an SRV with custom size and offset.
@@ -98,31 +98,6 @@ namespace graphics
             void createUnorderedAccessView(Device& device, DescriptorHandle& uavHandle, const uint64_t sizeInBytes, const unsigned int offsetInBytes = 0) const;
 
             virtual ~ByteAddressBuffer() = default;
-        };
-    }
-}
-
-namespace graphics
-{
-    namespace dx12
-    {
-        /*
-        * A buffer resource in UPLOAD_HEAP.
-        */
-        class UploadBuffer : public ByteAddressBuffer
-        {
-        public:
-            // Creates a committed buffer of size Description::bufferSize
-            UploadBuffer(Device& device, const Description& createDescription);
-
-            // Maps the ID3D12Resource and returns the memory pointer.
-            void* map();
-
-            // Unmaps the resource from begin to end/mBufferSize
-            void unmap(const size_t begin = 0, const size_t end = -1);
-
-            // Calls destroy which frees the ComPtr<ID3D12Resource>
-            ~UploadBuffer() = default;
         };
     }
 }

@@ -24,7 +24,7 @@ namespace engine
 
             struct Outputs
             {
-                graphics::dx12::GPUTexture& outputRender;
+                graphics::dx12::Texture& outputRender;
             };
 
             Water(graphics::GraphicContext& context);
@@ -85,7 +85,7 @@ namespace engine
             void prepareRenderItem(graphics::GraphicContext& context);
 
         private:
-            graphics::dx12::RenderTarget::Description mRTDescription;
+            graphics::dx12::Texture::Description mRTDescription;
             graphics::dx12::RenderTarget* mRenderTarget;
             graphics::dx12::DescriptorHandle mRTV;
 
@@ -93,8 +93,8 @@ namespace engine
             std::vector<graphics::ShaderInput::Parameter> mParametersLayout;
             graphics::dx12::GraphicsPipelineState mWaterPSO;
 
-            graphics::dx12::UploadBuffer* mPassCB;
-            graphics::dx12::UploadBuffer* mWaterParamsCB;
+            graphics::dx12::ByteAddressBuffer* mPassCB;
+            graphics::dx12::ByteAddressBuffer* mWaterParamsCB;
 
             RenderItem* mWaterRI;
 

@@ -9,7 +9,7 @@
 
 #include "DescriptorHandle.h"
 #include "Format.h"
-#include "GPUTexture.h"
+#include "Texture.h"
 
 namespace graphics
 {
@@ -61,7 +61,7 @@ namespace graphics
 
         private:
             Microsoft::WRL::ComPtr<IDXGISwapChain3> mSwapChain;
-            RenderTarget::Description mRenderTargetDescription;
+            Texture::Description mRenderTargetDescription;
             std::array<RenderTarget, BACK_BUFFER_COUNT> mBackBuffers;
             std::array<DescriptorHandle, BACK_BUFFER_COUNT> mRtvHandles;
 

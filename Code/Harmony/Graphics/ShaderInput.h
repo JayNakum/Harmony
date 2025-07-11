@@ -8,8 +8,8 @@
 #include "CommandContext.h"
 
 #include "dx12/RootSignature.h"
-#include "dx12/GPUBuffer.h"
-#include "dx12/GPUTexture.h"
+#include "dx12/Buffer.h"
+#include "dx12/Texture.h"
 
 namespace graphics
 {
@@ -59,22 +59,18 @@ namespace graphics
         // Set a CPU descriptor handle at the specified layoutIndex, parameterIndex and rangeIndex.
         const dx12::DescriptorHandle setResource(const dx12::DescriptorHandle& cpuHandle,
             const unsigned int layoutIndex, const unsigned int parameterIndex = 0, const unsigned int rangeIndex = 0);
-
-        // Set a buffer at the specified layoutIndex, parameterIndex and rangeIndex.
-        const dx12::DescriptorHandle setResource(const dx12::UploadBuffer& buffer, const unsigned int layoutIndex, const unsigned int parameterIndex = 0, const unsigned int rangeIndex = 0);
-        const dx12::DescriptorHandle setResource(const dx12::UploadBuffer& buffer, const uint64_t sizeInBytes, const unsigned int offsetInBytes,
-                                                 const unsigned int layoutIndex, const unsigned int parameterIndex = 0, const unsigned int rangeIndex = 0);
-
+/*
         // Set a buffer at the specified layoutIndex, parameterIndex and rangeIndex.
         const dx12::DescriptorHandle setResource(const dx12::ByteAddressBuffer& buffer, const unsigned int layoutIndex, const unsigned int parameterIndex = 0, const unsigned int rangeIndex = 0);
         const dx12::DescriptorHandle setResource(const dx12::ByteAddressBuffer& buffer, const uint64_t sizeInBytes, const unsigned int offsetInBytes,
             const unsigned int layoutIndex, const unsigned int parameterIndex = 0, const unsigned int rangeIndex = 0);
 
         // Set a texture at the specified layoutIndex, parameterIndex and rangeIndex.
-        const dx12::DescriptorHandle setResource(const dx12::GPUTexture& texture, const dx12::GPUTexture::ShaderResourceViewInfo& viewInfo,
+        const dx12::DescriptorHandle setResource(const dx12::Texture& texture, const dx12::Texture::ShaderResourceViewInfo& viewInfo,
             const unsigned int layoutIndex, const unsigned int parameterIndex = 0, const unsigned int rangeIndex = 0);
-        const dx12::DescriptorHandle setResource(const dx12::GPUTexture& texture, const dx12::GPUTexture::UnorderedAccessViewInfo& viewInfo,
+        const dx12::DescriptorHandle setResource(const dx12::Texture& texture, const dx12::Texture::UnorderedAccessViewInfo& viewInfo,
                                                  const unsigned int layoutIndex, const unsigned int parameterIndex = 0, const unsigned int rangeIndex = 0);
+*/
         // Copies descriptors from CPU to GPU and sets descriptor heaps.
         void finalize();
 
