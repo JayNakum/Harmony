@@ -7,18 +7,8 @@ namespace engine
     Renderer::Renderer(const HWND windowHandle)
         : mDevice(),
         mGraphicsQueue(mDevice, {"global graphics queue", graphics::CommandListType::Direct}),
+        mResourceManager(mDevice),
         mCommandContextPool(),
-        mShaderViewsHeap(mDevice),
-        mRTVDescriptorHeapCPU(
-            mDevice,
-            {
-                "cpu visible render target view descriptor heap",
-                graphics::DescriptorHeapType::RenderTarget,
-                MAX_RENDERTARGETS_COUNT,
-                graphics::DescriptorHeapFlags::CPUVisible
-            }
-        ),
-        mSwapchainRTVPage(mRTVDescriptorHeapCPU.allocatePage()),
         mSwapchain(
             mDevice, mGraphicsQueue,
             {
@@ -26,9 +16,9 @@ namespace engine
                 windowHandle
             },
             {
-                mSwapchainRTVPage.allocate(1),
-                mSwapchainRTVPage.allocate(1),
-                mSwapchainRTVPage.allocate(1)
+                mResourceManager.allocateDescriptors(1, graphics::DescriptorHeapWithAllocator::Category::RenderTargetCPU),
+                mResourceManager.allocateDescriptors(1, graphics::DescriptorHeapWithAllocator::Category::RenderTargetCPU),
+                mResourceManager.allocateDescriptors(1, graphics::DescriptorHeapWithAllocator::Category::RenderTargetCPU)
             }
         ),
         mClientWidth(0), mClientHeight(0)
@@ -57,7 +47,14 @@ namespace engine
 
         mGraphicsQueue.waitForFence(mGraphicsQueue.incrementFence());
 
-        mSwapchain.resize(mDevice, width, height, { mSwapchainRTVPage.allocate(1), mSwapchainRTVPage.allocate(1), mSwapchainRTVPage.allocate(1) });
+        mSwapchain.resize(
+            mDevice, width, height,
+            {
+                mResourceManager.allocateDescriptors(1, graphics::DescriptorHeapWithAllocator::Category::RenderTargetCPU),
+                mResourceManager.allocateDescriptors(1, graphics::DescriptorHeapWithAllocator::Category::RenderTargetCPU),
+                mResourceManager.allocateDescriptors(1, graphics::DescriptorHeapWithAllocator::Category::RenderTargetCPU)
+            }
+        );
     }
 
     void Renderer::render(const FrameConstants frame)

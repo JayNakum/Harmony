@@ -2,82 +2,139 @@
 
 #include "common.h"
 #include "Log.h"
-#include "memory/RingAllocator.h"
+
+#include "dx12/Device.h"
 
 #include "dx12/DescriptorHeap.h"
 
+#include "memory/RingAllocator.h"
+#include "memory/LinearAllocator.h"
+
 namespace graphics
 {
-    /*
-    * DescriptorHeap with a ring allocator.
-    * It starts overwriting descriptors from beginning once the heap is full.
-    */
-    class DescriptorHeapWithAllocator : public dx12::DescriptorHeap
+    class DescriptorHeapWithAllocator
     {
-        static constexpr size_t PAGE_SIZE = 128;
+    public:
+        enum Category
+        {
+            StaticGPU,
+            DynamicCPU,
+            DynamicGPU,
+            RenderTargetCPU,
+
+            COUNT
+        };
 
     public:
-        // Creates a DescriptorHeap and resets the allocation pointers.
-        DescriptorHeapWithAllocator(dx12::Device& device, const Description& createDescription);
+        DescriptorHeapWithAllocator(dx12::Device& device);
 
-        class Page
+        dx12::DescriptorHandle allocate(const Category category = Category::DynamicCPU, const size_t count = 1);
+
+        // Batched copy of descriptors into this heap from one or more source ranges.
+        void copyDescriptorsFrom(dx12::Device& device, const dx12::DescriptorHandle& destStart,
+                                 const std::vector<dx12::DescriptorHandle>& srcStarts,
+                                 const std::vector<unsigned int>& srcCounts,
+                                 const Category category = Category::DynamicCPU);
+
+        inline dx12::DescriptorHeap& getDescriptorHeap(const Category category)
+        {
+            switch (category)
+            {
+            default:
+                HASSERT_SOFT(false, "Invalid category(%d) for descriptor heap. Using ShaderViewsDescriptorHeap.", category);
+            case Category::DynamicCPU:
+                return mShaderViewsDescriptorHeapCPU;
+            case Category::StaticGPU:
+            case Category::DynamicGPU:
+                return mShaderViewsDescriptorHeapGPU;
+            case Category::RenderTargetCPU:
+                return mRenderTargetViewsDescriptorHeap;
+            }
+        }
+
+    private:
+        dx12::Device& mDevice;
+
+    private:
+        class DescriptorAllocator
         {
         public:
-            Page(dx12::DescriptorHandle starthandle, const size_t descriptorSize, const size_t pageSize);
+            static constexpr size_t MEMORY_BUDGET[Category::COUNT] = {
+                memory::MB(1), // Category::Static
+                memory::MB(1), // Category::DynamicCPU
+                memory::MB(1), // Category::DynamicGPU
+                memory::MB(1) // Category::RenderTargets
+            };
 
-            inline const memory::RingAllocator getAllocator() const { return mAllocator; }
-            inline dx12::DescriptorHandle getStartHandle() const { return mStartHandle; }
-            inline dx12::DescriptorHandle getStartHandle() { return mStartHandle; }
+            DescriptorAllocator()
+                : mSections(memory::MB(2)),
+                mStaticDescriptors(MEMORY_BUDGET[Category::StaticGPU], mSections.allocate(MEMORY_BUDGET[Category::StaticGPU])),
+                mDynamicDescriptorsCPU(MEMORY_BUDGET[Category::DynamicCPU]),
+                mDynamicDescriptorsGPU(MEMORY_BUDGET[Category::DynamicGPU], mSections.allocate(MEMORY_BUDGET[Category::DynamicGPU])),
+                mRenderTargetDescriptors(MEMORY_BUDGET[Category::RenderTargetCPU])
+            {}
 
-            // Calculates the page offset of the handle.
-            inline const uint32_t getOffsetOfHandle(const dx12::DescriptorHandle& dHandle) const
+            inline const size_t allocate(const Category section, const size_t sizeInBytes)
             {
-                return (uint32_t)(getByteOffsetOfHandle(dHandle) / mDescriptorSize);
-            }
+                std::lock_guard<std::mutex> scopedLockGuard(mMutex[section]);
 
-            // Calculates the page offset of the handle.
-            inline const uint32_t getByteOffsetOfHandle(const dx12::DescriptorHandle& dHandle) const
-            {
-                return (uint32_t)((dHandle.getCPUPtr() - mStartHandle.getCPUPtr()));
-            }
-
-            // Creates space for count number of descriptors inside the heap. Using ring allocation.
-            // Returns the handle that points to the start of the allocation.
-            // The handle will then be used for actual allocation.
-            dx12::DescriptorHandle allocate(const size_t count = 1);
-
-            // Sets the allocation handle at start and numFreeDescriptors to maxDescriptors.
-            // It doesn't invalidate descriptors.
-            void reset();
-
-            Page(const Page& copy)
-                : mDescriptorSize(copy.mDescriptorSize), mStartHandle(copy.mStartHandle), mAllocator(copy.mAllocator) {}
-
-            inline void operator=(const Page& rhs)
-            {
-                HASSERT(mAllocator.getTotalSize() == rhs.mAllocator.getTotalSize(), "Invalid page copy operation.");
-                if (this != &rhs)
+                switch (section)
                 {
-                    mStartHandle = rhs.mStartHandle;
-                    mAllocator = rhs.mAllocator;
+                default:
+                    HASSERT_SOFT(false, "Invalid section(%d) for descriptor allocation. Using DynamicCPU section.", section);
+                case Category::DynamicCPU:
+                    return mDynamicDescriptorsCPU.allocate(sizeInBytes);
+                case Category::StaticGPU:
+                    return mStaticDescriptors.allocate(sizeInBytes);
+                case Category::DynamicGPU:
+                    return mDynamicDescriptorsGPU.allocate(sizeInBytes);
+                case Category::RenderTargetCPU:
+                    return mRenderTargetDescriptors.allocate(sizeInBytes);
                 }
             }
 
-            ~Page();
+            inline void reset(const Category section)
+            {
+                std::lock_guard<std::mutex> scopedLockGuard(mMutex[section]);
+
+                switch (section)
+                {
+                default:
+                    HASSERT(false, "Invalid section(%d) for descriptor allocation.", section);
+                case Category::DynamicCPU:
+                    mDynamicDescriptorsCPU.reset();
+                    break;
+                case Category::StaticGPU:
+                    mStaticDescriptors.reset();
+                    break;
+                case Category::DynamicGPU:
+                    mDynamicDescriptorsGPU.reset();
+                    break;
+                case Category::RenderTargetCPU:
+                    mRenderTargetDescriptors.reset();
+                    break;
+                }
+            }
+
+            ~DescriptorAllocator() = default;
 
         private:
-            const size_t mDescriptorSize;
-            dx12::DescriptorHandle mStartHandle;
-            memory::RingAllocator mAllocator;
+            memory::LinearAllocator mSections;
+            memory::LinearAllocator mStaticDescriptors;
+            memory::RingAllocator mDynamicDescriptorsGPU;
+
+            memory::RingAllocator mDynamicDescriptorsCPU;
+
+            memory::RingAllocator mRenderTargetDescriptors;
+
+            std::mutex mMutex[Category::COUNT];
         };
 
-        Page allocatePage();
-
-        // Resets the allocation pointers.
-        ~DescriptorHeapWithAllocator();
+        DescriptorAllocator mAllocator;
 
     private:
-        memory::RingAllocator mAllocator;
-        std::mutex mHeapMutex;
+        dx12::DescriptorHeap mShaderViewsDescriptorHeapCPU;
+        dx12::DescriptorHeap mShaderViewsDescriptorHeapGPU;
+        dx12::DescriptorHeap mRenderTargetViewsDescriptorHeap;
     };
 }

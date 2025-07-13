@@ -37,9 +37,7 @@ namespace graphics
     {
     protected:
         // Command context is only ever meant to be created, initialized or reset via the Context Manager
-        CommandContext(const CommandListType type, dx12::Device& device,
-            DynamicDescriptorHeap& shaderViewsDescriptorHeap,
-            DescriptorHeapWithAllocator& renderTargetViewsDescriptorHeap);
+        CommandContext(const CommandListType type, dx12::Device& device);
 
     public:
         void setName(const std::string& name);
@@ -51,9 +49,6 @@ namespace graphics
 
         inline const dx12::Device& getDevice() const { return mDevice; }
         inline dx12::Device& getDevice() { return mDevice; }
-
-        inline const size_t getDescriptorSize() const { return mRenderTargetViewsHeapCPU.getDescriptorSize(); }
-        const dx12::DescriptorHandle allocateDescriptors(const DescriptorHeapType type, const unsigned int count = 1);
 
         void transitionResource(dx12::GPUResource& resource, const GPUResourceStates newState, const bool flushImmediate = false);
 
@@ -74,10 +69,7 @@ namespace graphics
 
         void setPredication(dx12::GPUResource& buffer, const size_t bufferOffset, bool equalZero);
 
-        const void copyDescriptorsSimple(const dx12::DescriptorHandle& source, const dx12::DescriptorHandle& destination, unsigned int count = 1, const DescriptorHeapType type = DescriptorHeapType::ShaderViews);
-
-        const dx12::DescriptorHandle copyDescriptorsToGPU(const dx12::DescriptorHandle& allocationStart, const unsigned int descriptorsCount = 1);
-        void bindDescriptorHeaps();
+        void bindDescriptorHeap(const dx12::DescriptorHeap& heap);
 
         // flush existing commands to the GPU and keep the context alive
         void finish(const uint64_t completedFenceValue);
@@ -89,11 +81,6 @@ namespace graphics
     private:
         std::string mName;
         dx12::Device& mDevice;
-        DynamicDescriptorHeap& mShaderViewsHeap;
-        DescriptorHeapWithAllocator::Page mShaderViewsHeapCPUPage;
-
-        DescriptorHeapWithAllocator& mRenderTargetViewsHeapCPU;
-        DescriptorHeapWithAllocator::Page mRenderTargetViewsHeapCPUPage;
 
     protected:
         CommandAllocatorPool mCommandAllocatorPool;
@@ -118,9 +105,7 @@ namespace graphics
     class GraphicContext : public CommandContext
     {
     public:
-        GraphicContext(dx12::Device& device,
-            DynamicDescriptorHeap& shaderViewsDescriptorHeap,
-            DescriptorHeapWithAllocator& renderTargetViewsDescriptorHeap);
+        GraphicContext(dx12::Device& device);
 
         static const dx12::Blob compileShader(const char* shaderName, const char* shaderCode, const char* targetProfile, const char* entryPoint = "main");
 

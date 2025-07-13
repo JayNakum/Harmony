@@ -44,7 +44,7 @@ namespace graphics
             dx12::Device& device,
             const dx12::DescriptorHandle& destStart,
             const std::vector<dx12::DescriptorHandle>& srcStarts,
-            const std::vector<unsigned int>& srcCounts) const
+            const std::vector<unsigned int>& srcCounts)
         {
             HASSERT(srcStarts.size() == srcCounts.size(), "Mismatched srcStarts and srcCounts size");
 

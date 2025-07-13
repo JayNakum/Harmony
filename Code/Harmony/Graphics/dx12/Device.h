@@ -4,6 +4,8 @@
 #include "Log.h"
 #include "directx.h"
 
+#include "DescriptorHeapEnums.h"
+
 namespace graphics
 {
     namespace dx12
@@ -40,6 +42,8 @@ namespace graphics
             inline const bool isDeviceIntel() { return Device::getVendorIdFromDevice(*this) == vendorID_Intel; }
 
             inline const bool isGPUUploadHeapSupported() const { return mSupportsGPUUploadHeap; }
+
+            const size_t getDescriptorHandleIncrementSize(const DescriptorHeapType type) const;
 
             // Returns the raw pointer of D3D12Device.
             inline const ID3D12Device* operator->() const { return mDevice.Get(); }

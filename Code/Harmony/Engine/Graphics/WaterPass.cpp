@@ -220,7 +220,7 @@ namespace engine
 {
     namespace renderPass
     {
-        Water::Water(graphics::GraphicContext& context)
+        Water::Water(graphics::dx12::Device& device)
             : mRTDescription{
                 "water render target",
                 0, 0,
@@ -230,7 +230,7 @@ namespace engine
                 graphics::GPUResourceFlags::AllowRenderTarget,
             },
             mRenderTarget(nullptr),
-            mWaterPSO(initialize(context)),
+            mWaterPSO(createPSO(device)),
             mPassCB(nullptr),
             mWaterParamsCB(nullptr),
             mWaterRI(nullptr)
@@ -437,7 +437,7 @@ namespace engine
             waterSI.setResource(*mWaterParamsCB, paramsLayoutIndex);
         }
 
-        graphics::dx12::GraphicsPipelineState Water::initialize(graphics::GraphicContext& context)
+        graphics::dx12::GraphicsPipelineState Water::createPSO(graphics::dx12::Device& device)
         {
             const graphics::ShaderInput::Constants frameConstants
             {

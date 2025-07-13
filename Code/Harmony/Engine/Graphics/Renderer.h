@@ -5,13 +5,11 @@
 
 #include "dx12/Device.h"
 #include "dx12/CommandQueue.h"
-
 #include "dx12/Swapchain.h"
 
 #include "CommandContext.h"
 #include "CommandContextPool.h"
-#include "DescriptorHeapWithAllocator.h"
-#include "DynamicDescriptorHeap.h"
+#include "ResourceManager.h"
 
 #include "CommonConstants.h"
 
@@ -25,16 +23,15 @@ namespace engine
 {
     class Renderer
     {
-        static constexpr size_t MAX_RENDERTARGETS_COUNT = 128;
-
     public:
         Renderer(const HWND windowHandle);
 
         inline graphics::GraphicContext& aquireGraphicContext(const std::string& name)
         {
-            graphics::GraphicContext& context = mCommandContextPool.requestGraphicContext(mDevice, mShaderViewsHeap, mRTVDescriptorHeapCPU);
+            graphics::GraphicContext& context = mCommandContextPool.requestGraphicContext(mDevice);
             context.setName(name);
             context.reset(mGraphicsQueue.incrementFence());
+            context.bindDescriptorHeap(mResourceManager.getDescriptorHeap(graphics::DescriptorHeapWithAllocator::Category::DynamicGPU));
             return context;
         }
 
@@ -52,13 +49,9 @@ namespace engine
     private:
         graphics::dx12::Device mDevice;
         graphics::dx12::CommandQueue mGraphicsQueue;
+        ResourceManager mResourceManager;
 
         graphics::CommandContextPool mCommandContextPool;
-
-        graphics::DynamicDescriptorHeap mShaderViewsHeap;
-
-        graphics::DescriptorHeapWithAllocator mRTVDescriptorHeapCPU;
-        graphics::DescriptorHeapWithAllocator::Page mSwapchainRTVPage;
 
         graphics::dx12::Swapchain mSwapchain;
         unsigned int mClientWidth, mClientHeight;

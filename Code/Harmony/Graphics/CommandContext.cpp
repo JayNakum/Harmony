@@ -5,13 +5,9 @@
 
 namespace graphics
 {
-    CommandContext::CommandContext(const CommandListType type, dx12::Device& device, DynamicDescriptorHeap& shaderViewsDescriptorHeap, DescriptorHeapWithAllocator& renderTargetViewsCPUDescriptorHeap)
+    CommandContext::CommandContext(const CommandListType type, dx12::Device& device)
         : CommandObject(type),
         mDevice(device),
-        mShaderViewsHeap(shaderViewsDescriptorHeap),
-        mShaderViewsHeapCPUPage(mShaderViewsHeap.allocatePage()),
-        mRenderTargetViewsHeapCPU(renderTargetViewsCPUDescriptorHeap),
-        mRenderTargetViewsHeapCPUPage(mRenderTargetViewsHeapCPU.allocatePage()),
         mCommandAllocatorPool(mType),
         mCurrentCommandAllocator(&mCommandAllocatorPool.requestCommandAllocator(mDevice, 0)),
         mCmdListDesc{ toString(mType) + " commandList", mType, *mCurrentCommandAllocator },
@@ -31,22 +27,6 @@ namespace graphics
     {
         mCurrentCommandAllocator = &mCommandAllocatorPool.requestCommandAllocator(mDevice, completedFence);
         mCommandList->Reset(mCurrentCommandAllocator->get(), nullptr);
-    }
-
-    const dx12::DescriptorHandle CommandContext::allocateDescriptors(const DescriptorHeapType type, const unsigned int count)
-    {
-        switch (type)
-        {
-        default:
-            HASSERT(false, "Unsupported descriptor heap type.");
-            return dx12::DescriptorHandle();
-
-        case DescriptorHeapType::ShaderViews:
-            return mShaderViewsHeapCPUPage.allocate(count);
-
-        case DescriptorHeapType::RenderTarget:
-            return mRenderTargetViewsHeapCPUPage.allocate(count);
-        }
     }
 
     void CommandContext::transitionResource(dx12::GPUResource& resource, const GPUResourceStates newState, const bool flushImmediate)
@@ -120,25 +100,10 @@ namespace graphics
             equalZero ? D3D12_PREDICATION_OP_EQUAL_ZERO : D3D12_PREDICATION_OP_NOT_EQUAL_ZERO);
     }
 
-    const void CommandContext::copyDescriptorsSimple(const dx12::DescriptorHandle& source, const dx12::DescriptorHandle& destination, unsigned int count, const DescriptorHeapType type)
+    void CommandContext::bindDescriptorHeap(const dx12::DescriptorHeap& heap)
     {
-        mDevice->CopyDescriptorsSimple(
-            count,
-            destination,
-            source,
-            dx12::toD3DDescriptorHeapType(type)
-        );
-    }
-
-    const dx12::DescriptorHandle CommandContext::copyDescriptorsToGPU(const dx12::DescriptorHandle& allocationStart, const unsigned int descriptorsCount)
-    {
-        return mShaderViewsHeap.finalize(allocationStart, descriptorsCount);
-    }
-
-    void CommandContext::bindDescriptorHeaps()
-    {
-        ID3D12DescriptorHeap* heap = mShaderViewsHeap.getGPUHeap().get();
-        mCommandList->SetDescriptorHeaps(1, &heap);
+        ID3D12DescriptorHeap* d3dHeap = heap.get();
+        mCommandList->SetDescriptorHeaps(1, &d3dHeap);
     }
 
     void CommandContext::finish(const uint64_t completedFenceValue)
@@ -157,10 +122,8 @@ namespace graphics
 
 namespace graphics
 {
-    GraphicContext::GraphicContext(dx12::Device& device,
-        DynamicDescriptorHeap& shaderViewsDescriptorHeap,
-        DescriptorHeapWithAllocator& renderTargetViewsCPUDescriptorHeap)
-        : CommandContext(CommandListType::Direct, device, shaderViewsDescriptorHeap, renderTargetViewsCPUDescriptorHeap) {}
+    GraphicContext::GraphicContext(dx12::Device& device)
+        : CommandContext(CommandListType::Direct, device) {}
 
     const dx12::Blob GraphicContext::compileShader(const char* shaderName, const char* shaderCode, const char* targetProfile, const char* entryPoint)
     {

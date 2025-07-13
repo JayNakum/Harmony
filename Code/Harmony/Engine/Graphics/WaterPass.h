@@ -27,7 +27,7 @@ namespace engine
                 graphics::dx12::Texture& outputRender;
             };
 
-            Water(graphics::GraphicContext& context);
+            Water(graphics::dx12::Device& device);
 
             void freeUploadResources();
 
@@ -80,7 +80,7 @@ namespace engine
             void setWaterParams(graphics::GraphicContext& context, graphics::ShaderInput& waterSI, const FrameConstants& frame, const unsigned int paramsLayoutIndex);
 
         private:
-            graphics::dx12::GraphicsPipelineState initialize(graphics::GraphicContext& context);
+            graphics::dx12::GraphicsPipelineState createPSO(graphics::dx12::Device& device);
 
             void prepareRenderItem(graphics::GraphicContext& context);
 

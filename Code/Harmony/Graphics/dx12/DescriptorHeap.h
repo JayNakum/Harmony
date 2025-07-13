@@ -48,7 +48,7 @@ namespace graphics
             // Batched copy of descriptors into this heap from one or more source ranges.
             void copyDescriptorsFrom(dx12::Device& device, const dx12::DescriptorHandle& destStart,
                                      const std::vector<dx12::DescriptorHandle>& srcStarts,
-                                     const std::vector<unsigned int>& srcCounts) const;
+                                     const std::vector<unsigned int>& srcCounts);
 
             // Checks for three conditions.
             // - Whether the handle falls inside the range between firstHandle and heapSize

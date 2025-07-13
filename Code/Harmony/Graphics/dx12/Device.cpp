@@ -1,5 +1,7 @@
 #include "Device.h"
 
+#include "types/DescriptorHeapType.h"
+
 namespace graphics
 {
     using namespace Microsoft::WRL;
@@ -256,6 +258,11 @@ namespace graphics
             }
 
             return 0;
+        }
+
+        const size_t Device::getDescriptorHandleIncrementSize(const DescriptorHeapType type) const
+        {
+            return mDevice->GetDescriptorHandleIncrementSize(toD3DDescriptorHeapType(type));
         }
 
         void Device::checkFeaturesSupport()

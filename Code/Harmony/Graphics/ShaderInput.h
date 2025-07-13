@@ -13,15 +13,57 @@
 
 namespace graphics
 {
-    /*
-    * A management system for shader inputs.
-    * The class handles multiple things at a time.
-    * - Creation and binding of root signature
-    * - Allocation of descriptors.
-    * - Management and binding of dynamic descriptor heap.
-    *
-    * Everything is initialized form a single shader input layout passed in constructor.
-    */
+    class ResourceTable
+    {
+    public:
+        // Descriptor Table Entry
+        struct Range
+        {
+            const DescriptorRangeType type;
+            const unsigned int count = 1;
+        };
+
+        // Descriptor Table
+        struct Layout
+        {
+            const ShaderVisibility shaderVisibility;
+            const std::vector<Range> ranges;
+        };
+
+        ResourceTable(const Layout& layout, dx12::DescriptorHandle allocationStart);
+
+        inline const Layout& getLayout() const { return mLayout; }
+        inline const dx12::DescriptorHandle& getHandleStart() const { return mDescriptors; }
+        inline const unsigned int getHandlesCount() const { return mDescriptorsCount; }
+
+        // Set a buffer at the specified layoutIndex, parameterIndex and rangeIndex.
+        const dx12::DescriptorHandle& setResource(dx12::Device& device, const dx12::ByteAddressBuffer& buffer,
+                                                  const unsigned int row = 0, const unsigned int column = 0);
+
+        const dx12::DescriptorHandle& setResource(dx12::Device& device, const dx12::ByteAddressBuffer& buffer,
+                                                  const uint64_t sizeInBytes, const unsigned int offsetInBytes,
+                                                  const unsigned int row = 0, const unsigned int column = 0);
+
+        // Set a texture at the specified layoutIndex, parameterIndex and rangeIndex.
+        const dx12::DescriptorHandle& setResource(dx12::Device& device, const dx12::Texture& texture,
+                                                  const dx12::Texture::ShaderResourceViewInfo& viewInfo,
+                                                  const unsigned int row = 0, const unsigned int column = 0);
+
+        const dx12::DescriptorHandle& setResource(dx12::Device& device, const dx12::Texture& texture,
+                                                  const dx12::Texture::UnorderedAccessViewInfo& viewInfo,
+                                                  const unsigned int row = 0, const unsigned int column = 0);
+
+        void copyDescriptorsFrom(dx12::Device& device, const ResourceTable& table);
+
+    private:
+        const unsigned int getDescriptorOffsetAt(const unsigned int row, const unsigned int column) const;
+
+    private:
+        const Layout mLayout;
+        dx12::DescriptorHandle mDescriptors;
+        unsigned int mDescriptorsCount;
+    };
+
     class ShaderInput
     {
     public:
@@ -33,75 +75,35 @@ namespace graphics
 
         using RootConstants = std::vector<dx12::DWParam>;
 
-        // Descriptor Table Entry
-        struct Range
-        {
-            const DescriptorRangeType type;
-            const unsigned int count = 1;
-        };
-
-        // Descriptor Table
-        struct Parameter
-        {
-            const ShaderVisibility shaderVisibility;
-            const std::vector<Range> ranges;
-        };
-
         // Scoped shader inputs.
         // 32bit constants are expected at the top of root parameters
         // Layout is expected in order of shader registers.
-        ShaderInput(GraphicContext& context, const std::vector<Constants>& constantsLayout, const std::vector<Parameter>& parametersLayout);
+        ShaderInput(const std::vector<Constants>& constantsLayout, const std::vector<ResourceTable>& gpuResourceTables);
 
-        const dx12::RootSignature& getRootSignature() const { return mRootSignature; }
+        dx12::RootSignature& getRootSignature(dx12::Device& device);
 
-        const void setConstants(const RootConstants values, const unsigned int layoutIndex);
+        void setConstants(const RootConstants values, const unsigned int layoutIndex);
 
-        // Set a CPU descriptor handle at the specified layoutIndex, parameterIndex and rangeIndex.
-        const dx12::DescriptorHandle setResource(const dx12::DescriptorHandle& cpuHandle,
-            const unsigned int layoutIndex, const unsigned int parameterIndex = 0, const unsigned int rangeIndex = 0);
-/*
-        // Set a buffer at the specified layoutIndex, parameterIndex and rangeIndex.
-        const dx12::DescriptorHandle setResource(const dx12::ByteAddressBuffer& buffer, const unsigned int layoutIndex, const unsigned int parameterIndex = 0, const unsigned int rangeIndex = 0);
-        const dx12::DescriptorHandle setResource(const dx12::ByteAddressBuffer& buffer, const uint64_t sizeInBytes, const unsigned int offsetInBytes,
-            const unsigned int layoutIndex, const unsigned int parameterIndex = 0, const unsigned int rangeIndex = 0);
+        void updateResourceTable(dx12::Device& device, const ResourceTable& resourceTable, const unsigned int layoutIndex);
 
-        // Set a texture at the specified layoutIndex, parameterIndex and rangeIndex.
-        const dx12::DescriptorHandle setResource(const dx12::Texture& texture, const dx12::Texture::ShaderResourceViewInfo& viewInfo,
-            const unsigned int layoutIndex, const unsigned int parameterIndex = 0, const unsigned int rangeIndex = 0);
-        const dx12::DescriptorHandle setResource(const dx12::Texture& texture, const dx12::Texture::UnorderedAccessViewInfo& viewInfo,
-                                                 const unsigned int layoutIndex, const unsigned int parameterIndex = 0, const unsigned int rangeIndex = 0);
-*/
-        // Copies descriptors from CPU to GPU and sets descriptor heaps.
-        void finalize();
+        // Copies descriptors from CPU to GPU.
+        // Sets descriptor heaps and descriptor tables.
+        void finalize(GraphicContext& context);
 
         ~ShaderInput() = default;
 
         inline static void freeAllRootSignatures() { ShaderInput::msRootSignatures.clear(); }
 
     private:
-        static const std::array<dx12::StaticSampler, 6> getStaticSamplers();
-
         std::string createRootSignatureID();
 
-        // Creates the root signature and allocated descriptors in CPU heap.
-        dx12::RootSignature& initialize(const std::string& rootSignatureID);
-
-        const unsigned int getDescriptorTableOffsetAt(const unsigned int layoutIndex);
-        const unsigned int getDescriptorRangeOffsetAt(const unsigned int layoutIndex, const unsigned int parameterIndex);
-        dx12::DescriptorHandle getDescriptorHandleAt(const unsigned int layoutIndex, const unsigned int parameterIndex, const unsigned int rangeIndex);
+        static const std::array<dx12::StaticSampler, 6> getStaticSamplers();
 
     private:
-        GraphicContext& mContext;
-
-        dx12::DescriptorHandle mDescriptors;
-        unsigned int mDescriptorsCount;
-
         std::vector<RootConstants> mRootConstants;
 
-        const std::vector<Constants>& mConstantLayout;
-        const std::vector<Parameter>& mParametersLayout;
-
-        dx12::RootSignature& mRootSignature;
+        const std::vector<Constants>& mConstantsLayout;
+        std::vector<ResourceTable> mGPUResourceTables;
 
     private:
         static std::unordered_map<std::string, dx12::RootSignature> msRootSignatures;

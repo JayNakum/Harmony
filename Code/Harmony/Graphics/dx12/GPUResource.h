@@ -56,6 +56,18 @@ namespace graphics
 
             inline const Description getDescription() const { return mDescription; }
 
+            struct AllocationInfo
+            {
+                uint64_t sizeInBytes = 0;
+                uint64_t alignment = 0;
+            };
+            inline const AllocationInfo getAllocationInfo(Device& device) const
+            {
+                const D3D12_RESOURCE_DESC d3dDescription = GPUResource::toD3DResourceDesc(mDescription);
+                const D3D12_RESOURCE_ALLOCATION_INFO d3dAllocationInfo = device->GetResourceAllocationInfo(0, 1, &d3dDescription);
+                return AllocationInfo{ d3dAllocationInfo.SizeInBytes, d3dAllocationInfo.Alignment };
+            }
+
             // Create a committed resource.
             void createCommitted(Device& device, const HeapType heapType = HeapType::Default);
 
