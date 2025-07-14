@@ -17,10 +17,10 @@ namespace memory
     class SuballocationAllocator
     {
     private:
-        struct FreeBlock { size_t offset, size; };
+        struct FreeBlock { uint64_t offset; size_t size; };
 
     public:
-        SuballocationAllocator(const size_t totalSizeInBytes, const size_t offset = 0)
+        SuballocationAllocator(const size_t totalSizeInBytes, const uint64_t offset = 0)
             : mTotalSizeInBytes(totalSizeInBytes),
             mOffset(offset),
             mNextAllocationOffset(mOffset)
@@ -44,9 +44,9 @@ namespace memory
         }
 
         // Allocate using best fit strategy.
-        inline const size_t allocate(const size_t sizeInBytes)
+        inline const uint64_t allocate(const size_t sizeInBytes)
         {
-            size_t allocationOffset = 0x1deadb0b;
+            uint64_t allocationOffset = 0x1deadb0b;
 
             // Lazy Coalesce to get the best possible free list in one go if there has been multiple deallocations.
             coalesceFreeList();
@@ -82,7 +82,7 @@ namespace memory
             return allocationOffset;
         }
 
-        inline void deallocate(const size_t allocationOffset, const size_t sizeInBytes)
+        inline void deallocate(const uint64_t allocationOffset, const size_t sizeInBytes)
         {
             HASSERT_SOFT(sizeInBytes > 0, "Trying to free 0 bytes of memory. freeEmptyBlocks() will trim this block.");
 
@@ -161,8 +161,8 @@ namespace memory
 
     private:
         size_t mTotalSizeInBytes;
-        size_t mOffset;
-        size_t mNextAllocationOffset;
+        uint64_t mOffset;
+        uint64_t mNextAllocationOffset;
         std::vector<FreeBlock> mFreeList;
     };
 }

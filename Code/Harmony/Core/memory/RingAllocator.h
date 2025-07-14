@@ -16,7 +16,7 @@ namespace memory
     class RingAllocator
     {
     public:
-        RingAllocator(const size_t totalSizeInBytes, const size_t offset = 0)
+        RingAllocator(const size_t totalSizeInBytes, const uint64_t offset = 0)
             : mTotalSizeInBytes(totalSizeInBytes),
             mOffset(offset),
             mNextAllocationOffset(mOffset)
@@ -34,12 +34,12 @@ namespace memory
             return sizeInBytes <= getRemainingSize();
         }
 
-        inline const size_t allocate(const size_t sizeInBytes)
+        inline const uint64_t allocate(const size_t sizeInBytes)
         {
             const bool fitsInTail = canAllocate(sizeInBytes);
 
             const long long int fitMask = -(long long int)fitsInTail;
-            const size_t allocationOffset = (mNextAllocationOffset & fitMask) | (mOffset & ~fitMask);
+            const uint64_t allocationOffset = (mNextAllocationOffset & fitMask) | (mOffset & ~fitMask);
             mNextAllocationOffset = allocationOffset + sizeInBytes;
             return allocationOffset;
         }
@@ -67,7 +67,7 @@ namespace memory
 
     private:
         size_t mTotalSizeInBytes;
-        size_t mOffset;
-        size_t mNextAllocationOffset;
+        uint64_t mOffset;
+        uint64_t mNextAllocationOffset;
     };
 }

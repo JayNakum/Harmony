@@ -93,11 +93,10 @@ namespace graphics
 {
     std::unordered_map<std::string, dx12::RootSignature> ShaderInput::msRootSignatures;
 
-    ShaderInput::ShaderInput(const std::vector<Constants>& constantsLayout, const std::vector<ResourceTable>& gpuResourceTables)
+    ShaderInput::ShaderInput(const std::vector<Constants>& constantsLayout, const std::vector<ResourceTable::Layout>& gpuResourceTablesLayout)
         : mConstantsLayout(constantsLayout),
-        mGPUResourceTables(gpuResourceTables)
-    {
-    }
+        mGPUResourceTablesLayout(gpuResourceTablesLayout)
+    {}
 
     dx12::RootSignature& ShaderInput::getRootSignature(dx12::Device& device)
     {
@@ -111,7 +110,12 @@ namespace graphics
         dx12::RootSignature::Description createDescription;
         createDescription.name = rootSignatureID;
 
+        // Auto-assignment counters per descriptor type for shaderRegister
         unsigned int nextCBV = 0;
+        unsigned int nextSRV = 0;
+        unsigned int nextUAV = 0;
+        unsigned int nextSampler = 0;
+
         for (const Constants& constants : mConstantsLayout)
         {
             createDescription.rootParameters.emplace_back();
@@ -122,15 +126,8 @@ namespace graphics
             mRootConstants.push_back(param);
         }
 
-        // Auto-assignment counters per descriptor type for shaderRegister
-        unsigned int nextSRV = 0;
-        unsigned int nextUAV = 0;
-        unsigned int nextSampler = 0;
-
-        for (const ResourceTable& resourceTable : mGPUResourceTables)
+        for (const ResourceTable::Layout& parameter : mGPUResourceTablesLayout)
         {
-            const ResourceTable::Layout& parameter = resourceTable.getLayout();
-
             createDescription.rootParameters.emplace_back();
             dx12::RootParameter& rootParameter = createDescription.rootParameters.back();
 
@@ -161,12 +158,10 @@ namespace graphics
                 rootParameter.setTableRange(rangeIndex, range.type, shaderRegister, range.count);
             }
         }
+
         createDescription.staticSamplers = getStaticSamplers();
 
-        if (msRootSignatures.find(rootSignatureID) == msRootSignatures.end())
-        {
-            msRootSignatures.emplace(rootSignatureID, dx12::RootSignature(device, createDescription));
-        }
+        msRootSignatures.emplace(rootSignatureID, dx12::RootSignature(device, createDescription));
 
         return msRootSignatures.at(rootSignatureID);
     }
@@ -196,6 +191,7 @@ namespace graphics
         }
 
         // Finalize descriptor tables
+        HASSERT(mGPUResourceTablesLayout.size() == mGPUResourceTables.size(), "Mismatch in layout size (%d) and root parameters size (%s).", mGPUResourceTablesLayout.size(), mGPUResourceTables.size());
         for (const ResourceTable& table : mGPUResourceTables)
         {
             context.setDescriptorTable(rootIndex++, table.getHandleStart());
@@ -212,10 +208,8 @@ namespace graphics
             rootSignatureID += std::to_string(1);
         }
 
-        for (const ResourceTable& table : mGPUResourceTables)
+        for (const ResourceTable::Layout& parameter : mGPUResourceTablesLayout)
         {
-            const ResourceTable::Layout& parameter = table.getLayout();
-
             rootSignatureID += toString(parameter.shaderVisibility);
             for (const ResourceTable::Range& range : parameter.ranges)
             {

@@ -26,6 +26,7 @@ namespace graphics
             Transient,
             Constants,
             Mesh,
+            RenderTarget,
             Texture,
             Persistent,
 
@@ -35,11 +36,7 @@ namespace graphics
         struct ResourceDescription
         {
             ResourceCategory category;
-            union
-            {
-                dx12::Buffer::Description buffer;
-                dx12::Texture::Description texture;
-            };
+            dx12::GPUResource::Description resource;
         };
 
     public:
@@ -49,6 +46,11 @@ namespace graphics
         dx12::Texture createTexture(const ResourceDescription& createDescription);
         dx12::RenderTarget createRenderTarget(dx12::Texture& texture, const dx12::RenderTarget::Type type = dx12::RenderTarget::Type::Color);
         dx12::RenderTarget createRenderTarget(const ResourceDescription& createDescription, const dx12::RenderTarget::Type type = dx12::RenderTarget::Type::Color);
+
+        void deallocateBuffer(const dx12::ByteAddressBuffer& buffer, const ResourceCategory category);
+        void deallocateTexture(const dx12::Texture& texture, const ResourceCategory category);
+
+        ~HeapWithAllocator() = default;
 
     private:
         dx12::Device& mDevice;
@@ -62,7 +64,8 @@ namespace graphics
                 memory::MB(64), // Category::Constants
                 memory::MB(64), // Category::Transient
                 memory::MB(256), // Category::Mesh
-                memory::GB(1), // Category::Texture
+                memory::MB(128), // Category::RenderTarget
+                memory::MB(640), // Category::Texture
                 memory::MB(256) // Category::Persistent
             };
             // 128 MB for upload heap.
@@ -77,11 +80,12 @@ namespace graphics
                 mConstants(MEMORY_BUDGET[ResourceCategory::Constants], 256, mSections.allocate(MEMORY_BUDGET[ResourceCategory::Constants])),
                 mTransientData(MEMORY_BUDGET[ResourceCategory::Transient], mSections.allocate(MEMORY_BUDGET[ResourceCategory::Transient])),
                 mMesh(MEMORY_BUDGET[ResourceCategory::Mesh], 128, mSections.allocate(MEMORY_BUDGET[ResourceCategory::Mesh])),
+                mRenderTarget(MEMORY_BUDGET[ResourceCategory::RenderTarget], mSections.allocate(MEMORY_BUDGET[ResourceCategory::RenderTarget])),
                 mTexture(MEMORY_BUDGET[ResourceCategory::Texture], mSections.allocate(MEMORY_BUDGET[ResourceCategory::Texture])),
                 mPersistentData(MEMORY_BUDGET[ResourceCategory::Persistent], mSections.allocate(MEMORY_BUDGET[ResourceCategory::Persistent]))
             {}
 
-            inline const size_t allocate(const ResourceCategory category, const size_t sizeInBytes)
+            inline const uint64_t allocate(const ResourceCategory category, const size_t sizeInBytes)
             {
                 std::lock_guard<std::mutex> scopedLockGuard(mMutex[category]);
 
@@ -98,6 +102,8 @@ namespace graphics
                     return mTransientData.allocate(sizeInBytes);
                 case ResourceCategory::Mesh:
                     return mMesh.allocate(sizeInBytes);
+                case ResourceCategory::RenderTarget:
+                    return mRenderTarget.allocate(sizeInBytes);
                 case ResourceCategory::Texture:
                     return mTexture.allocate(sizeInBytes);
                 case ResourceCategory::Persistent:
@@ -105,7 +111,7 @@ namespace graphics
                 }
             }
 
-            inline void deallocate(const ResourceCategory category, const size_t allocationOffset, const size_t sizeInBytes)
+            inline void deallocate(const ResourceCategory category, const uint64_t allocationOffset, const size_t sizeInBytes)
             {
                 std::lock_guard<std::mutex> scopedLockGuard(mMutex[category]);
 
@@ -147,6 +153,9 @@ namespace graphics
                 case ResourceCategory::Mesh:
                     mMesh.reset();
                     break;
+                case ResourceCategory::RenderTarget:
+                    mRenderTarget.reset();
+                    break;
                 case ResourceCategory::Texture:
                     mTexture.reset();
                     break;
@@ -165,6 +174,7 @@ namespace graphics
             memory::BlockAllocator mConstants;
             memory::RingAllocator mTransientData;
             memory::BlockAllocator mMesh;
+            memory::RingAllocator mRenderTarget;
             memory::SuballocationAllocator mTexture;
             memory::LinearAllocator mPersistentData;
 

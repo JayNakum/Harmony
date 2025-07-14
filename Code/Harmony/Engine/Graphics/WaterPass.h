@@ -5,7 +5,7 @@
 
 #include "CommandContext.h"
 #include "ShaderInput.h"
-
+#include "ResourceManager.h"
 #include "CommonConstants.h"
 #include "RenderItem.h"
 
@@ -19,7 +19,6 @@ namespace engine
             struct Inputs
             {
                 FrameConstants frame;
-                unsigned int width, height;
             };
 
             struct Outputs
@@ -27,11 +26,15 @@ namespace engine
                 graphics::dx12::Texture& outputRender;
             };
 
-            Water(graphics::dx12::Device& device);
+            Water(graphics::dx12::Device& device, ResourceManager& resourceManager);
+            void copyDataToGPU(graphics::GraphicContext& context, ResourceManager& resourceManager);
+            void freeGPUUploadData(ResourceManager& resourceManager);
 
-            void freeUploadResources();
+            void resize(const unsigned int width, const unsigned int height, graphics::dx12::Device& device, ResourceManager& resourceManager);
+            void update();
 
-            Outputs render(graphics::GraphicContext& context, Inputs& passInputs);
+            void getInputOutputs(graphics::GraphicContext& context, ResourceManager& resourceManager);
+            void render(graphics::GraphicContext& context, FrameConstants& frameConstants);
 
             ~Water();
 
@@ -50,30 +53,13 @@ namespace engine
                 const uint32_t _waveParamsPadding0 = 0x1deadb0b;
             };
 
-            struct WhirlpoolParams
-            {
-                vec2f center = vec2f(0.0f);
-                float swirlRadius = 0.0f;
-                float wrappedSwirlAngle = 0.0f;
-
-                float sinkRadius = 0.0f;
-                float sinkDepth = 0.0f;
-                const uint32_t _whirlpoolParamsPaddingFinal[2] = { 0x1deadb0b, 0x1deadb0b };
-            };
-            double mCurrentSwirlAngle = 0.0;
-
-            struct alignas(256) WaterParams
+            struct WaterParams
             {
                 static constexpr unsigned int NUM_WAVES = 3;
                 WaveParams waveParams[NUM_WAVES];
-
-                static constexpr unsigned int NUM_WHIRLPOOLS = 1;
-                WhirlpoolParams whirlpoolParams[NUM_WHIRLPOOLS];
-
                 float wavesMaxHeight = 0.0f;
-                const uint32_t _waterParamsPadding0 = 0x1deadb0b;
-                const uint32_t _waterParamsPadding1 = 0x1deadb0b;
-                const uint32_t _waterParamsPadding2 = 0x1deadb0b;
+
+                const uint32_t _waveParamsPaddingFinal[231];
             };
             static_assert(sizeof(WaterParams) % 256 == 0, "Must be aligned");
 
@@ -85,18 +71,16 @@ namespace engine
             void prepareRenderItem(graphics::GraphicContext& context);
 
         private:
-            graphics::dx12::Texture::Description mRTDescription;
-            graphics::dx12::RenderTarget* mRenderTarget;
-            graphics::dx12::DescriptorHandle mRTV;
-
-            std::vector<graphics::ShaderInput::Constants> mConstantsLayout;
-            std::vector<graphics::ShaderInput::Parameter> mParametersLayout;
             graphics::dx12::GraphicsPipelineState mWaterPSO;
 
-            graphics::dx12::ByteAddressBuffer* mPassCB;
-            graphics::dx12::ByteAddressBuffer* mWaterParamsCB;
+            const graphics::ResourceTable::Layout mStaticShaderResourceTableLayout;
+            graphics::ShaderInput mWaterSI;
+            graphics::ResourceTable mShaderResources;
 
-            RenderItem* mWaterRI;
+            graphics::dx12::DescriptorHandle mRTV;
+            graphics::HeapWithAllocator::ResourceDescription mRenderTargetDescription;
+
+            RenderItem mWaterRI;
 
         private:
             PassConstants mPass;

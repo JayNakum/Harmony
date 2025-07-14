@@ -16,10 +16,13 @@ namespace engine
     public:
         ResourceManager(graphics::dx12::Device& device);
 
-        void createBuffer(const std::string bufferID, const graphics::HeapWithAllocator::ResourceDescription& createDescription);
-        void createTexture(const std::string textureID, const graphics::HeapWithAllocator::ResourceDescription& createDescription);
-        void createRenderTarget(const std::string renderTargetID, const std::string textureID, const graphics::dx12::RenderTarget::Type type = graphics::dx12::RenderTarget::Type::Color);
-        void createRenderTarget(const std::string renderTargetID, const graphics::HeapWithAllocator::ResourceDescription& createDescription, const graphics::dx12::RenderTarget::Type type = graphics::dx12::RenderTarget::Type::Color);
+        void createBuffer(const graphics::HeapWithAllocator::ResourceDescription& createDescription);
+        void createTexture(const graphics::HeapWithAllocator::ResourceDescription& createDescription);
+        void createRenderTarget(const std::string textureID, const graphics::dx12::RenderTarget::Type type = graphics::dx12::RenderTarget::Type::Color);
+        void createRenderTarget(const graphics::HeapWithAllocator::ResourceDescription& createDescription, const graphics::dx12::RenderTarget::Type type = graphics::dx12::RenderTarget::Type::Color);
+
+        void releaseBuffer(const std::string bufferID, const graphics::HeapWithAllocator::ResourceCategory category);
+        void releaseTexture(const std::string textureID, const graphics::HeapWithAllocator::ResourceCategory category);
 
         inline graphics::dx12::ByteAddressBuffer& getBuffer(const std::string id) { return mBuffers.at(id); }
         inline graphics::dx12::Texture& getTexture(const std::string id) { return mTextures.at(id); }

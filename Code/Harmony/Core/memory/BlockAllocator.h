@@ -16,10 +16,10 @@ namespace memory
         static constexpr unsigned int BLOCK_SIZE = 128;
 
     private:
-        struct FreeBlock { size_t offset, count; };
+        struct FreeBlock { uint64_t offset, count; };
 
     public:
-        BlockAllocator(const size_t totalSizeInBytes, const size_t blockSize = BLOCK_SIZE, const size_t offset = 0)
+        BlockAllocator(const size_t totalSizeInBytes, const size_t blockSize = BLOCK_SIZE, const uint64_t offset = 0)
             : mTotalSizeInBytes(((totalSizeInBytes + blockSize - 1) / blockSize)* blockSize),
             mBlockSize(blockSize),
             mOffset(offset),
@@ -47,11 +47,11 @@ namespace memory
         }
 
         // Allocate using first fit strategy.
-        inline const size_t allocate(const size_t sizeInBytes)
+        inline const uint64_t allocate(const size_t sizeInBytes)
         {
             HASSERT_SOFT((sizeInBytes % mBlockSize) == 0, "Invalid allocation size %d. Aligning up the size to match block size.", sizeInBytes);
 
-            size_t allocationOffset = 0x1deadb0b;
+            uint64_t allocationOffset = 0x1deadb0b;
 
             const size_t blocksToAllocate = (sizeInBytes + mBlockSize - 1) / mBlockSize;
 
@@ -89,7 +89,7 @@ namespace memory
         }
 
         // Deallocate and coalesce immediately.
-        inline void deallocate(const size_t allocationOffset, const size_t sizeInBytes)
+        inline void deallocate(const uint64_t allocationOffset, const size_t sizeInBytes)
         {
             const size_t blocksToFree = (sizeInBytes + mBlockSize - 1) / mBlockSize;
 
@@ -170,8 +170,8 @@ namespace memory
     private:
         size_t mTotalSizeInBytes;
         size_t mBlockSize;
-        size_t mOffset;
-        size_t mNextAllocationOffset;
+        uint64_t mOffset;
+        uint64_t mNextAllocationOffset;
         std::vector<FreeBlock> mFreeList;
     };
 }

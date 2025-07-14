@@ -74,7 +74,7 @@ namespace graphics
                 mRenderTargetDescriptors(MEMORY_BUDGET[Category::RenderTargetCPU])
             {}
 
-            inline const size_t allocate(const Category section, const size_t sizeInBytes)
+            inline const uint64_t allocate(const Category section, const size_t sizeInBytes)
             {
                 std::lock_guard<std::mutex> scopedLockGuard(mMutex[section]);
 

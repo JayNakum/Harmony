@@ -14,7 +14,7 @@ namespace memory
     class LinearAllocator
     {
     public:
-        LinearAllocator(const size_t totalSizeInBytes, const size_t offset = 0)
+        LinearAllocator(const size_t totalSizeInBytes, const uint64_t offset = 0)
             : mTotalSizeInBytes(totalSizeInBytes),
             mOffset(offset),
             mNextAllocationOffset(mOffset)
@@ -32,12 +32,12 @@ namespace memory
             return sizeInBytes <= getRemainingSize();
         }
 
-        inline const size_t allocate(const size_t sizeInBytes)
+        inline const uint64_t allocate(const size_t sizeInBytes)
         {
             HASSERT(canAllocate(sizeInBytes), "Allocator out of memory(%d). Trying to allocate %d. Remaining size = %d",
                     mTotalSizeInBytes, sizeInBytes, getRemainingSize());
 
-            size_t allocationOffset = mNextAllocationOffset;
+            uint64_t allocationOffset = mNextAllocationOffset;
             mNextAllocationOffset += sizeInBytes;
             return allocationOffset;
         }
@@ -65,7 +65,7 @@ namespace memory
 
     private:
         size_t mTotalSizeInBytes;
-        size_t mOffset;
-        size_t mNextAllocationOffset;
+        uint64_t mOffset;
+        uint64_t mNextAllocationOffset;
     };
 }

@@ -46,6 +46,7 @@ namespace graphics
             GPUResource(const Description& description)
                 : mResource(nullptr),
                 mDescription(description),
+                mHeapOffset(0),
                 mUsageState(description.initialState),
                 mTransitioningState(GPUResourceStates::Common) {}
 
@@ -73,6 +74,7 @@ namespace graphics
 
             // Sub-Allocate a buffer out of a pre-allocated heap.
             void createPlaced(Device& device, Heap& backingHeap, uint64_t heapOffset);
+            inline const uint64_t getHeapOffset() const { return mHeapOffset; }
 
             // Maps the ID3D12Resource and returns the memory pointer.
             void* map();
@@ -107,6 +109,7 @@ namespace graphics
         protected:
             Microsoft::WRL::ComPtr<ID3D12Resource> mResource;
             Description mDescription;
+            uint64_t mHeapOffset = 0;
             GPUResourceStates mUsageState;
             GPUResourceStates mTransitioningState;
         };

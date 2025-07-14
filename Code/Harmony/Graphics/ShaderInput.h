@@ -78,16 +78,18 @@ namespace graphics
         // Scoped shader inputs.
         // 32bit constants are expected at the top of root parameters
         // Layout is expected in order of shader registers.
-        ShaderInput(const std::vector<Constants>& constantsLayout, const std::vector<ResourceTable>& gpuResourceTables);
+        ShaderInput(const std::vector<Constants>& constantsLayout, const std::vector<ResourceTable::Layout>& gpuResourceTablesLayout);
 
         dx12::RootSignature& getRootSignature(dx12::Device& device);
 
         void setConstants(const RootConstants values, const unsigned int layoutIndex);
 
+        inline void setResourceTable(const ResourceTable& resourceTable)
+        {
+            mGPUResourceTables.push_back(resourceTable);
+        }
         void updateResourceTable(dx12::Device& device, const ResourceTable& resourceTable, const unsigned int layoutIndex);
 
-        // Copies descriptors from CPU to GPU.
-        // Sets descriptor heaps and descriptor tables.
         void finalize(GraphicContext& context);
 
         ~ShaderInput() = default;
@@ -103,6 +105,7 @@ namespace graphics
         std::vector<RootConstants> mRootConstants;
 
         const std::vector<Constants>& mConstantsLayout;
+        const std::vector<ResourceTable::Layout>& mGPUResourceTablesLayout;
         std::vector<ResourceTable> mGPUResourceTables;
 
     private:

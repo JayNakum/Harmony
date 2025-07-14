@@ -1,5 +1,8 @@
 #pragma once
 
+#include "common.h"
+#include "Log.h"
+
 #include "dx12/Buffer.h"
 #include "PipelineStateEnums.h"
 
@@ -18,11 +21,8 @@ namespace engine
     {
         std::string name;
 
-        graphics::dx12::ByteAddressBuffer* vertexBufferUploader = nullptr;
-        graphics::dx12::ByteAddressBuffer* vertexBuffer = nullptr;
-
-        graphics::dx12::ByteAddressBuffer* indexBufferUploader = nullptr;
-        graphics::dx12::ByteAddressBuffer* indexBuffer = nullptr;
+        graphics::dx12::Buffer* vertexBuffer = nullptr;
+        graphics::dx12::Buffer* indexBuffer = nullptr;
 
         unsigned int vertexByteStride = 0;
         bool is32BitIndices = false;
@@ -31,24 +31,20 @@ namespace engine
 
         inline const graphics::dx12::BufferView vertexBufferView() const
         {
+            HASSERT(vertexBuffer != nullptr, "Vertex buffer is not set for mesh geometry %s.", name);
             return vertexBuffer->vertexBufferView(vertexByteStride);
         }
 
         inline const graphics::dx12::BufferView indexBufferView() const
         {
+            HASSERT(indexBuffer != nullptr, "Index buffer is not set for mesh geometry %s.", name);
             return indexBuffer->indexBufferView(0, is32BitIndices);
-        }
-
-        inline void disposeUploaders()
-        {
-            delete vertexBufferUploader;
-            delete indexBufferUploader;
         }
     };
 
     struct RenderItem
     {
-        RenderItem(const MeshGeometry& _geometry, const mat4f _world = mat4f(), const graphics::PrimitiveTopology _primitiveTopology = graphics::PrimitiveTopology::TriangleList)
+        RenderItem(const MeshGeometry& _geometry = MeshGeometry(), const mat4f _world = mat4f(), const graphics::PrimitiveTopology _primitiveTopology = graphics::PrimitiveTopology::TriangleList)
             : geometry(_geometry), world(_world), primitiveTopology(_primitiveTopology) {}
 
         MeshGeometry geometry;

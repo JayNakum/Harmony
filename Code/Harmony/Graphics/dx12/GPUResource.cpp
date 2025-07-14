@@ -38,6 +38,7 @@ namespace graphics
 
         void GPUResource::createPlaced(Device& device, Heap& backingHeap, uint64_t heapOffset)
         {
+            mHeapOffset = heapOffset;
             D3D12_RESOURCE_DESC resourceDescription = GPUResource::toD3DResourceDesc(mDescription);
 
             const D3D12_CLEAR_VALUE clearValue{
