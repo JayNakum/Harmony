@@ -47,11 +47,11 @@ namespace graphics
             // Returns the current buffer index.
             inline const unsigned int getCurrentBackBufferIndex() const { return mSwapChain->GetCurrentBackBufferIndex(); }
 
-            inline RenderTarget& getBackBufferAt(const unsigned int i) { return mBackBuffers.at(i); }
+            inline Texture& getBackBufferAt(const unsigned int i) { return mBackBuffers.at(i); }
             inline DescriptorHandle getBackBufferViewAt(const unsigned int i) { return mRtvHandles.at(i); }
 
             // Returns the current render target.
-            inline RenderTarget& getCurrentBackBuffer() { return mBackBuffers[getCurrentBackBufferIndex()]; }
+            inline Texture& getCurrentBackBuffer() { return mBackBuffers[getCurrentBackBufferIndex()]; }
 
             // Returns the current render target.
             inline DescriptorHandle getCurrentBackBufferView() { return mRtvHandles[getCurrentBackBufferIndex()]; }
@@ -67,7 +67,7 @@ namespace graphics
         private:
             Microsoft::WRL::ComPtr<IDXGISwapChain3> mSwapChain;
             Texture::Description mRenderTargetDescription;
-            std::array<RenderTarget, BACK_BUFFER_COUNT> mBackBuffers;
+            std::array<Texture, BACK_BUFFER_COUNT> mBackBuffers;
             std::array<DescriptorHandle, BACK_BUFFER_COUNT> mRtvHandles;
 
             bool mTearingSupport;

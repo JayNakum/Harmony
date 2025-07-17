@@ -42,7 +42,7 @@ namespace engine
 
         void resize(const unsigned int width, const unsigned int height);
 
-        void update(const FrameConstants frame);
+        void update(const double timeStep);
 
         void render(const FrameConstants frame);
 

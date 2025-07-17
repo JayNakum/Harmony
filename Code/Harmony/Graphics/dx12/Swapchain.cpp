@@ -9,7 +9,7 @@ namespace graphics
         Swapchain::Swapchain(Device& device, CommandQueue& queue, const Description& createDescription, std::array<DescriptorHandle, BACK_BUFFER_COUNT> rtvHandles)
             : mSwapChain(nullptr),
             mRenderTargetDescription {
-                "swapchain back buffer",
+                "Swapchain_BackBuffer",
                 createDescription.width,
                 createDescription.height,
                 1, 1,
@@ -18,9 +18,9 @@ namespace graphics
                 GPUResourceFlags::AllowRenderTarget
             },
             mBackBuffers{
-                RenderTarget(RenderTarget::Type::Color, mRenderTargetDescription),
-                RenderTarget(RenderTarget::Type::Color, mRenderTargetDescription),
-                RenderTarget(RenderTarget::Type::Color, mRenderTargetDescription)
+                Texture(mRenderTargetDescription),
+                Texture(mRenderTargetDescription),
+                Texture(mRenderTargetDescription)
             },
             mRtvHandles(rtvHandles),
             mTearingSupport(false), mHDRSupport(false)
@@ -78,7 +78,7 @@ namespace graphics
             // Reset the render target texture.
             for (size_t i = 0; i < BACK_BUFFER_COUNT; ++i)
             {
-                mBackBuffers[i].getTexture().reset();
+                mBackBuffers[i].reset();
                 mRtvHandles[i] = rtvHandles[i];
             }
 
@@ -97,7 +97,10 @@ namespace graphics
                 HRESULT hr = mSwapChain->GetBuffer(i, IID_PPV_ARGS(&backBufferResource));
                 HASSERT(SUCCEEDED(hr), "Failed to get swapchain back buffer.\n%s", utility::translateErrorCode(hr));
 
-                mBackBuffers[i].createFromSwapchain(device, rtvHandles[i], backBufferResource.Get());
+                mBackBuffers[i].setResource(backBufferResource.Get());
+                HASSERT(mBackBuffers[i].get() != nullptr, "mBackBuffers is null.");
+
+                device->CreateRenderTargetView(mBackBuffers[i].get(), nullptr, rtvHandles[i]);
             }
         }
 

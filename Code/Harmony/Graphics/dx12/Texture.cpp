@@ -127,7 +127,7 @@ namespace graphics
             HASSERT(isValidColorFlag || isValidDepthFlag, "Invalid GPUResourceFlag %s for render target.", toString(textureDescription.resourceFlags));
         }
 
-        RenderTarget::RenderTarget(const Type type, const Texture::Description& createDescription)
+        /*RenderTarget::RenderTarget(const Type type, const Texture::Description& createDescription)
             : mType(type), mTexture(createDescription)
         {
             const Texture::Description& textureDescription = mTexture.getDescription();
@@ -135,7 +135,7 @@ namespace graphics
             bool isValidDepthFlag = hasFlag(textureDescription.resourceFlags, GPUResourceFlags::AllowDepthStencil) && (mType == Type::Depth);
 
             HASSERT(isValidColorFlag || isValidDepthFlag, "Invalid GPUResourceFlag %s for render target.", toString(textureDescription.resourceFlags));
-        }
+        }*/
 
         void RenderTarget::createFromSwapchain(Device& device, DescriptorHandle& rtvHandle, ID3D12Resource* baseResource)
         {

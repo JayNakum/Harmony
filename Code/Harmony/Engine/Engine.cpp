@@ -15,13 +15,15 @@ namespace engine
     uint64_t Engine::msFrameIndex = 0;
     void Engine::run()
     {
-        float deltaTime = 0.0f;
+        FrameConstants frame;
 
         while (!(mInputs.isPressed(core::Inputs::Digital::Key_escape)) &&
                mWindow.pollEvents())
         {
-            deltaTime = mFrameTimer.restart();
-            mInputs.update(deltaTime);
+            frame.deltaTime = mFrameTimer.restart();
+            frame.totalTime = mFrameTimer.total();
+
+            mInputs.update(frame.deltaTime);
 
             if (mWindow.didResize())
             {
@@ -30,22 +32,21 @@ namespace engine
 
             static double accumulator = 0.0f;
             constexpr double fixedTimeStep = 1.0f / 60.0f;
-            accumulator += static_cast<double>(deltaTime);
+            accumulator += static_cast<double>(frame.deltaTime);
 
             while (accumulator >= fixedTimeStep)
             {
                 accumulator -= fixedTimeStep;
                 // fixedUpdates(fixedTimeStep)
+                mRenderer->update(fixedTimeStep);
             }
 
-            FrameConstants frame;
-            frame.deltaTime = deltaTime;
-            frame.totalTime = mFrameTimer.total();
 
             mRenderer->render(frame);
+
             ++msFrameIndex;
 
-            calculateFPS(deltaTime);
+            calculateFPS(frame.deltaTime);
         }
     }
 

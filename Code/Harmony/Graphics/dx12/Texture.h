@@ -98,7 +98,6 @@ namespace graphics
     {
         /*
         * RenderTarget is an extension to the texture class with ability to create RTV and DSV.
-        * It owns an instance of texture.
         * A rendertarget can be of either two types. Color or Depth.
         * And the Texture::Descripton must have an appropriate format.
         */
@@ -112,7 +111,7 @@ namespace graphics
             };
 
             RenderTarget(const Type type, Texture& texture);
-            RenderTarget(const Type type, const Texture::Description& createDescription);
+            //RenderTarget(const Type type, const Texture::Description& createDescription);
 
             // baseResource is expected to have called setD3DName for debugging
             void createFromSwapchain(Device& device, DescriptorHandle& rtvHandle, ID3D12Resource* baseResource);
@@ -125,7 +124,7 @@ namespace graphics
 
         private:
             const Type mType;
-            Texture mTexture;
+            Texture& mTexture;
         };
     }
 }

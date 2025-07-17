@@ -17,7 +17,7 @@ namespace engine
             void copyDataToGPU(graphics::GraphicContext& context, ResourceManager& resourceManager) override;
             void freeGPUUploadData(ResourceManager& resourceManager) override {}
 
-            void resize(const unsigned int width, const unsigned int height, const bool isHDRSupported);
+            void resize(const unsigned int width, const unsigned int height, graphics::dx12::Device& device, ResourceManager& resourceManager, const bool isHDRSupported);
             void update() override {}
 
             void getInputOutputs(graphics::GraphicContext& context, ResourceManager& resourceManager) override;

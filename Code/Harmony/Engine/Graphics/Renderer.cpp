@@ -59,10 +59,10 @@ namespace engine
         );
 
         mWaterPass.resize(width, height, mDevice, mResourceManager);
-        mPresentPass.resize(width, height, mSwapchain.isHDRSupported());
+        mPresentPass.resize(width, height, mDevice, mResourceManager, mSwapchain.isHDRSupported());
     }
 
-    void Renderer::update(const FrameConstants frame)
+    void Renderer::update(const double timeStep)
     {
         mWaterPass.update();
         mPresentPass.update();
@@ -83,12 +83,12 @@ namespace engine
         // PRESENT PASS
         graphics::GraphicContext& contextPresent = aquireGraphicContext("present");
 
-        contextPresent.transitionResource(mSwapchain.getBackBufferAt(frameI).getTexture(), graphics::GPUResourceStates::RenderTarget);
+        contextPresent.transitionResource(mSwapchain.getBackBufferAt(frameI), graphics::GPUResourceStates::RenderTarget);
 
         mPresentPass.getInputOutputs(contextPresent, mResourceManager);
         mPresentPass.render(contextPresent, frame, mSwapchain.getBackBufferViewAt(frameI));
 
-        contextPresent.transitionResource(mSwapchain.getBackBufferAt(frameI).getTexture(), graphics::GPUResourceStates::Present);
+        contextPresent.transitionResource(mSwapchain.getBackBufferAt(frameI), graphics::GPUResourceStates::Present);
         contextPresent.finish(mGraphicsQueue.incrementFence());
 
         // EXECUTE COMMAND LISTS

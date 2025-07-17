@@ -55,14 +55,17 @@ namespace engine
         void Present::copyDataToGPU(graphics::GraphicContext& context, ResourceManager& resourceManager)
         {
             graphics::dx12::Texture& finalOutput = resourceManager.getTexture("RT_Water_RenderPass");
-            mShaderResources.setResource(context.getDevice(), finalOutput, graphics::dx12::Texture::ShaderResourceViewInfo::getSRVInfo(finalOutput.getDescription()));
+
             mPresentSI.setResourceTable(mShaderResources);
         }
 
-        void Present::resize(const unsigned int width, const unsigned int height, const bool isHDRSupported)
+        void Present::resize(const unsigned int width, const unsigned int height, graphics::dx12::Device& device, ResourceManager& resourceManager, const bool isHDRSupported)
         {
             mSwapchainWidth = width;
             mSwapchainHeight = height;
+
+            graphics::dx12::Texture& finalOutput = resourceManager.getTexture("RT_Water_RenderPass");
+            mShaderResources.setResource(device, finalOutput, graphics::dx12::Texture::ShaderResourceViewInfo::getSRVInfo(finalOutput.getDescription()));
         }
 
         void Present::getInputOutputs(graphics::GraphicContext& context, ResourceManager& resourceManager)

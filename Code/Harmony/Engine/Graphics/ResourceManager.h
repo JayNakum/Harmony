@@ -25,6 +25,7 @@ namespace engine
 
         void releaseBuffer(const std::string bufferID, const graphics::HeapWithAllocator::ResourceCategory category);
         void releaseTexture(const std::string textureID, const graphics::HeapWithAllocator::ResourceCategory category);
+        void releaseRenderTarget(const std::string textureID, const graphics::HeapWithAllocator::ResourceCategory category);
 
         inline void reset(const graphics::HeapWithAllocator::ResourceCategory category) { mResourceHeap.reset(category); }
         inline void reset(const graphics::DescriptorHeapWithAllocator::DescriptorsCategory category) { mDescriptorHeap.reset(category); }

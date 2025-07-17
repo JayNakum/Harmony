@@ -336,8 +336,6 @@ namespace engine
             graphics::dx12::Buffer& waterMeshIndexBuffer = resourceManager.getBuffer("IB_WaterMesh_Water_RenderPass");
             context.copyBuffer(waterMeshIndexBuffer, waterMeshIndexBufferUploader);
 
-            mShaderResources.setResource(context.getDevice(), resourceManager.getBuffer("CB_CommonPassParams_Water_RenderPass"), 0);
-            mShaderResources.setResource(context.getDevice(), resourceManager.getBuffer("CB_WaterPassParams_Water_RenderPass"), 1);
             mWaterSI.setResourceTable(mShaderResources);
         }
 
@@ -350,11 +348,10 @@ namespace engine
 
         void Water::resize(const unsigned int width, const unsigned int height, graphics::dx12::Device& device, ResourceManager& resourceManager)
         {
-            resourceManager.releaseTexture("RT_Water_RenderPass", mRenderTargetDescription.category);
-
             mRenderTargetDescription.resource.width = width;
             mRenderTargetDescription.resource.height = height;
 
+            resourceManager.releaseRenderTarget("RT_Water_RenderPass", mRenderTargetDescription.category);
             resourceManager.createRenderTarget(mRenderTargetDescription);
             resourceManager.getRenderTarget("RT_Water_RenderPass").createRenderTargetView(device, mRTV);
 
@@ -363,6 +360,9 @@ namespace engine
             mNearFarZ.x = 0.01f;
             mNearFarZ.y = 1000.0f;
             mProjection = perspectiveProjection(fov, aspectRatio, mNearFarZ.x, mNearFarZ.y);
+
+            mShaderResources.setResource(device, resourceManager.getBuffer("CB_CommonPassParams_Water_RenderPass"), 0);
+            mShaderResources.setResource(device, resourceManager.getBuffer("CB_WaterPassParams_Water_RenderPass"), 1);
         }
 
         void Water::update()
