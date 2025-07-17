@@ -6,28 +6,29 @@ namespace engine
 {
     Renderer::Renderer(const HWND windowHandle)
         : mDevice(),
-        mGraphicsQueue(mDevice, {"global graphics queue", graphics::CommandListType::Direct}),
+        mGraphicsQueue(mDevice, {"Renderer_Graphics_Queue", graphics::CommandListType::Direct}),
         mResourceManager(mDevice),
         mCommandContextPool(),
         mSwapchain(
             mDevice, mGraphicsQueue,
             {
-                "swapchain",
+                "Renderer_Swapchain",
                 windowHandle
             },
             {
-                mResourceManager.allocateDescriptors(1, graphics::DescriptorHeapWithAllocator::Category::RenderTargetCPU),
-                mResourceManager.allocateDescriptors(1, graphics::DescriptorHeapWithAllocator::Category::RenderTargetCPU),
-                mResourceManager.allocateDescriptors(1, graphics::DescriptorHeapWithAllocator::Category::RenderTargetCPU)
+                mResourceManager.allocateDescriptors(1, graphics::DescriptorHeapWithAllocator::DescriptorsCategory::RenderTargetCPU),
+                mResourceManager.allocateDescriptors(1, graphics::DescriptorHeapWithAllocator::DescriptorsCategory::RenderTargetCPU),
+                mResourceManager.allocateDescriptors(1, graphics::DescriptorHeapWithAllocator::DescriptorsCategory::RenderTargetCPU)
             }
         ),
-        mClientWidth(0), mClientHeight(0)
+        mClientWidth(0), mClientHeight(0),
+        mWaterPass(mDevice, mResourceManager),
+        mPresentPass(mDevice, mResourceManager)
     {
         graphics::GraphicContext& initContext = aquireGraphicContext("init context");
 
-        mWaterPass = new renderPass::Water(initContext);
-
-        mPresentPass = new renderPass::Present(initContext);
+        mWaterPass.copyDataToGPU(initContext, mResourceManager);
+        mPresentPass.copyDataToGPU(initContext, mResourceManager);
 
         initContext.finish(mGraphicsQueue.incrementFence());
 
@@ -36,8 +37,9 @@ namespace engine
         mGraphicsQueue.waitForFence(fence);
 
         discardGraphicContext(initContext);
-
-        mWaterPass->freeUploadResources();
+        mWaterPass.freeGPUUploadData(mResourceManager);
+        mPresentPass.freeGPUUploadData(mResourceManager);
+        mResourceManager.reset(graphics::HeapWithAllocator::ResourceCategory::Upload);
     }
 
     void Renderer::resize(const unsigned int width, const unsigned int height)
@@ -46,44 +48,48 @@ namespace engine
         mClientHeight = height;
 
         mGraphicsQueue.waitForFence(mGraphicsQueue.incrementFence());
-
+        //mResourceManager.releaseTexture("RT_Swapchain_BackBuffer", graphics::HeapWithAllocator::RenderTarget);
         mSwapchain.resize(
             mDevice, width, height,
             {
-                mResourceManager.allocateDescriptors(1, graphics::DescriptorHeapWithAllocator::Category::RenderTargetCPU),
-                mResourceManager.allocateDescriptors(1, graphics::DescriptorHeapWithAllocator::Category::RenderTargetCPU),
-                mResourceManager.allocateDescriptors(1, graphics::DescriptorHeapWithAllocator::Category::RenderTargetCPU)
+                mResourceManager.allocateDescriptors(1, graphics::DescriptorHeapWithAllocator::DescriptorsCategory::RenderTargetCPU),
+                mResourceManager.allocateDescriptors(1, graphics::DescriptorHeapWithAllocator::DescriptorsCategory::RenderTargetCPU),
+                mResourceManager.allocateDescriptors(1, graphics::DescriptorHeapWithAllocator::DescriptorsCategory::RenderTargetCPU)
             }
         );
+
+        mWaterPass.resize(width, height, mDevice, mResourceManager);
+        mPresentPass.resize(width, height, mSwapchain.isHDRSupported());
+    }
+
+    void Renderer::update(const FrameConstants frame)
+    {
+        mWaterPass.update();
+        mPresentPass.update();
     }
 
     void Renderer::render(const FrameConstants frame)
     {
+        const unsigned int frameI = mSwapchain.getCurrentBackBufferIndex();
+
         // WATER PASS
         graphics::GraphicContext& contextWater = aquireGraphicContext("water");
 
-        renderPass::Water::Inputs waterInputs{
-            frame,
-            mClientWidth, mClientHeight
-        };
-        renderPass::Water::Outputs waterOutput = mWaterPass->render(contextWater, waterInputs);
+        mWaterPass.getInputOutputs(contextWater, mResourceManager);
+        mWaterPass.render(contextWater, frame);
 
         contextWater.finish(mGraphicsQueue.incrementFence());
 
         // PRESENT PASS
         graphics::GraphicContext& contextPresent = aquireGraphicContext("present");
 
-        renderPass::Present::Inputs presentInputs{
-            frame,
-            mClientWidth, mClientHeight,
-            waterOutput.outputRender,
-            mSwapchain.getCurrentBackBuffer().getTexture(),
-            mSwapchain.getCurrentBackBufferView()
-        };
-        mPresentPass->render(contextPresent, presentInputs);
+        contextPresent.transitionResource(mSwapchain.getBackBufferAt(frameI).getTexture(), graphics::GPUResourceStates::RenderTarget);
 
+        mPresentPass.getInputOutputs(contextPresent, mResourceManager);
+        mPresentPass.render(contextPresent, frame, mSwapchain.getBackBufferViewAt(frameI));
+
+        contextPresent.transitionResource(mSwapchain.getBackBufferAt(frameI).getTexture(), graphics::GPUResourceStates::Present);
         contextPresent.finish(mGraphicsQueue.incrementFence());
-
 
         // EXECUTE COMMAND LISTS
         graphics::dx12::CommandList batchedCommandLists[2] = { contextWater.commandList(), contextPresent.commandList() };
@@ -102,8 +108,5 @@ namespace engine
         mGraphicsQueue.waitForFence(mGraphicsQueue.incrementFence());
 
         graphics::ShaderInput::freeAllRootSignatures();
-
-        delete mWaterPass;
-        delete mPresentPass;
     }
 }

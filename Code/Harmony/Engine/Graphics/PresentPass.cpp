@@ -3,6 +3,14 @@
 namespace shaders
 {
     static const char* ScreenQuadVS = R"###(
+cbuffer cbFrame : register(b0)
+{
+    float gTotalTime;
+    float gDeltaTime;
+    uint _framePadding0;
+    uint _framePadding1;
+};
+
 void main(
     in uint vertexID : SV_VertexID,
     out float4 position : SV_Position,
@@ -29,76 +37,75 @@ namespace engine
 {
     namespace renderPass
     {
-        Present::Present(graphics::GraphicContext& context)
-            : mPresentPSO(initialize(context))
+        Present::Present(graphics::dx12::Device& device, ResourceManager& resourceManager)
+            :
+            mStaticShaderResourceTableLayout{
+                graphics::ShaderVisibility::Pixel,
+                { {graphics::DescriptorRangeType::SRV, 1} }
+            },
+            mShaderResources(resourceManager.createResourceTable("BufferCopyPS_ResourceTable", mStaticShaderResourceTableLayout, graphics::DescriptorHeapWithAllocator::DescriptorsCategory::StaticGPU)),
+            mPresentSI(
+                { {graphics::ShaderVisibility::Vertex, 4} },
+                { mStaticShaderResourceTableLayout }
+            ),
+            mPresentPSO(createPSO(device)),
+            mSwapchainWidth(0), mSwapchainHeight(0)
         {}
 
-        void Present::render(graphics::GraphicContext& context, Inputs& passInputs)
+        void Present::copyDataToGPU(graphics::GraphicContext& context, ResourceManager& resourceManager)
         {
-            {// Pre Render
-
-                mFinalSRV = context.allocateDescriptors(graphics::DescriptorHeapType::ShaderViews);
-
-                passInputs.inFinalOutput.createShaderResourceView(context.getDevice(), mFinalSRV,
-                    graphics::dx12::Texture::ShaderResourceViewInfo::getSRVInfo(
-                        passInputs.inFinalOutput.getDescription()
-                    )
-                );
-
-                context.transitionResource(passInputs.inFinalOutput, graphics::GPUResourceStates::PixelShaderResource);
-
-                context.transitionResource(passInputs.inSwapchainBackbuffer, graphics::GPUResourceStates::RenderTarget, true);
-            }
-
-            {// Render
-                const graphics::ShaderInput::Parameter slot1{ graphics::ShaderVisibility::Pixel,
-                    {{graphics::DescriptorRangeType::SRV, 1}}
-                };
-                const std::vector<graphics::ShaderInput::Parameter> parametersLayout = { slot1 };
-
-                graphics::ShaderInput presentSI(context, {/*no constants*/}, parametersLayout);
-                presentSI.setResource(mFinalSRV, 0);
-                presentSI.finalize();
-                context.setPipelineState(mPresentPSO);
-
-                graphics::ViewPort viewport{};
-                viewport.x = 0;
-                viewport.y = 0;
-                viewport.width = (float)passInputs.width;
-                viewport.height = (float)passInputs.height;
-                context.setViewport(viewport);
-
-                graphics::Box scissor{};
-                scissor.left = (unsigned int)viewport.x;
-                scissor.top = (unsigned int)viewport.y;
-                scissor.right = (unsigned int)viewport.x + (unsigned int)viewport.width;
-                scissor.bottom = (unsigned int)viewport.y + (unsigned int)viewport.height;
-                context.setScissor(scissor);
-
-                context.setRenderTargets(passInputs.inSwapchainRTV);
-                const float clearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
-                context.clearColor(passInputs.inSwapchainRTV, clearColor);
-                context.setPrimitiveTopology(graphics::PrimitiveTopology::TriangleList);
-                context.draw(3);
-            }
-
-            {// Post Render
-                context.transitionResource(passInputs.inSwapchainBackbuffer, graphics::GPUResourceStates::Present, true);
-            }
+            graphics::dx12::Texture& finalOutput = resourceManager.getTexture("RT_Water_RenderPass");
+            mShaderResources.setResource(context.getDevice(), finalOutput, graphics::dx12::Texture::ShaderResourceViewInfo::getSRVInfo(finalOutput.getDescription()));
+            mPresentSI.setResourceTable(mShaderResources);
         }
 
-        graphics::dx12::GraphicsPipelineState Present::initialize(graphics::GraphicContext& context)
+        void Present::resize(const unsigned int width, const unsigned int height, const bool isHDRSupported)
         {
-            const graphics::ShaderInput::Parameter slot1{ graphics::ShaderVisibility::Pixel,
-                {{graphics::DescriptorRangeType::SRV, 1}}
-            };
-            const std::vector<graphics::ShaderInput::Parameter> parametersLayout = { slot1 };
+            mSwapchainWidth = width;
+            mSwapchainHeight = height;
+        }
 
-            graphics::ShaderInput presentSI(context, {/*no constants*/ }, parametersLayout);
+        void Present::getInputOutputs(graphics::GraphicContext& context, ResourceManager& resourceManager)
+        {
+            context.transitionResource(resourceManager.getRenderTarget("RT_Water_RenderPass").getTexture(), graphics::GPUResourceStates::PixelShaderResource);
 
+            context.flushResourceBarriers();
+        }
+
+        void Present::render(graphics::GraphicContext& context, const FrameConstants& frameConstants, graphics::dx12::DescriptorHandle swapchainRTV)
+        {
+            context.setPipelineState(mPresentPSO);
+            context.setRootSignature(mPresentSI.getRootSignature(context.getDevice()));
+
+            mPresentSI.setConstants({ frameConstants.totalTime, frameConstants.deltaTime, 0x1deadb0b, 0x1deadb0b }, 0);
+            mPresentSI.finalize(context);
+
+            context.setRenderTargets(swapchainRTV);
+            graphics::ViewPort viewport{};
+            viewport.x = 0;
+            viewport.y = 0;
+            viewport.width = (float)mSwapchainWidth;
+            viewport.height = (float)mSwapchainHeight;
+            context.setViewport(viewport);
+
+            graphics::Box scissor{};
+            scissor.left = (unsigned int)viewport.x;
+            scissor.top = (unsigned int)viewport.y;
+            scissor.right = (unsigned int)viewport.x + (unsigned int)viewport.width;
+            scissor.bottom = (unsigned int)viewport.y + (unsigned int)viewport.height;
+            context.setScissor(scissor);
+
+            const float clearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+            context.clearColor(swapchainRTV, clearColor);
+            context.setPrimitiveTopology(graphics::PrimitiveTopology::TriangleList);
+            context.draw(3);
+        }
+
+        graphics::dx12::GraphicsPipelineState Present::createPSO(graphics::dx12::Device& device)
+        {
             graphics::dx12::GraphicsPipelineState::Description psoDesc;
             psoDesc.name = "present pso";
-            psoDesc.rootSignature = &(presentSI.getRootSignature());
+            psoDesc.rootSignature = &(mPresentSI.getRootSignature(device));
             psoDesc.vertexShader = graphics::GraphicContext::compileShader(
                 "ScreenQuadVS",
                 shaders::ScreenQuadVS,
@@ -112,7 +119,7 @@ namespace engine
             psoDesc.numRenderTargets = 1;
             psoDesc.rtvFormats[0] = graphics::DefaultFormats::R8G8B8A8_UNORM;
 
-            return graphics::dx12::GraphicsPipelineState(context.getDevice(), psoDesc);
+            return graphics::dx12::GraphicsPipelineState(device, psoDesc);
         }
     }
 }

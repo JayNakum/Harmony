@@ -3,41 +3,40 @@
 #include "common.h"
 #include "Log.h"
 
-#include "CommandContext.h"
-#include "ShaderInput.h"
-
-#include "CommonConstants.h"
+#include "RenderPass.h"
 
 namespace engine
 {
     namespace renderPass
     {
-        class Present
+        class Present : RenderPass
         {
         public:
-            struct Inputs
-            {
-                FrameConstants frame;
-                unsigned int width, height;
-                graphics::dx12::Texture& inFinalOutput;
-                graphics::dx12::Texture& inSwapchainBackbuffer;
-                graphics::dx12::DescriptorHandle inSwapchainRTV;
-            };
+            Present(graphics::dx12::Device& device, ResourceManager& resourceManager);
 
-        public:
-            Present(graphics::GraphicContext& context);
+            void copyDataToGPU(graphics::GraphicContext& context, ResourceManager& resourceManager) override;
+            void freeGPUUploadData(ResourceManager& resourceManager) override {}
 
-            void render(graphics::GraphicContext& context, Inputs& passInputs);
+            void resize(const unsigned int width, const unsigned int height, const bool isHDRSupported);
+            void update() override {}
+
+            void getInputOutputs(graphics::GraphicContext& context, ResourceManager& resourceManager) override;
+            void render(graphics::GraphicContext& context, const FrameConstants& frameConstants, graphics::dx12::DescriptorHandle swapchainRTV);
 
             ~Present() = default;
 
         private:
-            graphics::dx12::GraphicsPipelineState initialize(graphics::GraphicContext& context);
+            graphics::dx12::GraphicsPipelineState createPSO(graphics::dx12::Device& device);
+            void resize(const unsigned int width, const unsigned int height, graphics::dx12::Device& device, ResourceManager& resourceManager) override {}
+            void render(graphics::GraphicContext& context, const FrameConstants& frameConstants) override {};
 
         private:
+            const graphics::ResourceTable::Layout mStaticShaderResourceTableLayout;
+            graphics::ResourceTable mShaderResources;
+            graphics::ShaderInput mPresentSI;
             graphics::dx12::GraphicsPipelineState mPresentPSO;
-
-            graphics::dx12::DescriptorHandle mFinalSRV;
+            unsigned int mSwapchainWidth;
+            unsigned int mSwapchainHeight;
         };
     }
 }

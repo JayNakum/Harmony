@@ -53,11 +53,6 @@ namespace graphics
         return dx12::RenderTarget(type, texture);
     }
 
-    dx12::RenderTarget HeapWithAllocator::createRenderTarget(const ResourceDescription& createDescription, const dx12::RenderTarget::Type type)
-    {
-        return createRenderTarget(createTexture(createDescription), type);
-    }
-
     void HeapWithAllocator::deallocateBuffer(const dx12::ByteAddressBuffer& buffer, const ResourceCategory category)
     {
         mAllocator.deallocate(category, buffer.getHeapOffset(), buffer.getAllocationInfo(mDevice).sizeInBytes);

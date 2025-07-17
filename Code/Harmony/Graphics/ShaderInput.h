@@ -3,8 +3,6 @@
 #include "common.h"
 #include "Log.h"
 
-#include "DynamicDescriptorHeap.h"
-
 #include "CommandContext.h"
 
 #include "dx12/RootSignature.h"
@@ -104,8 +102,8 @@ namespace graphics
     private:
         std::vector<RootConstants> mRootConstants;
 
-        const std::vector<Constants>& mConstantsLayout;
-        const std::vector<ResourceTable::Layout>& mGPUResourceTablesLayout;
+        const std::vector<Constants> mConstantsLayout;
+        const std::vector<ResourceTable::Layout> mGPUResourceTablesLayout;
         std::vector<ResourceTable> mGPUResourceTables;
 
     private:

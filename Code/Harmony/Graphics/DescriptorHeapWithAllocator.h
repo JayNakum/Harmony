@@ -15,7 +15,7 @@ namespace graphics
     class DescriptorHeapWithAllocator
     {
     public:
-        enum Category
+        enum DescriptorsCategory
         {
             StaticGPU,
             DynamicCPU,
@@ -28,26 +28,28 @@ namespace graphics
     public:
         DescriptorHeapWithAllocator(dx12::Device& device);
 
-        dx12::DescriptorHandle allocate(const Category category = Category::DynamicCPU, const size_t count = 1);
+        dx12::DescriptorHandle allocate(const DescriptorsCategory category = DescriptorsCategory::DynamicCPU, const size_t count = 1);
 
         // Batched copy of descriptors into this heap from one or more source ranges.
         void copyDescriptorsFrom(dx12::Device& device, const dx12::DescriptorHandle& destStart,
                                  const std::vector<dx12::DescriptorHandle>& srcStarts,
                                  const std::vector<unsigned int>& srcCounts,
-                                 const Category category = Category::DynamicCPU);
+                                 const DescriptorsCategory category = DescriptorsCategory::DynamicCPU);
 
-        inline dx12::DescriptorHeap& getDescriptorHeap(const Category category)
+        inline void reset(const DescriptorsCategory category) { mAllocator.reset(category); }
+
+        inline dx12::DescriptorHeap& getDescriptorHeap(const DescriptorsCategory category)
         {
             switch (category)
             {
             default:
                 HASSERT_SOFT(false, "Invalid category(%d) for descriptor heap. Using ShaderViewsDescriptorHeap.", category);
-            case Category::DynamicCPU:
+            case DescriptorsCategory::DynamicCPU:
                 return mShaderViewsDescriptorHeapCPU;
-            case Category::StaticGPU:
-            case Category::DynamicGPU:
+            case DescriptorsCategory::StaticGPU:
+            case DescriptorsCategory::DynamicGPU:
                 return mShaderViewsDescriptorHeapGPU;
-            case Category::RenderTargetCPU:
+            case DescriptorsCategory::RenderTargetCPU:
                 return mRenderTargetViewsDescriptorHeap;
             }
         }
@@ -59,22 +61,22 @@ namespace graphics
         class DescriptorAllocator
         {
         public:
-            static constexpr size_t MEMORY_BUDGET[Category::COUNT] = {
-                memory::MB(1), // Category::Static
-                memory::MB(1), // Category::DynamicCPU
-                memory::MB(1), // Category::DynamicGPU
-                memory::MB(1) // Category::RenderTargets
+            static constexpr size_t MEMORY_BUDGET[DescriptorsCategory::COUNT] = {
+                memory::MB(1), // DescriptorsCategory::Static
+                memory::MB(1), // DescriptorsCategory::DynamicCPU
+                memory::MB(1), // DescriptorsCategory::DynamicGPU
+                memory::MB(1) // DescriptorsCategory::RenderTargets
             };
 
             DescriptorAllocator()
                 : mSections(memory::MB(2)),
-                mStaticDescriptors(MEMORY_BUDGET[Category::StaticGPU], mSections.allocate(MEMORY_BUDGET[Category::StaticGPU])),
-                mDynamicDescriptorsCPU(MEMORY_BUDGET[Category::DynamicCPU]),
-                mDynamicDescriptorsGPU(MEMORY_BUDGET[Category::DynamicGPU], mSections.allocate(MEMORY_BUDGET[Category::DynamicGPU])),
-                mRenderTargetDescriptors(MEMORY_BUDGET[Category::RenderTargetCPU])
+                mStaticDescriptors(MEMORY_BUDGET[DescriptorsCategory::StaticGPU], mSections.allocate(MEMORY_BUDGET[DescriptorsCategory::StaticGPU])),
+                mDynamicDescriptorsCPU(MEMORY_BUDGET[DescriptorsCategory::DynamicCPU]),
+                mDynamicDescriptorsGPU(MEMORY_BUDGET[DescriptorsCategory::DynamicGPU], mSections.allocate(MEMORY_BUDGET[DescriptorsCategory::DynamicGPU])),
+                mRenderTargetDescriptors(MEMORY_BUDGET[DescriptorsCategory::RenderTargetCPU])
             {}
 
-            inline const uint64_t allocate(const Category section, const size_t sizeInBytes)
+            inline const uint64_t allocate(const DescriptorsCategory section, const size_t sizeInBytes)
             {
                 std::lock_guard<std::mutex> scopedLockGuard(mMutex[section]);
 
@@ -82,18 +84,18 @@ namespace graphics
                 {
                 default:
                     HASSERT_SOFT(false, "Invalid section(%d) for descriptor allocation. Using DynamicCPU section.", section);
-                case Category::DynamicCPU:
+                case DescriptorsCategory::DynamicCPU:
                     return mDynamicDescriptorsCPU.allocate(sizeInBytes);
-                case Category::StaticGPU:
+                case DescriptorsCategory::StaticGPU:
                     return mStaticDescriptors.allocate(sizeInBytes);
-                case Category::DynamicGPU:
+                case DescriptorsCategory::DynamicGPU:
                     return mDynamicDescriptorsGPU.allocate(sizeInBytes);
-                case Category::RenderTargetCPU:
+                case DescriptorsCategory::RenderTargetCPU:
                     return mRenderTargetDescriptors.allocate(sizeInBytes);
                 }
             }
 
-            inline void reset(const Category section)
+            inline void reset(const DescriptorsCategory section)
             {
                 std::lock_guard<std::mutex> scopedLockGuard(mMutex[section]);
 
@@ -101,16 +103,16 @@ namespace graphics
                 {
                 default:
                     HASSERT(false, "Invalid section(%d) for descriptor allocation.", section);
-                case Category::DynamicCPU:
+                case DescriptorsCategory::DynamicCPU:
                     mDynamicDescriptorsCPU.reset();
                     break;
-                case Category::StaticGPU:
+                case DescriptorsCategory::StaticGPU:
                     mStaticDescriptors.reset();
                     break;
-                case Category::DynamicGPU:
+                case DescriptorsCategory::DynamicGPU:
                     mDynamicDescriptorsGPU.reset();
                     break;
-                case Category::RenderTargetCPU:
+                case DescriptorsCategory::RenderTargetCPU:
                     mRenderTargetDescriptors.reset();
                     break;
                 }
@@ -127,7 +129,7 @@ namespace graphics
 
             memory::RingAllocator mRenderTargetDescriptors;
 
-            std::mutex mMutex[Category::COUNT];
+            std::mutex mMutex[DescriptorsCategory::COUNT];
         };
 
         DescriptorAllocator mAllocator;

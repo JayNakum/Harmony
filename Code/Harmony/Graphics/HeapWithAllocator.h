@@ -23,6 +23,7 @@ namespace graphics
         enum ResourceCategory
         {
             Upload,
+            UploadPersistent,
             Transient,
             Constants,
             Mesh,
@@ -45,10 +46,11 @@ namespace graphics
         dx12::ByteAddressBuffer createBuffer(const ResourceDescription& createDescription);
         dx12::Texture createTexture(const ResourceDescription& createDescription);
         dx12::RenderTarget createRenderTarget(dx12::Texture& texture, const dx12::RenderTarget::Type type = dx12::RenderTarget::Type::Color);
-        dx12::RenderTarget createRenderTarget(const ResourceDescription& createDescription, const dx12::RenderTarget::Type type = dx12::RenderTarget::Type::Color);
 
         void deallocateBuffer(const dx12::ByteAddressBuffer& buffer, const ResourceCategory category);
         void deallocateTexture(const dx12::Texture& texture, const ResourceCategory category);
+
+        inline void reset(const ResourceCategory category) { mAllocator.reset(category); }
 
         ~HeapWithAllocator() = default;
 
@@ -60,7 +62,8 @@ namespace graphics
         {
         public:
             static constexpr size_t MEMORY_BUDGET[ResourceCategory::COUNT] = {
-                memory::MB(128), // Category::Upload
+                memory::MB(64), // Category::Upload
+                memory::MB(64), // Category::UploadPersistent
                 memory::MB(64), // Category::Constants
                 memory::MB(64), // Category::Transient
                 memory::MB(256), // Category::Mesh
@@ -75,14 +78,17 @@ namespace graphics
 
         public:
             ResourceAllocator()
-                : mSections(memory::MB(1664)),
-                mUploadData(MEMORY_BUDGET[ResourceCategory::Upload]),
-                mConstants(MEMORY_BUDGET[ResourceCategory::Constants], 256, mSections.allocate(MEMORY_BUDGET[ResourceCategory::Constants])),
-                mTransientData(MEMORY_BUDGET[ResourceCategory::Transient], mSections.allocate(MEMORY_BUDGET[ResourceCategory::Transient])),
-                mMesh(MEMORY_BUDGET[ResourceCategory::Mesh], 128, mSections.allocate(MEMORY_BUDGET[ResourceCategory::Mesh])),
-                mRenderTarget(MEMORY_BUDGET[ResourceCategory::RenderTarget], mSections.allocate(MEMORY_BUDGET[ResourceCategory::RenderTarget])),
-                mTexture(MEMORY_BUDGET[ResourceCategory::Texture], mSections.allocate(MEMORY_BUDGET[ResourceCategory::Texture])),
-                mPersistentData(MEMORY_BUDGET[ResourceCategory::Persistent], mSections.allocate(MEMORY_BUDGET[ResourceCategory::Persistent]))
+                :
+                mUploadHeapSections(memory::MB(128)),
+                mUploadData(MEMORY_BUDGET[ResourceCategory::Upload], mUploadHeapSections.allocate(MEMORY_BUDGET[ResourceCategory::Upload])),
+                mUploadPersistentData(MEMORY_BUDGET[ResourceCategory::UploadPersistent], mUploadHeapSections.allocate(MEMORY_BUDGET[ResourceCategory::UploadPersistent])),
+                mDefaultHeapSections(memory::MB(1664)),
+                mConstants(MEMORY_BUDGET[ResourceCategory::Constants], 256, mDefaultHeapSections.allocate(MEMORY_BUDGET[ResourceCategory::Constants])),
+                mTransientData(MEMORY_BUDGET[ResourceCategory::Transient], mDefaultHeapSections.allocate(MEMORY_BUDGET[ResourceCategory::Transient])),
+                mMesh(MEMORY_BUDGET[ResourceCategory::Mesh], 128, mDefaultHeapSections.allocate(MEMORY_BUDGET[ResourceCategory::Mesh])),
+                mRenderTarget(MEMORY_BUDGET[ResourceCategory::RenderTarget], mDefaultHeapSections.allocate(MEMORY_BUDGET[ResourceCategory::RenderTarget])),
+                mTexture(MEMORY_BUDGET[ResourceCategory::Texture], mDefaultHeapSections.allocate(MEMORY_BUDGET[ResourceCategory::Texture])),
+                mPersistentData(MEMORY_BUDGET[ResourceCategory::Persistent], mDefaultHeapSections.allocate(MEMORY_BUDGET[ResourceCategory::Persistent]))
             {}
 
             inline const uint64_t allocate(const ResourceCategory category, const size_t sizeInBytes)
@@ -96,6 +102,8 @@ namespace graphics
                     break;
                 case ResourceCategory::Upload:
                     return mUploadData.allocate(sizeInBytes);
+                case ResourceCategory::UploadPersistent:
+                    return mUploadPersistentData.allocate(sizeInBytes);
                 case ResourceCategory::Constants:
                     return mConstants.allocate(sizeInBytes);
                 case ResourceCategory::Transient:
@@ -118,7 +126,10 @@ namespace graphics
                 switch (category)
                 {
                 default:
-                    HASSERT(false, "Invalid resource category %d.", category);
+                    //HASSERT_SOFT_ONCE(false, "Invalid resource category %d. No deallocation will happen.", category);
+                    break;
+                case ResourceCategory::UploadPersistent:
+                    mUploadPersistentData.deallocate(allocationOffset, sizeInBytes);
                     break;
                 case ResourceCategory::Constants:
                     mConstants.deallocate(allocationOffset, sizeInBytes);
@@ -144,6 +155,9 @@ namespace graphics
                 case ResourceCategory::Upload:
                     mUploadData.reset();
                     break;
+                case ResourceCategory::UploadPersistent:
+                    mUploadPersistentData.reset();
+                    break;
                 case ResourceCategory::Constants:
                     mConstants.reset();
                     break;
@@ -168,9 +182,11 @@ namespace graphics
             ~ResourceAllocator() = default;
 
         private:
-            memory::LinearAllocator mSections;
-
+            memory::LinearAllocator mUploadHeapSections;
             memory::RingAllocator mUploadData;
+            memory::SuballocationAllocator mUploadPersistentData;
+
+            memory::LinearAllocator mDefaultHeapSections;
             memory::BlockAllocator mConstants;
             memory::RingAllocator mTransientData;
             memory::BlockAllocator mMesh;

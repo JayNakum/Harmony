@@ -5,7 +5,6 @@
 
 #include "CommandObject.h"
 
-#include "DynamicDescriptorHeap.h"
 #include "CommandAllocatorPool.h"
 
 #include "dx12/DWParam.h"

@@ -11,7 +11,7 @@ namespace graphics
             {
                 "DynamicDescriptorHeap_ShaderViewsCPU",
                 DescriptorHeapType::ShaderViews,
-                DescriptorAllocator::MEMORY_BUDGET[Category::DynamicCPU] / mDevice.getDescriptorHandleIncrementSize(DescriptorHeapType::ShaderViews),
+                DescriptorAllocator::MEMORY_BUDGET[DescriptorsCategory::DynamicCPU] / mDevice.getDescriptorHandleIncrementSize(DescriptorHeapType::ShaderViews),
                 DescriptorHeapFlags::CPUVisible
             }
         ),
@@ -20,7 +20,7 @@ namespace graphics
             {
                 "DynamicDescriptorHeap_ShaderViewsGPU",
                 DescriptorHeapType::ShaderViews,
-                DescriptorAllocator::MEMORY_BUDGET[Category::DynamicGPU] / mDevice.getDescriptorHandleIncrementSize(DescriptorHeapType::ShaderViews),
+                DescriptorAllocator::MEMORY_BUDGET[DescriptorsCategory::DynamicGPU] / mDevice.getDescriptorHandleIncrementSize(DescriptorHeapType::ShaderViews),
                 DescriptorHeapFlags::GPUVisible
             }
         ),
@@ -28,14 +28,14 @@ namespace graphics
             mDevice,
             {
                 "DynamicDescriptorHeap_RenderTargetViewsCPU",
-                DescriptorHeapType::ShaderViews,
-                DescriptorAllocator::MEMORY_BUDGET[Category::RenderTargetCPU] / mDevice.getDescriptorHandleIncrementSize(DescriptorHeapType::RenderTarget),
+                DescriptorHeapType::RenderTarget,
+                DescriptorAllocator::MEMORY_BUDGET[DescriptorsCategory::RenderTargetCPU] / mDevice.getDescriptorHandleIncrementSize(DescriptorHeapType::RenderTarget),
                 DescriptorHeapFlags::CPUVisible
             }
         )
     {}
 
-    dx12::DescriptorHandle DescriptorHeapWithAllocator::allocate(const Category category, const size_t count)
+    dx12::DescriptorHandle DescriptorHeapWithAllocator::allocate(const DescriptorsCategory category, const size_t count)
     {
         const size_t allocationSize = count * mDevice.getDescriptorHandleIncrementSize(DescriptorHeapType::ShaderViews);
         const size_t allocationOffset = mAllocator.allocate(category, allocationSize);
@@ -48,7 +48,7 @@ namespace graphics
         const dx12::DescriptorHandle& destStart,
         const std::vector<dx12::DescriptorHandle>& srcStarts,
         const std::vector<unsigned int>& srcCounts,
-        const Category category)
+        const DescriptorsCategory category)
     {
         getDescriptorHeap(category).copyDescriptorsFrom(device, destStart, srcStarts, srcCounts);
     }

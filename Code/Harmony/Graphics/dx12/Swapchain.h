@@ -37,13 +37,18 @@ namespace graphics
             // Needs an array of pre-allocated rtvHandles.
             Swapchain(Device& device, CommandQueue& queue, const Description& createDescription, std::array<DescriptorHandle, BACK_BUFFER_COUNT> rtvHandles);
 
+            const bool isHDRSupported() const { return mHDRSupport; }
+
             // Resize the swapchain with the new width and height.
             // Since the RTV's are reset, it requires an array of pre-allocated handles.
             // Also checks for HDR support.
             void resize(Device& device, const unsigned int width, const unsigned int height, std::array<DescriptorHandle, BACK_BUFFER_COUNT> rtvHandles);
 
             // Returns the current buffer index.
-            inline const unsigned int getCurrentBackBufferIndex() const { return mSwapChain->GetCurrentBackBufferIndex();; }
+            inline const unsigned int getCurrentBackBufferIndex() const { return mSwapChain->GetCurrentBackBufferIndex(); }
+
+            inline RenderTarget& getBackBufferAt(const unsigned int i) { return mBackBuffers.at(i); }
+            inline DescriptorHandle getBackBufferViewAt(const unsigned int i) { return mRtvHandles.at(i); }
 
             // Returns the current render target.
             inline RenderTarget& getCurrentBackBuffer() { return mBackBuffers[getCurrentBackBufferIndex()]; }

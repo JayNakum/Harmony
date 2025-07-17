@@ -31,7 +31,7 @@ namespace engine
             graphics::GraphicContext& context = mCommandContextPool.requestGraphicContext(mDevice);
             context.setName(name);
             context.reset(mGraphicsQueue.incrementFence());
-            context.bindDescriptorHeap(mResourceManager.getDescriptorHeap(graphics::DescriptorHeapWithAllocator::Category::DynamicGPU));
+            context.bindDescriptorHeap(mResourceManager.getDescriptorHeap(graphics::DescriptorHeapWithAllocator::DescriptorsCategory::StaticGPU));
             return context;
         }
 
@@ -41,6 +41,8 @@ namespace engine
         }
 
         void resize(const unsigned int width, const unsigned int height);
+
+        void update(const FrameConstants frame);
 
         void render(const FrameConstants frame);
 
@@ -57,7 +59,7 @@ namespace engine
         unsigned int mClientWidth, mClientHeight;
 
     private:
-        renderPass::Water* mWaterPass;
-        renderPass::Present* mPresentPass;
+        renderPass::Water mWaterPass;
+        renderPass::Present mPresentPass;
     };
 }

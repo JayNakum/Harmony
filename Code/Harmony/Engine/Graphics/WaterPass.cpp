@@ -54,26 +54,11 @@ struct WaveParams
     uint _waveParamsPadding0;
 };
 
-static const uint NUM_WHIRLPOOLS = 1;
-struct WhirlpoolParams
-{
-    float2 whirlpoolCenter;
-    float swirlRadius;
-    float wrappedSwirlAngle;
-
-    float sinkRadius;
-    float sinkDepth;
-    uint _whirlpoolParamsPaddingFinal[2];
-};
-
 cbuffer cbWaterParams : register(b2)
 {
     WaveParams gWaveParams[NUM_WAVES];
-
-    WhirlpoolParams gWhirlpoolParams[NUM_WHIRLPOOLS];
-
     float gWavesMaxHeight;
-    uint _whirlpoolParamsPaddingFinal[3];
+    uint _whirlpoolParamsPaddingFinal[9];
 };
 
 struct VSInput
@@ -158,47 +143,15 @@ float3 simulateWaves(float3 vertex)
     );
 }
 
-float3 simulateWhirlpool(float3 vertex)
-{
-    float2 centeredXZ = vertex.xz - gWhirlpoolParams[0].whirlpoolCenter;
-    float radius = length(centeredXZ);
-
-    float factor = saturate(1.0f - (radius / gWhirlpoolParams[0].swirlRadius));
-    float swirlAngle = gWhirlpoolParams[0].wrappedSwirlAngle * factor;
-
-    float swirlAngleCosine = cos(swirlAngle);
-    float swirlAngleSine = sin(swirlAngle);
-    float2 rotatedXZ = float2(
-        centeredXZ.x * swirlAngleCosine - centeredXZ.y * swirlAngleSine,
-        centeredXZ.x * swirlAngleSine + centeredXZ.y * swirlAngleCosine
-    );
-
-    float sinkFactor = saturate(1.0f - (radius / gWhirlpoolParams[0].sinkRadius));
-    float dySink = gWhirlpoolParams[0].sinkDepth * sinkFactor;
-
-    return float3(
-        gWhirlpoolParams[0].whirlpoolCenter.x + rotatedXZ.x,
-        vertex.y - dySink, // sink down
-        gWhirlpoolParams[0].whirlpoolCenter.y + rotatedXZ.y
-    );
-}
-
 VSOutput vsMain(VSInput input)
 {
     VSOutput result;
 
-    float3 displacedPosition = simulateWaves(input.position);
-    float3 finalPosition = simulateWhirlpool(displacedPosition);
+    float3 finalPosition = simulateWaves(input.position);
 
     float4x4 mvp = mul(gView, gProj);
     result.position = mul(float4(finalPosition, 1.0f), mvp);
-
-    float maxAmplitude = 0.0f;
-    for (int i = 0; i < NUM_WAVES; ++i)
-    {
-        maxAmplitude += gWaveParams[i].amplitude;
-    }
-    result.normalizedHeight = saturate(displacedPosition.y / maxAmplitude);
+    result.normalizedHeight = saturate(finalPosition.y / gWavesMaxHeight);
 
     result.normal = input.normal;
     return result;
@@ -221,7 +174,7 @@ namespace engine
     namespace renderPass
     {
         Water::Water(graphics::dx12::Device& device, ResourceManager& resourceManager)
-            : mWaterPSO(createPSO(device)),
+            :
             mStaticShaderResourceTableLayout{
                 graphics::ShaderVisibility::Vertex,
                 {
@@ -229,17 +182,18 @@ namespace engine
                     {graphics::DescriptorRangeType::CBV, 1}
                 }
             },
+            mShaderResources(resourceManager.createResourceTable("GerstnerWaveWaterShader_ResourceTable", mStaticShaderResourceTableLayout, graphics::DescriptorHeapWithAllocator::DescriptorsCategory::StaticGPU)),
             mWaterSI(
                 { {graphics::ShaderVisibility::Vertex, 4} },
                 { mStaticShaderResourceTableLayout }
             ),
-            mShaderResources(resourceManager.createResourceTable(mStaticShaderResourceTableLayout, graphics::DescriptorHeapWithAllocator::Category::StaticGPU)),
-            mRTV(resourceManager.allocateDescriptors(1, graphics::DescriptorHeapWithAllocator::Category::RenderTargetCPU)),
+            mWaterPSO(createPSO(device)),
+            mRTV(resourceManager.allocateDescriptors(1, graphics::DescriptorHeapWithAllocator::DescriptorsCategory::RenderTargetCPU)),
             mRenderTargetDescription{
                 graphics::HeapWithAllocator::ResourceCategory::RenderTarget,
                 {
                     "RT_Water_RenderPass",
-                    0, 0,
+                    4096, 2160,
                     1, 1,
                     graphics::GPUResourceDimension::Texture2D,
                     graphics::DefaultFormats::R16G16B16A16_UNORM,
@@ -253,31 +207,73 @@ namespace engine
                 resourceManager.getRenderTarget("RT_Water_RenderPass").createRenderTargetView(device, mRTV);
             }
 
-            {// ConstantBuffers
-                graphics::HeapWithAllocator::ResourceDescription commonPassConstantsBuffer{
-                    graphics::HeapWithAllocator::ResourceCategory::Upload,
-                    { "CB_CommonPassParams_Water_RenderPass", sizeof(PassConstants) }
-                };
-                resourceManager.createBuffer(commonPassConstantsBuffer);
+            {// WaterParams
 
-                graphics::HeapWithAllocator::ResourceDescription waterPassConstantsBuffer{
-                    graphics::HeapWithAllocator::ResourceCategory::Constants,
-                    { "CB_WaterPassParams_Water_RenderPass", sizeof(WaterParams) }
-                };
-                resourceManager.createBuffer(waterPassConstantsBuffer);
+                WaterParams waterParams;
+                {
+                    waterParams.waveParams[0].direction = vec2f(1.0f, 0.0f);
+                    waterParams.waveParams[0].center = vec2f(0.0f, 0.0f);
+                    waterParams.waveParams[0].amplitude = 0.2f;
+                    waterParams.waveParams[0].steepness = 0.80f;
+                    waterParams.waveParams[0].wavelength = 10.0f;
+
+                    waterParams.waveParams[1].direction = vec2f(-0.5f, 0.866f);
+                    waterParams.waveParams[1].center = vec2f(0.0f, 0.0f);
+                    waterParams.waveParams[1].amplitude = 0.1f;
+                    waterParams.waveParams[1].steepness = 0.60f;
+                    waterParams.waveParams[1].wavelength = 6.0f;
+
+                    waterParams.waveParams[2].direction = vec2f(-0.5f, -0.866f);
+                    waterParams.waveParams[2].center = vec2f(0.0f, 0.0f);
+                    waterParams.waveParams[2].amplitude = 0.15f;
+                    waterParams.waveParams[2].steepness = 0.40f;
+                    waterParams.waveParams[2].wavelength = 3.0f;
+
+                    waterParams.wavesTotalAmplitude = 0.0f;
+                    for (int i = 0; i < WaterParams::NUM_WAVES; ++i)
+                    {
+                        waterParams.wavesTotalAmplitude += waterParams.waveParams[i].amplitude;
+                    }
+                }
+
+                {// ConstantBuffers
+                    graphics::HeapWithAllocator::ResourceDescription commonPassConstantsBuffer{
+                                        graphics::HeapWithAllocator::ResourceCategory::Upload,
+                                        { "CB_CommonPassParams_Water_RenderPass", sizeof(PassConstants) }
+                    };
+                    resourceManager.createBuffer(commonPassConstantsBuffer);
+                    mCommonPassConstantsBuffer = &resourceManager.getBuffer("CB_CommonPassParams_Water_RenderPass");
+
+                    graphics::HeapWithAllocator::ResourceDescription waterPassConstantsBufferUploader{
+                        graphics::HeapWithAllocator::ResourceCategory::Upload,
+                        { "Uploader_CB_WaterPassParams_Water_RenderPass", sizeof(WaterParams) }
+                    };
+                    resourceManager.createBuffer(waterPassConstantsBufferUploader);
+
+                    graphics::HeapWithAllocator::ResourceDescription waterPassConstantsBuffer{
+                                        graphics::HeapWithAllocator::ResourceCategory::Constants,
+                                        { "CB_WaterPassParams_Water_RenderPass", sizeof(WaterParams) }
+                    };
+                    resourceManager.createBuffer(waterPassConstantsBuffer);
+                }
+
+                graphics::dx12::Buffer& waterPassConstantsBufferUploader = resourceManager.getBuffer("Uploader_CB_WaterPassParams_Water_RenderPass");
+                void* waterPassConstants = waterPassConstantsBufferUploader.map();
+                memcpy(waterPassConstants, &waterParams, sizeof(WaterParams));
+                waterPassConstantsBufferUploader.unmap();
             }
 
-            {// MeshBuffers
+            {// RenderItems
                 GeometryGenerator geoGen;
                 GeometryGenerator::MeshData grid = geoGen.createGrid(30.0f, 30.0f, 256, 256);
 
                 const size_t vbByteSize = grid.vertices.size() * sizeof(GeometryGenerator::Vertex);
                 const size_t ibByteSize = grid.getIndices16().size() * sizeof(uint16_t);
 
-                {
-                    // Vertex Buffer
+                {// MeshBuffers
+
                     graphics::HeapWithAllocator::ResourceDescription waterMeshVertexBufferUploader{
-                        graphics::HeapWithAllocator::ResourceCategory::Mesh,
+                        graphics::HeapWithAllocator::ResourceCategory::Upload,
                         { "Uploader_VB_WaterMesh_Water_RenderPass", vbByteSize }
                     };
                     resourceManager.createBuffer(waterMeshVertexBufferUploader);
@@ -287,7 +283,6 @@ namespace engine
                     };
                     resourceManager.createBuffer(waterMeshVertexBuffer);
 
-                    // Index Buffer
                     graphics::HeapWithAllocator::ResourceDescription waterMeshIndexBufferUploader{
                         graphics::HeapWithAllocator::ResourceCategory::Upload,
                         { "Uploader_IB_WaterMesh_Water_RenderPass", ibByteSize }
@@ -323,11 +318,16 @@ namespace engine
                 geo.indexBuffer = &resourceManager.getBuffer("IB_WaterMesh_Water_RenderPass");
                 geo.vertexByteStride = sizeof(GeometryGenerator::Vertex);
                 geo.drawArgs["RI_Submesh_Geometry_Water_Mesh"] = waterSubmesh;
+                mWaterRI.geometry = geo;
             }
         }
 
         void Water::copyDataToGPU(graphics::GraphicContext& context, ResourceManager& resourceManager)
         {
+            graphics::dx12::Buffer& waterPassConstantsBufferUploader = resourceManager.getBuffer("Uploader_CB_WaterPassParams_Water_RenderPass");
+            graphics::dx12::Buffer& waterPassConstantsBuffer = resourceManager.getBuffer("CB_WaterPassParams_Water_RenderPass");
+            context.copyBuffer(waterPassConstantsBuffer, waterPassConstantsBufferUploader);
+
             graphics::dx12::Buffer& waterMeshVertexBufferUploader = resourceManager.getBuffer("Uploader_VB_WaterMesh_Water_RenderPass");
             graphics::dx12::Buffer& waterMeshVertexBuffer = resourceManager.getBuffer("VB_WaterMesh_Water_RenderPass");
             context.copyBuffer(waterMeshVertexBuffer, waterMeshVertexBufferUploader);
@@ -343,6 +343,7 @@ namespace engine
 
         void Water::freeGPUUploadData(ResourceManager& resourceManager)
         {
+            resourceManager.releaseBuffer("Uploader_CB_WaterPassParams_Water_RenderPass", graphics::HeapWithAllocator::ResourceCategory::Upload);
             resourceManager.releaseBuffer("Uploader_VB_WaterMesh_Water_RenderPass", graphics::HeapWithAllocator::ResourceCategory::Upload);
             resourceManager.releaseBuffer("Uploader_IB_WaterMesh_Water_RenderPass", graphics::HeapWithAllocator::ResourceCategory::Upload);
         }
@@ -359,9 +360,9 @@ namespace engine
 
             float fov = 0.25f * (float)M_PI;
             float aspectRatio = (float)width / (float)height;
-            mPass.nearZ = 0.01f;
-            mPass.farZ = 1000.0f;
-            mProjection = perspectiveProjection(fov, aspectRatio, mPass.nearZ, mPass.farZ);
+            mNearFarZ.x = 0.01f;
+            mNearFarZ.y = 1000.0f;
+            mProjection = perspectiveProjection(fov, aspectRatio, mNearFarZ.x, mNearFarZ.y);
         }
 
         void Water::update()
@@ -389,73 +390,59 @@ namespace engine
             context.flushResourceBarriers();
         }
 
-        void Water::render(graphics::GraphicContext& context, FrameConstants& frameConstants)
+        void Water::render(graphics::GraphicContext& context, const FrameConstants& frameConstants)
         {
             context.setPipelineState(mWaterPSO);
             context.setRootSignature(mWaterSI.getRootSignature(context.getDevice()));
 
             mWaterSI.setConstants({ frameConstants.totalTime, frameConstants.deltaTime, 0x1deadb0b, 0x1deadb0b }, 0);
-        }
+            PassConstants passConstants;
+            passConstants.view = transpose(mView);
+            passConstants.invView = inverse(mView);
+            passConstants.eyePosition = mEyePos;
+            passConstants.projection = transpose(mProjection);
+            passConstants.invProjection = inverse(mProjection);
+            passConstants.nearZ = mNearFarZ.x;
+            passConstants.farZ = mNearFarZ.y;
+            passConstants.viewProjection = mView * mProjection;
+            passConstants.invViewProjection = inverse(passConstants.viewProjection);
+            passConstants.renderTargetSize.x = (float)mRenderTargetDescription.resource.width;
+            passConstants.renderTargetSize.y = (float)mRenderTargetDescription.resource.height;
+            passConstants.invRenderTargetSize = 1 / passConstants.renderTargetSize;
+            void* commonPassConstants = mCommonPassConstantsBuffer->map();
+            memcpy(commonPassConstants, &passConstants, sizeof(PassConstants));
+            mCommonPassConstantsBuffer->unmap();
 
-        Water::Outputs Water::render(graphics::GraphicContext& context, Inputs& passInputs)
-        {
+            mWaterSI.finalize(context);
 
-            {// Render
-                graphics::ShaderInput waterSI(context, mConstantsLayout, mParametersLayout);
-                context.setPipelineState(mWaterPSO);
+            context.setRenderTargets(mRTV);
 
+            graphics::ViewPort viewport{};
+            viewport.x = 0;
+            viewport.y = 0;
+            viewport.width = (float)mRenderTargetDescription.resource.width;
+            viewport.height = (float)mRenderTargetDescription.resource.height;
+            context.setViewport(viewport);
+            graphics::Box scissor{};
+            scissor.left = (unsigned int)viewport.x;
+            scissor.top = (unsigned int)viewport.y;
+            scissor.right = (unsigned int)viewport.x + (unsigned int)viewport.width;
+            scissor.bottom = (unsigned int)viewport.y + (unsigned int)viewport.height;
+            context.setScissor(scissor);
 
-                setCommonParams(context, waterSI, passInputs.frame);
-                setWaterParams(context, waterSI, passInputs.frame, 1);
+            const float color[4] = { 0.1f, 0.1f, 0.1f, 1.0f };
+            context.clearColor(mRTV, color);
 
-                waterSI.finalize();
+            graphics::dx12::BufferView vertexBufferView = mWaterRI.geometry.vertexBufferView();
+            context.setVertexBuffers(0, &vertexBufferView);
 
-                context.setRenderTargets(mRTV);
+            graphics::dx12::BufferView indexBufferView = mWaterRI.geometry.indexBufferView();
+            context.setIndexBuffer(indexBufferView);
 
-                graphics::ViewPort viewport{};
-                viewport.x = 0;
-                viewport.y = 0;
-                viewport.width = (float)mRenderTarget->getTexture().getDescription().width;
-                viewport.height = (float)mRenderTarget->getTexture().getDescription().height;
-                context.setViewport(viewport);
+            context.setPrimitiveTopology(mWaterRI.primitiveTopology);
 
-                graphics::Box scissor{};
-                scissor.left = (unsigned int)viewport.x;
-                scissor.top = (unsigned int)viewport.y;
-                scissor.right = (unsigned int)viewport.x + (unsigned int)viewport.width;
-                scissor.bottom = (unsigned int)viewport.y + (unsigned int)viewport.height;
-                context.setScissor(scissor);
-
-                const float color[4] = { 0.1f, 0.1f, 0.1f, 1.0f };
-                context.clearColor(mRTV, color);
-
-                graphics::dx12::BufferView vertexBufferView = mWaterRI.geometry.vertexBufferView();
-                context.setVertexBuffers(0, &vertexBufferView);
-
-                graphics::dx12::BufferView indexBufferView = mWaterRI.geometry.indexBufferView();
-                context.setIndexBuffer(indexBufferView);
-
-                context.setPrimitiveTopology(mWaterRI.primitiveTopology);
-
-                const SubmeshGeometry drawData = mWaterRI.geometry.drawArgs.at("water submesh");
-                context.drawIndexedInstanced(drawData.indexCount, 1, 0, 0, 0);
-            }
-
-            {// Post Render
-                return Outputs{ mRenderTarget->getTexture() };
-            }
-        }
-
-        Water::~Water()
-        {
-            delete mWaterRI.geometry.vertexBuffer;
-            delete mWaterRI.geometry.indexBuffer;
-            delete mWaterRI;
-
-            delete mWaterParamsCB;
-            delete mPassCB;
-
-            delete mRenderTarget;
+            const SubmeshGeometry drawData = mWaterRI.geometry.drawArgs.at("RI_Submesh_Geometry_Water_Mesh");
+            context.drawIndexedInstanced(drawData.indexCount, 1, 0, 0, 0);
         }
 
         void Water::updateCamera()
@@ -467,126 +454,8 @@ namespace engine
             mView = lookAtLH<float>(pos, target, up);
         }
 
-        void Water::setCommonParams(graphics::GraphicContext& context, graphics::ShaderInput& waterSI, const FrameConstants& frame)
-        {
-            waterSI.setConstants({ frame.totalTime, frame.deltaTime, 0x1deadb0b, 0x1deadb0b }, 0);
-
-            if (mPassCB)
-            {
-                delete mPassCB;
-            }
-
-            mPass.view = transpose(mView);
-            mPass.invView = inverse(mView);
-            mPass.eyePosition = mEyePos;
-            mPass.projection = transpose(mProjection);
-            mPass.invProjection = inverse(mProjection);
-            mPass.viewProjection = mView * mProjection;
-            mPass.invViewProjection = inverse(mPass.viewProjection);
-            mPass.renderTargetSize.x = (float)rtDescription.width;
-            mPass.renderTargetSize.y = (float)rtDescription.height;
-            mPass.invRenderTargetSize = 1 / mPass.renderTargetSize;
-
-            graphics::dx12::GPUResource::Description createCBDesc { "water pass cbuffer", sizeof(PassConstants) };
-            createCBDesc.dimension = graphics::GPUResourceDimension::Buffer;
-            mPassCB = new graphics::dx12::ByteAddressBuffer(createCBDesc);
-            mPassCB->createCommitted(context.getDevice(), graphics::HeapType::Upload);
-            {
-                void* bufferDest = mPassCB->map();
-                memcpy(bufferDest, &mPass, sizeof(PassConstants));
-                mPassCB->unmap();
-            }
-
-            waterSI.setResource(*mPassCB, 0);
-        }
-
-        void Water::setWaterParams(graphics::GraphicContext& context, graphics::ShaderInput& waterSI, const FrameConstants& frame, const unsigned int paramsLayoutIndex)
-        {
-            if (mWaterParamsCB)
-            {
-                delete mWaterParamsCB;
-            }
-
-            WaterParams waterParams;
-            {
-                waterParams.waveParams[0].direction = vec2f(1.0f, 0.0f);
-                waterParams.waveParams[0].center = vec2f(0.0f, 0.0f);
-                waterParams.waveParams[0].amplitude = 0.2f;
-                waterParams.waveParams[0].steepness = 0.80f;
-                waterParams.waveParams[0].wavelength = 10.0f;
-
-                waterParams.waveParams[1].direction = vec2f(-0.5f, 0.866f);
-                waterParams.waveParams[1].center = vec2f(0.0f, 0.0f);
-                waterParams.waveParams[1].amplitude = 0.1f;
-                waterParams.waveParams[1].steepness = 0.60f;
-                waterParams.waveParams[1].wavelength = 6.0f;
-
-                waterParams.waveParams[2].direction = vec2f(-0.5f, -0.866f);
-                waterParams.waveParams[2].center = vec2f(0.0f, 0.0f);
-                waterParams.waveParams[2].amplitude = 0.15f;
-                waterParams.waveParams[2].steepness = 0.40f;
-                waterParams.waveParams[2].wavelength = 3.0f;
-            }
-            {
-                const float swirlSpeed = 5.0f;
-
-                mCurrentSwirlAngle += swirlSpeed * frame.deltaTime;
-
-                if (mCurrentSwirlAngle > 40.0f)
-                {
-                    mCurrentSwirlAngle = std::fmod(mCurrentSwirlAngle, (M_PI));
-                }
-
-                waterParams.whirlpoolParams[0].center = vec2f(0.0f, 0.0f);
-                waterParams.whirlpoolParams[0].swirlRadius = 10.0f;
-                waterParams.whirlpoolParams[0].wrappedSwirlAngle = (float)mCurrentSwirlAngle;
-                waterParams.whirlpoolParams[0].sinkRadius = 8.0f;
-                waterParams.whirlpoolParams[0].sinkDepth = 2.0f;
-            }
-            {
-                float maxAmplitude = 0.0f;
-                for (int i = 0; i < WaterParams::NUM_WAVES; ++i)
-                {
-                    maxAmplitude += waterParams.waveParams[i].amplitude;
-                }
-                waterParams.wavesMaxHeight = maxAmplitude;
-            }
-
-            graphics::dx12::GPUResource::Description createCBDesc{ "water params cbuffer", sizeof(WaterParams) };
-            createCBDesc.dimension = graphics::GPUResourceDimension::Buffer;
-            mWaterParamsCB = new graphics::dx12::ByteAddressBuffer(createCBDesc);
-            mWaterParamsCB->createCommitted(context.getDevice(), graphics::HeapType::Upload);
-            {
-                void* bufferDest = mWaterParamsCB->map();
-                memcpy(bufferDest, &waterParams, sizeof(WaterParams));
-                mWaterParamsCB->unmap();
-            }
-
-            waterSI.setResource(*mWaterParamsCB, paramsLayoutIndex);
-        }
-
         graphics::dx12::GraphicsPipelineState Water::createPSO(graphics::dx12::Device& device)
         {
-            const graphics::ShaderInput::Constants frameConstants
-            {
-                graphics::ShaderVisibility::Vertex,
-                4
-            };
-            mConstantsLayout.emplace_back(frameConstants); // slot 0
-
-            const graphics::ShaderInput::Parameter passConstants{
-                graphics::ShaderVisibility::Vertex,
-                {{graphics::DescriptorRangeType::CBV, 1}}
-            };
-            const graphics::ShaderInput::Parameter waterParams{
-                graphics::ShaderVisibility::Vertex,
-                {{graphics::DescriptorRangeType::CBV, 1}}
-            };
-            mParametersLayout.emplace_back(passConstants); // slot 1
-            mParametersLayout.emplace_back(waterParams); // slot 2
-
-            graphics::ShaderInput waterSI(context, mConstantsLayout, mParametersLayout);
-
             // Pipeline State
             graphics::dx12::GraphicsPipelineState::Description psoDesc;
             psoDesc.name = "water pso";
@@ -596,7 +465,7 @@ namespace engine
                 {"TANGENT", graphics::DefaultFormats::R32G32B32_FLOAT, 24, graphics::InputClassification::PerVertex},
                 {"TEXCOORD", graphics::DefaultFormats::R32G32_FLOAT, 36, graphics::InputClassification::PerVertex},
             };
-            psoDesc.rootSignature = &(waterSI.getRootSignature());
+            psoDesc.rootSignature = &(mWaterSI.getRootSignature(device));
 
             psoDesc.vertexShader = graphics::GraphicContext::compileShader(
                 "WaterVS",
@@ -613,75 +482,7 @@ namespace engine
             psoDesc.numRenderTargets = 1;
             psoDesc.rtvFormats[0] = graphics::DefaultFormats::R16G16B16A16_UNORM;
             psoDesc.cullMode = graphics::CullMode::None;
-            return graphics::dx12::GraphicsPipelineState(context.getDevice(), psoDesc);
-        }
-
-        void Water::prepareRenderItem(graphics::GraphicContext& context)
-        {
-            GeometryGenerator geoGen;
-            GeometryGenerator::MeshData grid = geoGen.createGrid(30.0f, 30.0f, 256, 256);
-
-            SubmeshGeometry waterSubmesh;
-            waterSubmesh.indexCount = (unsigned int)grid.getIndices16().size();
-
-            // Vertex Buffer
-            const size_t vbByteSize = grid.vertices.size() * sizeof(GeometryGenerator::Vertex);
-            graphics::dx12::GPUResource::Description createVBDesc;
-            createVBDesc.name = "water vertex buffer uploader";
-            createVBDesc.width = vbByteSize;
-            createVBDesc.dimension = graphics::GPUResourceDimension::Buffer;
-            graphics::dx12::ByteAddressBuffer* vertexBufferUploader = new graphics::dx12::ByteAddressBuffer(createVBDesc);
-            vertexBufferUploader->createCommitted(context.getDevice(), graphics::HeapType::Upload);
-            {
-                void* intermediateDst = vertexBufferUploader->map();
-                memcpy(intermediateDst, grid.vertices.data(), vbByteSize);
-                vertexBufferUploader->unmap();
-            }
-
-            createVBDesc.name = "water vertex buffer";
-            graphics::dx12::ByteAddressBuffer* vertexBuffer = new graphics::dx12::ByteAddressBuffer(createVBDesc);
-            vertexBuffer->createCommitted(context.getDevice());
-
-            context.transitionResource(*vertexBufferUploader, graphics::GPUResourceStates::CopySource, true);
-            context.transitionResource(*vertexBuffer, graphics::GPUResourceStates::CopyDestination, true);
-            context.copyBufferRegion(*vertexBuffer, 0, *vertexBufferUploader, 0, vbByteSize);
-            context.transitionResource(*vertexBuffer, graphics::GPUResourceStates::VertexAndConstantBuffer, true);
-
-            // Index Buffer
-            const size_t ibByteSize = grid.getIndices16().size() * sizeof(uint16_t);
-            graphics::dx12::GPUResource::Description createIBDesc;
-            createIBDesc.name = "water index buffer uploader";
-            createIBDesc.width = ibByteSize;
-            createIBDesc.dimension = graphics::GPUResourceDimension::Buffer;
-
-            graphics::dx12::ByteAddressBuffer* indexBufferUploader = new graphics::dx12::ByteAddressBuffer(createIBDesc);
-            indexBufferUploader->createCommitted(context.getDevice(), graphics::HeapType::Upload);
-            {
-                void* intermediateDst = indexBufferUploader->map();
-                memcpy(intermediateDst, grid.getIndices16().data(), ibByteSize);
-                indexBufferUploader->unmap();
-            }
-
-            createIBDesc.name = "water index buffer";
-            graphics::dx12::ByteAddressBuffer* indexBuffer = new graphics::dx12::ByteAddressBuffer(createIBDesc);
-            indexBuffer->createCommitted(context.getDevice());
-
-            context.transitionResource(*indexBufferUploader, graphics::GPUResourceStates::CopySource, true);
-            context.transitionResource(*indexBuffer, graphics::GPUResourceStates::CopyDestination, true);
-            context.copyBufferRegion(*indexBuffer, 0, *indexBufferUploader, 0, ibByteSize);
-            context.transitionResource(*indexBuffer, graphics::GPUResourceStates::IndexBuffer, true);
-
-            // Water Mesh Geometry
-            MeshGeometry geo;
-            geo.name = "water mesh geometry";
-            geo.vertexBufferUploader = vertexBufferUploader;
-            geo.vertexBuffer = vertexBuffer;
-            geo.indexBufferUploader = indexBufferUploader;
-            geo.indexBuffer = indexBuffer;
-            geo.vertexByteStride = sizeof(GeometryGenerator::Vertex);
-            geo.drawArgs["water submesh"] = waterSubmesh;
-
-            mWaterRI = new RenderItem(geo);
+            return graphics::dx12::GraphicsPipelineState(device, psoDesc);
         }
     }
 }
