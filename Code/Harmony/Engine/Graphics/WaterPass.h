@@ -17,7 +17,7 @@ namespace engine
             void freeGPUUploadData(ResourceManager& resourceManager) override;
 
             void resize(const unsigned int width, const unsigned int height, graphics::dx12::Device& device, ResourceManager& resourceManager) override;
-            void update() override;
+            void update(const double timeStep) override;
 
             void getInputOutputs(graphics::GraphicContext& context, ResourceManager& resourceManager) override;
             void render(graphics::GraphicContext& context, const FrameConstants& frameConstants) override;

@@ -18,7 +18,7 @@ namespace engine
             void freeGPUUploadData(ResourceManager& resourceManager) override {}
 
             void resize(const unsigned int width, const unsigned int height, graphics::dx12::Device& device, ResourceManager& resourceManager, const bool isHDRSupported);
-            void update() override {}
+            void update(const double timeStep) override {}
 
             void getInputOutputs(graphics::GraphicContext& context, ResourceManager& resourceManager) override;
             void render(graphics::GraphicContext& context, const FrameConstants& frameConstants, graphics::dx12::DescriptorHandle swapchainRTV);

@@ -19,7 +19,7 @@ namespace engine
         virtual void freeGPUUploadData(ResourceManager& resourceManager) = 0;
 
         virtual void resize(const unsigned int width, const unsigned int height, graphics::dx12::Device& device, ResourceManager& resourceManager) = 0;
-        virtual void update() = 0;
+        virtual void update(const double timeStep) = 0;
 
         virtual void getInputOutputs(graphics::GraphicContext& context, ResourceManager& resourceManager) = 0;
         virtual void render(graphics::GraphicContext& context, const FrameConstants& frameConstants) = 0;

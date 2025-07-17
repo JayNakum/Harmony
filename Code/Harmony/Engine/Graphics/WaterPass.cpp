@@ -365,7 +365,7 @@ namespace engine
             mShaderResources.setResource(device, resourceManager.getBuffer("CB_WaterPassParams_Water_RenderPass"), 1);
         }
 
-        void Water::update()
+        void Water::update(const double timeStep)
         {
             updateCamera();
         }

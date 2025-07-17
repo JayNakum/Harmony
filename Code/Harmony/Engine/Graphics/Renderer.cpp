@@ -64,8 +64,8 @@ namespace engine
 
     void Renderer::update(const double timeStep)
     {
-        mWaterPass.update();
-        mPresentPass.update();
+        mWaterPass.update(timeStep);
+        mPresentPass.update(timeStep);
     }
 
     void Renderer::render(const FrameConstants frame)
