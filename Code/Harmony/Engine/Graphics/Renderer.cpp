@@ -48,7 +48,6 @@ namespace engine
         mClientHeight = height;
 
         mGraphicsQueue.waitForFence(mGraphicsQueue.incrementFence());
-        //mResourceManager.releaseTexture("RT_Swapchain_BackBuffer", graphics::HeapWithAllocator::RenderTarget);
         mSwapchain.resize(
             mDevice, width, height,
             {

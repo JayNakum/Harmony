@@ -41,6 +41,8 @@ namespace engine
         const graphics::dx12::DescriptorHandle& getTextureUAV(const std::string id, std::string alias = "NONE");
         const graphics::dx12::DescriptorHandle& getTextureUAV(const std::string id, const graphics::dx12::Texture::UnorderedAccessViewInfo& viewInfo, std::string alias = "NONE");
 
+        inline void destroyDescriptor(const std::string id) { mDescriptors.erase(id); }
+
         inline graphics::dx12::ByteAddressBuffer& getBuffer(const std::string id) { return mBuffers.at(id); }
         inline graphics::dx12::Texture& getTexture(const std::string id) { return mTextures.at(id); }
         inline graphics::dx12::RenderTarget& getRenderTarget(const std::string id) { return mRenderTargets.at(id); }

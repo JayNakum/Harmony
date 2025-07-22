@@ -351,6 +351,7 @@ namespace engine
             mRenderTargetDescription.resource.width = width;
             mRenderTargetDescription.resource.height = height;
 
+            resourceManager.destroyDescriptor("RT_Water_RenderPass");
             resourceManager.releaseRenderTarget("RT_Water_RenderPass", mRenderTargetDescription.category);
             resourceManager.createRenderTarget(mRenderTargetDescription);
             resourceManager.getRenderTarget("RT_Water_RenderPass").createRenderTargetView(device, mRTV);
