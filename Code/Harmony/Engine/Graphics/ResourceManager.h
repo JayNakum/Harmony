@@ -30,6 +30,17 @@ namespace engine
         inline void reset(const graphics::HeapWithAllocator::ResourceCategory category) { mResourceHeap.reset(category); }
         inline void reset(const graphics::DescriptorHeapWithAllocator::DescriptorsCategory category) { mDescriptorHeap.reset(category); }
 
+        const graphics::dx12::DescriptorHandle& getBufferCBV(const std::string id, std::string alias = "NONE");
+        const graphics::dx12::DescriptorHandle& getBufferCBV(const std::string id, const uint64_t sizeInBytes, const unsigned int offsetInBytes = 0, std::string alias = "NONE");
+        const graphics::dx12::DescriptorHandle& getBufferSRV(const std::string id, std::string alias = "NONE");
+        const graphics::dx12::DescriptorHandle& getBufferSRV(const std::string id, const uint64_t sizeInBytes, const unsigned int offsetInBytes = 0, std::string alias = "NONE");
+        const graphics::dx12::DescriptorHandle& getBufferUAV(const std::string id, std::string alias = "NONE");
+        const graphics::dx12::DescriptorHandle& getBufferUAV(const std::string id, const uint64_t sizeInBytes, const unsigned int offsetInBytes = 0, std::string alias = "NONE");
+        const graphics::dx12::DescriptorHandle& getTextureSRV(const std::string id, std::string alias = "NONE");
+        const graphics::dx12::DescriptorHandle& getTextureSRV(const std::string id, const graphics::dx12::Texture::ShaderResourceViewInfo& viewInfo, std::string alias = "NONE");
+        const graphics::dx12::DescriptorHandle& getTextureUAV(const std::string id, std::string alias = "NONE");
+        const graphics::dx12::DescriptorHandle& getTextureUAV(const std::string id, const graphics::dx12::Texture::UnorderedAccessViewInfo& viewInfo, std::string alias = "NONE");
+
         inline graphics::dx12::ByteAddressBuffer& getBuffer(const std::string id) { return mBuffers.at(id); }
         inline graphics::dx12::Texture& getTexture(const std::string id) { return mTextures.at(id); }
         inline graphics::dx12::RenderTarget& getRenderTarget(const std::string id) { return mRenderTargets.at(id); }
@@ -48,6 +59,7 @@ namespace engine
         }
 
     private:
+        graphics::dx12::Device& mDevice;
         graphics::HeapWithAllocator mResourceHeap;
         graphics::DescriptorHeapWithAllocator mDescriptorHeap;
 
@@ -56,5 +68,6 @@ namespace engine
         std::unordered_map<std::string, graphics::dx12::RenderTarget> mRenderTargets;
 
         std::unordered_map<std::string, graphics::ResourceTable> mResourceTables;
+        std::unordered_map<std::string, graphics::dx12::DescriptorHandle> mDescriptors;
     };
 }

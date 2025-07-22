@@ -34,15 +34,20 @@ namespace graphics
         inline const dx12::DescriptorHandle& getHandleStart() const { return mDescriptors; }
         inline const unsigned int getHandlesCount() const { return mDescriptorsCount; }
 
-        // Set a buffer at the specified layoutIndex, parameterIndex and rangeIndex.
+        // Set a resource descriptor at the specified row and column
+        void setResource(dx12::Device& device, const dx12::DescriptorHandle& descriptor,
+            const unsigned int row = 0, const unsigned int column = 0);
+
+/*
+        // Set a buffer at the specified row and column
         const dx12::DescriptorHandle& setResource(dx12::Device& device, const dx12::ByteAddressBuffer& buffer,
-                                                  const unsigned int row = 0, const unsigned int column = 0);
+            const unsigned int row = 0, const unsigned int column = 0);
 
         const dx12::DescriptorHandle& setResource(dx12::Device& device, const dx12::ByteAddressBuffer& buffer,
-                                                  const uint64_t sizeInBytes, const unsigned int offsetInBytes,
-                                                  const unsigned int row = 0, const unsigned int column = 0);
+            const uint64_t sizeInBytes, const unsigned int offsetInBytes,
+            const unsigned int row = 0, const unsigned int column = 0);
 
-        // Set a texture at the specified layoutIndex, parameterIndex and rangeIndex.
+        // Set a texture at the specified row and column
         const dx12::DescriptorHandle& setResource(dx12::Device& device, const dx12::Texture& texture,
                                                   const dx12::Texture::ShaderResourceViewInfo& viewInfo,
                                                   const unsigned int row = 0, const unsigned int column = 0);
@@ -51,6 +56,7 @@ namespace graphics
                                                   const dx12::Texture::UnorderedAccessViewInfo& viewInfo,
                                                   const unsigned int row = 0, const unsigned int column = 0);
 
+*/
         void copyDescriptorsFrom(dx12::Device& device, const ResourceTable& table);
 
     private:

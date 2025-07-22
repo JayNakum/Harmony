@@ -361,8 +361,8 @@ namespace engine
             mNearFarZ.y = 1000.0f;
             mProjection = perspectiveProjection(fov, aspectRatio, mNearFarZ.x, mNearFarZ.y);
 
-            mShaderResources.setResource(device, resourceManager.getBuffer("CB_CommonPassParams_Water_RenderPass"), 0);
-            mShaderResources.setResource(device, resourceManager.getBuffer("CB_WaterPassParams_Water_RenderPass"), 1);
+            mShaderResources.setResource(device, resourceManager.getBufferCBV("CB_CommonPassParams_Water_RenderPass"), 0);
+            mShaderResources.setResource(device, resourceManager.getBufferCBV("CB_WaterPassParams_Water_RenderPass"), 1);
         }
 
         void Water::update(const double timeStep)

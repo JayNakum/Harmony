@@ -3,7 +3,7 @@
 namespace engine
 {
     ResourceManager::ResourceManager(graphics::dx12::Device& device)
-        : mResourceHeap(device), mDescriptorHeap(device)
+        : mDevice(device), mResourceHeap(device), mDescriptorHeap(device)
     {}
 
     void ResourceManager::createBuffer(const graphics::HeapWithAllocator::ResourceDescription& createDescription)
@@ -56,9 +56,184 @@ namespace engine
         mRenderTargets.erase(textureID);
     }
 
+    const graphics::dx12::DescriptorHandle& ResourceManager::getBufferCBV(const std::string id, std::string alias)
+    {
+        if (alias == "NONE")
+        {
+            alias = id;
+        }
+
+        if (mDescriptors.find(alias) != mDescriptors.end())
+        {
+            return mDescriptors[alias];
+        }
+
+        mDescriptors.emplace(alias, mDescriptorHeap.allocate());
+        getBuffer(id).createConstantBufferView(mDevice, mDescriptors.at(alias));
+        return mDescriptors.at(alias);
+    }
+
+    const graphics::dx12::DescriptorHandle& ResourceManager::getBufferCBV(const std::string id, const uint64_t sizeInBytes, const unsigned int offsetInBytes, std::string alias)
+    {
+        if (alias == "NONE")
+        {
+            alias = id;
+        }
+
+        if (mDescriptors.find(alias) != mDescriptors.end())
+        {
+            return mDescriptors[alias];
+        }
+
+        mDescriptors.emplace(alias, mDescriptorHeap.allocate());
+        getBuffer(id).createConstantBufferView(mDevice, mDescriptors.at(alias), sizeInBytes, offsetInBytes);
+        return mDescriptors.at(alias);
+    }
+
+    const graphics::dx12::DescriptorHandle& ResourceManager::getBufferSRV(const std::string id, std::string alias)
+    {
+        if (alias == "NONE")
+        {
+            alias = id;
+        }
+
+        if (mDescriptors.find(alias) != mDescriptors.end())
+        {
+            return mDescriptors[alias];
+        }
+
+        mDescriptors.emplace(alias, mDescriptorHeap.allocate());
+        getBuffer(id).createShaderResourceView(mDevice, mDescriptors.at(alias));
+        return mDescriptors.at(alias);
+    }
+
+    const graphics::dx12::DescriptorHandle& ResourceManager::getBufferSRV(const std::string id, const uint64_t sizeInBytes, const unsigned int offsetInBytes, std::string alias)
+    {
+        if (alias == "NONE")
+        {
+            alias = id;
+        }
+
+        if (mDescriptors.find(alias) != mDescriptors.end())
+        {
+            return mDescriptors[alias];
+        }
+
+        mDescriptors.emplace(alias, mDescriptorHeap.allocate());
+        getBuffer(id).createShaderResourceView(mDevice, mDescriptors.at(alias), sizeInBytes, offsetInBytes);
+        return mDescriptors.at(alias);
+    }
+
+    const graphics::dx12::DescriptorHandle& ResourceManager::getBufferUAV(const std::string id, std::string alias)
+    {
+        if (alias == "NONE")
+        {
+            alias = id;
+        }
+
+        if (mDescriptors.find(alias) != mDescriptors.end())
+        {
+            return mDescriptors[alias];
+        }
+
+        mDescriptors.emplace(alias, mDescriptorHeap.allocate());
+        getBuffer(id).createUnorderedAccessView(mDevice, mDescriptors.at(alias));
+        return mDescriptors.at(alias);
+    }
+
+    const graphics::dx12::DescriptorHandle& ResourceManager::getBufferUAV(const std::string id, const uint64_t sizeInBytes, const unsigned int offsetInBytes, std::string alias)
+    {
+        if (alias == "NONE")
+        {
+            alias = id;
+        }
+
+        if (mDescriptors.find(alias) != mDescriptors.end())
+        {
+            return mDescriptors[alias];
+        }
+
+        mDescriptors.emplace(alias, mDescriptorHeap.allocate());
+        getBuffer(id).createUnorderedAccessView(mDevice, mDescriptors.at(alias), sizeInBytes, offsetInBytes);
+        return mDescriptors.at(alias);
+    }
+
+    const graphics::dx12::DescriptorHandle& ResourceManager::getTextureSRV(const std::string id, std::string alias)
+    {
+        if (alias == "NONE")
+        {
+            alias = id;
+        }
+
+        if (mDescriptors.find(alias) != mDescriptors.end())
+        {
+            return mDescriptors[alias];
+        }
+
+        mDescriptors.emplace(alias, mDescriptorHeap.allocate());
+        const graphics::dx12::Texture::ShaderResourceViewInfo viewInfo = graphics::dx12::Texture::ShaderResourceViewInfo::getSRVInfo(getTexture(id).getDescription());
+        getTexture(id).createShaderResourceView(mDevice, mDescriptors.at(alias), viewInfo);
+        return mDescriptors.at(alias);
+    }
+
+    const graphics::dx12::DescriptorHandle& ResourceManager::getTextureSRV(const std::string id, const graphics::dx12::Texture::ShaderResourceViewInfo& viewInfo, std::string alias)
+    {
+        if (alias == "NONE")
+        {
+            alias = id;
+        }
+
+        if (mDescriptors.find(alias) != mDescriptors.end())
+        {
+            return mDescriptors[alias];
+        }
+
+        mDescriptors.emplace(alias, mDescriptorHeap.allocate());
+        getTexture(id).createShaderResourceView(mDevice, mDescriptors.at(alias), viewInfo);
+        return mDescriptors.at(alias);
+    }
+
+    const graphics::dx12::DescriptorHandle& ResourceManager::getTextureUAV(const std::string id, std::string alias)
+    {
+        if (alias == "NONE")
+        {
+            alias = id;
+        }
+
+        if (mDescriptors.find(alias) != mDescriptors.end())
+        {
+            return mDescriptors[alias];
+        }
+
+        mDescriptors.emplace(alias, mDescriptorHeap.allocate());
+        const graphics::dx12::Texture::UnorderedAccessViewInfo viewInfo = graphics::dx12::Texture::UnorderedAccessViewInfo::getUAVInfo(getTexture(id).getDescription());
+        getTexture(id).createUnorderedAccessView(mDevice, mDescriptors.at(alias), viewInfo);
+        return mDescriptors.at(alias);
+    }
+
+    const graphics::dx12::DescriptorHandle& ResourceManager::getTextureUAV(const std::string id, const graphics::dx12::Texture::UnorderedAccessViewInfo& viewInfo, std::string alias)
+    {
+        if (alias == "NONE")
+        {
+            alias = id;
+        }
+
+        if (mDescriptors.find(alias) != mDescriptors.end())
+        {
+            return mDescriptors[alias];
+        }
+
+        mDescriptors.emplace(alias, mDescriptorHeap.allocate());
+        getTexture(id).createUnorderedAccessView(mDevice, mDescriptors.at(alias), viewInfo);
+        return mDescriptors.at(alias);
+    }
+
     graphics::ResourceTable& ResourceManager::createResourceTable(const std::string tableID, const graphics::ResourceTable::Layout layout, const graphics::DescriptorHeapWithAllocator::DescriptorsCategory category)
     {
-        HASSERT(mResourceTables.find(tableID) == mResourceTables.end(), "ResourceTable with ID = %s already exists.", tableID.c_str());
+        if (mResourceTables.find(tableID) != mResourceTables.end())
+        {
+            return mResourceTables.at(tableID);
+        }
 
         size_t count = 0;
         for (graphics::ResourceTable::Range range : layout.ranges)

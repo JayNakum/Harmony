@@ -12,6 +12,13 @@ namespace graphics
         }
     }
 
+    void ResourceTable::setResource(dx12::Device& device, const dx12::DescriptorHandle& descriptor, const unsigned int row, const unsigned int column)
+    {
+        dx12::DescriptorHandle& handle = mDescriptors + (getDescriptorOffsetAt(row, column) * device.getDescriptorHandleIncrementSize(DescriptorHeapType::ShaderViews));
+        device->CopyDescriptorsSimple(1, handle, descriptor, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+    }
+
+/*
     const dx12::DescriptorHandle& ResourceTable::setResource(dx12::Device& device, const dx12::ByteAddressBuffer& buffer, const unsigned int row, const unsigned int column)
     {
         return setResource(device, buffer, buffer.getDescription().width, 0, row, column);
@@ -65,6 +72,7 @@ namespace graphics
 
         return handle;
     }
+*/
 
     void ResourceTable::copyDescriptorsFrom(dx12::Device& device, const ResourceTable& table)
     {

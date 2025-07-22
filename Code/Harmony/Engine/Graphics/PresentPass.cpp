@@ -64,8 +64,7 @@ namespace engine
             mSwapchainWidth = width;
             mSwapchainHeight = height;
 
-            graphics::dx12::Texture& finalOutput = resourceManager.getTexture("RT_Water_RenderPass");
-            mShaderResources.setResource(device, finalOutput, graphics::dx12::Texture::ShaderResourceViewInfo::getSRVInfo(finalOutput.getDescription()));
+            mShaderResources.setResource(device, resourceManager.getTextureSRV("RT_Water_RenderPass"));
         }
 
         void Present::getInputOutputs(graphics::GraphicContext& context, ResourceManager& resourceManager)
