@@ -14,7 +14,7 @@ namespace graphics
 
     void ResourceTable::setResource(dx12::Device& device, const dx12::DescriptorHandle& descriptor, const unsigned int row, const unsigned int column)
     {
-        dx12::DescriptorHandle handle = mDescriptors + (getDescriptorOffsetAt(row, column) * device.getDescriptorHandleIncrementSize(DescriptorHeapType::ShaderViews));
+        dx12::DescriptorHandle handle = mDescriptors + (INT)(getDescriptorOffsetAt(row, column) * device.getDescriptorHandleIncrementSize(DescriptorHeapType::ShaderViews));
         device->CopyDescriptorsSimple(1, handle, descriptor, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
     }
 

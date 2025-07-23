@@ -71,7 +71,7 @@ namespace graphics
                 d3dCommandLists.push_back(commandLists[i].get());
             }
 
-            mCommandQueue->ExecuteCommandLists(d3dCommandLists.size(), d3dCommandLists.data());
+            mCommandQueue->ExecuteCommandLists((UINT)d3dCommandLists.size(), d3dCommandLists.data());
 
             return incrementFenceNoMutex();
         }

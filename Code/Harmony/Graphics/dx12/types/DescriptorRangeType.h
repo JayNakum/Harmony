@@ -14,6 +14,8 @@ namespace graphics
         {
             switch (e)
             {
+            default:
+                return (D3D12_DESCRIPTOR_RANGE_TYPE)(-1);
             case DescriptorRangeType::CBV:
                 return D3D12_DESCRIPTOR_RANGE_TYPE::D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
             case DescriptorRangeType::SRV:

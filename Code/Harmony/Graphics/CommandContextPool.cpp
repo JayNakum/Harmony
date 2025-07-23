@@ -6,7 +6,7 @@ namespace graphics
     {
         std::lock_guard<std::mutex> scopedLockGuard(mGraphicPoolMutex);
 
-        HASSERT(msGraphicContextPool.size() <= MAX_CONTEXTS, "Graphic Context Pool Budget exceeded.");
+        HASSERT(mGraphicContextPool.size() <= MAX_CONTEXTS, "Graphic Context Pool Budget exceeded.");
 
         if (!mGraphicAvailableQueue.empty())
         {
@@ -15,9 +15,25 @@ namespace graphics
             return *context;
         }
 
-        GraphicContext* newContext = new GraphicContext(device);
-        msGraphicContextPool.emplace_back(newContext);
-        return *(newContext);
+        mGraphicContextPool.emplace_back(new GraphicContext(device));
+        return *(mGraphicContextPool.back());
+    }
+
+    ComputeContext& CommandContextPool::requestComputeContext(dx12::Device& device)
+    {
+        std::lock_guard<std::mutex> scopedLockGuard(mComputePoolMutex);
+
+        HASSERT(mComputeContextPool.size() <= MAX_CONTEXTS, "Compute Context Pool Budget exceeded.");
+
+        if (!mComputeAvailableQueue.empty())
+        {
+            ComputeContext* context = mComputeAvailableQueue.front();
+            mComputeAvailableQueue.pop();
+            return *context;
+        }
+
+        mComputeContextPool.emplace_back(new ComputeContext(device));
+        return *(mComputeContextPool.back());
     }
 
     void CommandContextPool::discardContext(GraphicContext& context)
@@ -26,6 +42,14 @@ namespace graphics
         std::lock_guard<std::mutex> scopedLockGuard(mGraphicPoolMutex);
 
         mGraphicAvailableQueue.push(&context);
+    }
+
+    void CommandContextPool::discardContext(ComputeContext& context)
+    {
+        const CommandListType type = context.getCommandListType();
+        std::lock_guard<std::mutex> scopedLockGuard(mComputePoolMutex);
+
+        mComputeAvailableQueue.push(&context);
     }
 
     void CommandContextPool::destroyPool()
@@ -38,10 +62,10 @@ namespace graphics
             mGraphicAvailableQueue.pop();
         }
 
-        for (const GraphicContext* context : msGraphicContextPool)
+        for (const GraphicContext* context : mGraphicContextPool)
         {
             delete context;
         }
-        CommandContextPool::msGraphicContextPool.clear();
+        CommandContextPool::mGraphicContextPool.clear();
     }
 }

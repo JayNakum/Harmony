@@ -34,8 +34,20 @@ namespace engine
             context.bindDescriptorHeap(mResourceManager.getDescriptorHeap(graphics::DescriptorHeapWithAllocator::DescriptorsCategory::StaticGPU));
             return context;
         }
+        inline graphics::ComputeContext& aquireComputeContext(const std::string& name)
+        {
+            graphics::ComputeContext& context = mCommandContextPool.requestComputeContext(mDevice);
+            context.setName(name);
+            context.reset(mComputeQueue.incrementFence());
+            context.bindDescriptorHeap(mResourceManager.getDescriptorHeap(graphics::DescriptorHeapWithAllocator::DescriptorsCategory::StaticGPU));
+            return context;
+        }
 
         inline void discardGraphicContext(graphics::GraphicContext& usedContext)
+        {
+            mCommandContextPool.discardContext(usedContext);
+        }
+        inline void discardGraphicContext(graphics::ComputeContext& usedContext)
         {
             mCommandContextPool.discardContext(usedContext);
         }
@@ -51,6 +63,7 @@ namespace engine
     private:
         graphics::dx12::Device mDevice;
         graphics::dx12::CommandQueue mGraphicsQueue;
+        graphics::dx12::CommandQueue mComputeQueue;
         ResourceManager mResourceManager;
 
         graphics::CommandContextPool mCommandContextPool;

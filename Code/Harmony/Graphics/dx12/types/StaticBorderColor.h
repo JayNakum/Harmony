@@ -16,6 +16,8 @@ namespace graphics
             {
                 switch (e)
                 {
+                default:
+                    return (D3D12_STATIC_BORDER_COLOR)(-1);
                 case StaticBorderColor::TransparentBlack:
                     return D3D12_STATIC_BORDER_COLOR::D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK;
                 case StaticBorderColor::OpaqueBlack:

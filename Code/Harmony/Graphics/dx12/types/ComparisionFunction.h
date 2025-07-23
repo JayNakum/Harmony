@@ -16,6 +16,7 @@ namespace graphics
             {
                 switch (e)
                 {
+                default:
                 case ComparisionFunction::None:
                     return D3D12_COMPARISON_FUNC::D3D12_COMPARISON_FUNC_NONE;
                 case ComparisionFunction::Never:

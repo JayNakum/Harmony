@@ -69,7 +69,7 @@ namespace engine
 
         void Present::getInputOutputs(graphics::GraphicContext& context, ResourceManager& resourceManager)
         {
-            context.transitionResource(resourceManager.getRenderTarget("RT_Water_RenderPass").getTexture(), graphics::GPUResourceStates::PixelShaderResource);
+            context.transitionBarrier(resourceManager.getRenderTarget("RT_Water_RenderPass").getTexture(), graphics::GPUResourceStates::PixelShaderResource);
 
             context.flushResourceBarriers();
         }
@@ -108,12 +108,12 @@ namespace engine
             graphics::dx12::GraphicsPipelineState::Description psoDesc;
             psoDesc.name = "present pso";
             psoDesc.rootSignature = &(mPresentSI.getRootSignature(device));
-            psoDesc.vertexShader = graphics::GraphicContext::compileShader(
+            psoDesc.vertexShader = graphics::CommandContext::compileShader(
                 "ScreenQuadVS",
                 shaders::ScreenQuadVS,
                 "vs_5_0"
             );
-            psoDesc.pixelShader = graphics::GraphicContext::compileShader(
+            psoDesc.pixelShader = graphics::CommandContext::compileShader(
                 "BufferCopyPS",
                 shaders::BufferCopyPS,
                 "ps_5_0"

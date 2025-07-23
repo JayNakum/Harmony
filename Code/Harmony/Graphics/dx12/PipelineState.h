@@ -123,4 +123,26 @@ namespace graphics
             ~GraphicsPipelineState() = default;
         };
     }
+
+    namespace dx12
+    {
+        /*
+        * Compute pipeline.
+        */
+        class ComputePipelineState : public PipelineState
+        {
+        public:
+            // Compute PSO create description.
+            struct Description
+            {
+                std::string name;
+                Blob computeShader;
+
+                const RootSignature* rootSignature;
+            };
+
+            ComputePipelineState(Device& device, Description& createDescription);
+            ~ComputePipelineState() = default;
+        };
+    }
 }

@@ -49,7 +49,18 @@ namespace graphics
         inline const dx12::Device& getDevice() const { return mDevice; }
         inline dx12::Device& getDevice() { return mDevice; }
 
-        void transitionResource(dx12::GPUResource& resource, const GPUResourceStates newState, const bool flushImmediate = false);
+        inline void transitionBarrier(dx12::GPUResource& resource, const GPUResourceStates newState, const bool flushImmediate = false)
+        {
+            mCommandList.transitionBarrier(resource, newState, flushImmediate);
+        }
+        inline void uavBarrier(dx12::GPUResource& resource, const bool flushImmediate = false)
+        {
+            mCommandList.uavBarrier(resource, flushImmediate);
+        }
+        inline void aliasBarrier(dx12::GPUResource& resourceBefore, dx12::GPUResource& resourceAfter, const bool flushImmediate = false)
+        {
+            mCommandList.aliasBarrier(resourceBefore, resourceAfter, flushImmediate);
+        }
 
         void copyBuffer(dx12::GPUResource& destination, dx12::GPUResource& source);
 
@@ -64,8 +75,6 @@ namespace graphics
                                const unsigned int destinationY, const unsigned int destinationZ,
                                dx12::GPUResource& source, Box& sourceRect);
 
-        void setPipelineState(dx12::PipelineState& pso);
-
         void setPredication(dx12::GPUResource& buffer, const size_t bufferOffset, bool equalZero);
 
         void bindDescriptorHeap(const dx12::DescriptorHeap& heap);
@@ -75,7 +84,9 @@ namespace graphics
 
         inline void flushResourceBarriers() { mCommandList.flushResourceBarriers(); }
 
-        virtual ~CommandContext();
+        virtual ~CommandContext() = default;
+
+        static const dx12::Blob compileShader(const char* shaderName, const char* shaderCode, const char* targetProfile, const char* entryPoint = "main");
 
     private:
         std::string mName;
@@ -106,10 +117,9 @@ namespace graphics
     public:
         GraphicContext(dx12::Device& device);
 
-        static const dx12::Blob compileShader(const char* shaderName, const char* shaderCode, const char* targetProfile, const char* entryPoint = "main");
-
-        void clearColor(dx12::DescriptorHandle& target, const float color[4]);
+        void setPipelineState(dx12::GraphicsPipelineState& pso);
         void setRootSignature(const dx12::RootSignature& rootSignature);
+        void clearColor(dx12::DescriptorHandle& target, const float color[4]);
 
         void setRenderTargets(const dx12::DescriptorHandle rtv, unsigned int count = 1);
         void setRenderTargets(unsigned int count, const dx12::DescriptorHandle rtv, const dx12::DescriptorHandle dsv);
@@ -120,16 +130,12 @@ namespace graphics
         void setBlendFactor(const float blendFactor[4]);
         void setPrimitiveTopology(const PrimitiveTopology Topology);
 
-        void setConstant(const unsigned int rootIndex, dx12::DWParam value, const unsigned int offset = 0);
-        void setConstants(const unsigned int rootIndex, const size_t count, const void* pConstants, const unsigned int offset = 0);
-
-        void setBufferCBV(const unsigned int rootIndex, uint64_t cbv);
-        void setBufferSRV(const unsigned int rootIndex, const dx12::Buffer& srv, const uint64_t offset = 0);
-        // void setBufferUAV(const unsigned int rootIndex, const dx12::DescriptorHandle& uav, const unsigned int offset = 0);
-        void setDescriptorTable(const unsigned int rootIndex, const dx12::DescriptorHandle& firstHandle);
-
         void setIndexBuffer(const dx12::BufferView& view);
         void setVertexBuffers(unsigned int slot, const dx12::BufferView views[], const size_t count = 1);
+
+        void setConstant(const unsigned int rootIndex, dx12::DWParam value, const unsigned int offset = 0);
+        void setConstants(const unsigned int rootIndex, const size_t count, const void* pConstants, const unsigned int offset = 0);
+        void setDescriptorTable(const unsigned int rootIndex, const dx12::DescriptorHandle& firstHandle);
 
         void draw(const unsigned int vertexCount, const unsigned int vertexStartOffset = 0);
         void drawIndexed(const unsigned int indexCount, const unsigned int startIndexLocation = 0, const int baseVertexLocation = 0);
@@ -138,8 +144,37 @@ namespace graphics
         void drawIndexedInstanced(const unsigned int indexCountPerInstance, const unsigned int instanceCount, const unsigned int startIndexLocation,
                                   const int baseVertexLocation, const unsigned int startInstanceLocation);
 
-        /*void drawIndirect(dx12::Buffer& argumentBuffer, uint64_t argumentBufferOffset = 0);
+        /*
+        void drawIndirect(dx12::Buffer& argumentBuffer, uint64_t argumentBufferOffset = 0);
         void executeIndirect(dx12::CommandSignature& commandSig, dx12::Buffer& argumentBuffer, uint64_t argumentStartOffset = 0,
-                             uint32_t maxCommands = 1, dx12::Buffer* commandCounterBuffer = nullptr, uint64_t counterOffset = 0);*/
+                             uint32_t maxCommands = 1, dx12::Buffer* commandCounterBuffer = nullptr, uint64_t counterOffset = 0);
+        */
+    };
+}
+
+namespace graphics
+{
+    class ComputeContext : public CommandContext
+    {
+    public:
+        ComputeContext(dx12::Device& device);
+
+        void setPipelineState(dx12::ComputePipelineState& pso);
+        void setRootSignature(const dx12::RootSignature& rootSignature);
+
+        void setConstant(const unsigned int rootIndex, dx12::DWParam value, const unsigned int offset = 0);
+        void setConstants(const unsigned int rootIndex, const size_t count, const void* pConstants, const unsigned int offset = 0);
+        void setDescriptorTable(const unsigned int rootIndex, const dx12::DescriptorHandle& firstHandle);
+
+        void dispatch(const unsigned int groupCountX = 1, const unsigned int groupCountY = 1, const unsigned int groupCountZ = 1);
+        void dispatch1D(const unsigned int threadCountX, const unsigned int groupSizeX = 64);
+        void dispatch2D(const unsigned int threadCountX, const unsigned int threadCountY, const unsigned int groupSizeX = 8, const unsigned int groupSizeY = 8);
+        void dispatch3D(const unsigned int threadCountX, const unsigned int threadCountY, const unsigned int threadCountZ, const unsigned int groupSizeX, const unsigned int groupSizeY, const unsigned int groupSizeZ);
+
+        /*
+        void dispatchIndirect(dx12::Buffer& argumentBuffer, uint64_t argumentBufferOffset = 0);
+        void executeIndirect(dx12::CommandSignature& commandSig, dx12::Buffer& argumentBuffer, uint64_t argumentStartOffset = 0,
+                             uint32_t maxCommands = 1, dx12::Buffer* commandCounterBuffer = nullptr, uint64_t counterOffset = 0);
+        */
     };
 }

@@ -16,6 +16,8 @@ namespace graphics
             {
                 switch (e)
                 {
+                default:
+                    return (D3D12_FILTER)(-1);
                 case Filter::MinMagMipPoint:
                     return D3D12_FILTER::D3D12_FILTER_MIN_MAG_MIP_POINT;
                 case Filter::MinMagMipLinear:

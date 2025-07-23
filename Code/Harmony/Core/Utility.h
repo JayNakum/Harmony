@@ -66,6 +66,11 @@ namespace maths
     {
         return 0 == ((size_t)value & (alignment - 1));
     }
+
+    template <typename T> inline T divideByMultiple(T value, size_t alignment)
+    {
+        return (T)((value + alignment - 1) / alignment);
+    }
 }
 
 namespace memory

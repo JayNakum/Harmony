@@ -7,6 +7,7 @@ namespace engine
     Renderer::Renderer(const HWND windowHandle)
         : mDevice(),
         mGraphicsQueue(mDevice, {"Renderer_Graphics_Queue", graphics::CommandListType::Direct}),
+        mComputeQueue(mDevice, {"Renderer_Compute_Queue", graphics::CommandListType::Compute}),
         mResourceManager(mDevice),
         mCommandContextPool(),
         mSwapchain(
@@ -82,12 +83,12 @@ namespace engine
         // PRESENT PASS
         graphics::GraphicContext& contextPresent = aquireGraphicContext("present");
 
-        contextPresent.transitionResource(mSwapchain.getBackBufferAt(frameI), graphics::GPUResourceStates::RenderTarget);
+        contextPresent.transitionBarrier(mSwapchain.getBackBufferAt(frameI), graphics::GPUResourceStates::RenderTarget);
 
         mPresentPass.getInputOutputs(contextPresent, mResourceManager);
         mPresentPass.render(contextPresent, frame, mSwapchain.getBackBufferViewAt(frameI));
 
-        contextPresent.transitionResource(mSwapchain.getBackBufferAt(frameI), graphics::GPUResourceStates::Present);
+        contextPresent.transitionBarrier(mSwapchain.getBackBufferAt(frameI), graphics::GPUResourceStates::Present);
         contextPresent.finish(mGraphicsQueue.incrementFence());
 
         // EXECUTE COMMAND LISTS

@@ -374,19 +374,19 @@ namespace engine
         void Water::getInputOutputs(graphics::GraphicContext& context, ResourceManager& resourceManager)
         {
             graphics::dx12::RenderTarget& renderTarget = resourceManager.getRenderTarget("RT_Water_RenderPass");
-            context.transitionResource(renderTarget.getTexture(), graphics::GPUResourceStates::RenderTarget);
+            context.transitionBarrier(renderTarget.getTexture(), graphics::GPUResourceStates::RenderTarget);
 
             graphics::dx12::Buffer& commonPassConstantsBuffer = resourceManager.getBuffer("CB_CommonPassParams_Water_RenderPass");
-            context.transitionResource(commonPassConstantsBuffer, graphics::GPUResourceStates::VertexAndConstantBuffer);
+            context.transitionBarrier(commonPassConstantsBuffer, graphics::GPUResourceStates::VertexAndConstantBuffer);
 
             graphics::dx12::Buffer& waterPassConstantsBuffer = resourceManager.getBuffer("CB_WaterPassParams_Water_RenderPass");
-            context.transitionResource(waterPassConstantsBuffer, graphics::GPUResourceStates::VertexAndConstantBuffer);
+            context.transitionBarrier(waterPassConstantsBuffer, graphics::GPUResourceStates::VertexAndConstantBuffer);
 
             graphics::dx12::Buffer& vertexBuffer = resourceManager.getBuffer("VB_WaterMesh_Water_RenderPass");
-            context.transitionResource(vertexBuffer, graphics::GPUResourceStates::VertexAndConstantBuffer);
+            context.transitionBarrier(vertexBuffer, graphics::GPUResourceStates::VertexAndConstantBuffer);
 
             graphics::dx12::Buffer& indexBuffer = resourceManager.getBuffer("IB_WaterMesh_Water_RenderPass");
-            context.transitionResource(indexBuffer, graphics::GPUResourceStates::VertexAndConstantBuffer);
+            context.transitionBarrier(indexBuffer, graphics::GPUResourceStates::VertexAndConstantBuffer);
 
             context.flushResourceBarriers();
         }
@@ -468,13 +468,13 @@ namespace engine
             };
             psoDesc.rootSignature = &(mWaterSI.getRootSignature(device));
 
-            psoDesc.vertexShader = graphics::GraphicContext::compileShader(
+            psoDesc.vertexShader = graphics::CommandContext::compileShader(
                 "WaterVS",
                 shaders::GerstnerWaveWaterShader,
                 "vs_5_0",
                 "vsMain"
             );
-            psoDesc.pixelShader = graphics::GraphicContext::compileShader(
+            psoDesc.pixelShader = graphics::CommandContext::compileShader(
                 "WaterPS",
                 shaders::GerstnerWaveWaterShader,
                 "ps_5_0",

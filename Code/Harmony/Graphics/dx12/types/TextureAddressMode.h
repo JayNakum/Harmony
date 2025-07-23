@@ -16,6 +16,8 @@ namespace graphics
             {
                 switch (e)
                 {
+                default:
+                    return (D3D12_TEXTURE_ADDRESS_MODE)(-1);
                 case TextureAddressMode::Wrap:
                     return D3D12_TEXTURE_ADDRESS_MODE::D3D12_TEXTURE_ADDRESS_MODE_WRAP;
                 case TextureAddressMode::Mirror:

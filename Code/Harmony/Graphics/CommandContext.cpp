@@ -29,11 +29,6 @@ namespace graphics
         mCommandList->Reset(mCurrentCommandAllocator->get(), nullptr);
     }
 
-    void CommandContext::transitionResource(dx12::GPUResource& resource, const GPUResourceStates newState, const bool flushImmediate)
-    {
-        mCommandList.transitionResource(resource, newState, flushImmediate);
-    }
-
     void CommandContext::copyBuffer(dx12::GPUResource& destination, dx12::GPUResource& source)
     {
         flushResourceBarriers();
@@ -86,13 +81,6 @@ namespace graphics
         mCommandList->CopyTextureRegion(&destLoc, destinationX, destinationY, destinationZ, &srcLoc, &box);
     }
 
-    void CommandContext::setPipelineState(dx12::PipelineState& pso)
-    {
-        ID3D12PipelineState* pipelineState = pso.get();
-
-        mCommandList->SetPipelineState(pipelineState);
-    }
-
     void CommandContext::setPredication(dx12::GPUResource& buffer, const size_t bufferOffset, bool equalZero)
     {
         mCommandList->SetPredication(
@@ -117,15 +105,8 @@ namespace graphics
         mCurrentCommandAllocator = nullptr;
     }
 
-    CommandContext::~CommandContext() {}
-}
 
-namespace graphics
-{
-    GraphicContext::GraphicContext(dx12::Device& device)
-        : CommandContext(CommandListType::Direct, device) {}
-
-    const dx12::Blob GraphicContext::compileShader(const char* shaderName, const char* shaderCode, const char* targetProfile, const char* entryPoint)
+    const dx12::Blob CommandContext::compileShader(const char* shaderName, const char* shaderCode, const char* targetProfile, const char* entryPoint)
     {
         dx12::Blob shaderBlob;
         dx12::Blob errorBlob;
@@ -150,16 +131,28 @@ namespace graphics
         );
 
         HASSERT(SUCCEEDED(hResult), "Failed to compile %s shader.\n%s", shaderName,
-                errorBlob->GetBufferPointer() ? (char*)(errorBlob->GetBufferPointer()) : "Invalid Error");
+            errorBlob->GetBufferPointer() ? (char*)(errorBlob->GetBufferPointer()) : "Invalid Error");
 
         return shaderBlob;
     }
+}
 
+namespace graphics
+{
+    GraphicContext::GraphicContext(dx12::Device& device)
+        : CommandContext(CommandListType::Direct, device) {}
 
     void GraphicContext::clearColor(dx12::DescriptorHandle& target, const float color[4])
     {
         flushResourceBarriers();
         mCommandList->ClearRenderTargetView(target, color, 0, nullptr);
+    }
+
+    void GraphicContext::setPipelineState(dx12::GraphicsPipelineState& pso)
+    {
+        ID3D12PipelineState* pipelineState = pso.get();
+
+        mCommandList->SetPipelineState(pipelineState);
     }
 
     void GraphicContext::setRootSignature(const dx12::RootSignature& rootSignature)
@@ -220,37 +213,6 @@ namespace graphics
         mCommandList->IASetPrimitiveTopology(dx12::toD3DPrimitiveTopology(topology));
     }
 
-    void GraphicContext::setConstant(const unsigned int rootIndex, dx12::DWParam value, const unsigned int offset)
-    {
-        mCommandList->SetGraphicsRoot32BitConstant(rootIndex, value.uintValue, offset);
-    }
-
-    void GraphicContext::setConstants(const unsigned int rootIndex, const size_t count, const void* pConstants, const unsigned int offset)
-    {
-        mCommandList->SetGraphicsRoot32BitConstants(rootIndex, (UINT)count, pConstants, offset);
-    }
-
-    void GraphicContext::setBufferCBV(const unsigned int rootIndex, uint64_t cbv)
-    {
-        mCommandList->SetGraphicsRootConstantBufferView(rootIndex, (D3D12_GPU_VIRTUAL_ADDRESS)cbv);
-    }
-
-    void GraphicContext::setBufferSRV(const unsigned int rootIndex, const dx12::Buffer& srv, const uint64_t offset)
-    {
-        mCommandList->SetGraphicsRootShaderResourceView(rootIndex, srv.getGPUVirtualAddress() + offset);
-    }
-
-    void GraphicContext::setDescriptorTable(const unsigned int rootIndex, const dx12::DescriptorHandle& firstHandle)
-    {
-        mCommandList->SetGraphicsRootDescriptorTable(rootIndex, firstHandle.getGPUHandle());
-    }
-
-    void GraphicContext::setIndexBuffer(const dx12::BufferView& view)
-    {
-        const D3D12_INDEX_BUFFER_VIEW d3dView = dx12::BufferView::toD3DIndexBufferView(view);
-        mCommandList->IASetIndexBuffer(&d3dView);
-    }
-
     void GraphicContext::setVertexBuffers(unsigned int slot, const dx12::BufferView views[], const size_t count)
     {
         std::vector<D3D12_VERTEX_BUFFER_VIEW> d3dViews(count);
@@ -261,6 +223,27 @@ namespace graphics
         }
 
         mCommandList->IASetVertexBuffers((UINT)slot, (UINT)count, d3dViews.data());
+    }
+
+    void GraphicContext::setIndexBuffer(const dx12::BufferView& view)
+    {
+        const D3D12_INDEX_BUFFER_VIEW d3dView = dx12::BufferView::toD3DIndexBufferView(view);
+        mCommandList->IASetIndexBuffer(&d3dView);
+    }
+
+    void GraphicContext::setConstant(const unsigned int rootIndex, dx12::DWParam value, const unsigned int offset)
+    {
+        mCommandList->SetGraphicsRoot32BitConstant(rootIndex, value.uintValue, offset);
+    }
+
+    void GraphicContext::setConstants(const unsigned int rootIndex, const size_t count, const void* pConstants, const unsigned int offset)
+    {
+        mCommandList->SetGraphicsRoot32BitConstants(rootIndex, (UINT)count, pConstants, offset);
+    }
+
+    void GraphicContext::setDescriptorTable(const unsigned int rootIndex, const dx12::DescriptorHandle& firstHandle)
+    {
+        mCommandList->SetGraphicsRootDescriptorTable(rootIndex, firstHandle.getGPUHandle());
     }
 
     void GraphicContext::draw(const unsigned int vertexCount, const unsigned int vertexStartOffset)
@@ -283,5 +266,58 @@ namespace graphics
     {
         flushResourceBarriers();
         mCommandList->DrawIndexedInstanced(indexCountPerInstance, instanceCount, startIndexLocation, baseVertexLocation, startInstanceLocation);
+    }
+}
+
+namespace graphics
+{
+    ComputeContext::ComputeContext(dx12::Device& device)
+        : CommandContext(CommandListType::Compute, device) {}
+
+    void ComputeContext::setPipelineState(dx12::ComputePipelineState& pso)
+    {
+        ID3D12PipelineState* pipelineState = pso.get();
+
+        mCommandList->SetPipelineState(pipelineState);
+    }
+
+    void ComputeContext::setRootSignature(const dx12::RootSignature& rootSignature)
+    {
+        mCommandList->SetComputeRootSignature(rootSignature.get());
+    }
+
+    void ComputeContext::setConstant(const unsigned int rootIndex, dx12::DWParam value, const unsigned int offset)
+    {
+        mCommandList->SetComputeRoot32BitConstant(rootIndex, value.uintValue, offset);
+    }
+
+    void ComputeContext::setConstants(const unsigned int rootIndex, const size_t count, const void* pConstants, const unsigned int offset)
+    {
+        mCommandList->SetComputeRoot32BitConstants(rootIndex, (UINT)count, pConstants, offset);
+    }
+
+    void ComputeContext::setDescriptorTable(const unsigned int rootIndex, const dx12::DescriptorHandle& firstHandle)
+    {
+        mCommandList->SetComputeRootDescriptorTable(rootIndex, firstHandle.getGPUHandle());
+    }
+
+    void ComputeContext::dispatch(const unsigned int groupCountX, const unsigned int groupCountY, const unsigned int groupCountZ)
+    {
+        mCommandList->Dispatch(groupCountX, groupCountY, groupCountZ);
+    }
+
+    void ComputeContext::dispatch1D(const unsigned int threadCountX, const unsigned int groupSizeX)
+    {
+        dispatch(maths::divideByMultiple(threadCountX, groupSizeX), 1, 1);
+    }
+
+    void ComputeContext::dispatch2D(const unsigned int threadCountX, const unsigned int threadCountY, const unsigned int groupSizeX, const unsigned int groupSizeY)
+    {
+        dispatch(maths::divideByMultiple(threadCountX, groupSizeX), maths::divideByMultiple(threadCountY, groupSizeY), 1);
+    }
+
+    void ComputeContext::dispatch3D(const unsigned int threadCountX, const unsigned int threadCountY, const unsigned int threadCountZ, const unsigned int groupSizeX, const unsigned int groupSizeY, const unsigned int groupSizeZ)
+    {
+        dispatch(maths::divideByMultiple(threadCountX, groupSizeX), maths::divideByMultiple(threadCountY, groupSizeY), maths::divideByMultiple(threadCountZ, groupSizeZ));
     }
 }

@@ -35,7 +35,14 @@ namespace graphics
             void setName(const std::string name);
 
             // Transition a GPUResource to a newState and optionally flush the barriers immediately.
-            void transitionResource(GPUResource& resource, const GPUResourceStates newState, bool flushImmediate = false);
+            void transitionBarrier(GPUResource& resource, const GPUResourceStates newState, const bool flushImmediate = false);
+
+            // Ensure that all the UAV access to the GPUResource are complete before any further access can happen.
+            void uavBarrier(GPUResource& resource, const bool flushImmediate = false);
+
+            // Ensures that the access on resourceBefore are completed before any further access on resourceAfter can happen.
+            // resourceAfter is an alias of resourceBefore.
+            void aliasBarrier(GPUResource& resourceBefore, GPUResource& resourceAfter, const bool flushImmediate = false);
 
             // Flushes the buffered barriers.
             void flushResourceBarriers();

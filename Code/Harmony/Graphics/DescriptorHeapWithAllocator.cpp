@@ -40,7 +40,7 @@ namespace graphics
         const size_t allocationSize = count * mDevice.getDescriptorHandleIncrementSize(DescriptorHeapType::ShaderViews);
         const size_t allocationOffset = mAllocator.allocate(category, allocationSize);
 
-        return getDescriptorHeap(category).getHeapStart() + allocationOffset;
+        return getDescriptorHeap(category).getHeapStart() + (INT)allocationOffset;
     }
 
     void DescriptorHeapWithAllocator::copyDescriptorsFrom(

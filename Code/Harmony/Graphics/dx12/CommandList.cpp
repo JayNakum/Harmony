@@ -24,7 +24,7 @@ namespace graphics
             setD3DName(mCommandList.Get(), utility::toWideString(name).c_str());
         }
 
-        void CommandList::transitionResource(GPUResource& resource, const GPUResourceStates newState, bool flushImmediate)
+        void CommandList::transitionBarrier(GPUResource& resource, const GPUResourceStates newState, const bool flushImmediate)
         {
             GPUResourceStates oldState = resource.getUsageState();
             if (oldState != newState)
@@ -51,6 +51,36 @@ namespace graphics
 
                 resource.setUsageState(newState);
             }
+
+            if (flushImmediate || mNumBarriersToFlush == CommandList::MAX_RESOURCE_BARRIERS)
+            {
+                flushResourceBarriers();
+            }
+        }
+
+        void CommandList::uavBarrier(GPUResource& resource, const bool flushImmediate)
+        {
+            HASSERT(mNumBarriersToFlush < CommandList::MAX_RESOURCE_BARRIERS, "Exeeded maximum limit on buffered barriers.");
+            D3D12_RESOURCE_BARRIER& barrier = mResourceBarrierBuffer[mNumBarriersToFlush++];
+            barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_UAV;
+            barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+            barrier.UAV.pResource = resource.get();
+
+            if (flushImmediate || mNumBarriersToFlush == CommandList::MAX_RESOURCE_BARRIERS)
+            {
+                flushResourceBarriers();
+            }
+        }
+
+        void CommandList::aliasBarrier(GPUResource& resourceBefore, GPUResource& resourceAfter, const bool flushImmediate)
+        {
+            HASSERT(mNumBarriersToFlush < CommandList::MAX_RESOURCE_BARRIERS, "Exeeded maximum limit on buffered barriers.");
+            D3D12_RESOURCE_BARRIER& barrier = mResourceBarrierBuffer[mNumBarriersToFlush++];
+
+            barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_ALIASING;
+            barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+            barrier.Aliasing.pResourceBefore = resourceBefore.get();
+            barrier.Aliasing.pResourceAfter = resourceAfter.get();
 
             if (flushImmediate || mNumBarriersToFlush == CommandList::MAX_RESOURCE_BARRIERS)
             {

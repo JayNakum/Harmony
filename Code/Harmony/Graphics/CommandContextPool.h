@@ -21,10 +21,12 @@ namespace graphics
         // If an available context exists, it is reset and reused.
         // Otherwise, a new one is created and initialized.
         GraphicContext& requestGraphicContext(dx12::Device& device);
+        ComputeContext& requestComputeContext(dx12::Device& device);
 
         // Puts the context in available queue for future use.
         // This doesn't delete or reset the context. The context is reset first when requested via allocateContext().
         void discardContext(GraphicContext& context);
+        void discardContext(ComputeContext& context);
 
         // Empties out the queue and destroys the entire pool.
         void destroyPool();
@@ -33,10 +35,17 @@ namespace graphics
 
     private:
         // The main context pool containing all the contexts of each type.
-        std::vector<GraphicContext*> msGraphicContextPool;
+        std::vector<GraphicContext*> mGraphicContextPool;
         // A queue of contexts of each type that are available for reuse.
         std::queue<GraphicContext*> mGraphicAvailableQueue;
         // Prevents incorrect reading and writing of context pool and available queue.
         std::mutex mGraphicPoolMutex;
+
+        // The main context pool containing all the contexts of each type.
+        std::vector<ComputeContext*> mComputeContextPool;
+        // A queue of contexts of each type that are available for reuse.
+        std::queue<ComputeContext*> mComputeAvailableQueue;
+        // Prevents incorrect reading and writing of context pool and available queue.
+        std::mutex mComputePoolMutex;
     };
 }
