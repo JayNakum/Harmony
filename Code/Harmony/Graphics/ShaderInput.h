@@ -95,6 +95,7 @@ namespace graphics
         void updateResourceTable(dx12::Device& device, const ResourceTable& resourceTable, const unsigned int layoutIndex);
 
         void finalize(GraphicContext& context);
+        void finalize(ComputeContext& context);
 
         ~ShaderInput() = default;
 

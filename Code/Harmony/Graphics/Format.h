@@ -41,6 +41,7 @@ namespace graphics
             ColorWriteMask channels; // Active color channels.
             Type type; // Numeric type.
             std::array<uint8_t, 4> bits; // Bits per channel in order: {R, G, B, A}.
+            bool isDepth = false;
         };
 
         // Descriptor for compressed formats (example for block-compressed formats).
@@ -149,7 +150,7 @@ namespace graphics
         static const Format R32G32_SINT = Format(Format::Uncompressed{ ColorWriteMask::RG, Format::Type::Sint, {32, 32, 0, 0} });
         // Mixed depth/stencil formats
         static const Format R32G8X24_TYPELESS = Format(Format::Uncompressed{ ColorWriteMask::RG, Format::Type::Typeless, {32, 8, 0, 0} });
-        static const Format D32_FLOAT_S8X24_UINT = Format(Format::Uncompressed{ ColorWriteMask::RG, Format::Type::Float, {32, 8, 0, 0} });
+        static const Format D32_FLOAT_S8X24_UINT = Format(Format::Uncompressed{ ColorWriteMask::RG, Format::Type::Float, {32, 8, 0, 0}, true });
         static const Format R32_FLOAT_X8X24_TYPELESS = Format(Format::Uncompressed{ ColorWriteMask::RG, Format::Type::Typeless, {32, 8, 0, 0} });
         static const Format X32_TYPELESS_G8X24_UINT = Format(Format::Uncompressed{ ColorWriteMask::RG, Format::Type::Uint, {32, 8, 0, 0} });
         // R10G10B10A2 formats
@@ -174,13 +175,13 @@ namespace graphics
         static const Format R16G16_SINT = Format(Format::Uncompressed{ ColorWriteMask::RG, Format::Type::Sint, {16, 16, 0, 0} });
         // R32 formats
         static const Format R32_TYPELESS = Format(Format::Uncompressed{ ColorWriteMask::R, Format::Type::Typeless, {32, 0, 0, 0} });
-        static const Format D32_FLOAT = Format(Format::Uncompressed{ ColorWriteMask::R, Format::Type::Float, {32, 0, 0, 0} });
+        static const Format D32_FLOAT = Format(Format::Uncompressed{ ColorWriteMask::R, Format::Type::Float, {32, 0, 0, 0}, true });
         static const Format R32_FLOAT = Format(Format::Uncompressed{ ColorWriteMask::R, Format::Type::Float, {32, 0, 0, 0} });
         static const Format R32_UINT = Format(Format::Uncompressed{ ColorWriteMask::R, Format::Type::Uint, {32, 0, 0, 0} });
         static const Format R32_SINT = Format(Format::Uncompressed{ ColorWriteMask::R, Format::Type::Sint, {32, 0, 0, 0} });
         // Depth/stencil 24/8 formats
         static const Format R24G8_TYPELESS = Format(Format::Uncompressed{ ColorWriteMask::RG, Format::Type::Typeless, {24, 8, 0, 0} });
-        static const Format D24_UNORM_S8_UINT = Format(Format::Uncompressed{ ColorWriteMask::RG, Format::Type::Unorm, {24, 8, 0, 0} });
+        static const Format D24_UNORM_S8_UINT = Format(Format::Uncompressed{ ColorWriteMask::RG, Format::Type::Unorm, {24, 8, 0, 0}, true });
         static const Format R24_UNORM_X8_TYPELESS = Format(Format::Uncompressed{ ColorWriteMask::RG, Format::Type::Unorm, {24, 8, 0, 0} });
         static const Format X24_TYPELESS_G8_UINT = Format(Format::Uncompressed{ ColorWriteMask::RG, Format::Type::Typeless, {24, 8, 0, 0} });
         // R8G8 formats
@@ -192,7 +193,7 @@ namespace graphics
         // R16 formats
         static const Format R16_TYPELESS = Format(Format::Uncompressed{ ColorWriteMask::R, Format::Type::Typeless, {16, 0, 0, 0} });
         static const Format R16_FLOAT = Format(Format::Uncompressed{ ColorWriteMask::R, Format::Type::Float, {16, 0, 0, 0} });
-        static const Format D16_UNORM = Format(Format::Uncompressed{ ColorWriteMask::R, Format::Type::Unorm, {16, 0, 0, 0} });
+        static const Format D16_UNORM = Format(Format::Uncompressed{ ColorWriteMask::R, Format::Type::Unorm, {16, 0, 0, 0}, true });
         static const Format R16_UNORM = Format(Format::Uncompressed{ ColorWriteMask::R, Format::Type::Unorm, {16, 0, 0, 0} });
         static const Format R16_UINT = Format(Format::Uncompressed{ ColorWriteMask::R, Format::Type::Uint, {16, 0, 0, 0} });
         static const Format R16_SNORM = Format(Format::Uncompressed{ ColorWriteMask::R, Format::Type::Snorm, {16, 0, 0, 0} });

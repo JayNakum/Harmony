@@ -43,23 +43,93 @@ cbuffer cbPass : register(b1)
     uint _passPaddingFinal[5];
 };
 
-static const uint NUM_WAVES = 3;
-struct WaveParams
+SamplerState gsamPointWrap : register(s0);
+SamplerState gsamPointClamp : register(s1);
+SamplerState gsamLinearWrap : register(s2);
+SamplerState gsamLinearClamp : register(s3);
+SamplerState gsamAnisotropicWrap : register(s4);
+SamplerState gsamAnisotropicClamp : register(s5);
+
+//////////////////////////////////////////////////////////////////////////////////////////
+
+struct GerstnerWaveParams
 {
     float2 windDirection;
-    float2 waveCenter; // RADIAL WAVES
+
     float amplitude;
     float steepness;
     float wavelength;
-    uint _waveParamsPadding0;
 };
 
+struct FBMParams
+{
+    uint octaves;
+    float lacunarity;
+    float gain;
+    float noiseScale;
+
+    float noiseSpeed;
+    float rippleAmp;
+
+    float lowFreq;
+    float highFreq;
+};
+
+static const uint NUM_WAVES = 3;
 cbuffer cbWaterParams : register(b2)
 {
-    WaveParams gWaveParams[NUM_WAVES];
-    float gWavesMaxHeight;
-    uint _whirlpoolParamsPaddingFinal[9];
+    GerstnerWaveParams gGerstnerWaveParams[NUM_WAVES];
+
+    FBMParams gFBMParams;
+
+    float4 gDeepColor;
+    float4 gShallowColor;
+    float gShallowFade;
+
+    float gWavesTotalAmplitude;
 };
+
+Texture2D<float> gNoiseTexture : register(t0);
+
+float3 calculateWaveOffsets(float3 vertex, GerstnerWaveParams params, float t)
+{
+    float distance = (params.windDirection.x * vertex.x + params.windDirection.y * vertex.z);
+
+    float k = TWO_PI / params.wavelength;
+    float angularFreq = sqrt(G * k);
+    float phase = (k * distance) - (angularFreq * t);
+
+    float phaseCosine = cos(phase);
+    float phaseSine = sin(phase);
+
+    float dx = (params.steepness * params.amplitude * params.windDirection.x * phaseCosine);
+    float dy = params.amplitude * phaseSine;
+    float dz = (params.steepness * params.amplitude * params.windDirection.y * phaseCosine);
+
+    return float3(dx, dy, dz);
+}
+
+float2 fbm2D(float2 uv, FBMParams params, Texture2D<float> noiseTex, float t)
+{
+    float sum = 0;
+    float maxAmplitude = 0;
+    float amplitude = 1;
+    float frequency = params.noiseScale;
+    float2 offset = float2(params.noiseSpeed * t, 0);
+
+    [unroll]
+    for (uint i = 0; i < 6; ++i)
+    {
+        float noise = noiseTex.SampleLevel(gsamLinearWrap, uv * frequency + offset, 0).r;
+        sum += amplitude * noise;
+
+        frequency *= params.lacunarity;
+        maxAmplitude += amplitude;
+        amplitude *= params.gain;
+    }
+
+    return float2(sum, maxAmplitude) * params.rippleAmp;
+}
 
 struct VSInput
 {
@@ -73,85 +143,35 @@ struct VSOutput
 {
     float4 position : SV_POSITION;
     float3 normal : NORMAL;
-
-    float normalizedHeight : TEXCOORD0;
+    float2 textureCoord : TEXCOORD0;
+    float normalizedHeight : TEXCOORD1;
 };
-
-float calculateWavePhase(float waveLength, float distance, float t)
-{
-    float k = TWO_PI / waveLength;
-    float angularFreq = sqrt(G * k);
-    float phase = (k * distance) - (angularFreq * t);
-
-    return phase;
-}
-
-float3 calculateWaveOffsets(float3 vertex, float2 direction, float amplitude, float steepness, float waveLength, float t)
-{
-    float distance = (direction.x * vertex.x + direction.y * vertex.z);
-
-    // RADIAL WAVES
-    //float distance = length(radial);
-    //if (distance > 0.0001f)
-    //{
-    //    direction /= distance; // Normalize
-    //}
-    //else
-    //{
-    //    direction /= max(distance, 0.0001f); // float2(1, 0); // Fallback if exactly at center
-    //}
-
-    float phase = calculateWavePhase(waveLength, distance, t);
-    float phaseCosine = cos(phase);
-    float phaseSine = sin(phase);
-
-    float dx = (steepness * amplitude * direction.x * phaseCosine);
-    float dy = amplitude * phaseSine;
-    float dz = (steepness * amplitude * direction.y * phaseCosine);
-
-    return float3(dx, dy, dz);
-}
-
-float3 simulateWaves(float3 vertex)
-{
-    // RADIAL WAVES
-    //const float2 center = float2(0.0f, 0.0f);
-
-    float3 waveOffset = float3(0.0f, 0.0f, 0.0f);
-    [unroll]
-    for(uint i = 0; i < NUM_WAVES; ++i)
-    {
-        float2 direction = gWaveParams[i].windDirection;
-
-        // RADIAL WAVES
-        //float2 direction = vertex.xz - center;
-
-        waveOffset += calculateWaveOffsets(
-                            vertex,
-                            direction,
-                            gWaveParams[i].amplitude,
-                            gWaveParams[i].steepness,
-                            gWaveParams[i].wavelength,
-                            gTotalTime
-                        );
-    }
-
-    return float3(
-        vertex.x + waveOffset.x,
-        waveOffset.y,
-        vertex.z + waveOffset.z
-    );
-}
 
 VSOutput vsMain(VSInput input)
 {
     VSOutput result;
 
-    float3 finalPosition = simulateWaves(input.position);
+    float3 waveOffset = float3(0.0f, 0.0f, 0.0f);
+
+    //[unroll]
+    //for(uint i = 0; i < NUM_WAVES; ++i)
+    //{
+    //    waveOffset += calculateWaveOffsets(input.position, gGerstnerWaveParams[i], gTotalTime);
+    //}
+
+    float2 swell = fbm2D(input.textureCoord, gFBMParams, gNoiseTexture, gTotalTime);
+    waveOffset.y += swell.x;
+
+    float3 finalPosition = float3(
+        input.position.x + waveOffset.x,
+        waveOffset.y,
+        input.position.z + waveOffset.z
+    );
 
     float4x4 mvp = mul(gView, gProj);
     result.position = mul(float4(finalPosition, 1.0f), mvp);
-    result.normalizedHeight = saturate(finalPosition.y / gWavesMaxHeight);
+    result.textureCoord = input.textureCoord;
+    result.normalizedHeight = saturate(finalPosition.y / swell.y);
 
     result.normal = input.normal;
     return result;
@@ -159,10 +179,7 @@ VSOutput vsMain(VSInput input)
 
 float4 psMain(VSOutput input) : SV_TARGET
 {
-    float3 deepColor = float3(0.0f, 0.3f, 0.5f);
-    float3 peakColor = float3(1.0f, 1.0f, 1.0f);
-
-    float3 finalColor = lerp(deepColor, peakColor, input.normalizedHeight);
+    float3 finalColor = lerp(gDeepColor.rgb, gShallowColor.rgb, input.normalizedHeight);
 
     return float4(finalColor, 1.0f);
 }
@@ -176,10 +193,10 @@ namespace engine
         Water::Water(graphics::dx12::Device& device, ResourceManager& resourceManager)
             :
             mStaticShaderResourceTableLayout{
-                graphics::ShaderVisibility::Vertex,
+                graphics::ShaderVisibility::Vertex | graphics::ShaderVisibility::Pixel,
                 {
-                    {graphics::DescriptorRangeType::CBV, 1},
-                    {graphics::DescriptorRangeType::CBV, 1}
+                    {graphics::DescriptorRangeType::CBV, 2},
+                    {graphics::DescriptorRangeType::SRV, 1}
                 }
             },
             mShaderResources(resourceManager.createResourceTable("GerstnerWaveWaterShader_ResourceTable", mStaticShaderResourceTableLayout, graphics::DescriptorHeapWithAllocator::DescriptorsCategory::StaticGPU)),
@@ -211,35 +228,46 @@ namespace engine
 
                 WaterParams waterParams;
                 {
-                    waterParams.waveParams[0].direction = vec2f(1.0f, 0.0f);
-                    waterParams.waveParams[0].center = vec2f(0.0f, 0.0f);
-                    waterParams.waveParams[0].amplitude = 0.2f;
-                    waterParams.waveParams[0].steepness = 0.80f;
-                    waterParams.waveParams[0].wavelength = 10.0f;
+                    waterParams.gerstnerWaveParams[0].direction = vec2f(1.0f, 0.0f);
+                    waterParams.gerstnerWaveParams[0].amplitude = 0.2f;
+                    waterParams.gerstnerWaveParams[0].steepness = 0.80f;
+                    waterParams.gerstnerWaveParams[0].wavelength = 10.0f;
 
-                    waterParams.waveParams[1].direction = vec2f(-0.5f, 0.866f);
-                    waterParams.waveParams[1].center = vec2f(0.0f, 0.0f);
-                    waterParams.waveParams[1].amplitude = 0.1f;
-                    waterParams.waveParams[1].steepness = 0.60f;
-                    waterParams.waveParams[1].wavelength = 6.0f;
+                    waterParams.gerstnerWaveParams[1].direction = vec2f(-0.5f, 0.866f);
+                    waterParams.gerstnerWaveParams[1].amplitude = 0.1f;
+                    waterParams.gerstnerWaveParams[1].steepness = 0.60f;
+                    waterParams.gerstnerWaveParams[1].wavelength = 6.0f;
 
-                    waterParams.waveParams[2].direction = vec2f(-0.5f, -0.866f);
-                    waterParams.waveParams[2].center = vec2f(0.0f, 0.0f);
-                    waterParams.waveParams[2].amplitude = 0.15f;
-                    waterParams.waveParams[2].steepness = 0.40f;
-                    waterParams.waveParams[2].wavelength = 3.0f;
+                    waterParams.gerstnerWaveParams[2].direction = vec2f(-0.5f, -0.866f);
+                    waterParams.gerstnerWaveParams[2].amplitude = 0.15f;
+                    waterParams.gerstnerWaveParams[2].steepness = 0.40f;
+                    waterParams.gerstnerWaveParams[2].wavelength = 3.0f;
+
+                    waterParams.fbmParams.octaves = 6;
+                    waterParams.fbmParams.lacunarity = 1.8f;
+                    waterParams.fbmParams.gain = 0.7f;
+                    waterParams.fbmParams.noiseScale = 0.5f;
+                    waterParams.fbmParams.noiseSpeed = 0.05f;
+                    waterParams.fbmParams.rippleAmp = 1.5f;
+                    waterParams.fbmParams.lowFreq = 0.0f;
+                    waterParams.fbmParams.highFreq = 1.0f;
+
+                    waterParams.deepColor = vec4f(0.0f, 0.3f, 0.5f, 1.0f);
+                    waterParams.shallowColor = vec4f(0.4f, 0.9f, 1.0f, 1.0f);
+                    waterParams.shallowFade = 5.0f;
 
                     waterParams.wavesTotalAmplitude = 0.0f;
                     for (int i = 0; i < WaterParams::NUM_WAVES; ++i)
                     {
-                        waterParams.wavesTotalAmplitude += waterParams.waveParams[i].amplitude;
+                        waterParams.wavesTotalAmplitude += waterParams.gerstnerWaveParams[i].amplitude;
                     }
+
                 }
 
                 {// ConstantBuffers
                     graphics::HeapWithAllocator::ResourceDescription commonPassConstantsBuffer{
-                                        graphics::HeapWithAllocator::ResourceCategory::Upload,
-                                        { "CB_CommonPassParams_Water_RenderPass", sizeof(PassConstants) }
+                        graphics::HeapWithAllocator::ResourceCategory::Upload,
+                        { "CB_CommonPassParams_Water_RenderPass", sizeof(PassConstants) }
                     };
                     resourceManager.createBuffer(commonPassConstantsBuffer);
                     mCommonPassConstantsBuffer = &resourceManager.getBuffer("CB_CommonPassParams_Water_RenderPass");
@@ -251,8 +279,8 @@ namespace engine
                     resourceManager.createBuffer(waterPassConstantsBufferUploader);
 
                     graphics::HeapWithAllocator::ResourceDescription waterPassConstantsBuffer{
-                                        graphics::HeapWithAllocator::ResourceCategory::Constants,
-                                        { "CB_WaterPassParams_Water_RenderPass", sizeof(WaterParams) }
+                        graphics::HeapWithAllocator::ResourceCategory::Constants,
+                        { "CB_WaterPassParams_Water_RenderPass", sizeof(WaterParams) }
                     };
                     resourceManager.createBuffer(waterPassConstantsBuffer);
                 }
@@ -265,7 +293,7 @@ namespace engine
 
             {// RenderItems
                 GeometryGenerator geoGen;
-                GeometryGenerator::MeshData grid = geoGen.createGrid(30.0f, 30.0f, 256, 256);
+                GeometryGenerator::MeshData grid = geoGen.createGrid(120.0f, 120.0f, 128, 128);
 
                 const size_t vbByteSize = grid.vertices.size() * sizeof(GeometryGenerator::Vertex);
                 const size_t ibByteSize = grid.getIndices16().size() * sizeof(uint16_t);
@@ -362,8 +390,9 @@ namespace engine
             mNearFarZ.y = 1000.0f;
             mProjection = perspectiveProjection(fov, aspectRatio, mNearFarZ.x, mNearFarZ.y);
 
-            mShaderResources.setResource(device, resourceManager.getBufferCBV("CB_CommonPassParams_Water_RenderPass"), 0);
-            mShaderResources.setResource(device, resourceManager.getBufferCBV("CB_WaterPassParams_Water_RenderPass"), 1);
+            mShaderResources.setResource(device, resourceManager.getBufferCBV("CB_CommonPassParams_Water_RenderPass"), 0, 0);
+            mShaderResources.setResource(device, resourceManager.getBufferCBV("CB_WaterPassParams_Water_RenderPass"), 0, 1);
+            mShaderResources.setResource(device, resourceManager.getTextureSRV("UA_Noise_Texture"), 1);
         }
 
         void Water::update(const double timeStep)
@@ -387,6 +416,9 @@ namespace engine
 
             graphics::dx12::Buffer& indexBuffer = resourceManager.getBuffer("IB_WaterMesh_Water_RenderPass");
             context.transitionBarrier(indexBuffer, graphics::GPUResourceStates::VertexAndConstantBuffer);
+
+            graphics::dx12::Texture& noiseTexture = resourceManager.getTexture("UA_Noise_Texture");
+            context.transitionBarrier(noiseTexture, graphics::GPUResourceStates::AllShaderResource);
 
             context.flushResourceBarriers();
         }
@@ -431,7 +463,7 @@ namespace engine
             scissor.bottom = (unsigned int)viewport.y + (unsigned int)viewport.height;
             context.setScissor(scissor);
 
-            const float color[4] = { 0.1f, 0.1f, 0.1f, 1.0f };
+            const float color[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
             context.clearColor(mRTV, color);
 
             graphics::dx12::BufferView vertexBufferView = mWaterRI.geometry.vertexBufferView();
@@ -457,9 +489,8 @@ namespace engine
 
         graphics::dx12::GraphicsPipelineState Water::createPSO(graphics::dx12::Device& device)
         {
-            // Pipeline State
             graphics::dx12::GraphicsPipelineState::Description psoDesc;
-            psoDesc.name = "water pso";
+            psoDesc.name = "Graphics_PSO_Water";
             psoDesc.inputLayout = {
                 {"POSITION", graphics::DefaultFormats::R32G32B32_FLOAT, 0, graphics::InputClassification::PerVertex},
                 {"NORMAL", graphics::DefaultFormats::R32G32B32_FLOAT, 12, graphics::InputClassification::PerVertex},

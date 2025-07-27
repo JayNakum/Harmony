@@ -17,6 +17,9 @@
 #include "WaterPass.h"
 #include "PresentPass.h"
 
+// Dispatch Passes
+#include "NoisePass.h"
+
 #include "Maths.h"
 
 namespace engine
@@ -43,11 +46,11 @@ namespace engine
             return context;
         }
 
-        inline void discardGraphicContext(graphics::GraphicContext& usedContext)
+        inline void discardContext(graphics::GraphicContext& usedContext)
         {
             mCommandContextPool.discardContext(usedContext);
         }
-        inline void discardGraphicContext(graphics::ComputeContext& usedContext)
+        inline void discardContext(graphics::ComputeContext& usedContext)
         {
             mCommandContextPool.discardContext(usedContext);
         }
@@ -74,5 +77,8 @@ namespace engine
     private:
         renderPass::Water mWaterPass;
         renderPass::Present mPresentPass;
+
+    private:
+        renderPass::Noise mNoisePass;
     };
 }

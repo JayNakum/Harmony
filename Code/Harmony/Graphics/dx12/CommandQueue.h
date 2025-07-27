@@ -41,6 +41,7 @@ namespace graphics
 
             // GPU Waits for the passed fence value.
             void stallForFence(Fence fence);
+            void stallForQueue(const CommandQueue& queue);
 
             // Flushes the entire command queue.
             inline void waitForIdle() { waitForFence(incrementFence()); }

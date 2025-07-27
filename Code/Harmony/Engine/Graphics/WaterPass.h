@@ -32,24 +32,44 @@ namespace engine
         private:
             void updateCamera();
 
-            struct WaveParams
+            struct GerstnerWaveParams
             {
                 vec2f direction = vec2f(0.0f);
-                vec2f center = vec2f(0.0f); // RADIAL WAVES
 
                 float amplitude = 0.0f;
                 float steepness = 0.0f;
                 float wavelength = 0.0f;
-                const uint32_t _waveParamsPadding0 = 0x1deadb0b;
+
+                const uint32_t _gerstnerWaveParamsPadding[3] = { 0x1deadb0b, 0x1deadb0b, 0x1deadb0b };
+            };
+
+            struct FBMParams
+            {
+                unsigned int octaves;
+                float lacunarity;
+                float gain;
+                float noiseScale;
+
+                float noiseSpeed;
+                float rippleAmp;
+
+                float lowFreq;
+                float highFreq;
             };
 
             struct WaterParams
             {
                 static constexpr unsigned int NUM_WAVES = 3;
-                WaveParams waveParams[NUM_WAVES];
+                GerstnerWaveParams gerstnerWaveParams[NUM_WAVES];
+                FBMParams fbmParams;
+
+                vec4f deepColor;
+                vec4f shallowColor;
+                float shallowFade;
+
                 float wavesTotalAmplitude = 0.0f;
 
-                const uint32_t _waveParamsPaddingFinal[231] = { 0x1deadb0b };
+                const uint32_t _waterParamsPaddingFinal[214] = { 0x1deadb0b };
             };
             static_assert(sizeof(WaterParams) % 256 == 0, "Must be aligned");
 

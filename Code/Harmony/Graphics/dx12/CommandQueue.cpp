@@ -60,6 +60,11 @@ namespace graphics
             mCommandQueue->Wait(fence.get(), fence->GetCompletedValue());
         }
 
+        void CommandQueue::stallForQueue(const CommandQueue& queue)
+        {
+            stallForFence(queue.mFence);
+        }
+
         const uint64_t CommandQueue::executeCommandLists(dx12::CommandList commandLists[], const unsigned int count)
         {
             std::lock_guard<std::mutex> scopedLockGuard(mFenceMutex);

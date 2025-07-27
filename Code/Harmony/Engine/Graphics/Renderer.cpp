@@ -24,22 +24,40 @@ namespace engine
         ),
         mClientWidth(0), mClientHeight(0),
         mWaterPass(mDevice, mResourceManager),
-        mPresentPass(mDevice, mResourceManager)
+        mPresentPass(mDevice, mResourceManager),
+        mNoisePass(mDevice, mResourceManager)
     {
-        graphics::GraphicContext& initContext = aquireGraphicContext("init context");
+        {
+            graphics::GraphicContext& initGraphicsContext = aquireGraphicContext("Init_Graphics_Context");
 
-        mWaterPass.copyDataToGPU(initContext, mResourceManager);
-        mPresentPass.copyDataToGPU(initContext, mResourceManager);
+            mWaterPass.copyDataToGPU(initGraphicsContext, mResourceManager);
+            mPresentPass.copyDataToGPU(initGraphicsContext, mResourceManager);
 
-        initContext.finish(mGraphicsQueue.incrementFence());
+            initGraphicsContext.finish(mGraphicsQueue.incrementFence());
 
-        graphics::dx12::CommandList batchedCommandLists[1] = { initContext.commandList() };
-        uint64_t fence = mGraphicsQueue.executeCommandLists(batchedCommandLists);
-        mGraphicsQueue.waitForFence(fence);
+            graphics::dx12::CommandList batchedGraphicsCommandLists[1] = { initGraphicsContext.commandList() };
+            uint64_t graphicsFence = mGraphicsQueue.executeCommandLists(batchedGraphicsCommandLists);
+            mGraphicsQueue.waitForFence(graphicsFence);
 
-        discardGraphicContext(initContext);
-        mWaterPass.freeGPUUploadData(mResourceManager);
-        mPresentPass.freeGPUUploadData(mResourceManager);
+            discardContext(initGraphicsContext);
+            mWaterPass.freeGPUUploadData(mResourceManager);
+            mPresentPass.freeGPUUploadData(mResourceManager);
+        }
+        {
+            graphics::ComputeContext& initComputeContext = aquireComputeContext("Init_Compute_Context");
+
+            mNoisePass.copyDataToGPU(initComputeContext, mResourceManager);
+
+            initComputeContext.finish(mComputeQueue.incrementFence());
+
+            graphics::dx12::CommandList batchedComputeCommandLists[1] = { initComputeContext.commandList() };
+            uint64_t computeFence = mComputeQueue.executeCommandLists(batchedComputeCommandLists);
+            mComputeQueue.waitForFence(computeFence);
+
+            discardContext(initComputeContext);
+            mNoisePass.freeGPUUploadData(mResourceManager);
+        }
+
         mResourceManager.reset(graphics::HeapWithAllocator::ResourceCategory::Upload);
     }
 
@@ -60,20 +78,37 @@ namespace engine
 
         mWaterPass.resize(width, height, mDevice, mResourceManager);
         mPresentPass.resize(width, height, mDevice, mResourceManager, mSwapchain.isHDRSupported());
+
+        mNoisePass.resize(width, height, mDevice, mResourceManager);
     }
 
     void Renderer::update(const double timeStep)
     {
         mWaterPass.update(timeStep);
         mPresentPass.update(timeStep);
+
+        mNoisePass.update(timeStep);
     }
 
     void Renderer::render(const FrameConstants frame)
     {
         const unsigned int frameI = mSwapchain.getCurrentBackBufferIndex();
 
+        // NOISE PASS
+        graphics::ComputeContext& contextNoise = aquireComputeContext("Noise_Compute_Context");
+
+        mNoisePass.getInputOutputs(contextNoise, mResourceManager);
+        mNoisePass.dispatch(contextNoise, frame);
+
+        contextNoise.finish(mComputeQueue.incrementFence());
+
+        graphics::dx12::CommandList batchedComputeCommandLists[1] = { contextNoise.commandList() };
+        uint64_t computeFence = mComputeQueue.executeCommandLists(batchedComputeCommandLists);
+        mComputeQueue.waitForFence(computeFence);
+        mGraphicsQueue.stallForQueue(mComputeQueue);
+
         // WATER PASS
-        graphics::GraphicContext& contextWater = aquireGraphicContext("water");
+        graphics::GraphicContext& contextWater = aquireGraphicContext("Water_Graphic_Context");
 
         mWaterPass.getInputOutputs(contextWater, mResourceManager);
         mWaterPass.render(contextWater, frame);
@@ -81,7 +116,7 @@ namespace engine
         contextWater.finish(mGraphicsQueue.incrementFence());
 
         // PRESENT PASS
-        graphics::GraphicContext& contextPresent = aquireGraphicContext("present");
+        graphics::GraphicContext& contextPresent = aquireGraphicContext("Present_Graphic_Context");
 
         contextPresent.transitionBarrier(mSwapchain.getBackBufferAt(frameI), graphics::GPUResourceStates::RenderTarget);
 
@@ -92,15 +127,16 @@ namespace engine
         contextPresent.finish(mGraphicsQueue.incrementFence());
 
         // EXECUTE COMMAND LISTS
-        graphics::dx12::CommandList batchedCommandLists[2] = { contextWater.commandList(), contextPresent.commandList() };
-        uint64_t fence = mGraphicsQueue.executeCommandLists(batchedCommandLists, 2);
+        graphics::dx12::CommandList batchedGraphicsCommandLists[2] = { contextWater.commandList(), contextPresent.commandList() };
+        uint64_t graphicsFence = mGraphicsQueue.executeCommandLists(batchedGraphicsCommandLists, 2);
+        mGraphicsQueue.waitForFence(graphicsFence);
 
         // PRESENT
         mSwapchain.present(1);
-        mGraphicsQueue.waitForFence(fence);
 
-        discardGraphicContext(contextWater);
-        discardGraphicContext(contextPresent);
+        discardContext(contextWater);
+        discardContext(contextPresent);
+        discardContext(contextNoise);
     }
 
     Renderer::~Renderer()

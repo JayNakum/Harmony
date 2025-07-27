@@ -19,6 +19,7 @@ namespace // Keeping this in no namespace so that these are inaccessible outside
                 h ^= std::hash<int>()(static_cast<int>(f.uncompressed.type)) + 0x9e3779b97f4a7c15ULL + (h << 6) + (h >> 2);
                 for (auto b : f.uncompressed.bits)
                     h ^= std::hash<int>()(b) + 0x9e3779b97f4a7c15ULL + (h << 6) + (h >> 2);
+                h ^= std::hash<int>()(static_cast<int>(f.uncompressed.isDepth)) + 0x9e3779b97f4a7c15ULL + (h << 6) + (h >> 2);
             }
             else
             { // Compressed

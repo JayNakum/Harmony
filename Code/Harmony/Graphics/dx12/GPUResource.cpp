@@ -28,7 +28,7 @@ namespace graphics
             HRESULT hResult = device->CreateCommittedResource(
                 &heapProperties, D3D12_HEAP_FLAG_NONE, &resourceDescription,
                 toD3DResourceStates(mUsageState),
-                mDescription.dimension == GPUResourceDimension::Buffer ? nullptr : &clearValue,
+                nullptr,
                 IID_PPV_ARGS(getAddressOf())
             );
             HASSERT(SUCCEEDED(hResult), "Failed to create committed resource %s.\n%s", mDescription.name, utility::translateErrorCode(hResult));
@@ -54,10 +54,10 @@ namespace graphics
             HRESULT hResult = device->CreatePlacedResource(
                 (backingHeap.get()), heapOffset, &resourceDescription,
                 toD3DResourceStates(mUsageState),
-                mDescription.dimension == GPUResourceDimension::Buffer ? nullptr : &clearValue,
+                nullptr,
                 IID_PPV_ARGS(getAddressOf())
             );
-            HASSERT(SUCCEEDED(hResult), "Failed to create placed resource %s.\n%s", mDescription.name, utility::translateErrorCode(hResult));
+            HASSERT(SUCCEEDED(hResult), "Failed to create placed resource %s.\n%s", mDescription.name.c_str(), utility::translateErrorCode(hResult));
             setD3DName(mResource.Get(), utility::toWideString(mDescription.name).c_str());
         }
 

@@ -106,7 +106,7 @@ namespace engine
         graphics::dx12::GraphicsPipelineState Present::createPSO(graphics::dx12::Device& device)
         {
             graphics::dx12::GraphicsPipelineState::Description psoDesc;
-            psoDesc.name = "present pso";
+            psoDesc.name = "Graphics_PSO_Present";
             psoDesc.rootSignature = &(mPresentSI.getRootSignature(device));
             psoDesc.vertexShader = graphics::CommandContext::compileShader(
                 "ScreenQuadVS",

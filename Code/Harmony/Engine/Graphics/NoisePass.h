@@ -26,9 +26,19 @@ namespace engine
             void update(const double timeStep);
 
             void getInputOutputs(graphics::ComputeContext& context, ResourceManager& resourceManager);
-            void render(graphics::ComputeContext& context, const FrameConstants& frameConstants);
+            void dispatch(graphics::ComputeContext& context, const FrameConstants& frameConstants);
 
             ~Noise() = default;
+
+        private:
+            graphics::dx12::ComputePipelineState createPSO(graphics::dx12::Device& device);
+
+        private:
+            const graphics::ResourceTable::Layout mStaticShaderResourceTableLayout;
+            graphics::ResourceTable mShaderResources;
+            graphics::ShaderInput mNoiseSI;
+
+            graphics::dx12::ComputePipelineState mNoisePSO;
         };
     }
 }

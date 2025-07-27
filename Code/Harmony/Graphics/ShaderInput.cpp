@@ -206,6 +206,28 @@ namespace graphics
         }
     }
 
+    void ShaderInput::finalize(ComputeContext& context)
+    {
+        unsigned int rootIndex = 0;
+
+        // Finalize root constants
+        HASSERT(mConstantsLayout.size() == mRootConstants.size(), "Mismatch in layout size (%d) and root constants size (%s).", mConstantsLayout.size(), mRootConstants.size());
+
+        while (rootIndex < mRootConstants.size())
+        {
+            RootConstants& constants = mRootConstants.at(rootIndex);
+            auto constantPTR = constants.data();
+            context.setConstants(rootIndex++, constants.size(), constants.data());
+        }
+
+        // Finalize descriptor tables
+        HASSERT(mGPUResourceTablesLayout.size() == mGPUResourceTables.size(), "Mismatch in layout size (%d) and root parameters size (%s).", mGPUResourceTablesLayout.size(), mGPUResourceTables.size());
+        for (const ResourceTable& table : mGPUResourceTables)
+        {
+            context.setDescriptorTable(rootIndex++, table.getHandleStart());
+        }
+    }
+
     std::string ShaderInput::createRootSignatureID()
     {
         std::string rootSignatureID = "";
