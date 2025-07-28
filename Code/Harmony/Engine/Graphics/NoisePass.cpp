@@ -397,7 +397,7 @@ namespace engine
                     1, 1,
                     graphics::GPUResourceDimension::Texture2D,
                     graphics::DefaultFormats::R32_FLOAT,
-                    graphics::GPUResourceFlags::AllowUnorderedAccess,
+                    graphics::GPUResourceFlags::AllowUnorderedAccess
                 }
             };
             resourceManager.createTexture(noiseTexture);
@@ -425,6 +425,7 @@ namespace engine
         void Noise::getInputOutputs(graphics::ComputeContext& context, ResourceManager& resourceManager)
         {
             graphics::dx12::Texture& noise = resourceManager.getTexture("UA_Noise_Texture");
+            context.transitionBarrier(noise, graphics::GPUResourceStates::UnorderedAccess);
             context.uavBarrier(noise);
 
             context.flushResourceBarriers();

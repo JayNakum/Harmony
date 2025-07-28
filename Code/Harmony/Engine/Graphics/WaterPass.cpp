@@ -153,11 +153,11 @@ VSOutput vsMain(VSInput input)
 
     float3 waveOffset = float3(0.0f, 0.0f, 0.0f);
 
-    //[unroll]
-    //for(uint i = 0; i < NUM_WAVES; ++i)
-    //{
-    //    waveOffset += calculateWaveOffsets(input.position, gGerstnerWaveParams[i], gTotalTime);
-    //}
+    [unroll]
+    for(uint i = 0; i < NUM_WAVES; ++i)
+    {
+        waveOffset += calculateWaveOffsets(input.position, gGerstnerWaveParams[i], gTotalTime);
+    }
 
     float2 swell = fbm2D(input.textureCoord, gFBMParams, gNoiseTexture, gTotalTime);
     waveOffset.y += swell.x;
@@ -181,7 +181,7 @@ float4 psMain(VSOutput input) : SV_TARGET
 {
     float3 finalColor = lerp(gDeepColor.rgb, gShallowColor.rgb, input.normalizedHeight);
 
-    return float4(finalColor, 1.0f);
+    return float4(finalColor, 0.8f);
 }
 )###";
 }
@@ -293,7 +293,7 @@ namespace engine
 
             {// RenderItems
                 GeometryGenerator geoGen;
-                GeometryGenerator::MeshData grid = geoGen.createGrid(120.0f, 120.0f, 128, 128);
+                GeometryGenerator::MeshData grid = geoGen.createGrid(120.0f, 120.0f, 64, 64);
 
                 const size_t vbByteSize = grid.vertices.size() * sizeof(GeometryGenerator::Vertex);
                 const size_t ibByteSize = grid.getIndices16().size() * sizeof(uint16_t);
@@ -392,7 +392,7 @@ namespace engine
 
             mShaderResources.setResource(device, resourceManager.getBufferCBV("CB_CommonPassParams_Water_RenderPass"), 0, 0);
             mShaderResources.setResource(device, resourceManager.getBufferCBV("CB_WaterPassParams_Water_RenderPass"), 0, 1);
-            mShaderResources.setResource(device, resourceManager.getTextureSRV("UA_Noise_Texture"), 1);
+            mShaderResources.setResource(device, resourceManager.getTextureSRV("UA_Noise_Texture", "SR_Noise_Texture"), 1);
         }
 
         void Water::update(const double timeStep)
@@ -418,7 +418,7 @@ namespace engine
             context.transitionBarrier(indexBuffer, graphics::GPUResourceStates::VertexAndConstantBuffer);
 
             graphics::dx12::Texture& noiseTexture = resourceManager.getTexture("UA_Noise_Texture");
-            context.transitionBarrier(noiseTexture, graphics::GPUResourceStates::AllShaderResource);
+            context.transitionBarrier(noiseTexture, graphics::GPUResourceStates::Common);
 
             context.flushResourceBarriers();
         }
@@ -513,6 +513,14 @@ namespace engine
             );
             psoDesc.numRenderTargets = 1;
             psoDesc.rtvFormats[0] = graphics::DefaultFormats::R16G16B16A16_UNORM;
+
+            graphics::dx12::GraphicsPipelineState::BlendDescription::RenderTargetBlendDescription transparentWater;
+            transparentWater.blendEnable = true;
+            transparentWater.logicOpEnable = false;
+            transparentWater.srcBlend = graphics::Blend::SourceAlpha;
+            transparentWater.destBlend = graphics::Blend::InverseSourceAlpha;
+            psoDesc.blendDescription.renderTarget[0] = transparentWater;
+
             psoDesc.cullMode = graphics::CullMode::None;
             return graphics::dx12::GraphicsPipelineState(device, psoDesc);
         }

@@ -54,18 +54,35 @@ namespace graphics
 
     void CommandContextPool::destroyPool()
     {
-        std::lock_guard<std::mutex> scopedLockGuard(mGraphicPoolMutex);
-
-        // clear the queue to prevent dangling pointers
-        while (!mGraphicAvailableQueue.empty())
         {
-            mGraphicAvailableQueue.pop();
-        }
+            std::lock_guard<std::mutex> scopedLockGuard(mGraphicPoolMutex);
 
-        for (const GraphicContext* context : mGraphicContextPool)
-        {
-            delete context;
+            // clear the queue to prevent dangling pointers
+            while (!mGraphicAvailableQueue.empty())
+            {
+                mGraphicAvailableQueue.pop();
+            }
+
+            for (const GraphicContext* context : mGraphicContextPool)
+            {
+                delete context;
+            }
+            CommandContextPool::mGraphicContextPool.clear();
         }
-        CommandContextPool::mGraphicContextPool.clear();
+        {
+            std::lock_guard<std::mutex> scopedLockGuard(mComputePoolMutex);
+
+            // clear the queue to prevent dangling pointers
+            while (!mComputeAvailableQueue.empty())
+            {
+                mComputeAvailableQueue.pop();
+            }
+
+            for (const ComputeContext* context : mComputeContextPool)
+            {
+                delete context;
+            }
+            CommandContextPool::mComputeContextPool.clear();
+        }
     }
 }
