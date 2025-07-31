@@ -10,6 +10,9 @@ namespace graphics
     /*
     * Context Pool manages the memory for creating and destroying Command Contexts
     * It has a pool of contexts and manages its allocation and deallocation.
+    * Allocates a new context for the given command list type.
+    * If an available context exists, it is reset and reused.
+    * Otherwise, a new one is created and initialized.
     */
     class CommandContextPool
     {
@@ -17,11 +20,8 @@ namespace graphics
     public:
         CommandContextPool() = default;
 
-        // Allocates a new context for the given command list type.
-        // If an available context exists, it is reset and reused.
-        // Otherwise, a new one is created and initialized.
-        GraphicContext& requestGraphicContext(dx12::Device& device);
-        ComputeContext& requestComputeContext(dx12::Device& device);
+        GraphicContext& requestGraphicContext(Device& device);
+        ComputeContext& requestComputeContext(Device& device);
 
         // Puts the context in available queue for future use.
         // This doesn't delete or reset the context. The context is reset first when requested via allocateContext().
@@ -34,18 +34,18 @@ namespace graphics
         ~CommandContextPool() { destroyPool(); }
 
     private:
-        // The main context pool containing all the contexts of each type.
+        // The main graphics context pool containing all the contexts of each type.
         std::vector<GraphicContext*> mGraphicContextPool;
-        // A queue of contexts of each type that are available for reuse.
+        // A queue of graphics contexts of each type that are available for reuse.
         std::queue<GraphicContext*> mGraphicAvailableQueue;
-        // Prevents incorrect reading and writing of context pool and available queue.
+        // Prevents incorrect reading and writing of graphics context pool and available queue.
         std::mutex mGraphicPoolMutex;
 
-        // The main context pool containing all the contexts of each type.
+        // The main compute context pool containing all the contexts of each type.
         std::vector<ComputeContext*> mComputeContextPool;
-        // A queue of contexts of each type that are available for reuse.
+        // A queue of compute contexts of each type that are available for reuse.
         std::queue<ComputeContext*> mComputeAvailableQueue;
-        // Prevents incorrect reading and writing of context pool and available queue.
+        // Prevents incorrect reading and writing of compute context pool and available queue.
         std::mutex mComputePoolMutex;
     };
 }

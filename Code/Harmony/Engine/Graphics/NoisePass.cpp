@@ -369,93 +369,90 @@ void csMain(
 
 namespace engine
 {
-    namespace renderPass
-    {
-        Noise::Noise(graphics::dx12::Device& device, ResourceManager& resourceManager)
-            :
-            mStaticShaderResourceTableLayout{
-                graphics::ShaderVisibility::All,
-                {
-                    {graphics::DescriptorRangeType::UAV, 1}
-                }
+    Noise::Noise(graphics::Device& device, ResourceManager& resourceManager)
+        :
+        mStaticShaderResourceTableLayout{
+            graphics::ShaderVisibility::All,
+            {
+                {graphics::DescriptorRangeType::UAV, 1}
+            }
+        },
+        mShaderResources(resourceManager.createResourceTable("SimplexNoiseShader_ResourceTable", mStaticShaderResourceTableLayout, graphics::DescriptorHeapWithAllocator::DescriptorsCategory::StaticGPU)),
+        mNoiseSI(
+            {
+                {graphics::ShaderVisibility::Vertex, 4},
+                {graphics::ShaderVisibility::Vertex, 4}
             },
-            mShaderResources(resourceManager.createResourceTable("SimplexNoiseShader_ResourceTable", mStaticShaderResourceTableLayout, graphics::DescriptorHeapWithAllocator::DescriptorsCategory::StaticGPU)),
-            mNoiseSI(
-                {
-                    {graphics::ShaderVisibility::Vertex, 4},
-                    {graphics::ShaderVisibility::Vertex, 4}
-                },
-                { mStaticShaderResourceTableLayout }
-            ),
-            mNoisePSO(createPSO(device))
-        {
-            graphics::HeapWithAllocator::ResourceDescription noiseTexture{
-                graphics::HeapWithAllocator::ResourceCategory::Persistent,
-                {
-                    "UA_Noise_Texture",
-                    256, 256,
-                    1, 1,
-                    graphics::GPUResourceDimension::Texture2D,
-                    graphics::DefaultFormats::R32_FLOAT,
-                    graphics::GPUResourceFlags::AllowUnorderedAccess
-                }
-            };
-            resourceManager.createTexture(noiseTexture);
+            { mStaticShaderResourceTableLayout }
+        ),
+        mNoisePSO(createPSO(device))
+    {
+        graphics::HeapWithAllocator::ResourceDescription noiseTexture{
+            graphics::HeapWithAllocator::ResourceCategory::PersistentData,
+            {
+                "UA_Noise_Texture",
+                256, 256,
+                1, 1,
+                graphics::GPUResourceDimension::Texture2D,
+                graphics::DefaultFormats::R32_FLOAT,
+                graphics::GPUResourceFlags::AllowUnorderedAccess
+            }
+        };
+        resourceManager.createTexture(noiseTexture);
 
-            mShaderResources.setResource(device, resourceManager.getTextureUAV("UA_Noise_Texture"), 0);
-        }
+        mShaderResources.setResource(device, resourceManager.getTextureUAV("UA_Noise_Texture"), 0);
+    }
 
-        void Noise::copyDataToGPU(graphics::ComputeContext& context, ResourceManager& resourceManager)
-        {
-            mNoiseSI.setResourceTable(mShaderResources);
-        }
+    void Noise::copyDataToGPU(graphics::ComputeContext& context, ResourceManager& resourceManager)
+    {
+        mNoiseSI.setResourceTable(mShaderResources);
+    }
 
-        void Noise::freeGPUUploadData(ResourceManager& resourceManager)
-        {
-        }
+    void Noise::freeGPUUploadData(ResourceManager& resourceManager)
+    {
+    }
 
-        void Noise::resize(const unsigned int width, const unsigned int height, graphics::dx12::Device& device, ResourceManager& resourceManager)
-        {
-        }
+    void Noise::resize(const unsigned int width, const unsigned int height, graphics::Device& device, ResourceManager& resourceManager)
+    {
+    }
 
-        void Noise::update(const double timeStep)
-        {
-        }
+    void Noise::update(const double timeStep)
+    {
+    }
 
-        void Noise::getInputOutputs(graphics::ComputeContext& context, ResourceManager& resourceManager)
-        {
-            graphics::dx12::Texture& noise = resourceManager.getTexture("UA_Noise_Texture");
-            context.transitionBarrier(noise, graphics::GPUResourceStates::UnorderedAccess);
-            context.uavBarrier(noise);
+    void Noise::getInputOutputs(graphics::ComputeContext& context, ResourceManager& resourceManager)
+    {
+        graphics::Texture& noise = resourceManager.getTexture("UA_Noise_Texture");
+        context.transitionBarrier(noise, graphics::GPUResourceStates::UnorderedAccess);
+        context.uavBarrier(noise);
 
-            context.flushResourceBarriers();
-        }
+        context.flushResourceBarriers();
+    }
 
-        void Noise::dispatch(graphics::ComputeContext& context, const FrameConstants& frameConstants)
-        {
-            context.setPipelineState(mNoisePSO);
-            context.setRootSignature(mNoiseSI.getRootSignature(context.getDevice()));
+    void Noise::dispatch(graphics::ComputeContext& context, const FrameConstants& frameConstants)
+    {
+        context.setPipelineState(mNoisePSO);
+        context.setRootSignature(mNoiseSI.getRootSignature(context.getDevice()));
 
-            mNoiseSI.setConstants({ frameConstants.totalTime, frameConstants.deltaTime, 0x1deadb0b, 0x1deadb0b }, 0);
-            mNoiseSI.setConstants({ 256.0f, 256.0f, 16.0f, 0x1deadb0b }, 1);
-            mNoiseSI.finalize(context);
+        mNoiseSI.setConstants({ frameConstants.totalTime, frameConstants.deltaTime, 0x1deadb0b, 0x1deadb0b }, 0);
+        mNoiseSI.setConstants({ 256.0f, 256.0f, 16.0f, 0x1deadb0b }, 1);
+        mNoiseSI.finalize(context);
 
-            context.dispatch2D(256, 256);
-        }
+        context.dispatch2D(256, 256);
+    }
 
-        graphics::dx12::ComputePipelineState Noise::createPSO(graphics::dx12::Device& device)
-        {
-            graphics::dx12::ComputePipelineState::Description psoDesc;
-            psoDesc.name = "Compute_PSO_Noise";
-            psoDesc.computeShader = graphics::CommandContext::compileShader(
-                "NoiseCS",
-                shaders::SimplexNoise,
-                "cs_5_0",
-                "csMain"
-            );
-            psoDesc.rootSignature = &(mNoiseSI.getRootSignature(device));
+    graphics::ComputePipelineState Noise::createPSO(graphics::Device& device)
+    {
+        graphics::ComputePipelineState::Description psoDesc;
+        psoDesc.name = "Compute_PSO_Noise";
+        psoDesc.computeShader = graphics::CommandContext::compileShader(
+            "NoiseCS",
+            shaders::SimplexNoise,
+            "cs_5_0",
+            "csMain"
+        );
+        psoDesc.rootSignature = &(mNoiseSI.getRootSignature(device));
 
-            return graphics::dx12::ComputePipelineState(device, psoDesc);
-        }
+        return graphics::ComputePipelineState(device, psoDesc);
     }
 }

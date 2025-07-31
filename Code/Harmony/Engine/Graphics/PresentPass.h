@@ -1,45 +1,43 @@
 #pragma once
 
-#include "common.h"
-#include "Log.h"
-
-#include "CommonConstants.h"
-#include "ResourceManager.h"
-#include "CommandContext.h"
-
-#include "ShaderInput.h"
-#include "RenderItem.h"
+#include "PassCore.h"
 
 namespace engine
 {
-    namespace renderPass
+    class Present : RenderPass
     {
-        class Present
+    public:
+        Present(graphics::Device& device, ResourceManager& resourceManager);
+        void copyDataToGPU(graphics::GraphicContext& context, ResourceManager& resourceManager) override;
+        void freeGPUUploadData(ResourceManager& resourceManager) override {}
+
+        void resize(const unsigned int width, const unsigned int height, graphics::Device& device, ResourceManager& resourceManager) override
         {
-        public:
-            Present(graphics::dx12::Device& device, ResourceManager& resourceManager);
+            HASSERT(false, "Present pass is a special pass that needs additional parameters which are provided in a separate overload.");
+        }
+        void resize(const unsigned int width, const unsigned int height, graphics::Device& device, ResourceManager& resourceManager, const bool isHDRSupported);
 
-            void copyDataToGPU(graphics::GraphicContext& context, ResourceManager& resourceManager);
-            void freeGPUUploadData(ResourceManager& resourceManager) {}
+        void update(const double timeStep) override {}
 
-            void resize(const unsigned int width, const unsigned int height, graphics::dx12::Device& device, ResourceManager& resourceManager, const bool isHDRSupported);
-            void update(const double timeStep) {}
+        void getInputOutputs(graphics::GraphicContext& context, ResourceManager& resourceManager) override;
 
-            void getInputOutputs(graphics::GraphicContext& context, ResourceManager& resourceManager);
-            void render(graphics::GraphicContext& context, const FrameConstants& frameConstants, graphics::dx12::DescriptorHandle swapchainRTV);
+        void render(graphics::GraphicContext& context, const FrameConstants& frameConstants) override
+        {
+            HASSERT(false, "Present pass is a special pass that needs additional parameters which are provided in a separate overload.");
+        }
+        void render(graphics::GraphicContext& context, const FrameConstants& frameConstants, graphics::DescriptorHandle swapchainRTV);
 
-            ~Present() = default;
+        ~Present() = default;
 
-        private:
-            graphics::dx12::GraphicsPipelineState createPSO(graphics::dx12::Device& device);
+    private:
+        graphics::GraphicsPipelineState createPSO(graphics::Device& device);
 
-        private:
-            const graphics::ResourceTable::Layout mStaticShaderResourceTableLayout;
-            graphics::ResourceTable mShaderResources;
-            graphics::ShaderInput mPresentSI;
-            graphics::dx12::GraphicsPipelineState mPresentPSO;
-            unsigned int mSwapchainWidth;
-            unsigned int mSwapchainHeight;
-        };
-    }
+    private:
+        const graphics::ResourceTable::Layout mStaticShaderResourceTableLayout;
+        graphics::ResourceTable mShaderResources;
+        graphics::ShaderInput mPresentSI;
+        graphics::GraphicsPipelineState mPresentPSO;
+        unsigned int mSwapchainWidth;
+        unsigned int mSwapchainHeight;
+    };
 }

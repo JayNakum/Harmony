@@ -1,44 +1,33 @@
 #pragma once
 
-#include "common.h"
-#include "Log.h"
-
-#include "CommonConstants.h"
-#include "ResourceManager.h"
-#include "CommandContext.h"
-
-#include "ShaderInput.h"
-#include "RenderItem.h"
+#include "PassCore.h"
 
 namespace engine
 {
-    namespace renderPass
+    class Noise : DispatchPass
     {
-        class Noise
-        {
-        public:
-            Noise(graphics::dx12::Device& device, ResourceManager& resourceManager);
+    public:
+        Noise(graphics::Device& device, ResourceManager& resourceManager);
 
-            void copyDataToGPU(graphics::ComputeContext& context, ResourceManager& resourceManager);
-            void freeGPUUploadData(ResourceManager& resourceManager);
+        void copyDataToGPU(graphics::ComputeContext& context, ResourceManager& resourceManager) override;
+        void freeGPUUploadData(ResourceManager& resourceManager) override;
 
-            void resize(const unsigned int width, const unsigned int height, graphics::dx12::Device& device, ResourceManager& resourceManager);
-            void update(const double timeStep);
+        void resize(const unsigned int width, const unsigned int height, graphics::Device& device, ResourceManager& resourceManager) override;
+        void update(const double timeStep) override;
 
-            void getInputOutputs(graphics::ComputeContext& context, ResourceManager& resourceManager);
-            void dispatch(graphics::ComputeContext& context, const FrameConstants& frameConstants);
+        void getInputOutputs(graphics::ComputeContext& context, ResourceManager& resourceManager) override;
+        void dispatch(graphics::ComputeContext& context, const FrameConstants& frameConstants) override;
 
-            ~Noise() = default;
+        ~Noise() = default;
 
-        private:
-            graphics::dx12::ComputePipelineState createPSO(graphics::dx12::Device& device);
+    private:
+        graphics::ComputePipelineState createPSO(graphics::Device& device);
 
-        private:
-            const graphics::ResourceTable::Layout mStaticShaderResourceTableLayout;
-            graphics::ResourceTable mShaderResources;
-            graphics::ShaderInput mNoiseSI;
+    private:
+        const graphics::ResourceTable::Layout mStaticShaderResourceTableLayout;
+        graphics::ResourceTable mShaderResources;
+        graphics::ShaderInput mNoiseSI;
 
-            graphics::dx12::ComputePipelineState mNoisePSO;
-        };
-    }
+        graphics::ComputePipelineState mNoisePSO;
+    };
 }

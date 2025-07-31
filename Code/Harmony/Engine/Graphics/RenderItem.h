@@ -21,21 +21,21 @@ namespace engine
     {
         std::string name;
 
-        graphics::dx12::Buffer* vertexBuffer = nullptr;
-        graphics::dx12::Buffer* indexBuffer = nullptr;
+        graphics::Buffer* vertexBuffer = nullptr;
+        graphics::Buffer* indexBuffer = nullptr;
 
         unsigned int vertexByteStride = 0;
         bool is32BitIndices = false;
 
         std::unordered_map<std::string, SubmeshGeometry> drawArgs;
 
-        inline const graphics::dx12::BufferView vertexBufferView() const
+        inline const graphics::BufferView vertexBufferView() const
         {
             HASSERT(vertexBuffer != nullptr, "Vertex buffer is not set for mesh geometry %s.", name);
             return vertexBuffer->vertexBufferView(vertexByteStride);
         }
 
-        inline const graphics::dx12::BufferView indexBufferView() const
+        inline const graphics::BufferView indexBufferView() const
         {
             HASSERT(indexBuffer != nullptr, "Index buffer is not set for mesh geometry %s.", name);
             return indexBuffer->indexBufferView(0, is32BitIndices);

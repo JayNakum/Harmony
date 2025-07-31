@@ -2,33 +2,33 @@
 
 namespace graphics
 {
-    HeapWithAllocator::HeapWithAllocator(dx12::Device& device)
+    HeapWithAllocator::HeapWithAllocator(Device& device)
         : mDevice(device),
         mUploadHeap(
             mDevice,
             {
                 "HeapWithAllocator_UploadHeap",
-                ResourceAllocator::MEMORY_BUDGET[ResourceCategory::Upload],
+                ResourceAllocator::MEMORY_BUDGET[ResourceCategory::UploadData],
                 HeapType::Upload
             }),
         mDefaultHeap(
             mDevice,
             {
                 "HeapWithAllocator_DefaultHeap",
-                ResourceAllocator::MEMORY_BUDGET[ResourceCategory::Transient] +
-                ResourceAllocator::MEMORY_BUDGET[ResourceCategory::Constants] +
-                ResourceAllocator::MEMORY_BUDGET[ResourceCategory::Mesh] +
-                ResourceAllocator::MEMORY_BUDGET[ResourceCategory::Texture] +
-                ResourceAllocator::MEMORY_BUDGET[ResourceCategory::Persistent],
+                ResourceAllocator::MEMORY_BUDGET[ResourceCategory::TransientData] +
+                ResourceAllocator::MEMORY_BUDGET[ResourceCategory::ConstantsData] +
+                ResourceAllocator::MEMORY_BUDGET[ResourceCategory::MeshData] +
+                ResourceAllocator::MEMORY_BUDGET[ResourceCategory::TextureData] +
+                ResourceAllocator::MEMORY_BUDGET[ResourceCategory::PersistentData],
                 HeapType::Default
             })
     {}
 
-    dx12::ByteAddressBuffer HeapWithAllocator::createBuffer(const ResourceDescription& createDescription)
+    ByteAddressBuffer HeapWithAllocator::createBuffer(const ResourceDescription& createDescription)
     {
-        dx12::Buffer::Description description = createDescription.resource;
+        Buffer::Description description = createDescription.resource;
         description.dimension = GPUResourceDimension::Buffer;
-        dx12::ByteAddressBuffer buffer(description);
+        ByteAddressBuffer buffer(description);
         buffer.createPlaced(
             mDevice,
             getBackingHeap(createDescription.category),
@@ -37,9 +37,9 @@ namespace graphics
         return buffer;
     }
 
-    dx12::Texture HeapWithAllocator::createTexture(const ResourceDescription& createDescription)
+    Texture HeapWithAllocator::createTexture(const ResourceDescription& createDescription)
     {
-        dx12::Texture texture(createDescription.resource);
+        Texture texture(createDescription.resource);
         texture.createPlaced(
             mDevice,
             getBackingHeap(createDescription.category),
@@ -48,17 +48,17 @@ namespace graphics
         return texture;
     }
 
-    dx12::RenderTarget HeapWithAllocator::createRenderTarget(dx12::Texture& texture, const dx12::RenderTarget::Type type)
+    RenderTarget HeapWithAllocator::createRenderTarget(Texture& texture, const RenderTarget::Type type)
     {
-        return dx12::RenderTarget(type, texture);
+        return RenderTarget(type, texture);
     }
 
-    void HeapWithAllocator::deallocateBuffer(const dx12::ByteAddressBuffer& buffer, const ResourceCategory category)
+    void HeapWithAllocator::deallocateBuffer(const ByteAddressBuffer& buffer, const ResourceCategory category)
     {
         mAllocator.deallocate(category, buffer.getHeapOffset(), buffer.getAllocationInfo(mDevice).sizeInBytes);
     }
 
-    void HeapWithAllocator::deallocateTexture(const dx12::Texture& texture, const ResourceCategory category)
+    void HeapWithAllocator::deallocateTexture(const Texture& texture, const ResourceCategory category)
     {
         mAllocator.deallocate(category, texture.getHeapOffset(), texture.getAllocationInfo(mDevice).sizeInBytes);
     }

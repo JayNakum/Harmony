@@ -12,6 +12,12 @@
 
 namespace graphics
 {
+    /*
+    * A descriptor heap with a custom allocator.
+    * It allocates the descriptors based on the specified DescriptorCategory.
+    * It contains CBV_SRV_UAV CPU, CBV_SRV_UAV GPU and RTV CPU and DSV CPU heaps.
+    * The class also allows batch copy of descriptors.
+    */
     class DescriptorHeapWithAllocator
     {
     public:
@@ -26,19 +32,19 @@ namespace graphics
         };
 
     public:
-        DescriptorHeapWithAllocator(dx12::Device& device);
+        DescriptorHeapWithAllocator(Device& device);
 
-        dx12::DescriptorHandle allocate(const DescriptorsCategory category = DescriptorsCategory::DynamicCPU, const size_t count = 1);
+        DescriptorHandle allocate(const DescriptorsCategory category = DescriptorsCategory::DynamicCPU, const size_t count = 1);
 
         // Batched copy of descriptors into this heap from one or more source ranges.
-        void copyDescriptorsFrom(dx12::Device& device, const dx12::DescriptorHandle& destStart,
-                                 const std::vector<dx12::DescriptorHandle>& srcStarts,
+        void copyDescriptorsFrom(Device& device, const DescriptorHandle& destStart,
+                                 const std::vector<DescriptorHandle>& srcStarts,
                                  const std::vector<unsigned int>& srcCounts,
                                  const DescriptorsCategory category = DescriptorsCategory::DynamicCPU);
 
         inline void reset(const DescriptorsCategory category) { mAllocator.reset(category); }
 
-        inline dx12::DescriptorHeap& getDescriptorHeap(const DescriptorsCategory category)
+        inline DescriptorHeap& getDescriptorHeap(const DescriptorsCategory category)
         {
             switch (category)
             {
@@ -55,14 +61,24 @@ namespace graphics
         }
 
     private:
-        dx12::Device& mDevice;
+        Device& mDevice;
 
     private:
+        /*
+        * Custom allocator using the basic allocators from Core/Memory
+        * Linear allocator is used to virtually segment the heap and ring allocator is used for each category.
+        */
         class DescriptorAllocator
         {
         public:
+            // Total memory budget of GPU memory.
+            // This includes the budget of Upload heap and Readback heap as well.
+            // 4 MB TOTAL.
+            // 2 MB for GPU heap (StaticGPU + DynamicGPU).
+            // 1 MB for CPU heap.
+            // 1 MB for RTV CPU heap.
             static constexpr size_t MEMORY_BUDGET[DescriptorsCategory::COUNT] = {
-                memory::MB(1), // DescriptorsCategory::Static
+                memory::MB(1), // DescriptorsCategory::StaticGPU
                 memory::MB(1), // DescriptorsCategory::DynamicCPU
                 memory::MB(1), // DescriptorsCategory::DynamicGPU
                 memory::MB(1) // DescriptorsCategory::RenderTargets
@@ -76,6 +92,7 @@ namespace graphics
                 mRenderTargetDescriptors(MEMORY_BUDGET[DescriptorsCategory::RenderTargetCPU])
             {}
 
+            // Allocates the sizeInBytes and returns an allocation offset for the specified category.
             inline const uint64_t allocate(const DescriptorsCategory section, const size_t sizeInBytes)
             {
                 std::lock_guard<std::mutex> scopedLockGuard(mMutex[section]);
@@ -95,6 +112,7 @@ namespace graphics
                 }
             }
 
+            // Resets the allocator for the specified ResourceCategory.
             inline void reset(const DescriptorsCategory section)
             {
                 std::lock_guard<std::mutex> scopedLockGuard(mMutex[section]);
@@ -135,8 +153,8 @@ namespace graphics
         DescriptorAllocator mAllocator;
 
     private:
-        dx12::DescriptorHeap mShaderViewsDescriptorHeapCPU;
-        dx12::DescriptorHeap mShaderViewsDescriptorHeapGPU;
-        dx12::DescriptorHeap mRenderTargetViewsDescriptorHeap;
+        DescriptorHeap mShaderViewsDescriptorHeapCPU;
+        DescriptorHeap mShaderViewsDescriptorHeapGPU;
+        DescriptorHeap mRenderTargetViewsDescriptorHeap;
     };
 }

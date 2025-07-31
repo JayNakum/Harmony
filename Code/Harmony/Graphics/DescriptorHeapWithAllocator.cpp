@@ -4,7 +4,7 @@
 
 namespace graphics
 {
-    DescriptorHeapWithAllocator::DescriptorHeapWithAllocator(dx12::Device& device)
+    DescriptorHeapWithAllocator::DescriptorHeapWithAllocator(Device& device)
         : mDevice(device),
         mShaderViewsDescriptorHeapCPU(
             mDevice,
@@ -35,7 +35,7 @@ namespace graphics
         )
     {}
 
-    dx12::DescriptorHandle DescriptorHeapWithAllocator::allocate(const DescriptorsCategory category, const size_t count)
+    DescriptorHandle DescriptorHeapWithAllocator::allocate(const DescriptorsCategory category, const size_t count)
     {
         const size_t allocationSize = count * mDevice.getDescriptorHandleIncrementSize(DescriptorHeapType::ShaderViews);
         const size_t allocationOffset = mAllocator.allocate(category, allocationSize);
@@ -44,9 +44,9 @@ namespace graphics
     }
 
     void DescriptorHeapWithAllocator::copyDescriptorsFrom(
-        dx12::Device& device,
-        const dx12::DescriptorHandle& destStart,
-        const std::vector<dx12::DescriptorHandle>& srcStarts,
+        Device& device,
+        const DescriptorHandle& destStart,
+        const std::vector<DescriptorHandle>& srcStarts,
         const std::vector<unsigned int>& srcCounts,
         const DescriptorsCategory category)
     {

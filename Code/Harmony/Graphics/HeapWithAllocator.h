@@ -17,19 +17,24 @@
 
 namespace graphics
 {
+    /*
+    * A resource heap with a custom allocator.
+    * It allocates the resource based on the specified ResourceCategory.
+    * It contains all different type of heaps ie Upload, Default and ReadBack.
+    */
     class HeapWithAllocator
     {
     public:
         enum ResourceCategory
         {
-            Upload,
-            UploadPersistent,
-            Transient,
-            Constants,
-            Mesh,
-            RenderTarget,
-            Texture,
-            Persistent,
+            UploadData,
+            UploadPersistentData,
+            TransientData,
+            ConstantsData,
+            MeshData,
+            RenderTargetData,
+            TextureData,
+            PersistentData,
 
             COUNT
         };
@@ -37,30 +42,40 @@ namespace graphics
         struct ResourceDescription
         {
             ResourceCategory category;
-            dx12::GPUResource::Description resource;
+            GPUResource::Description resource;
         };
 
     public:
-        HeapWithAllocator(dx12::Device& device);
+        HeapWithAllocator(Device& device);
 
-        dx12::ByteAddressBuffer createBuffer(const ResourceDescription& createDescription);
-        dx12::Texture createTexture(const ResourceDescription& createDescription);
-        dx12::RenderTarget createRenderTarget(dx12::Texture& texture, const dx12::RenderTarget::Type type = dx12::RenderTarget::Type::Color);
+        ByteAddressBuffer createBuffer(const ResourceDescription& createDescription);
+        Texture createTexture(const ResourceDescription& createDescription);
+        RenderTarget createRenderTarget(Texture& texture, const RenderTarget::Type type = RenderTarget::Type::Color);
 
-        void deallocateBuffer(const dx12::ByteAddressBuffer& buffer, const ResourceCategory category);
-        void deallocateTexture(const dx12::Texture& texture, const ResourceCategory category);
+        void deallocateBuffer(const ByteAddressBuffer& buffer, const ResourceCategory category);
+        void deallocateTexture(const Texture& texture, const ResourceCategory category);
 
         inline void reset(const ResourceCategory category) { mAllocator.reset(category); }
 
         ~HeapWithAllocator() = default;
 
     private:
-        dx12::Device& mDevice;
+        Device& mDevice;
 
     private:
+        /*
+        * Custom allocator using the basic allocators from Core/Memory
+        * Linear allocator is used to virtually segment the heap and a different allocator is used based on the resource category.
+        */
         class ResourceAllocator
         {
         public:
+            // Total memory budget of GPU memory.
+            // This includes the budget of Upload heap and Readback heap as well.
+            // 2 GB TOTAL.
+            // 128 MB for upload heap.
+            // 1664 MB for default heap.
+            // 256 MB extra.
             static constexpr size_t MEMORY_BUDGET[ResourceCategory::COUNT] = {
                 memory::MB(64), // Category::Upload
                 memory::MB(64), // Category::UploadPersistent
@@ -71,26 +86,23 @@ namespace graphics
                 memory::MB(640), // Category::Texture
                 memory::MB(256) // Category::Persistent
             };
-            // 128 MB for upload heap.
-            // 1664 MB for default heap.
-            // 256 MB extra.
-            // 2 GB TOTAL
 
         public:
             ResourceAllocator()
                 :
                 mUploadHeapSections(memory::MB(128)),
-                mUploadData(MEMORY_BUDGET[ResourceCategory::Upload], mUploadHeapSections.allocate(MEMORY_BUDGET[ResourceCategory::Upload])),
-                mUploadPersistentData(MEMORY_BUDGET[ResourceCategory::UploadPersistent], mUploadHeapSections.allocate(MEMORY_BUDGET[ResourceCategory::UploadPersistent])),
+                mUploadData(MEMORY_BUDGET[ResourceCategory::UploadData], mUploadHeapSections.allocate(MEMORY_BUDGET[ResourceCategory::UploadData])),
+                mUploadPersistentData(MEMORY_BUDGET[ResourceCategory::UploadPersistentData], mUploadHeapSections.allocate(MEMORY_BUDGET[ResourceCategory::UploadPersistentData])),
                 mDefaultHeapSections(memory::MB(1664)),
-                mConstants(MEMORY_BUDGET[ResourceCategory::Constants], 256, mDefaultHeapSections.allocate(MEMORY_BUDGET[ResourceCategory::Constants])),
-                mTransientData(MEMORY_BUDGET[ResourceCategory::Transient], mDefaultHeapSections.allocate(MEMORY_BUDGET[ResourceCategory::Transient])),
-                mMesh(MEMORY_BUDGET[ResourceCategory::Mesh], 128, mDefaultHeapSections.allocate(MEMORY_BUDGET[ResourceCategory::Mesh])),
-                mRenderTarget(MEMORY_BUDGET[ResourceCategory::RenderTarget], mDefaultHeapSections.allocate(MEMORY_BUDGET[ResourceCategory::RenderTarget])),
-                mTexture(MEMORY_BUDGET[ResourceCategory::Texture], mDefaultHeapSections.allocate(MEMORY_BUDGET[ResourceCategory::Texture])),
-                mPersistentData(MEMORY_BUDGET[ResourceCategory::Persistent], mDefaultHeapSections.allocate(MEMORY_BUDGET[ResourceCategory::Persistent]))
+                mConstants(MEMORY_BUDGET[ResourceCategory::ConstantsData], 256, mDefaultHeapSections.allocate(MEMORY_BUDGET[ResourceCategory::ConstantsData])),
+                mTransientData(MEMORY_BUDGET[ResourceCategory::TransientData], mDefaultHeapSections.allocate(MEMORY_BUDGET[ResourceCategory::TransientData])),
+                mMesh(MEMORY_BUDGET[ResourceCategory::MeshData], 128, mDefaultHeapSections.allocate(MEMORY_BUDGET[ResourceCategory::MeshData])),
+                mRenderTarget(MEMORY_BUDGET[ResourceCategory::RenderTargetData], mDefaultHeapSections.allocate(MEMORY_BUDGET[ResourceCategory::RenderTargetData])),
+                mTexture(MEMORY_BUDGET[ResourceCategory::TextureData], mDefaultHeapSections.allocate(MEMORY_BUDGET[ResourceCategory::TextureData])),
+                mPersistentData(MEMORY_BUDGET[ResourceCategory::PersistentData], mDefaultHeapSections.allocate(MEMORY_BUDGET[ResourceCategory::PersistentData]))
             {}
 
+            // Allocates the sizeInBytes and returns an allocation offset for the specified category.
             inline const uint64_t allocate(const ResourceCategory category, const size_t sizeInBytes)
             {
                 std::lock_guard<std::mutex> scopedLockGuard(mMutex[category]);
@@ -100,25 +112,26 @@ namespace graphics
                 default:
                     HASSERT(false, "Invalid resource category %d.", category);
                     break;
-                case ResourceCategory::Upload:
+                case ResourceCategory::UploadData:
                     return mUploadData.allocate(sizeInBytes);
-                case ResourceCategory::UploadPersistent:
+                case ResourceCategory::UploadPersistentData:
                     return mUploadPersistentData.allocate(sizeInBytes);
-                case ResourceCategory::Constants:
+                case ResourceCategory::ConstantsData:
                     return mConstants.allocate(sizeInBytes);
-                case ResourceCategory::Transient:
+                case ResourceCategory::TransientData:
                     return mTransientData.allocate(sizeInBytes);
-                case ResourceCategory::Mesh:
+                case ResourceCategory::MeshData:
                     return mMesh.allocate(sizeInBytes);
-                case ResourceCategory::RenderTarget:
+                case ResourceCategory::RenderTargetData:
                     return mRenderTarget.allocate(sizeInBytes);
-                case ResourceCategory::Texture:
+                case ResourceCategory::TextureData:
                     return mTexture.allocate(sizeInBytes);
-                case ResourceCategory::Persistent:
+                case ResourceCategory::PersistentData:
                     return mPersistentData.allocate(sizeInBytes);
                 }
             }
 
+            // Provides a method to deallocate a specific offset but since ring allocators reuse the memory, no deallocation happens for ring.
             inline void deallocate(const ResourceCategory category, const uint64_t allocationOffset, const size_t sizeInBytes)
             {
                 std::lock_guard<std::mutex> scopedLockGuard(mMutex[category]);
@@ -128,21 +141,22 @@ namespace graphics
                 default:
                     //HASSERT_SOFT_ONCE(false, "Invalid resource category %d. No deallocation will happen.", category);
                     break;
-                case ResourceCategory::UploadPersistent:
+                case ResourceCategory::UploadPersistentData:
                     mUploadPersistentData.deallocate(allocationOffset, sizeInBytes);
                     break;
-                case ResourceCategory::Constants:
+                case ResourceCategory::ConstantsData:
                     mConstants.deallocate(allocationOffset, sizeInBytes);
                     break;
-                case ResourceCategory::Mesh:
+                case ResourceCategory::MeshData:
                     mMesh.deallocate(allocationOffset, sizeInBytes);
                     break;
-                case ResourceCategory::Texture:
+                case ResourceCategory::TextureData:
                     mTexture.deallocate(allocationOffset, sizeInBytes);
                     break;
                 }
             }
 
+            // Resets the allocator for the specified ResourceCategory.
             inline void reset(const ResourceCategory category)
             {
                 std::lock_guard<std::mutex> scopedLockGuard(mMutex[category]);
@@ -152,28 +166,28 @@ namespace graphics
                 default:
                     HASSERT(false, "Invalid resource category %d.", category);
                     break;
-                case ResourceCategory::Upload:
+                case ResourceCategory::UploadData:
                     mUploadData.reset();
                     break;
-                case ResourceCategory::UploadPersistent:
+                case ResourceCategory::UploadPersistentData:
                     mUploadPersistentData.reset();
                     break;
-                case ResourceCategory::Constants:
+                case ResourceCategory::ConstantsData:
                     mConstants.reset();
                     break;
-                case ResourceCategory::Transient:
+                case ResourceCategory::TransientData:
                     mTransientData.reset();
                     break;
-                case ResourceCategory::Mesh:
+                case ResourceCategory::MeshData:
                     mMesh.reset();
                     break;
-                case ResourceCategory::RenderTarget:
+                case ResourceCategory::RenderTargetData:
                     mRenderTarget.reset();
                     break;
-                case ResourceCategory::Texture:
+                case ResourceCategory::TextureData:
                     mTexture.reset();
                     break;
-                case ResourceCategory::Persistent:
+                case ResourceCategory::PersistentData:
                     mPersistentData.reset();
                     break;
                 }
@@ -200,15 +214,18 @@ namespace graphics
         ResourceAllocator mAllocator;
 
     private:
-        dx12::Heap mUploadHeap;
-        dx12::Heap mDefaultHeap;
-        // dx12::Heap mReadbackHeap;
-        inline dx12::Heap& getBackingHeap(const ResourceCategory category)
+        Heap mUploadHeap;
+        Heap mDefaultHeap;
+        // Heap mReadbackHeap;
+
+        inline Heap& getBackingHeap(const ResourceCategory category)
         {
             switch (category)
             {
-            case ResourceCategory::Upload:
+            case ResourceCategory::UploadData:
+            case ResourceCategory::UploadPersistentData:
                 return mUploadHeap;
+
             default:
                 return mDefaultHeap;
             }

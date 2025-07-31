@@ -6,7 +6,7 @@ namespace graphics
         : CommandObject(type)
     {}
 
-    dx12::CommandAllocator& CommandAllocatorPool::requestCommandAllocator(dx12::Device& device, const uint64_t completedFenceValue)
+    CommandAllocator& CommandAllocatorPool::requestCommandAllocator(Device& device, const uint64_t completedFenceValue)
     {
         std::lock_guard<std::mutex> scopedLockGuard(mPoolMutex);
 
@@ -16,13 +16,13 @@ namespace graphics
 
         if (!mAvailableQueue.empty())
         {
-            dx12::CommandAllocator* allocator = mAvailableQueue.front();
+            CommandAllocator* allocator = mAvailableQueue.front();
             mAvailableQueue.pop();
             (*allocator)->Reset();
             return *allocator;
         }
 
-        dx12::CommandAllocator::Description createDesc;
+        CommandAllocator::Description createDesc;
         createDesc.name = (mCmdAllocatorPool.size() + " " + toString(mType) + " type command allocator");
         createDesc.type = mType;
         mCmdAllocatorPool.emplace_back(device, createDesc);
@@ -30,7 +30,7 @@ namespace graphics
         return mCmdAllocatorPool.back();
     }
 
-    void CommandAllocatorPool::discardCommandAllocator(const uint64_t completedFenceValue, dx12::CommandAllocator& usedAllocator)
+    void CommandAllocatorPool::discardCommandAllocator(const uint64_t completedFenceValue, CommandAllocator& usedAllocator)
     {
         std::lock_guard<std::mutex> scopedLockGuard(mPoolMutex);
 
@@ -51,7 +51,7 @@ namespace graphics
             mAvailableQueue.pop();
         }
 
-        for (dx12::CommandAllocator& allocator : mCmdAllocatorPool)
+        for (CommandAllocator& allocator : mCmdAllocatorPool)
         {
             allocator->Reset();
         }

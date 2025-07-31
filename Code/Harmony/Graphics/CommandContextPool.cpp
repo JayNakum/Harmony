@@ -2,7 +2,7 @@
 
 namespace graphics
 {
-    GraphicContext& CommandContextPool::requestGraphicContext(dx12::Device& device)
+    GraphicContext& CommandContextPool::requestGraphicContext(Device& device)
     {
         std::lock_guard<std::mutex> scopedLockGuard(mGraphicPoolMutex);
 
@@ -19,7 +19,7 @@ namespace graphics
         return *(mGraphicContextPool.back());
     }
 
-    ComputeContext& CommandContextPool::requestComputeContext(dx12::Device& device)
+    ComputeContext& CommandContextPool::requestComputeContext(Device& device)
     {
         std::lock_guard<std::mutex> scopedLockGuard(mComputePoolMutex);
 

@@ -9,11 +9,16 @@
 
 namespace engine
 {
+    // Forward declaration and heap allocation is needed to prevent sandbox from accessing direct graphics calls.
     class Renderer;
 }
 
 namespace engine
 {
+    /*
+    * Core engine class.
+    * Creates and manages main game loop, main window and graphics renderer.
+    */
     class Engine
     {
     public:
@@ -33,9 +38,9 @@ namespace engine
     private:
         windows::Window& mWindow;
         windows::Inputs mInputs;
+        Renderer* mRenderer;
 
         static uint64_t msFrameIndex;
         Timer mFrameTimer;
-        Renderer* mRenderer;
     };
 }

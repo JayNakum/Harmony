@@ -5,6 +5,9 @@
 
 namespace engine
 {
+    /*
+    * Engine timer class for handling CPU timings.
+    */
     class Timer
     {
         using Clock = std::chrono::high_resolution_clock;

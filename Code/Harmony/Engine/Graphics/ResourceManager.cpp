@@ -2,7 +2,7 @@
 
 namespace engine
 {
-    ResourceManager::ResourceManager(graphics::dx12::Device& device)
+    ResourceManager::ResourceManager(graphics::Device& device)
         : mDevice(device), mResourceHeap(device), mDescriptorHeap(device)
     {}
 
@@ -18,24 +18,18 @@ namespace engine
         mTextures.emplace(createDescription.resource.name, mResourceHeap.createTexture(createDescription));
     }
 
-    void ResourceManager::createRenderTarget(const std::string textureID, const graphics::dx12::RenderTarget::Type type)
+    void ResourceManager::createRenderTarget(const std::string textureID, const graphics::RenderTarget::Type type)
     {
         HASSERT(mRenderTargets.find(textureID) == mRenderTargets.end(), "RenderTarget resource with ID = %s already exists.", textureID);
         mRenderTargets.emplace(textureID, mResourceHeap.createRenderTarget(getTexture(textureID), type));
     }
 
-    void ResourceManager::createRenderTarget(const graphics::HeapWithAllocator::ResourceDescription& createDescription, const graphics::dx12::RenderTarget::Type type)
+    void ResourceManager::createRenderTarget(const graphics::HeapWithAllocator::ResourceDescription& createDescription, const graphics::RenderTarget::Type type)
     {
         //HASSERT(mRenderTargets.find(createDescription.resource.name) == mRenderTargets.end(), "RenderTarget resource with ID = %s already exists.", createDescription.resource.name.c_str());
 
         createTexture(createDescription);
         mRenderTargets.emplace(createDescription.resource.name, mResourceHeap.createRenderTarget(getTexture(createDescription.resource.name), type));
-    }
-
-    void ResourceManager::setRenderTarget(const std::string textureID, graphics::dx12::RenderTarget& renderTarget)
-    {
-        mTextures.emplace(textureID, renderTarget.getTexture());
-        mRenderTargets.emplace(textureID, renderTarget);
     }
 
     void ResourceManager::releaseBuffer(const std::string bufferID, const graphics::HeapWithAllocator::ResourceCategory category)
@@ -56,7 +50,7 @@ namespace engine
         mRenderTargets.erase(textureID);
     }
 
-    const graphics::dx12::DescriptorHandle& ResourceManager::getBufferCBV(const std::string id, std::string alias)
+    const graphics::DescriptorHandle& ResourceManager::getBufferCBV(const std::string id, std::string alias)
     {
         if (alias == "NONE")
         {
@@ -73,7 +67,7 @@ namespace engine
         return mDescriptors.at(alias);
     }
 
-    const graphics::dx12::DescriptorHandle& ResourceManager::getBufferCBV(const std::string id, const uint64_t sizeInBytes, const unsigned int offsetInBytes, std::string alias)
+    const graphics::DescriptorHandle& ResourceManager::getBufferCBV(const std::string id, const uint64_t sizeInBytes, const unsigned int offsetInBytes, std::string alias)
     {
         if (alias == "NONE")
         {
@@ -90,7 +84,7 @@ namespace engine
         return mDescriptors.at(alias);
     }
 
-    const graphics::dx12::DescriptorHandle& ResourceManager::getBufferSRV(const std::string id, std::string alias)
+    const graphics::DescriptorHandle& ResourceManager::getBufferSRV(const std::string id, std::string alias)
     {
         if (alias == "NONE")
         {
@@ -107,7 +101,7 @@ namespace engine
         return mDescriptors.at(alias);
     }
 
-    const graphics::dx12::DescriptorHandle& ResourceManager::getBufferSRV(const std::string id, const uint64_t sizeInBytes, const unsigned int offsetInBytes, std::string alias)
+    const graphics::DescriptorHandle& ResourceManager::getBufferSRV(const std::string id, const uint64_t sizeInBytes, const unsigned int offsetInBytes, std::string alias)
     {
         if (alias == "NONE")
         {
@@ -124,7 +118,7 @@ namespace engine
         return mDescriptors.at(alias);
     }
 
-    const graphics::dx12::DescriptorHandle& ResourceManager::getBufferUAV(const std::string id, std::string alias)
+    const graphics::DescriptorHandle& ResourceManager::getBufferUAV(const std::string id, std::string alias)
     {
         if (alias == "NONE")
         {
@@ -141,7 +135,7 @@ namespace engine
         return mDescriptors.at(alias);
     }
 
-    const graphics::dx12::DescriptorHandle& ResourceManager::getBufferUAV(const std::string id, const uint64_t sizeInBytes, const unsigned int offsetInBytes, std::string alias)
+    const graphics::DescriptorHandle& ResourceManager::getBufferUAV(const std::string id, const uint64_t sizeInBytes, const unsigned int offsetInBytes, std::string alias)
     {
         if (alias == "NONE")
         {
@@ -158,7 +152,7 @@ namespace engine
         return mDescriptors.at(alias);
     }
 
-    const graphics::dx12::DescriptorHandle& ResourceManager::getTextureSRV(const std::string id, std::string alias)
+    const graphics::DescriptorHandle& ResourceManager::getTextureSRV(const std::string id, std::string alias)
     {
         if (alias == "NONE")
         {
@@ -171,12 +165,12 @@ namespace engine
         }
 
         mDescriptors.emplace(alias, mDescriptorHeap.allocate());
-        const graphics::dx12::Texture::ShaderResourceViewInfo viewInfo = graphics::dx12::Texture::ShaderResourceViewInfo::getSRVInfo(getTexture(id).getDescription());
+        const graphics::Texture::ShaderResourceViewInfo viewInfo = graphics::Texture::ShaderResourceViewInfo::getSRVInfo(getTexture(id).getDescription());
         getTexture(id).createShaderResourceView(mDevice, mDescriptors.at(alias), viewInfo);
         return mDescriptors.at(alias);
     }
 
-    const graphics::dx12::DescriptorHandle& ResourceManager::getTextureSRV(const std::string id, const graphics::dx12::Texture::ShaderResourceViewInfo& viewInfo, std::string alias)
+    const graphics::DescriptorHandle& ResourceManager::getTextureSRV(const std::string id, const graphics::Texture::ShaderResourceViewInfo& viewInfo, std::string alias)
     {
         if (alias == "NONE")
         {
@@ -193,7 +187,7 @@ namespace engine
         return mDescriptors.at(alias);
     }
 
-    const graphics::dx12::DescriptorHandle& ResourceManager::getTextureUAV(const std::string id, std::string alias)
+    const graphics::DescriptorHandle& ResourceManager::getTextureUAV(const std::string id, std::string alias)
     {
         if (alias == "NONE")
         {
@@ -206,12 +200,12 @@ namespace engine
         }
 
         mDescriptors.emplace(alias, mDescriptorHeap.allocate());
-        const graphics::dx12::Texture::UnorderedAccessViewInfo viewInfo = graphics::dx12::Texture::UnorderedAccessViewInfo::getUAVInfo(getTexture(id).getDescription());
+        const graphics::Texture::UnorderedAccessViewInfo viewInfo = graphics::Texture::UnorderedAccessViewInfo::getUAVInfo(getTexture(id).getDescription());
         getTexture(id).createUnorderedAccessView(mDevice, mDescriptors.at(alias), viewInfo);
         return mDescriptors.at(alias);
     }
 
-    const graphics::dx12::DescriptorHandle& ResourceManager::getTextureUAV(const std::string id, const graphics::dx12::Texture::UnorderedAccessViewInfo& viewInfo, std::string alias)
+    const graphics::DescriptorHandle& ResourceManager::getTextureUAV(const std::string id, const graphics::Texture::UnorderedAccessViewInfo& viewInfo, std::string alias)
     {
         if (alias == "NONE")
         {

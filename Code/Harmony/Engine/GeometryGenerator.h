@@ -7,6 +7,9 @@
 
 namespace engine
 {
+    /*
+    * Basic Shapes Geometry Generator from frank luna's dx12 book.
+    */
     class GeometryGenerator
     {
     public:

@@ -11,12 +11,11 @@
 #include "CommandContextPool.h"
 #include "ResourceManager.h"
 
-#include "CommonConstants.h"
 
+#include "PassCore.h"
 // Render Passes
 #include "WaterPass.h"
 #include "PresentPass.h"
-
 // Dispatch Passes
 #include "NoisePass.h"
 
@@ -24,6 +23,10 @@
 
 namespace engine
 {
+    /*
+    * Core Graphics Renderer
+    * Responsible for managing render and dispatch passes.
+    */
     class Renderer
     {
     public:
@@ -64,21 +67,21 @@ namespace engine
         ~Renderer();
 
     private:
-        graphics::dx12::Device mDevice;
-        graphics::dx12::CommandQueue mGraphicsQueue;
-        graphics::dx12::CommandQueue mComputeQueue;
+        graphics::Device mDevice;
+        graphics::CommandQueue mGraphicsQueue;
+        graphics::CommandQueue mComputeQueue;
         ResourceManager mResourceManager;
 
         graphics::CommandContextPool mCommandContextPool;
 
-        graphics::dx12::Swapchain mSwapchain;
+        graphics::Swapchain mSwapchain;
         unsigned int mClientWidth, mClientHeight;
 
     private:
-        renderPass::Water mWaterPass;
-        renderPass::Present mPresentPass;
+        Water mWaterPass;
+        Present mPresentPass;
 
     private:
-        renderPass::Noise mNoisePass;
+        Noise mNoisePass;
     };
 }

@@ -35,7 +35,7 @@ namespace engine
 
             initGraphicsContext.finish(mGraphicsQueue.incrementFence());
 
-            graphics::dx12::CommandList batchedGraphicsCommandLists[1] = { initGraphicsContext.commandList() };
+            graphics::CommandList batchedGraphicsCommandLists[1] = { initGraphicsContext.commandList() };
             uint64_t graphicsFence = mGraphicsQueue.executeCommandLists(batchedGraphicsCommandLists);
             mGraphicsQueue.waitForFence(graphicsFence);
 
@@ -50,7 +50,7 @@ namespace engine
 
             initComputeContext.finish(mComputeQueue.incrementFence());
 
-            graphics::dx12::CommandList batchedComputeCommandLists[1] = { initComputeContext.commandList() };
+            graphics::CommandList batchedComputeCommandLists[1] = { initComputeContext.commandList() };
             uint64_t computeFence = mComputeQueue.executeCommandLists(batchedComputeCommandLists);
             mComputeQueue.waitForFence(computeFence);
 
@@ -58,7 +58,7 @@ namespace engine
             mNoisePass.freeGPUUploadData(mResourceManager);
         }
 
-        mResourceManager.reset(graphics::HeapWithAllocator::ResourceCategory::Upload);
+        mResourceManager.reset(graphics::HeapWithAllocator::ResourceCategory::UploadData);
     }
 
     void Renderer::resize(const unsigned int width, const unsigned int height)
@@ -103,7 +103,7 @@ namespace engine
 
         contextNoise.finish(mComputeQueue.incrementFence());
 
-        graphics::dx12::CommandList batchedComputeCommandLists[1] = { contextNoise.commandList() };
+        graphics::CommandList batchedComputeCommandLists[1] = { contextNoise.commandList() };
         uint64_t computeFence = mComputeQueue.executeCommandLists(batchedComputeCommandLists);
         mComputeQueue.waitForFence(computeFence);
         mGraphicsQueue.stallForQueue(mComputeQueue);
@@ -128,7 +128,7 @@ namespace engine
         contextPresent.finish(mGraphicsQueue.incrementFence());
 
         // EXECUTE COMMAND LISTS
-        graphics::dx12::CommandList batchedGraphicsCommandLists[2] = { contextWater.commandList(), contextPresent.commandList() };
+        graphics::CommandList batchedGraphicsCommandLists[2] = { contextWater.commandList(), contextPresent.commandList() };
         uint64_t graphicsFence = mGraphicsQueue.executeCommandLists(batchedGraphicsCommandLists, 2);
         mGraphicsQueue.waitForFence(graphicsFence);
 
