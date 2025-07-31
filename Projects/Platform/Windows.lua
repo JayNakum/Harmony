@@ -34,7 +34,7 @@ project "Windows"
   links
   {
     "Core",
-
+    
     "d3d12.lib",
     "dxgi.lib",
     "dxguid.lib",

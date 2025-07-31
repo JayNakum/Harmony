@@ -67,6 +67,13 @@ namespace engine
         ~Renderer();
 
     private:
+        void setupDebugUI(const HWND windowHandle);
+        void renderBeginDebugUI();
+        void renderDebugUI(graphics::GraphicContext& context);
+        void renderEndDebugUI();
+        void cleanupDebugUI();
+
+    private:
         graphics::Device mDevice;
         graphics::CommandQueue mGraphicsQueue;
         graphics::CommandQueue mComputeQueue;

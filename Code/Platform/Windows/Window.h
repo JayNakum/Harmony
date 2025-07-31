@@ -43,6 +43,7 @@ namespace windows
             unsigned int width = 0;
             unsigned int height = 0;
             bool isFullScreen = false;
+            float dpiScale = 1.0f;
         };
         Window(const Description& description);
 

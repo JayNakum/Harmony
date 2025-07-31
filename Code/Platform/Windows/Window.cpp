@@ -258,40 +258,80 @@ namespace windows
         UnregisterClass(sWndClassName, getInstance());
     }
 
-
     Window::Window(const Description& description)
         : mDescription(description), mIsRunning(true), mHandle(NULL), mMsgs(), mDidResize(true)
     {
-        if (mDescription.width == 0)
-            mDescription.width = GetSystemMetrics(SM_CXMAXIMIZED);
-        if (mDescription.height == 0)
-            mDescription.height = GetSystemMetrics(SM_CYMAXIMIZED);
+        if (!SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2))
+        {
+            HMODULE shcore = LoadLibraryW(L"Shcore.dll");
+            if (shcore)
+            {
+                auto setAwareness = reinterpret_cast<HRESULT(WINAPI*)(PROCESS_DPI_AWARENESS)>(
+                    GetProcAddress(shcore, "SetProcessDpiAwareness"));
+                if (setAwareness)
+                    setAwareness(PROCESS_PER_MONITOR_DPI_AWARE);
+                FreeLibrary(shcore);
+            }
+            else
+            {
+                SetProcessDPIAware();
+            }
+        }
 
-        RECT wr = { 0 };
-        wr.left = 0;
-        wr.right = mDescription.width + wr.left;
-        wr.top = 0;
-        wr.bottom = mDescription.height + wr.top;
+        UINT dpiX = 96, dpiY = 96;
+        HMONITOR hMon = MonitorFromPoint({ 0, 0 }, MONITOR_DEFAULTTONEAREST);
+        HMODULE shcore = LoadLibraryW(L"Shcore.dll");
+        if (shcore)
+        {
+            auto pGetDpiForMonitor = reinterpret_cast<HRESULT(WINAPI*)(
+                HMONITOR, MONITOR_DPI_TYPE, UINT*, UINT*)>(
+                    GetProcAddress(shcore, "GetDpiForMonitor"));
+            if (pGetDpiForMonitor)
+                pGetDpiForMonitor(hMon, MDT_EFFECTIVE_DPI, &dpiX, &dpiY);
+            FreeLibrary(shcore);
+        }
+
+        mDescription.dpiScale = (float)dpiX / 96.0f;
+
+        int logicalW = (mDescription.width == 0) ? GetSystemMetrics(SM_CXMAXIMIZED) : mDescription.width;
+        int logicalH = (mDescription.height == 0) ? GetSystemMetrics(SM_CYMAXIMIZED) : mDescription.height;
+
+        auto toPixels = [&](int l, UINT dpi) { return MulDiv(l, dpi, 96); };
+        int pixelW = toPixels(logicalW, dpiX);
+        int pixelH = toPixels(logicalH, dpiY);
+
+        RECT wr = { 0, 0, pixelW, pixelH };
         AdjustWindowRect(&wr, WS_OVERLAPPEDWINDOW, FALSE);
 
-        mDescription.width = wr.right - wr.left;
-        mDescription.height = wr.bottom - wr.top;
-        mDescription.width -= mDescription.width / 6;
-        mDescription.height -= mDescription.height / 4;
+        int finalW = (wr.right - wr.left) * 5 / 6;
+        int finalH = (wr.bottom - wr.top) * 3 / 4;
 
-        const unsigned int x = (wr.right - mDescription.width) / 2;
-        const unsigned int y = (wr.bottom - mDescription.height) / 2;
-
-        mHandle = CreateWindow(WindowClass::getName(), mDescription.title.c_str(),
-                               WS_OVERLAPPEDWINDOW,
-                               x, y, mDescription.width, mDescription.height,
-                               nullptr, nullptr, WindowClass::getInstance(), this);
-
-        HASSERT(mHandle != NULL, "Unable to create a window.");
+        mHandle = CreateWindow(
+            WindowClass::getName(),
+            mDescription.title.c_str(),
+            WS_OVERLAPPEDWINDOW,
+            CW_USEDEFAULT, CW_USEDEFAULT,
+            finalW, finalH,
+            nullptr, nullptr,
+            WindowClass::getInstance(),
+            this
+        );
+        HASSERT(mHandle != nullptr, "Failed to create window.");
 
         ShowWindow(mHandle, SW_SHOW);
+        {// Center Window
+            RECT rc;
+            GetWindowRect(mHandle, &rc);
+            int width = rc.right - rc.left;
+            int height = rc.bottom - rc.top;
+            int screenW = GetSystemMetrics(SM_CXSCREEN);
+            int screenH = GetSystemMetrics(SM_CYSCREEN);
+            int x = (screenW - width) / 2;
+            int y = (screenH - height) / 2;
+            SetWindowPos(mHandle, nullptr, x, y, 0, 0, SWP_NOZORDER | SWP_NOSIZE);
+        }
 
-        PeekMessage(&mMsgs, NULL, 0, 0, PM_NOREMOVE);
+        PeekMessage(&mMsgs, nullptr, 0, 0, PM_NOREMOVE);
     }
 
     bool Window::pollEvents()
