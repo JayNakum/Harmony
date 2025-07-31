@@ -66,6 +66,7 @@ namespace engine
         mClientWidth = width;
         mClientHeight = height;
 
+        mComputeQueue.waitForFence(mComputeQueue.incrementFence());
         mGraphicsQueue.waitForFence(mGraphicsQueue.incrementFence());
         mSwapchain.resize(
             mDevice, width, height,

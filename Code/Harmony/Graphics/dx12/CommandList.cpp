@@ -24,7 +24,7 @@ namespace graphics
             setD3DName(mCommandList.Get(), utility::toWideString(name).c_str());
         }
 
-        void CommandList::transitionBarrier(GPUResource& resource, const GPUResourceStates newState, const bool flushImmediate)
+        void CommandList::transitionBarrierFull(GPUResource& resource, const GPUResourceStates newState, const bool flushImmediate)
         {
             GPUResourceStates oldState = resource.getUsageState();
             if (oldState != newState)
@@ -37,18 +37,9 @@ namespace graphics
                 barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
                 barrier.Transition.StateBefore = toD3DResourceStates(oldState);
                 barrier.Transition.StateAfter = toD3DResourceStates(newState);
+                barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
 
-                // Check if we already started the transition
-                if (newState == resource.getTransitioningState())
-                {
-                    barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_END_ONLY;
-                    resource.setTransitioningState((GPUResourceStates)-1);
-                }
-                else
-                {
-                    barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-                }
-
+                resource.setTransitioningState((GPUResourceStates)-1);
                 resource.setUsageState(newState);
             }
 

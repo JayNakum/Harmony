@@ -73,6 +73,8 @@ namespace engine
             };
             static_assert(sizeof(WaterParams) % 256 == 0, "Must be aligned");
 
+            WaterParams getWaterParams();
+
         private:
             graphics::dx12::GraphicsPipelineState createPSO(graphics::dx12::Device& device);
 

@@ -51,7 +51,7 @@ namespace graphics
 
         inline void transitionBarrier(dx12::GPUResource& resource, const GPUResourceStates newState, const bool flushImmediate = false)
         {
-            mCommandList.transitionBarrier(resource, newState, flushImmediate);
+            mCommandList.transitionBarrierFull(resource, newState, flushImmediate);
         }
         inline void uavBarrier(dx12::GPUResource& resource, const bool flushImmediate = false)
         {
