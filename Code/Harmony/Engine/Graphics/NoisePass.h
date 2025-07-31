@@ -4,10 +4,30 @@
 
 namespace engine
 {
-    class Noise : DispatchPass
+    class NoisePassData : PassData
     {
     public:
-        Noise(graphics::Device& device, ResourceManager& resourceManager);
+        NoisePassData();
+
+        virtual void renderDebugUI() {}
+        void reset();
+
+        inline const float getNoiseTextureWidth() const { return mNoiseTextureWidth; }
+        inline const float getNoiseTextureHeight() const { return mNoiseTextureHeight; }
+        inline const float getNoiseScale() const { return mNoiseScale; }
+
+        ~NoisePassData() = default;
+
+    private:
+        const float mNoiseTextureWidth;
+        const float mNoiseTextureHeight;
+        float mNoiseScale;
+    };
+
+    class NoisePass : DispatchPass
+    {
+    public:
+        NoisePass(graphics::Device& device, ResourceManager& resourceManager);
 
         void copyDataToGPU(graphics::ComputeContext& context, ResourceManager& resourceManager) override;
         void freeGPUUploadData(ResourceManager& resourceManager) override;
@@ -18,7 +38,7 @@ namespace engine
         void getInputOutputs(graphics::ComputeContext& context, ResourceManager& resourceManager) override;
         void dispatch(graphics::ComputeContext& context, const FrameConstants& frameConstants) override;
 
-        ~Noise() = default;
+        ~NoisePass() = default;
 
     private:
         graphics::ComputePipelineState createPSO(graphics::Device& device);
@@ -29,5 +49,8 @@ namespace engine
         graphics::ShaderInput mNoiseSI;
 
         graphics::ComputePipelineState mNoisePSO;
+
+    private:
+        NoisePassData mNoisePassData;
     };
 }

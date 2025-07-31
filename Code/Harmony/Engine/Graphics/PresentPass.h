@@ -4,10 +4,10 @@
 
 namespace engine
 {
-    class Present : RenderPass
+    class PresentPass : RenderPass
     {
     public:
-        Present(graphics::Device& device, ResourceManager& resourceManager);
+        PresentPass(graphics::Device& device, ResourceManager& resourceManager);
         void copyDataToGPU(graphics::GraphicContext& context, ResourceManager& resourceManager) override;
         void freeGPUUploadData(ResourceManager& resourceManager) override {}
 
@@ -27,7 +27,7 @@ namespace engine
         }
         void render(graphics::GraphicContext& context, const FrameConstants& frameConstants, graphics::DescriptorHandle swapchainRTV);
 
-        ~Present() = default;
+        ~PresentPass() = default;
 
     private:
         graphics::GraphicsPipelineState createPSO(graphics::Device& device);

@@ -78,10 +78,10 @@ namespace engine
         unsigned int mClientWidth, mClientHeight;
 
     private:
-        Water mWaterPass;
-        Present mPresentPass;
+        WaterPass mWaterPass;
+        PresentPass mPresentPass;
 
     private:
-        Noise mNoisePass;
+        NoisePass mNoisePass;
     };
 }

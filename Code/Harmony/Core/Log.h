@@ -84,6 +84,9 @@ if (!(bool)(condition)) \
 } \
 }
 
+// Single line ifdef for debug mode only code.
+#define DEBUG_ONLY(...) __VA_ARGS__
+
 #else // defined(DEBUG)
 
 #define DEBUGPRINT(message, ...) (void)(message)
@@ -98,5 +101,7 @@ if (!(bool)(condition)) \
 #define HASSERT_SOFT(condition, message, ...) (void)(condition); (void)(message)
 #define HASSERT_SOFT_ONCE(category, message, ...) (void)(condition); (void)(message)
 #define HASSERT(condition, message, ...) (void)(condition); (void)(message); if (!(bool)(condition)) std::abort()
+
+#define DEBUG_ONLY(...)
 
 #endif // defined(DEBUG)

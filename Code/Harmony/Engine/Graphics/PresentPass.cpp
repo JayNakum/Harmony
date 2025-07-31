@@ -35,7 +35,7 @@ float4 main(float4 position : SV_Position) : SV_Target0
 
 namespace engine
 {
-    Present::Present(graphics::Device& device, ResourceManager& resourceManager)
+    PresentPass::PresentPass(graphics::Device& device, ResourceManager& resourceManager)
         :
         mStaticShaderResourceTableLayout{
             graphics::ShaderVisibility::Pixel,
@@ -50,14 +50,14 @@ namespace engine
         mSwapchainWidth(0), mSwapchainHeight(0)
     {}
 
-    void Present::copyDataToGPU(graphics::GraphicContext& context, ResourceManager& resourceManager)
+    void PresentPass::copyDataToGPU(graphics::GraphicContext& context, ResourceManager& resourceManager)
     {
         graphics::Texture& finalOutput = resourceManager.getTexture("RT_Water_RenderPass");
 
         mPresentSI.setResourceTable(mShaderResources);
     }
 
-    void Present::resize(const unsigned int width, const unsigned int height, graphics::Device& device, ResourceManager& resourceManager, const bool isHDRSupported)
+    void PresentPass::resize(const unsigned int width, const unsigned int height, graphics::Device& device, ResourceManager& resourceManager, const bool isHDRSupported)
     {
         mSwapchainWidth = width;
         mSwapchainHeight = height;
@@ -65,14 +65,14 @@ namespace engine
         mShaderResources.setResource(device, resourceManager.getTextureSRV("RT_Water_RenderPass"));
     }
 
-    void Present::getInputOutputs(graphics::GraphicContext& context, ResourceManager& resourceManager)
+    void PresentPass::getInputOutputs(graphics::GraphicContext& context, ResourceManager& resourceManager)
     {
         context.transitionBarrier(resourceManager.getRenderTarget("RT_Water_RenderPass").getTexture(), graphics::GPUResourceStates::PixelShaderResource);
 
         context.flushResourceBarriers();
     }
 
-    void Present::render(graphics::GraphicContext& context, const FrameConstants& frameConstants, graphics::DescriptorHandle swapchainRTV)
+    void PresentPass::render(graphics::GraphicContext& context, const FrameConstants& frameConstants, graphics::DescriptorHandle swapchainRTV)
     {
         context.setPipelineState(mPresentPSO);
         context.setRootSignature(mPresentSI.getRootSignature(context.getDevice()));
@@ -101,7 +101,7 @@ namespace engine
         context.draw(3);
     }
 
-    graphics::GraphicsPipelineState Present::createPSO(graphics::Device& device)
+    graphics::GraphicsPipelineState PresentPass::createPSO(graphics::Device& device)
     {
         graphics::GraphicsPipelineState::Description psoDesc;
         psoDesc.name = "Graphics_PSO_Present";

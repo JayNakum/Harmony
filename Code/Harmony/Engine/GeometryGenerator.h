@@ -54,6 +54,21 @@ namespace engine
                 return mIndices16;
             }
 
+            inline const size_t getVBByteSize() const
+            {
+                return vertices.size() * sizeof(GeometryGenerator::Vertex);
+            }
+
+            inline const size_t getIBByteSize() const
+            {
+                return indices32.size() * sizeof(uint32_t);
+            }
+
+            inline const size_t getIB16ByteSize() const
+            {
+                return indices32.size() * sizeof(uint16_t);
+            }
+
         private:
             std::vector<uint16_t> mIndices16;
         };

@@ -22,6 +22,10 @@ inline T normalize(const T& v)
     return v / magnitude(v);
 }
 
+typedef vec2<uint32_t> vec2ui;
+typedef vec3<uint32_t> vec3ui;
+typedef vec4<uint32_t> vec4ui;
+
 typedef vec2<float> vec2f;
 typedef vec3<float> vec3f;
 typedef vec4<float> vec4f;

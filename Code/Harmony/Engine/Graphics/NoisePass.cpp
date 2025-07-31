@@ -369,7 +369,18 @@ void csMain(
 
 namespace engine
 {
-    Noise::Noise(graphics::Device& device, ResourceManager& resourceManager)
+    NoisePassData::NoisePassData()
+        : mNoiseTextureWidth(256.0f), mNoiseTextureHeight(256.0f)
+    {
+        reset();
+    }
+
+    void NoisePassData::reset()
+    {
+        mNoiseScale = 16.0f;
+    }
+
+    NoisePass::NoisePass(graphics::Device& device, ResourceManager& resourceManager)
         :
         mStaticShaderResourceTableLayout{
             graphics::ShaderVisibility::All,
@@ -385,13 +396,14 @@ namespace engine
             },
             { mStaticShaderResourceTableLayout }
         ),
-        mNoisePSO(createPSO(device))
+        mNoisePSO(createPSO(device)),
+        mNoisePassData()
     {
         graphics::HeapWithAllocator::ResourceDescription noiseTexture{
             graphics::HeapWithAllocator::ResourceCategory::PersistentData,
             {
                 "UA_Noise_Texture",
-                256, 256,
+                (size_t)mNoisePassData.getNoiseTextureWidth(), (size_t)mNoisePassData.getNoiseTextureHeight(),
                 1, 1,
                 graphics::GPUResourceDimension::Texture2D,
                 graphics::DefaultFormats::R32_FLOAT,
@@ -403,24 +415,24 @@ namespace engine
         mShaderResources.setResource(device, resourceManager.getTextureUAV("UA_Noise_Texture"), 0);
     }
 
-    void Noise::copyDataToGPU(graphics::ComputeContext& context, ResourceManager& resourceManager)
+    void NoisePass::copyDataToGPU(graphics::ComputeContext& context, ResourceManager& resourceManager)
     {
         mNoiseSI.setResourceTable(mShaderResources);
     }
 
-    void Noise::freeGPUUploadData(ResourceManager& resourceManager)
+    void NoisePass::freeGPUUploadData(ResourceManager& resourceManager)
     {
     }
 
-    void Noise::resize(const unsigned int width, const unsigned int height, graphics::Device& device, ResourceManager& resourceManager)
+    void NoisePass::resize(const unsigned int width, const unsigned int height, graphics::Device& device, ResourceManager& resourceManager)
     {
     }
 
-    void Noise::update(const double timeStep)
+    void NoisePass::update(const double timeStep)
     {
     }
 
-    void Noise::getInputOutputs(graphics::ComputeContext& context, ResourceManager& resourceManager)
+    void NoisePass::getInputOutputs(graphics::ComputeContext& context, ResourceManager& resourceManager)
     {
         graphics::Texture& noise = resourceManager.getTexture("UA_Noise_Texture");
         context.transitionBarrier(noise, graphics::GPUResourceStates::UnorderedAccess);
@@ -429,19 +441,19 @@ namespace engine
         context.flushResourceBarriers();
     }
 
-    void Noise::dispatch(graphics::ComputeContext& context, const FrameConstants& frameConstants)
+    void NoisePass::dispatch(graphics::ComputeContext& context, const FrameConstants& frameConstants)
     {
         context.setPipelineState(mNoisePSO);
         context.setRootSignature(mNoiseSI.getRootSignature(context.getDevice()));
 
         mNoiseSI.setConstants({ frameConstants.totalTime, frameConstants.deltaTime, 0x1deadb0b, 0x1deadb0b }, 0);
-        mNoiseSI.setConstants({ 256.0f, 256.0f, 16.0f, 0x1deadb0b }, 1);
+        mNoiseSI.setConstants({ mNoisePassData.getNoiseTextureWidth(), mNoisePassData.getNoiseTextureHeight(), mNoisePassData.getNoiseScale(), 0x1deadb0b }, 1);
         mNoiseSI.finalize(context);
 
         context.dispatch2D(256, 256);
     }
 
-    graphics::ComputePipelineState Noise::createPSO(graphics::Device& device)
+    graphics::ComputePipelineState NoisePass::createPSO(graphics::Device& device)
     {
         graphics::ComputePipelineState::Description psoDesc;
         psoDesc.name = "Compute_PSO_Noise";

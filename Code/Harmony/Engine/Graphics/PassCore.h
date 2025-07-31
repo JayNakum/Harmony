@@ -4,6 +4,9 @@
 #include "Log.h"
 #include "Maths.h"
 
+#include "Data.h"
+#include "GeometryGenerator.h"
+
 #include "ResourceManager.h"
 #include "CommandContext.h"
 
@@ -16,15 +19,14 @@ namespace engine
     * Common root constants that every pass is suggested to have.
     */
 
-    struct FrameConstants
+    struct alignas(16) FrameConstants
     {
         float totalTime = 0.0f;
         float deltaTime = 0.0f;
-        const uint32_t _framePaddingFinal[2] = { 0x1deadb0b, 0x1deadb0b };
+        const uint32_t _framePadding[2] = { 0x1deadb0b, 0x1deadb0b };
     };
-    static_assert(sizeof(FrameConstants) % 16 == 0, "Must be aligned");
 
-    struct PassConstants
+    struct alignas(16) PassConstants
     {
         mat4f view;
         mat4f invView;
@@ -43,16 +45,86 @@ namespace engine
         mat4f viewProjection;
         mat4f invViewProjection;
 
-        vec2f renderTargetSize;
+        vec2ui renderTargetSize;
         vec2f invRenderTargetSize;
-        const uint32_t _passPaddingFinal[20] = {
-            0x1deadb0b, 0x1deadb0b, 0x1deadb0b, 0x1deadb0b, 0x1deadb0b,
-            0x1deadb0b, 0x1deadb0b, 0x1deadb0b, 0x1deadb0b, 0x1deadb0b,
-            0x1deadb0b, 0x1deadb0b, 0x1deadb0b, 0x1deadb0b, 0x1deadb0b,
-            0x1deadb0b, 0x1deadb0b, 0x1deadb0b, 0x1deadb0b, 0x1deadb0b
-        };
+        const uint32_t _passPadding[5] = { 0x1deadb0b, 0x1deadb0b, 0x1deadb0b, 0x1deadb0b, 0x1deadb0b };
     };
-    static_assert(sizeof(PassConstants) % 256 == 0, "Must be aligned");
+}
+
+namespace engine
+{
+    class PassData : Data
+    {
+    public:
+        inline void setFrameConstants(const float totalTime = 0.0f, const float deltaTime = 0.0f)
+        {
+            mFrameConstants.totalTime = totalTime;
+            mFrameConstants.deltaTime = deltaTime;
+        }
+        inline void setFrameConstants(const FrameConstants& frameConstants)
+        {
+            setFrameConstants(frameConstants.totalTime, frameConstants.deltaTime);
+        }
+
+        inline const FrameConstants getFrameConstants() const
+        {
+            return mFrameConstants;
+        }
+
+        inline void setViewMatrix(const mat4f viewMatrix = mat4f())
+        {
+            mPassConstants.view = viewMatrix;
+            mPassConstants.invView = inverse(mPassConstants.view);
+
+            mPassConstants.viewProjection = mPassConstants.view * mPassConstants.projection;
+            mPassConstants.invViewProjection = inverse(mPassConstants.viewProjection);
+        }
+
+        inline void setEyePosition(const vec3f eyePosition = vec3f())
+        {
+            mPassConstants.eyePosition = eyePosition;
+        }
+
+        inline void setProjectionMatrix(const mat4f projectionMatrix = mat4f(), const float nearZ = 0.0f, const float farZ = 0.0f)
+        {
+            mPassConstants.projection = projectionMatrix;
+            mPassConstants.invProjection = inverse(projectionMatrix);
+
+            mPassConstants.nearZ = nearZ;
+            mPassConstants.farZ = farZ;
+
+            mPassConstants.viewProjection = mPassConstants.view * mPassConstants.projection;
+            mPassConstants.invViewProjection = inverse(mPassConstants.viewProjection);
+        }
+
+        inline void setRenderTargetSize(const unsigned int width = 0, const unsigned int height = 0)
+        {
+            mPassConstants.renderTargetSize.x = width;
+            mPassConstants.renderTargetSize.y = height;
+            mPassConstants.invRenderTargetSize = 1 / mPassConstants.renderTargetSize;
+        }
+
+        inline void setPassConstants(const PassConstants& passConstants)
+        {
+            setViewMatrix(passConstants.view);
+            setEyePosition(passConstants.eyePosition);
+            setProjectionMatrix(passConstants.projection, passConstants.nearZ, passConstants.farZ);
+            setRenderTargetSize(passConstants.renderTargetSize.x, passConstants.renderTargetSize.y);
+        }
+
+        inline const PassConstants getPassConstants() const
+        {
+            return mPassConstants;
+        }
+
+        virtual void renderDebugUI() = 0;
+        virtual void reset() = 0;
+        virtual ~PassData() = default;
+
+    private:
+        FrameConstants mFrameConstants;
+        PassConstants mPassConstants;
+    };
 }
 
 namespace engine

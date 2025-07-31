@@ -602,63 +602,34 @@ inline mat4x4<T> rotation4D(const vec3<T>& axis, const T theta)
 }
 
 template <typename T>
-inline mat4x4<T> lookAtLH(
-    const vec3<T>& position,     // “Eye”
-    const vec3<T>& target,       // “At”
-    const vec3<T>& worldUp)      // “Up”
+inline mat4x4<T> lookAtLH(const vec3<T>& position, const vec3<T>& target, const vec3<T>& worldUp)
 {
-    // 1. Forward (Z) axis: At – Eye (left‑handed)
     vec3<T> zaxis = normalize(target - position);
-    // 2. Right (X) axis: cross(Up, Z)
     vec3<T> xaxis = normalize(cross(worldUp, zaxis));
-    // 3. Up (Y) axis: cross(Z, X)
     vec3<T> yaxis = cross(zaxis, xaxis);
 
-    // 4. Build column‑major view matrix
-    mat4x4<T> view(
-        { xaxis.x,  yaxis.x,  zaxis.x,  0 },
-        { xaxis.y,  yaxis.y,  zaxis.y,  0 },
-        { xaxis.z,  yaxis.z,  zaxis.z,  0 },
-        { -dot(xaxis, position),
-          -dot(yaxis, position),
-          -dot(zaxis, position),
-           1 }
+    return mat4x4<T>(
+        { xaxis.x, xaxis.y, xaxis.z, -dot(xaxis, position) },
+        { yaxis.x, yaxis.y, yaxis.z, -dot(yaxis, position) },
+        { zaxis.x, zaxis.y, zaxis.z, -dot(zaxis, position) },
+        { 0, 0, 0, 1 }
     );
-
-    return view;
 }
 
 // Custom implementation of the LookAt function
 template <typename T>
 inline mat4x4<T> lookAtRH(const vec3<T>& position, const vec3<T>& target, const vec3<T>& worldUp)
 {
-    // 1. Position = known
-    // 2. Calculate cameraDirection
     vec3<T> zaxis = normalize(position - target);
-    // 3. Get positive right axis vector
     vec3<T> xaxis = normalize(cross(normalize(worldUp), zaxis));
-    // 4. Calculate camera up vector
     vec3<T> yaxis = cross(zaxis, xaxis);
 
-    // Create translation and rotation matrix
-    // In glm we access elements as mat[col][row] due to column-major layout
-    mat4x4<T> translation;
-    translation[3][0] = -position.x; // Fourth column, first row
-    translation[3][1] = -position.y;
-    translation[3][2] = -position.z;
-    mat4x4<T> rotation;
-    rotation[0][0] = xaxis.x; // First column, first row
-    rotation[1][0] = xaxis.y;
-    rotation[2][0] = xaxis.z;
-    rotation[0][1] = yaxis.x; // First column, second row
-    rotation[1][1] = yaxis.y;
-    rotation[2][1] = yaxis.z;
-    rotation[0][2] = zaxis.x; // First column, third row
-    rotation[1][2] = zaxis.y;
-    rotation[2][2] = zaxis.z;
-
-    // Return lookAt matrix as combination of translation and rotation matrix
-    return rotation * translation; // Remember to read from right to left (first translation then rotation)
+    return mat4x4<T>(
+        { xaxis.x, xaxis.y, xaxis.z, -dot(xaxis, position) },
+        { yaxis.x, yaxis.y, yaxis.z, -dot(yaxis, position) },
+        { zaxis.x, zaxis.y, zaxis.z, -dot(zaxis, position) },
+        { 0, 0, 0, 1 }
+    );
 }
 
 inline mat4x4<float> perspectiveProjection(float fov, float aspect, float nearVal, float farVal)
@@ -667,11 +638,11 @@ inline mat4x4<float> perspectiveProjection(float fov, float aspect, float nearVa
     float yScale = 1.0f / std::tan(fov / 2);
     float xScale = yScale / aspect;
 
-    return mat4x4<float> (
+    return mat4x4<float>(
         { xScale, 0.0f, 0.0f, 0.0f },
         { 0.0f, yScale, 0.0f, 0.0f },
-        { 0.0f, 0.0f, (farVal / (farVal - nearVal)), 1.0f },
-        { 0.0f, 0.0f, ((-nearVal * farVal) / (farVal - nearVal)), 0.0f }
+        { 0.0f, 0.0f, (farVal / (farVal - nearVal)), ((-nearVal * farVal) / (farVal - nearVal)) },
+        { 0.0f, 0.0f, 1.0f, 0.0f }
     );
 }
 

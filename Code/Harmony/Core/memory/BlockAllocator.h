@@ -20,7 +20,7 @@ namespace memory
 
     public:
         BlockAllocator(const size_t totalSizeInBytes, const size_t blockSize = BLOCK_SIZE, const uint64_t offset = 0)
-            : mTotalSizeInBytes(((totalSizeInBytes + blockSize - 1) / blockSize)* blockSize),
+            : mTotalSizeInBytes(((totalSizeInBytes + blockSize - 1) / blockSize) * blockSize),
             mBlockSize(blockSize),
             mOffset(offset),
             mNextAllocationOffset(mOffset)
