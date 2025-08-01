@@ -437,7 +437,8 @@ namespace engine
 
         mWaterPassSI.setConstants({ frameConstants.totalTime, frameConstants.deltaTime, 0x1deadb0b, 0x1deadb0b }, 0);
         void* commonPassConstants = mCommonPassConstantsBuffer->map();
-        memcpy(commonPassConstants, &mWaterPassData.getPassConstants(), sizeof(PassConstants));
+        const PassConstants& passConstants = mWaterPassData.getPassConstants();
+        memcpy(commonPassConstants, &passConstants, sizeof(PassConstants));
         mCommonPassConstantsBuffer->unmap();
 
         mWaterPassSI.finalize(context);

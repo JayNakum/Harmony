@@ -26,7 +26,6 @@ namespace graphics
             StaticGPU,
             DynamicCPU,
             DynamicGPU,
-            DebugGPU,
             RenderTargetCPU,
 
             COUNT
@@ -55,7 +54,6 @@ namespace graphics
                 return mShaderViewsDescriptorHeapCPU;
             case DescriptorsCategory::StaticGPU:
             case DescriptorsCategory::DynamicGPU:
-            case DescriptorsCategory::DebugGPU:
                 return mShaderViewsDescriptorHeapGPU;
             case DescriptorsCategory::RenderTargetCPU:
                 return mRenderTargetViewsDescriptorHeap;
@@ -83,7 +81,6 @@ namespace graphics
                 memory::MB(1), // DescriptorsCategory::StaticGPU
                 memory::MB(1), // DescriptorsCategory::DynamicCPU
                 memory::MB(1), // DescriptorsCategory::DynamicGPU
-                memory::MB(1), // DescriptorsCategory::DebugGPU
                 memory::MB(1) // DescriptorsCategory::RenderTargets
             };
 
@@ -92,7 +89,6 @@ namespace graphics
                 mStaticDescriptors(MEMORY_BUDGET[DescriptorsCategory::StaticGPU], mSections.allocate(MEMORY_BUDGET[DescriptorsCategory::StaticGPU])),
                 mDynamicDescriptorsCPU(MEMORY_BUDGET[DescriptorsCategory::DynamicCPU]),
                 mDynamicDescriptorsGPU(MEMORY_BUDGET[DescriptorsCategory::DynamicGPU], mSections.allocate(MEMORY_BUDGET[DescriptorsCategory::DynamicGPU])),
-                DEBUG_ONLY(mDebugDescriptorsGPU(MEMORY_BUDGET[DescriptorsCategory::DebugGPU], mSections.allocate(MEMORY_BUDGET[DescriptorsCategory::DebugGPU])), )
                 mRenderTargetDescriptors(MEMORY_BUDGET[DescriptorsCategory::RenderTargetCPU])
             {}
 
@@ -111,9 +107,6 @@ namespace graphics
                     return mStaticDescriptors.allocate(sizeInBytes);
                 case DescriptorsCategory::DynamicGPU:
                     return mDynamicDescriptorsGPU.allocate(sizeInBytes);
-                case DescriptorsCategory::DebugGPU:
-                    DEBUG_ONLY(return mDebugDescriptorsGPU.allocate(sizeInBytes));
-                    return -1;
                 case DescriptorsCategory::RenderTargetCPU:
                     return mRenderTargetDescriptors.allocate(sizeInBytes);
                 }
@@ -137,9 +130,6 @@ namespace graphics
                 case DescriptorsCategory::DynamicGPU:
                     mDynamicDescriptorsGPU.reset();
                     break;
-                case DescriptorsCategory::DebugGPU:
-                    DEBUG_ONLY(mDebugDescriptorsGPU.reset());
-                    break;
                 case DescriptorsCategory::RenderTargetCPU:
                     mRenderTargetDescriptors.reset();
                     break;
@@ -152,8 +142,6 @@ namespace graphics
             memory::LinearAllocator mSections;
             memory::LinearAllocator mStaticDescriptors;
             memory::RingAllocator mDynamicDescriptorsGPU;
-
-            DEBUG_ONLY(memory::RingAllocator mDebugDescriptorsGPU);
 
             memory::RingAllocator mDynamicDescriptorsCPU;
 
