@@ -3,16 +3,30 @@
 #include "common.h"
 #include "Utility.h"
 
+#undef LOG_FORMAT
+#undef LOG_ARGS
+#undef DEBUGPRINT
+#undef DEBUGLOG
+#undef DEBUGLOG_ONCE
+#undef DEBUGLOG_IF
+#undef DEBUGLOG_ONCE_IF
+#undef BREAK
+#undef BREAK_IF
+#undef HASSERT_SOFT
+#undef HASSERT_SOFT_ONCE
+#undef HASSERT
+#undef DEBUG_ONLY
+
 #if defined(DEBUG)
 
-#define _LOG_FORMAT "[%s] %s | %s | %s:%d | "
-#define _LOG_ARGS utility::timenow().c_str(), utility::removeBasePath(__FILE__).c_str(), __FUNCTION__, __LINE__
+#define LOG_FORMAT "[%s] %s | %s | %s:%d | "
+#define LOG_ARGS utility::timenow().c_str(), utility::File::removeBasePath(__FILE__).c_str(), __FUNCTION__, __LINE__
 
 // unnecessary helper macro to print a simple message to logs
 #define DEBUGPRINT(message, ...) utility::printF(message "\n", ##__VA_ARGS__)
 
 // prints a formatted message to logs "[category] time | fileName | function:line | message"
-#define DEBUGLOG(category, message, ...) utility::printF(_LOG_FORMAT message "\n", category, _LOG_ARGS, ##__VA_ARGS__)
+#define DEBUGLOG(category, message, ...) utility::printF(LOG_FORMAT message "\n", category, LOG_ARGS, ##__VA_ARGS__)
 
 // DEBUGLOG ONCE
 #define DEBUGLOG_ONCE(category, message, ...) \

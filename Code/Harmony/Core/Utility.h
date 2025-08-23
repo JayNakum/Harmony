@@ -2,13 +2,15 @@
 
 #include "common.h"
 
+#include "File.h"
+
 /*
 * string utilities.
 */
 namespace utility
 {
     void print(const char* message);
-    std::unique_ptr<char[]> translateErrorCode(const long errorCode) noexcept;
+    std::string translateErrorCode(const long errorCode) noexcept;
 
     inline void printF(const char* format, ...)
     {

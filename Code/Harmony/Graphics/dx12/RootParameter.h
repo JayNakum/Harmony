@@ -114,15 +114,17 @@ namespace graphics
             sampler::TextureAddressMode addressU = sampler::TextureAddressMode::Wrap;
             sampler::TextureAddressMode addressV = addressU;
             sampler::TextureAddressMode addressW = addressV;
-            float mipLODBias = 0;
+            float mipLODBias = 0.0f;
             unsigned int maxAnisotropy = 16;
             sampler::ComparisionFunction comparisonFunc = sampler::ComparisionFunction::LessEqual;
             sampler::StaticBorderColor borderColor = sampler::StaticBorderColor::OpaqueWhite;
             float minLOD = 0.0f;
             float maxLOD = FLT_MAX;
+
+            Description() {}
         };
 
-        StaticSampler(const unsigned int shaderRegister = 0, const Description& description = {}, const ShaderVisibility visibility = ShaderVisibility::All, const unsigned int registerSpace = 0)
+        StaticSampler(const unsigned int shaderRegister = 0, const Description& description = Description{}, const ShaderVisibility visibility = ShaderVisibility::All, const unsigned int registerSpace = 0)
         {
             mStaticSampler.ShaderRegister = shaderRegister;
             mStaticSampler.RegisterSpace = registerSpace;

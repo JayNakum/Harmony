@@ -20,7 +20,7 @@ namespace graphics
         switch (mDescription.dimension)
         {
         default:
-            HASSERT(false, "Unhandled SRV creation path for resource dimension: %s", toString(mDescription.dimension));
+            HASSERT(false, "Unhandled SRV creation path for resource dimension: %s", toString(mDescription.dimension).c_str());
             break;
 
         case GPUResourceDimension::Texture1D:
@@ -72,7 +72,7 @@ namespace graphics
         switch (mDescription.dimension)
         {
         default:
-            HASSERT(false, "Unhandled UAV creation path for resource dimension: %s", toString(mDescription.dimension));
+            HASSERT(false, "Unhandled UAV creation path for resource dimension: %s", toString(mDescription.dimension).c_str());
             break;
 
         case GPUResourceDimension::Texture1D:
@@ -122,7 +122,7 @@ namespace graphics
         bool isValidColorFlag = hasFlag(textureDescription.resourceFlags, GPUResourceFlags::AllowRenderTarget) && (mType == Type::Color);
         bool isValidDepthFlag = hasFlag(textureDescription.resourceFlags, GPUResourceFlags::AllowDepthStencil) && (mType == Type::Depth);
 
-        HASSERT(isValidColorFlag || isValidDepthFlag, "Invalid GPUResourceFlag %s for render target.", toString(textureDescription.resourceFlags));
+        HASSERT(isValidColorFlag || isValidDepthFlag, "Invalid GPUResourceFlag %s for render target.", toString(textureDescription.resourceFlags).c_str());
     }
 
     /*RenderTarget::RenderTarget(const Type type, const Texture::Description& createDescription)
@@ -166,7 +166,7 @@ namespace graphics
             break;
 
         default:
-            HASSERT(false, "Unsupported resource dimension %s for RTV creation.", toString(mTexture.getDescription().dimension));
+            HASSERT(false, "Unsupported resource dimension %s for RTV creation.", toString(mTexture.getDescription().dimension).c_str());
             return;
         }
 
@@ -205,7 +205,7 @@ namespace graphics
             break;
 
         default:
-            HASSERT(false, "Unsupported resource dimension %s for DSV creation.", toString(mTexture.getDescription().dimension));
+            HASSERT(false, "Unsupported resource dimension %s for DSV creation.", toString(mTexture.getDescription().dimension).c_str());
             return;
         }
 

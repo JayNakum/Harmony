@@ -18,7 +18,7 @@ namespace graphics
             : mType(type) {}
 
     public:
-        inline const CommandListType getCommandListType() const { return mType; }
+        inline CommandListType getCommandListType() const { return mType; }
 
     protected:
         const CommandListType mType;

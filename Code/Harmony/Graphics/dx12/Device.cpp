@@ -68,7 +68,7 @@ namespace graphics
         // Obtain the DXGI factory
         ComPtr<IDXGIFactory6> dxgiFactory;
         hResult = CreateDXGIFactory2(dxgiFactoryFlags, IID_PPV_ARGS(&dxgiFactory));
-        HASSERT(SUCCEEDED(hResult), "Failed to create DXGI Factory.\n%s", utility::translateErrorCode(hResult));
+        HASSERT(SUCCEEDED(hResult), "Failed to create DXGI Factory.\n%s", utility::translateErrorCode(hResult).c_str());
 
         // Create the D3D graphics device
         ComPtr<IDXGIAdapter1> pAdapter;
@@ -132,10 +132,10 @@ namespace graphics
                 BREAK;
             }
             hResult = dxgiFactory->EnumWarpAdapter(IID_PPV_ARGS(&pAdapter));
-            HASSERT(SUCCEEDED(hResult), "Failed to find warp adapter.\n%s", utility::translateErrorCode(hResult));
+            HASSERT(SUCCEEDED(hResult), "Failed to find warp adapter.\n%s", utility::translateErrorCode(hResult).c_str());
 
             hResult = D3D12CreateDevice(pAdapter.Get(), D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&pDevice));
-            HASSERT(SUCCEEDED(hResult), "Failed to create warp device.\n%s", utility::translateErrorCode(hResult));
+            HASSERT(SUCCEEDED(hResult), "Failed to create warp device.\n%s", utility::translateErrorCode(hResult).c_str());
             mDevice = pDevice.Detach();
         }
 #if !defined(RELEASE)
@@ -149,7 +149,7 @@ namespace graphics
             if (result == ERROR_SUCCESS)
             {
                 DWORD keyValue = 0, keySize = sizeof(DWORD);
-                result = RegQueryValueEx(hKey, L"AllowDevelopmentWithoutDevLicense", 0, NULL, (byte*)&keyValue, &keySize);
+                result = RegQueryValueEx(hKey, L"AllowDevelopmentWithoutDevLicense", 0, nullptr, (byte*)&keyValue, &keySize);
                 if (result == ERROR_SUCCESS && keyValue == 1)
                     sysDeveloperModeEnabled = true;
                 RegCloseKey(hKey);
@@ -241,7 +241,7 @@ namespace graphics
         // Obtain the DXGI factory
         Microsoft::WRL::ComPtr<IDXGIFactory4> dxgiFactory;
         hResult = CreateDXGIFactory2(0, IID_PPV_ARGS(&dxgiFactory));
-        HASSERT(SUCCEEDED(hResult), "Failed to create DXGI Factory.\n%s", utility::translateErrorCode(hResult));
+        HASSERT(SUCCEEDED(hResult), "Failed to create DXGI Factory.\n%s", utility::translateErrorCode(hResult).c_str());
 
         Microsoft::WRL::ComPtr<IDXGIAdapter1> pAdapter;
 

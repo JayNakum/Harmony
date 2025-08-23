@@ -473,48 +473,27 @@ inline mat4x4<T> transpose(const mat4x4<T>& m)
 template <typename T>
 inline T determinant(const mat4x4<T>& m)
 {
-    const T m00 = m[0][0];
-    const T m01 = m[0][1];
-    const T m02 = m[0][2];
-    const T m03 = m[0][3];
-    const T m10 = m[1][0];
-    const T m11 = m[1][1];
-    const T m12 = m[1][2];
-    const T m13 = m[1][3];
-    const T m20 = m[2][0];
-    const T m21 = m[2][1];
-    const T m22 = m[2][2];
-    const T m23 = m[2][3];
-    const T m30 = m[3][0];
-    const T m31 = m[3][1];
-    const T m32 = m[3][2];
-    const T m33 = m[3][3];
-
-    const T A2323 = m22 * m33 - m23 * m32;
-    const T A1323 = m21 * m33 - m23 * m31;
-    const T A1223 = m21 * m32 - m22 * m31;
-    const T A0323 = m20 * m33 - m23 * m30;
-    const T A0223 = m20 * m32 - m22 * m30;
-    const T A0123 = m20 * m31 - m21 * m30;
-    const T A2313 = m12 * m33 - m13 * m32;
-    const T A1313 = m11 * m33 - m13 * m31;
-    const T A1213 = m11 * m32 - m12 * m31;
-    const T A2312 = m12 * m23 - m13 * m22;
-    const T A1312 = m11 * m23 - m13 * m21;
-    const T A1212 = m11 * m22 - m12 * m21;
-    const T A0313 = m10 * m33 - m13 * m30;
-    const T A0213 = m10 * m32 - m12 * m30;
-    const T A0312 = m10 * m23 - m13 * m20;
-    const T A0212 = m10 * m22 - m12 * m20;
-    const T A0113 = m10 * m31 - m11 * m30;
-    const T A0112 = m10 * m21 - m11 * m20;
-
-    return (
-        m00 * (m11 * A2323 - m12 * A1323 + m13 * A1223)
-      - m01 * (m10 * A2323 - m12 * A0323 + m13 * A0223)
-      + m02 * (m10 * A1323 - m11 * A0323 + m13 * A0123)
-      - m03 * (m10 * A1223 - m11 * A0223 + m12 * A0123)
-    );
+    return
+        m[0][0] * (
+            m[1][1] * (m[2][2] * m[3][3] - m[2][3] * m[3][2]) -
+            m[1][2] * (m[2][1] * m[3][3] - m[2][3] * m[3][1]) +
+            m[1][3] * (m[2][1] * m[3][2] - m[2][2] * m[3][1])
+            )
+        - m[0][1] * (
+            m[1][0] * (m[2][2] * m[3][3] - m[2][3] * m[3][2]) -
+            m[1][2] * (m[2][0] * m[3][3] - m[2][3] * m[3][0]) +
+            m[1][3] * (m[2][0] * m[3][2] - m[2][2] * m[3][0])
+            )
+        + m[0][2] * (
+            m[1][0] * (m[2][1] * m[3][3] - m[2][3] * m[3][1]) -
+            m[1][1] * (m[2][0] * m[3][3] - m[2][3] * m[3][0]) +
+            m[1][3] * (m[2][0] * m[3][1] - m[2][1] * m[3][0])
+            )
+        - m[0][3] * (
+            m[1][0] * (m[2][1] * m[3][2] - m[2][2] * m[3][1]) -
+            m[1][1] * (m[2][0] * m[3][2] - m[2][2] * m[3][0]) +
+            m[1][2] * (m[2][0] * m[3][1] - m[2][1] * m[3][0])
+            );
 }
 
 template <typename T>

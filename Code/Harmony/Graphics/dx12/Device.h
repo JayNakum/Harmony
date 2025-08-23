@@ -18,6 +18,8 @@ namespace graphics
         {
             bool useWarpDriver = false;
             bool requireRaytracing = false;
+
+            Configuration() {}
         };
 
         static constexpr uint32_t vendorID_Nvidia = 0x10DE;
@@ -27,7 +29,7 @@ namespace graphics
     public:
         // Creates and initializes an ID3D12Device as per the specified Configuration
         // By default, it searches for the adapter with the most memory.
-        Device(const Configuration& config = {});
+        Device(const Configuration& config = Configuration{});
 
         // Releases the graphics device.
         // In debug mode, it also reports if any resources are currently in use.

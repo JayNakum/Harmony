@@ -14,7 +14,7 @@ namespace graphics
         mCommandList(mDevice, mCmdListDesc)
     {
         HRESULT hResult = mCommandList->Close();
-        HASSERT(SUCCEEDED(hResult), "Failed to close command list.\n%s", utility::translateErrorCode(hResult));
+        HASSERT(SUCCEEDED(hResult), "Failed to close command list.\n%s", utility::translateErrorCode(hResult).c_str());
     }
 
     void CommandContext::setName(const std::string & name)
@@ -49,14 +49,14 @@ namespace graphics
         {
             destination.get(),
             D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX,
-            destinationSubIndex
+            { (UINT)(destinationSubIndex) }
         };
 
         D3D12_TEXTURE_COPY_LOCATION sourceLocation =
         {
             source.get(),
             D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX,
-            sourceSubIndex
+            { (UINT)(sourceSubIndex) }
         };
 
         mCommandList->CopyTextureRegion(&destinationLocation, 0, 0, 0, &sourceLocation, nullptr);
@@ -99,7 +99,7 @@ namespace graphics
         flushResourceBarriers();
 
         HRESULT hResult = mCommandList->Close();
-        HASSERT(SUCCEEDED(hResult), "Failed to close command list.\n%s", utility::translateErrorCode(hResult));
+        HASSERT(SUCCEEDED(hResult), "Failed to close command list.\n%s", utility::translateErrorCode(hResult).c_str());
 
         mCommandAllocatorPool.discardCommandAllocator(completedFenceValue, *mCurrentCommandAllocator);
         mCurrentCommandAllocator = nullptr;

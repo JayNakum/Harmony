@@ -13,7 +13,7 @@ namespace graphics
         heapDesc.Alignment = PLACEMENT_ALIGNMENT;
         heapDesc.Flags = D3D12_HEAP_FLAG_NONE;
         HRESULT hResult = device->CreateHeap(&heapDesc, IID_PPV_ARGS(&mHeap));
-        HASSERT(SUCCEEDED(hResult), "Failed to create heap for opaque render items.\n%s", utility::translateErrorCode(hResult));
+        HASSERT(SUCCEEDED(hResult), "Failed to create heap for opaque render items.\n%s", utility::translateErrorCode(hResult).c_str());
 
         setD3DName(mHeap.Get(), utility::toWideString(createDescription.name).c_str());
     }

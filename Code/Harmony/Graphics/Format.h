@@ -115,14 +115,14 @@ namespace graphics
 
     namespace DefaultFormats
     {
-        static Format getBaseFormat(const Format& format);
-        static Format getUAVFormat(const Format& format);
-        static Format getDSVFormat(const Format& format);
-        static Format getDepthFormat(const Format& format);
-        static Format getStencilFormat(const Format& format);
+        Format getBaseFormat(const Format& format);
+        Format getUAVFormat(const Format& format);
+        Format getDSVFormat(const Format& format);
+        Format getDepthFormat(const Format& format);
+        Format getStencilFormat(const Format& format);
 
         // For compressed formats the function returns the blockSizeBytes
-        static size_t bytesPerPixel(const Format& format);
+        size_t bytesPerPixel(const Format& format);
 
         // Uncompressed formats
         static const Format UNKNOWN = Format(Format::Uncompressed{ ColorWriteMask::None, Format::Type::Typeless, {0, 0, 0, 0} });

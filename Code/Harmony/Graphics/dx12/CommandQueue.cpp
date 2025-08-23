@@ -16,7 +16,7 @@ namespace graphics
         createDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
 
         HRESULT hResult = device->CreateCommandQueue(&createDesc, IID_PPV_ARGS(&mCommandQueue));
-        HASSERT(SUCCEEDED(hResult), "Failed to create command queue %s.\n%s", createDescription.name, utility::translateErrorCode(hResult));
+        HASSERT(SUCCEEDED(hResult), "Failed to create command queue %s.\n%s", createDescription.name.c_str(), utility::translateErrorCode(hResult).c_str());
 
         setD3DName(mCommandQueue.Get(), utility::toWideString(createDescription.name).c_str());
 

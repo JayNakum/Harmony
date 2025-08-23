@@ -111,11 +111,11 @@ float3 calculateWaveOffsets(float3 vertex, GerstnerWaveParams params, float t)
 
 float2 fbm2D(float2 uv, FBMParams params, Texture2D<float> noiseTex, float t)
 {
-    float sum = 0;
-    float maxAmplitude = 0;
-    float amplitude = 1;
+    float sum = 0.0f;
+    float maxAmplitude = 0.0f;
+    float amplitude = 1.0f;
     float frequency = params.noiseScale;
-    float2 offset = float2(params.noiseSpeed * t, 0);
+    float2 offset = float2(params.noiseSpeed * t, 0.0f);
 
     [unroll]
     for (uint i = 0; i < 6; ++i)
@@ -399,7 +399,7 @@ namespace engine
 
         mShaderResources.setResource(device, resourceManager.getBufferCBV("CB_CommonPassParams_Water_RenderPass"), 0, 0);
         mShaderResources.setResource(device, resourceManager.getBufferCBV("CB_WaterPassParams_Water_RenderPass"), 0, 1);
-        mShaderResources.setResource(device, resourceManager.getTextureSRV("UA_Noise_Texture", "SR_Noise_Texture"), 1);
+        mShaderResources.setResource(device, resourceManager.getTextureSRV("UA_Water_Noise_Texture", "SR_Noise_Texture"), 1);
     }
 
     void WaterPass::update(const double timeStep)
@@ -424,7 +424,7 @@ namespace engine
         graphics::Buffer& indexBuffer = resourceManager.getBuffer("IB_WaterMesh_Water_RenderPass");
         context.transitionBarrier(indexBuffer, graphics::GPUResourceStates::VertexAndConstantBuffer);
 
-        graphics::Texture& noiseTexture = resourceManager.getTexture("UA_Noise_Texture");
+        graphics::Texture& noiseTexture = resourceManager.getTexture("UA_Water_Noise_Texture");
         context.transitionBarrier(noiseTexture, graphics::GPUResourceStates::Common);
 
         context.flushResourceBarriers();

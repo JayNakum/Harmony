@@ -26,7 +26,7 @@ namespace graphics
         Microsoft::WRL::ComPtr<IDXGIFactory6> dxgiFactory;
         {// Create dxgiFactory
             HRESULT hResult = CreateDXGIFactory1(IID_PPV_ARGS(&dxgiFactory));
-            HASSERT(SUCCEEDED(hResult), "Failed to create dxgi factory.\n%s", utility::translateErrorCode(hResult));
+            HASSERT(SUCCEEDED(hResult), "Failed to create dxgi factory.\n%s", utility::translateErrorCode(hResult).c_str());
         }
 
         {// Check for tearing support
@@ -60,10 +60,10 @@ namespace graphics
                 &fsSwapChainDesc,
                 nullptr,
                 &swapchain1);
-            HASSERT(SUCCEEDED(hResult), "Failed to create swapchain %s.\n%s", createDescription.name, utility::translateErrorCode(hResult));
+            HASSERT(SUCCEEDED(hResult), "Failed to create swapchain %s.\n%s", createDescription.name.c_str(), utility::translateErrorCode(hResult).c_str());
 
             hResult = swapchain1.As(&mSwapChain); // A swapchain3 is needed for GetCurrentBackBufferIndex()
-            HASSERT(SUCCEEDED(hResult), "Failed to cast SwapChain1 to SwapChain3.\n%s", utility::translateErrorCode(hResult));
+            HASSERT(SUCCEEDED(hResult), "Failed to cast SwapChain1 to SwapChain3.\n%s", utility::translateErrorCode(hResult).c_str());
         }
 
         resize(device, (unsigned int)createDescription.width, (unsigned int)createDescription.height, rtvHandles);
@@ -86,14 +86,14 @@ namespace graphics
             dx12::toDXGIFormat(DefaultFormats::R8G8B8A8_UNORM), //toDXGIFormat(mHDRSupport ? DefaultFormats::R10G10B10A2_UNORM : DefaultFormats::R8G8B8A8_UNORM),
             DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH | (mTearingSupport ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0)
         );
-        HASSERT(SUCCEEDED(hResult), "Failed to resize swapchain.\n%s", utility::translateErrorCode(hResult));
+        HASSERT(SUCCEEDED(hResult), "Failed to resize swapchain.\n%s", utility::translateErrorCode(hResult).c_str());
 
         // Re-create rtvHandles for each back buffer.
         for (unsigned int i = 0; i < BACK_BUFFER_COUNT; ++i)
         {
             Microsoft::WRL::ComPtr<ID3D12Resource> backBufferResource;
             HRESULT hr = mSwapChain->GetBuffer(i, IID_PPV_ARGS(&backBufferResource));
-            HASSERT(SUCCEEDED(hr), "Failed to get swapchain back buffer.\n%s", utility::translateErrorCode(hr));
+            HASSERT(SUCCEEDED(hr), "Failed to get swapchain back buffer.\n%s", utility::translateErrorCode(hr).c_str());
 
             mBackBuffers[i].setResource(backBufferResource.Get());
             HASSERT(mBackBuffers[i].get() != nullptr, "mBackBuffers is null.");
@@ -107,14 +107,14 @@ namespace graphics
         UINT presentInterval = (!mTearingSupport) ? interval : 0;
         UINT presentFlags = (mTearingSupport) ? DXGI_PRESENT_ALLOW_TEARING : 0;
         HRESULT hResult = mSwapChain->Present(presentInterval, presentFlags);
-        HASSERT(SUCCEEDED(hResult), "Failed to present swapchain.\n%s", utility::translateErrorCode(hResult));
+        HASSERT(SUCCEEDED(hResult), "Failed to present swapchain.\n%s", utility::translateErrorCode(hResult).c_str());
     }
 
     void Swapchain::checkHDRSupport()
     {
         Microsoft::WRL::ComPtr<IDXGISwapChain4> swapChain4;
         HRESULT hResult = mSwapChain.As(&swapChain4);
-        HASSERT_SOFT(SUCCEEDED(hResult), "Failed to cast SwapChain3 to SwapChain4.\n%s", utility::translateErrorCode(hResult));
+        HASSERT_SOFT(SUCCEEDED(hResult), "Failed to cast SwapChain3 to SwapChain4.\n%s", utility::translateErrorCode(hResult).c_str());
 
         Microsoft::WRL::ComPtr<IDXGIOutput> output;
         Microsoft::WRL::ComPtr<IDXGIOutput6> output6;

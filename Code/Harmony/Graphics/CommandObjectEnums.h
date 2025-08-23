@@ -16,14 +16,14 @@ namespace graphics
     {
         switch (e)
         {
-        default:
-            return "";
         case CommandListType::Direct:
             return "Direct";
         case CommandListType::Compute:
             return "Compute";
         case CommandListType::Copy:
             return "Copy";
+        default:
+            return "";
         }
     }
 }

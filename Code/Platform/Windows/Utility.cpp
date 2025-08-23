@@ -16,7 +16,7 @@ namespace utility
         (void)message;
     }
 
-    std::unique_ptr<char[]> translateErrorCode(const long errorCode) noexcept
+    std::string translateErrorCode(const long errorCode) noexcept
     {
         HRESULT hResult = static_cast<HRESULT>(errorCode);
         if (FACILITY_WINDOWS == HRESULT_FACILITY(errorCode))
@@ -28,27 +28,18 @@ namespace utility
 
         if (FormatMessageA(
             FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-            NULL, hResult, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-            (LPSTR)&szErrMsg, 0, NULL) != 0)
+            nullptr, (DWORD)hResult, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+            (LPSTR)&szErrMsg, 0, nullptr) != 0)
         {
-            size_t bufferSize = strlen(szErrMsg) + 1;
-
-            std::unique_ptr<char[]> errorMessage(new char[bufferSize]);
-            strcpy_s(errorMessage.get(), bufferSize, szErrMsg);
-
+            std::string errorMessage(szErrMsg);
             LocalFree(szErrMsg);
-
             return errorMessage;
         }
         else
         {
-            const char* genericErrorMsg = "Unexpected error # % #x.";
-            size_t bufferSize = snprintf(nullptr, 0, genericErrorMsg, hResult) + 1;
-
-            std::unique_ptr<char[]> errorMessage(new char[bufferSize]);
-            snprintf(errorMessage.get(), bufferSize, genericErrorMsg, hResult);
-
-            return errorMessage;
+            char buffer[128];
+            snprintf(buffer, sizeof(buffer), "Unexpected error # %#x.", (UINT)hResult);
+            return std::string(buffer);
         }
     }
 

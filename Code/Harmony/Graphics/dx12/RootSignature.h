@@ -23,9 +23,11 @@ namespace graphics
     public:
         struct Description
         {
-            std::string name;
-            std::vector<RootParameter> rootParameters;
-            std::array<StaticSampler, MAX_STATIC_SAMPLERS> staticSamplers;
+            std::string name = "";
+            std::vector<RootParameter> rootParameters = {};
+            std::array<StaticSampler, MAX_STATIC_SAMPLERS> staticSamplers = {};
+
+            Description() {}
         };
 
         // Creates and serializes root signature

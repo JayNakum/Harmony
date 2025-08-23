@@ -12,16 +12,24 @@ namespace engine
         virtual void renderDebugUI() {}
         void reset();
 
-        inline const float getNoiseTextureWidth() const { return mNoiseTextureWidth; }
-        inline const float getNoiseTextureHeight() const { return mNoiseTextureHeight; }
-        inline const float getNoiseScale() const { return mNoiseScale; }
+        inline const float getTerrainNoiseTextureWidth() const { return mTerrainNoiseTextureWidth; }
+        inline const float getTerrainNoiseTextureHeight() const { return mTerrainNoiseTextureHeight; }
+        inline const float getTerrainNoiseScale() const { return mTerrainNoiseScale; }
+
+        inline const float getWaterNoiseTextureWidth() const { return mWaterNoiseTextureWidth; }
+        inline const float getWaterNoiseTextureHeight() const { return mWaterNoiseTextureHeight; }
+        inline const float getWaterNoiseScale() const { return mWaterNoiseScale; }
 
         ~NoisePassData() = default;
 
     private:
-        const float mNoiseTextureWidth;
-        const float mNoiseTextureHeight;
-        float mNoiseScale;
+        const float mTerrainNoiseTextureWidth;
+        const float mTerrainNoiseTextureHeight;
+        float mTerrainNoiseScale;
+
+        const float mWaterNoiseTextureWidth;
+        const float mWaterNoiseTextureHeight;
+        float mWaterNoiseScale;
     };
 
     class NoisePass : DispatchPass

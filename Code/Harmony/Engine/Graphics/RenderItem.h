@@ -31,13 +31,13 @@ namespace engine
 
         inline const graphics::BufferView vertexBufferView() const
         {
-            HASSERT(vertexBuffer != nullptr, "Vertex buffer is not set for mesh geometry %s.", name);
+            HASSERT(vertexBuffer != nullptr, "Vertex buffer is not set for mesh geometry %s.", name.c_str());
             return vertexBuffer->vertexBufferView(vertexByteStride);
         }
 
         inline const graphics::BufferView indexBufferView() const
         {
-            HASSERT(indexBuffer != nullptr, "Index buffer is not set for mesh geometry %s.", name);
+            HASSERT(indexBuffer != nullptr, "Index buffer is not set for mesh geometry %s.", name.c_str());
             return indexBuffer->indexBufferView(0, is32BitIndices);
         }
     };

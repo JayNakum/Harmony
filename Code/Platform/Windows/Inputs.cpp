@@ -5,10 +5,10 @@ namespace windows
     Inputs::Inputs(const HWND windowHandle)
         : mWindowHandle(windowHandle)
     {
-        std::memset(mButtons, 0, sizeof(mButtons));
-        std::memset(mHoldDuration, 0, sizeof(mHoldDuration));
-        std::memset(mAnalogs, 0, sizeof(mAnalogs));
-        std::memset(mAnalogsTC, 0, sizeof(mAnalogsTC));
+        std::memset(mButtons.data(), 0, sizeof(mButtons));
+        std::memset(mHoldDuration.data(), 0, sizeof(mHoldDuration));
+        std::memset(mAnalogs.data(), 0, sizeof(mAnalogs));
+        std::memset(mAnalogsTC.data(), 0, sizeof(mAnalogsTC));
         kbmInitialize();
     }
 
@@ -19,7 +19,7 @@ namespace windows
 
     bool Inputs::isAnyPressed() const
     {
-        for (int i = 0; i < NumDigitalInputs; ++i)
+        for (unsigned int i = 0; i < NumDigitalInputs; ++i)
         {
             if (mButtons[0][i])
             {
@@ -31,54 +31,54 @@ namespace windows
 
     bool Inputs::isPressed(Digital di) const
     {
-        return mButtons[0][enum_cast(di)];
+        return mButtons[0][(size_t)enum_cast(di)];
     }
 
     bool Inputs::isFirstPressed(Digital di) const
     {
-        int idx = enum_cast(di);
+        size_t idx = (size_t)enum_cast(di);
         return mButtons[0][idx] && !mButtons[1][idx];
     }
 
     bool Inputs::isReleased(Digital di) const
     {
-        return !mButtons[0][enum_cast(di)];
+        return !mButtons[0][(size_t)enum_cast(di)];
     }
 
     bool Inputs::isFirstReleased(Digital di) const
     {
-        int idx = enum_cast(di);
+        size_t idx = (size_t)enum_cast(di);
         return !mButtons[0][idx] && mButtons[1][idx];
     }
 
     float Inputs::getDurationPressed(Digital di) const
     {
-        return mHoldDuration[enum_cast(di)];
+        return mHoldDuration[(size_t)enum_cast(di)];
     }
 
     float Inputs::getAnalogInput(Analog ai) const
     {
-        return mAnalogs[enum_cast(ai)];
+        return mAnalogs[(size_t)enum_cast(ai)];
     }
 
     float Inputs::getTimeCorrectedAnalogInput(Analog ai) const
     {
-        return mAnalogsTC[enum_cast(ai)];
+        return mAnalogsTC[(size_t)enum_cast(ai)];
     }
 
     void Inputs::update(float frameDelta)
     {
         // shift previous state → index 1
-        std::memcpy(mButtons[1], mButtons[0], sizeof(mButtons[0]));
-        std::memset(mButtons[0], 0, sizeof(mButtons[0]));
-        std::memset(mAnalogs, 0, sizeof(mAnalogs));
+        std::memcpy(mButtons[1].data(), mButtons[0].data(), sizeof(mButtons[0]));
+        std::memset(mButtons[0].data(), 0, sizeof(mButtons[0]));
+        std::memset(mAnalogs.data(), 0, sizeof(mAnalogs));
 
         // poll gamepad & KBM
         pollGamepad();
         pollKeyboardAndMouse();
 
         // update hold durations
-        for (int i = 0; i < NumDigitalInputs; ++i)
+        for (unsigned int i = 0; i < NumDigitalInputs; ++i)
         {
             if (mButtons[0][i])
             {
@@ -87,7 +87,7 @@ namespace windows
         }
 
         // compute time‐corrected analogs
-        for (int i = 0; i < NumAnalogInputs; ++i)
+        for (unsigned int i = 0; i < NumAnalogInputs; ++i)
         {
             mAnalogsTC[i] = mAnalogs[i] * frameDelta;
         }
@@ -204,7 +204,7 @@ namespace windows
     void Inputs::zeroInputs()
     {
         std::memset(&mMouseState, 0, sizeof(mMouseState));
-        std::memset(mKeybuffer, 0, sizeof(mKeybuffer));
+        std::memset(mKeybuffer.data(), 0, sizeof(mKeybuffer));
     }
 
     void Inputs::kbmInitialize()
@@ -218,17 +218,17 @@ namespace windows
                                      IID_IDirectInput8A,
                                      (void**)&mDInput, nullptr);
 
-        HASSERT(SUCCEEDED(hResult), "DirectInput8 initialization failed.\n%s", utility::translateErrorCode(hResult));
+        HASSERT(SUCCEEDED(hResult), "DirectInput8 initialization failed.\n%s", utility::translateErrorCode(hResult).c_str());
 
         // Keyboard
         hResult = mDInput->CreateDevice(GUID_SysKeyboard, &mKeyboard, nullptr);
-        HASSERT(SUCCEEDED(hResult), "Keyboard CreateDevice failed.\n%s", utility::translateErrorCode(hResult));
+        HASSERT(SUCCEEDED(hResult), "Keyboard CreateDevice failed.\n%s", utility::translateErrorCode(hResult).c_str());
 
         hResult = mKeyboard->SetDataFormat(&c_dfDIKeyboard);
-        HASSERT(SUCCEEDED(hResult), "Keyboard SetDataFormat failed.\n%s", utility::translateErrorCode(hResult));
+        HASSERT(SUCCEEDED(hResult), "Keyboard SetDataFormat failed.\n%s", utility::translateErrorCode(hResult).c_str());
 
         hResult = mKeyboard->SetCooperativeLevel(mWindowHandle, DISCL_FOREGROUND | DISCL_NONEXCLUSIVE);
-        HASSERT(SUCCEEDED(hResult), "Keyboard SetCooperativeLevel failed.\n%s", utility::translateErrorCode(hResult));
+        HASSERT(SUCCEEDED(hResult), "Keyboard SetCooperativeLevel failed.\n%s", utility::translateErrorCode(hResult).c_str());
 
         DIPROPDWORD dipdw{};
         dipdw.diph.dwSize = sizeof(dipdw);
@@ -240,13 +240,13 @@ namespace windows
 
         // Mouse
         hResult = mDInput->CreateDevice(GUID_SysMouse, &mMouse, nullptr);
-        HASSERT(SUCCEEDED(hResult), "Mouse CreateDevice failed.\n%s", utility::translateErrorCode(hResult));
+        HASSERT(SUCCEEDED(hResult), "Mouse CreateDevice failed.\n%s", utility::translateErrorCode(hResult).c_str());
 
         hResult = mMouse->SetDataFormat(&c_dfDIMouse2);
-        HASSERT(SUCCEEDED(hResult), "Mouse SetDataFormat failed.\n%s", utility::translateErrorCode(hResult));
+        HASSERT(SUCCEEDED(hResult), "Mouse SetDataFormat failed.\n%s", utility::translateErrorCode(hResult).c_str());
 
         hResult = mMouse->SetCooperativeLevel(mWindowHandle, DISCL_FOREGROUND | DISCL_NONEXCLUSIVE);
-        HASSERT(SUCCEEDED(hResult), "Mouse SetCooperativeLevel failed.\n%s", utility::translateErrorCode(hResult));
+        HASSERT(SUCCEEDED(hResult), "Mouse SetCooperativeLevel failed.\n%s", utility::translateErrorCode(hResult).c_str());
 
         zeroInputs();
     }
@@ -279,7 +279,7 @@ namespace windows
         {
             auto BUTTON = [&](Digital d, WORD mask)
                 {
-                    mButtons[0][enum_cast(d)] = (state.Gamepad.wButtons & mask) != 0;
+                    mButtons[0][(size_t)enum_cast(d)] = (state.Gamepad.wButtons & mask) != 0;
                 };
             BUTTON(Digital::DPad_Up, XINPUT_GAMEPAD_DPAD_UP);
             BUTTON(Digital::DPad_Down, XINPUT_GAMEPAD_DPAD_DOWN);
@@ -296,12 +296,12 @@ namespace windows
             BUTTON(Digital::DPad_XButton, XINPUT_GAMEPAD_X);
             BUTTON(Digital::DPad_YButton, XINPUT_GAMEPAD_Y);
 
-            mAnalogs[enum_cast(Analog::Analog_L2)] = state.Gamepad.bLeftTrigger / 255.0f;
-            mAnalogs[enum_cast(Analog::Analog_R2)] = state.Gamepad.bRightTrigger / 255.0f;
-            mAnalogs[enum_cast(Analog::Analog_LeftStickX)] = filterAnalogInput(state.Gamepad.sThumbLX, XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE);
-            mAnalogs[enum_cast(Analog::Analog_LeftStickY)] = filterAnalogInput(state.Gamepad.sThumbLY, XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE);
-            mAnalogs[enum_cast(Analog::Analog_RightStickX)] = filterAnalogInput(state.Gamepad.sThumbRX, XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE);
-            mAnalogs[enum_cast(Analog::Analog_RightStickY)] = filterAnalogInput(state.Gamepad.sThumbRY, XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE);
+            mAnalogs[(size_t)enum_cast(Analog::Analog_L2)] = state.Gamepad.bLeftTrigger / 255.0f;
+            mAnalogs[(size_t)enum_cast(Analog::Analog_R2)] = state.Gamepad.bRightTrigger / 255.0f;
+            mAnalogs[(size_t)enum_cast(Analog::Analog_LeftStickX)] = filterAnalogInput(state.Gamepad.sThumbLX, XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE);
+            mAnalogs[(size_t)enum_cast(Analog::Analog_LeftStickY)] = filterAnalogInput(state.Gamepad.sThumbLY, XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE);
+            mAnalogs[(size_t)enum_cast(Analog::Analog_RightStickX)] = filterAnalogInput(state.Gamepad.sThumbRX, XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE);
+            mAnalogs[(size_t)enum_cast(Analog::Analog_RightStickY)] = filterAnalogInput(state.Gamepad.sThumbRY, XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE);
         }
     }
 
@@ -313,7 +313,7 @@ namespace windows
             mMouse->Acquire();
             mMouse->GetDeviceState(sizeof(mMouseState), &mMouseState);
             mKeyboard->Acquire();
-            mKeyboard->GetDeviceState(sizeof(mKeybuffer), mKeybuffer);
+            mKeyboard->GetDeviceState(sizeof(mKeybuffer), mKeybuffer.data());
         }
         else
         {
@@ -321,25 +321,25 @@ namespace windows
         }
 
         // Map keyboard
-        for (int i = 0; i < NumKeys; ++i)
+        for (unsigned int i = 0; i < NumKeys; ++i)
         {
             mButtons[0][i] = (mKeybuffer[mDxKeyMapping[i]] & 0x80) != 0;
 
         }
 
         // Mouse buttons
-        for (int i = 0; i < 8; ++i)
+        for (unsigned int i = 0; i < 8; ++i)
         {
             if (mMouseState.rgbButtons[i] > 0)
             {
-                mButtons[0][enum_cast(Digital::Mouse0) + i] = true;
+                mButtons[0][(size_t)enum_cast(Digital::Mouse0) + i] = true;
             }
         }
 
         // Mouse motion
-        mAnalogs[enum_cast(Analog::Analog_MouseX)] = mMouseState.lX * 0.0018f;
-        mAnalogs[enum_cast(Analog::Analog_MouseY)] = mMouseState.lY * -0.0018f;
-        mAnalogs[enum_cast(Analog::Analog_MouseScroll)] = (mMouseState.lZ > 0 ? 1.0f : (mMouseState.lZ < 0 ? -1.0f : 0.0f));
+        mAnalogs[(size_t)enum_cast(Analog::Analog_MouseX)] = (float)mMouseState.lX * 0.0018f;
+        mAnalogs[(size_t)enum_cast(Analog::Analog_MouseY)] = (float)mMouseState.lY * -0.0018f;
+        mAnalogs[(size_t)enum_cast(Analog::Analog_MouseScroll)] = ((float)mMouseState.lZ > 0 ? 1.0f : ((float)mMouseState.lZ < 0 ? -1.0f : 0.0f));
     }
 
     inline float Inputs::filterAnalogInput(int val, int deadZone) const

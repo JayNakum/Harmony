@@ -13,7 +13,7 @@ namespace graphics
 
         D3D12_RESOURCE_DESC resourceDescription = GPUResource::toD3DResourceDesc(mDescription);
 
-        const D3D12_CLEAR_VALUE clearValue{
+        /*const D3D12_CLEAR_VALUE clearValue{
             resourceDescription.Format,
             {
                 mDescription.clearColor[0],
@@ -21,7 +21,7 @@ namespace graphics
                 mDescription.clearColor[2],
                 mDescription.clearColor[3]
             }
-        };
+        };*/
 
         HRESULT hResult = device->CreateCommittedResource(
             &heapProperties, D3D12_HEAP_FLAG_NONE, &resourceDescription,
@@ -29,7 +29,7 @@ namespace graphics
             nullptr,
             IID_PPV_ARGS(getAddressOf())
         );
-        HASSERT(SUCCEEDED(hResult), "Failed to create committed resource %s.\n%s", mDescription.name, utility::translateErrorCode(hResult));
+        HASSERT(SUCCEEDED(hResult), "Failed to create committed resource %s.\n%s", mDescription.name.c_str(), utility::translateErrorCode(hResult).c_str());
 
         setD3DName(mResource.Get(), utility::toWideString(mDescription.name).c_str());
     }
@@ -39,7 +39,7 @@ namespace graphics
         mHeapOffset = heapOffset;
         D3D12_RESOURCE_DESC resourceDescription = GPUResource::toD3DResourceDesc(mDescription);
 
-        const D3D12_CLEAR_VALUE clearValue{
+        /*const D3D12_CLEAR_VALUE clearValue{
             resourceDescription.Format,
             {
                 mDescription.clearColor[0],
@@ -47,7 +47,7 @@ namespace graphics
                 mDescription.clearColor[2],
                 mDescription.clearColor[3]
             }
-        };
+        };*/
 
         HRESULT hResult = device->CreatePlacedResource(
             (backingHeap.get()), heapOffset, &resourceDescription,
@@ -55,7 +55,7 @@ namespace graphics
             nullptr,
             IID_PPV_ARGS(getAddressOf())
         );
-        HASSERT(SUCCEEDED(hResult), "Failed to create placed resource %s.\n%s", mDescription.name.c_str(), utility::translateErrorCode(hResult));
+        HASSERT(SUCCEEDED(hResult), "Failed to create placed resource %s.\n%s", mDescription.name.c_str(), utility::translateErrorCode(hResult).c_str());
         setD3DName(mResource.Get(), utility::toWideString(mDescription.name).c_str());
     }
 
@@ -64,7 +64,7 @@ namespace graphics
         void* memory = nullptr;
         CD3DX12_RANGE range = CD3DX12_RANGE(0, mDescription.width);
         HRESULT hResult = mResource->Map(0, &range, &memory);
-        HASSERT(SUCCEEDED(hResult), "Failed to map upload buffer resource.\n%s", utility::translateErrorCode(hResult));
+        HASSERT(SUCCEEDED(hResult), "Failed to map upload buffer resource.\n%s", utility::translateErrorCode(hResult).c_str());
         return memory;
     }
 

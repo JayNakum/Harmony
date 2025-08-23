@@ -52,8 +52,6 @@ namespace engine
 
     void PresentPass::copyDataToGPU(graphics::GraphicContext& context, ResourceManager& resourceManager)
     {
-        graphics::Texture& finalOutput = resourceManager.getTexture("RT_Water_RenderPass");
-
         mPresentSI.setResourceTable(mShaderResources);
     }
 

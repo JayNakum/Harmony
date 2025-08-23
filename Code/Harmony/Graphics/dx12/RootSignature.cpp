@@ -32,7 +32,7 @@ namespace graphics
                 &rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1,
                 serializedRootSig.GetAddressOf(), errorBlob.GetAddressOf());
 
-            HASSERT(SUCCEEDED(hResult), "Failed to serialize root signature %s.\n%s\n%s", createDescription.name, errorBlob ? (char*)errorBlob->GetBufferPointer() : "Unknown error", utility::translateErrorCode(hResult));
+            HASSERT(SUCCEEDED(hResult), "Failed to serialize root signature %s.\n%s\n%s", createDescription.name.c_str(), errorBlob ? (char*)errorBlob->GetBufferPointer() : "Unknown error", utility::translateErrorCode(hResult).c_str());
         }
         {// Create root signature
             HRESULT hResult = device->CreateRootSignature(
@@ -41,7 +41,7 @@ namespace graphics
                 serializedRootSig->GetBufferSize(),
                 IID_PPV_ARGS(&mRootSignature));
 
-            HASSERT(SUCCEEDED(hResult), "Failed to create root signature %s.\n%s", createDescription.name, utility::translateErrorCode(hResult));
+            HASSERT(SUCCEEDED(hResult), "Failed to create root signature %s.\n%s", createDescription.name.c_str(), utility::translateErrorCode(hResult).c_str());
         }
 
         setD3DName(mRootSignature.Get(), utility::toWideString(createDescription.name).c_str());

@@ -20,7 +20,7 @@ namespace engine
 
     void ResourceManager::createRenderTarget(const std::string textureID, const graphics::RenderTarget::Type type)
     {
-        HASSERT(mRenderTargets.find(textureID) == mRenderTargets.end(), "RenderTarget resource with ID = %s already exists.", textureID);
+        HASSERT(mRenderTargets.find(textureID) == mRenderTargets.end(), "RenderTarget resource with ID = %s already exists.", textureID.c_str());
         mRenderTargets.emplace(textureID, mResourceHeap.createRenderTarget(getTexture(textureID), type));
     }
 

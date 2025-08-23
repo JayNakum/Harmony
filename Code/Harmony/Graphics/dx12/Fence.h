@@ -23,7 +23,7 @@ namespace graphics
         ~Fence();
 
         // Returns the raw pointer of ID3D12Fence.
-        inline const ID3D12Fence* get() const { mFence.Get(); }
+        inline const ID3D12Fence* get() const { return mFence.Get(); }
         inline ID3D12Fence* get() { return mFence.Get(); }
 
         // Operator overload that returns the raw pointer of ID3D12Fence.

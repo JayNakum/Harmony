@@ -117,7 +117,7 @@ namespace graphics
             return msRootSignatures.at(rootSignatureID);
         }
 
-        RootSignature::Description createDescription;
+        RootSignature::Description createDescription{};
         createDescription.name = rootSignatureID;
 
         // Auto-assignment counters per descriptor type for shaderRegister
@@ -196,7 +196,6 @@ namespace graphics
         while (rootIndex < mRootConstants.size())
         {
             RootConstants& constants = mRootConstants.at(rootIndex);
-            auto constantPTR = constants.data();
             context.setConstants(rootIndex++, constants.size(), constants.data());
         }
 
@@ -218,7 +217,6 @@ namespace graphics
         while (rootIndex < mRootConstants.size())
         {
             RootConstants& constants = mRootConstants.at(rootIndex);
-            auto constantPTR = constants.data();
             context.setConstants(rootIndex++, constants.size(), constants.data());
         }
 
@@ -254,49 +252,33 @@ namespace graphics
 
     const std::array<StaticSampler, 6> ShaderInput::getStaticSamplers()
     {
-        static const StaticSampler pointWrap(0, {
-            sampler::Filter::MinMagMipPoint,
-            sampler::TextureAddressMode::Wrap,
-            sampler::TextureAddressMode::Wrap,
-            sampler::TextureAddressMode::Wrap
-            });
+        static StaticSampler::Description samplerDescription{};
 
-        static const StaticSampler pointClamp(1, {
-            sampler::Filter::MinMagMipPoint,
-            sampler::TextureAddressMode::Clamp,
-            sampler::TextureAddressMode::Clamp,
-            sampler::TextureAddressMode::Clamp
-            });
+        samplerDescription.filter = sampler::Filter::MinMagMipPoint;
+        samplerDescription.addressU = sampler::TextureAddressMode::Wrap;
+        static const StaticSampler pointWrap(0, samplerDescription);
 
-        static const StaticSampler linearWrap(2, {
-            sampler::Filter::MinMagMipLinear,
-            sampler::TextureAddressMode::Wrap,
-            sampler::TextureAddressMode::Wrap,
-            sampler::TextureAddressMode::Wrap
-            });
+        samplerDescription.filter = sampler::Filter::MinMagMipPoint;
+        samplerDescription.addressU = sampler::TextureAddressMode::Clamp;
+        static const StaticSampler pointClamp(1, samplerDescription);
 
-        static const StaticSampler linearClamp(3, {
-            sampler::Filter::MinMagMipLinear,
-            sampler::TextureAddressMode::Clamp,
-            sampler::TextureAddressMode::Clamp,
-            sampler::TextureAddressMode::Clamp
-            });
+        samplerDescription.filter = sampler::Filter::MinMagMipLinear;
+        samplerDescription.addressU = sampler::TextureAddressMode::Wrap;
+        static const StaticSampler linearWrap(2, samplerDescription);
 
-        static const StaticSampler anisotropicWrap(4, {
-            sampler::Filter::Anisotropic,
-            sampler::TextureAddressMode::Wrap,
-            sampler::TextureAddressMode::Wrap,
-            sampler::TextureAddressMode::Wrap,
-            0.0f, 8
-            });
+        samplerDescription.filter = sampler::Filter::MinMagMipLinear;
+        samplerDescription.addressU = sampler::TextureAddressMode::Clamp;
+        static const StaticSampler linearClamp(3, samplerDescription);
 
-        static const StaticSampler anisotropicClamp(5, {
-            sampler::Filter::Anisotropic,
-            sampler::TextureAddressMode::Clamp,
-            sampler::TextureAddressMode::Clamp,
-            sampler::TextureAddressMode::Clamp,
-            0.0f, 8
-            });
+        samplerDescription.filter = sampler::Filter::Anisotropic;
+        samplerDescription.addressU = sampler::TextureAddressMode::Wrap;
+        samplerDescription.maxAnisotropy = 8;
+        static const StaticSampler anisotropicWrap(4, samplerDescription);
+
+        samplerDescription.filter = sampler::Filter::Anisotropic;
+        samplerDescription.addressU = sampler::TextureAddressMode::Clamp;
+        samplerDescription.maxAnisotropy = 8;
+        static const StaticSampler anisotropicClamp(5, samplerDescription);
 
         return {
             pointWrap, pointClamp,

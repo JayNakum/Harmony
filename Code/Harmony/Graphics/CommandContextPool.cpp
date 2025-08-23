@@ -38,7 +38,6 @@ namespace graphics
 
     void CommandContextPool::discardContext(GraphicContext& context)
     {
-        const CommandListType type = context.getCommandListType();
         std::lock_guard<std::mutex> scopedLockGuard(mGraphicPoolMutex);
 
         mGraphicAvailableQueue.push(&context);
@@ -46,7 +45,6 @@ namespace graphics
 
     void CommandContextPool::discardContext(ComputeContext& context)
     {
-        const CommandListType type = context.getCommandListType();
         std::lock_guard<std::mutex> scopedLockGuard(mComputePoolMutex);
 
         mComputeAvailableQueue.push(&context);

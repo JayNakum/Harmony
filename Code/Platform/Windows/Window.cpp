@@ -261,6 +261,8 @@ namespace windows
     Window::Window(const Description& description)
         : mDescription(description), mIsRunning(true), mHandle(NULL), mMsgs(), mDidResize(true)
     {
+        UINT dpiX = 96, dpiY = 96;
+        HMONITOR hMon = MonitorFromPoint({ 0, 0 }, MONITOR_DEFAULTTONEAREST);
         if (!SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2))
         {
             HMODULE shcore = LoadLibraryW(L"Shcore.dll");
@@ -269,26 +271,24 @@ namespace windows
                 auto setAwareness = reinterpret_cast<HRESULT(WINAPI*)(PROCESS_DPI_AWARENESS)>(
                     GetProcAddress(shcore, "SetProcessDpiAwareness"));
                 if (setAwareness)
+                {
                     setAwareness(PROCESS_PER_MONITOR_DPI_AWARE);
+                }
+
+                auto pGetDpiForMonitor = reinterpret_cast<HRESULT(WINAPI*)(
+                    HMONITOR, MONITOR_DPI_TYPE, UINT*, UINT*)>(
+                        GetProcAddress(shcore, "GetDpiForMonitor"));
+                if (pGetDpiForMonitor)
+                {
+                    pGetDpiForMonitor(hMon, MDT_EFFECTIVE_DPI, &dpiX, &dpiY);
+                }
+
                 FreeLibrary(shcore);
             }
             else
             {
                 SetProcessDPIAware();
             }
-        }
-
-        UINT dpiX = 96, dpiY = 96;
-        HMONITOR hMon = MonitorFromPoint({ 0, 0 }, MONITOR_DEFAULTTONEAREST);
-        HMODULE shcore = LoadLibraryW(L"Shcore.dll");
-        if (shcore)
-        {
-            auto pGetDpiForMonitor = reinterpret_cast<HRESULT(WINAPI*)(
-                HMONITOR, MONITOR_DPI_TYPE, UINT*, UINT*)>(
-                    GetProcAddress(shcore, "GetDpiForMonitor"));
-            if (pGetDpiForMonitor)
-                pGetDpiForMonitor(hMon, MDT_EFFECTIVE_DPI, &dpiX, &dpiY);
-            FreeLibrary(shcore);
         }
 
         mDescription.dpiScale = (float)dpiX / 96.0f;

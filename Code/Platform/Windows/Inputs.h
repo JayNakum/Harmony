@@ -12,7 +12,7 @@ namespace windows
     {
     public:
         Inputs(const HWND windowHandle);
-        ~Inputs();
+        ~Inputs() override;
 
         // Input interface
         bool isAnyPressed() const override;
@@ -32,10 +32,10 @@ namespace windows
         static constexpr int NumKeys = static_cast<int>(Digital::Key_apps) + 1;
 
         // State arrays
-        bool   mButtons[2][NumDigitalInputs];
-        float  mHoldDuration[NumDigitalInputs];
-        float  mAnalogs[NumAnalogInputs];
-        float  mAnalogsTC[NumAnalogInputs];
+        std::array<std::array<bool, NumDigitalInputs>, 2> mButtons;
+        std::array<float, NumDigitalInputs> mHoldDuration;
+        std::array<float, NumDigitalInputs> mAnalogs;
+        std::array<float, NumDigitalInputs> mAnalogsTC;
 
         // DirectInput / XInput handles
         const HWND mWindowHandle;
@@ -43,8 +43,8 @@ namespace windows
         IDirectInputDevice8A* mKeyboard = nullptr;
         IDirectInputDevice8A* mMouse = nullptr;
         DIMOUSESTATE2          mMouseState{};
-        unsigned char          mKeybuffer[256]{};
-        unsigned char          mDxKeyMapping[NumKeys]{};
+        std::array<unsigned char, 256> mKeybuffer;
+        std::array<unsigned char, NumKeys> mDxKeyMapping;
 
         // Initialization / shutdown
         void buildKeyMapping();

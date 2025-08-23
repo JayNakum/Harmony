@@ -13,46 +13,9 @@ namespace utility
         return lower_case;
     }
 
-    std::string getBasePath(const std::string& filePath)
-    {
-        size_t lastSlash;
-        if ((lastSlash = filePath.rfind('/')) != std::string::npos)
-            return filePath.substr(0, lastSlash + 1);
-        else if ((lastSlash = filePath.rfind('\\')) != std::string::npos)
-            return filePath.substr(0, lastSlash + 1);
-        else
-            return "";
-    }
-
-    std::string removeBasePath(const std::string& filePath)
-    {
-        size_t lastSlash;
-        if ((lastSlash = filePath.rfind('/')) != std::string::npos)
-            return filePath.substr(lastSlash + 1, std::string::npos);
-        else if ((lastSlash = filePath.rfind('\\')) != std::string::npos)
-            return filePath.substr(lastSlash + 1, std::string::npos);
-        else
-            return filePath;
-    }
-
-    std::string getFileExtension(const std::string& filePath)
-    {
-        std::string fileName = removeBasePath(filePath);
-        size_t extOffset = fileName.rfind('.');
-        if (extOffset == std::wstring::npos)
-            return "";
-
-        return fileName.substr(extOffset + 1);
-    }
-
-    std::string removeFileExtension(const std::string& filePath)
-    {
-        return filePath.substr(0, filePath.rfind("."));
-    }
-
     std::string timenow() noexcept
     {
-        time_t m_time = time(NULL);
+        time_t m_time = time(nullptr);
         struct tm now = {};
 
         localtime_s(&now, &m_time);
