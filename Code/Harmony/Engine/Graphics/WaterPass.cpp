@@ -202,7 +202,6 @@ namespace engine
         if (ImGui::CollapsingHeader("Water Pass Params"))
         {
             WaterPassParams& wp = mWaterPassParams;
-
             // Gerstner Waves
             if (ImGui::TreeNode("Gerstner Waves"))
             {

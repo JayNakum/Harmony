@@ -128,7 +128,7 @@ namespace engine
             {
                 if (ImGui::TreeNode("Eye Position"))
                 {
-                    ImGui::InputFloat3("Eye Position", (float*)&mPassConstants.eyePosition);
+                    ImGui::DragFloat3("Eye Position", (float*)&mPassConstants.eyePosition);
                     ImGui::TreePop();
                 }
 

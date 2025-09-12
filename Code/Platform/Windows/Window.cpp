@@ -303,8 +303,8 @@ namespace windows
         RECT wr = { 0, 0, pixelW, pixelH };
         AdjustWindowRect(&wr, WS_OVERLAPPEDWINDOW, FALSE);
 
-        int finalW = (wr.right - wr.left) * 5 / 6;
-        int finalH = (wr.bottom - wr.top) * 3 / 4;
+        int finalW = (wr.right - wr.left);
+        int finalH = (wr.bottom - wr.top);
 
         mHandle = CreateWindow(
             WindowClass::getName(),

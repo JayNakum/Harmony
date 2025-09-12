@@ -96,18 +96,21 @@ namespace engine
         ImGui_ImplWin32_NewFrame();
         ImGui::NewFrame();
 
-        const ImGuiViewport* main_viewport = ImGui::GetMainViewport();
-        ImGui::SetNextWindowPos(ImVec2(main_viewport->WorkPos.x + 650, main_viewport->WorkPos.y + 20), ImGuiCond_FirstUseEver);
-        ImGui::SetNextWindowSize(ImVec2(550, 680), ImGuiCond_FirstUseEver);
+        const char* dockspace_name = "DebugUI_MainDockspace";
+        ImGuiID dockspace_id = ImGui::GetID(dockspace_name);
 
-        ImGui::Begin("DebugUI");
+        const ImGuiViewport* main_viewport = ImGui::GetMainViewport();
+        ImGui::SetNextWindowPos(ImVec2(main_viewport->WorkPos.x + 100, main_viewport->WorkPos.y + 100), ImGuiCond_FirstUseEver);
+        ImGui::SetNextWindowSize(ImVec2(1280, 800), ImGuiCond_FirstUseEver);
+
+        ImGuiWindowFlags host_flags = ImGuiWindowFlags_None;
+        ImGui::Begin("Harmony", nullptr, host_flags);
+        ImGui::DockSpace(dockspace_id);
 
         // Execute all registered debug UI callbacks
         for (const auto& callback : msRenderCallbacks)
         {
-            const ImGuiViewport* main_viewport = ImGui::GetMainViewport();
-            ImGui::SetNextWindowPos(ImVec2(main_viewport->WorkPos.x + 650, main_viewport->WorkPos.y + 20), ImGuiCond_FirstUseEver);
-            ImGui::SetNextWindowSize(ImVec2(550, 680), ImGuiCond_FirstUseEver);
+            ImGui::SetNextWindowDockID(dockspace_id, ImGuiCond_FirstUseEver);
 
             callback();
         }
