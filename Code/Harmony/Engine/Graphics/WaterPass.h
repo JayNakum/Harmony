@@ -33,7 +33,7 @@ namespace engine
         struct alignas(16) WaterPassParams
         {
             static constexpr unsigned int NUM_WAVES = 3;
-            GerstnerWaveParams gerstnerWaveParams[NUM_WAVES];
+            std::array<GerstnerWaveParams, NUM_WAVES> gerstnerWaveParams;
             FBMParams fbmParams;
 
             vec4f deepColor;
@@ -50,10 +50,10 @@ namespace engine
         inline const GeometryGenerator::MeshData& getWaterMesh() const { return mWaterMesh; }
         inline GeometryGenerator::MeshData& getWaterMesh() { return mWaterMesh; }
 
-        void renderDebugUI() override {};
+        void renderDebugUI() override;
         void reset() override;
 
-        ~WaterPassData() = default;
+        ~WaterPassData() override = default;
 
     private:
         WaterPassParams mWaterPassParams;

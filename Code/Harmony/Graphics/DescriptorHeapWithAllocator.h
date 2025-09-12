@@ -77,7 +77,7 @@ namespace graphics
             // 2 MB for GPU heap (StaticGPU + DynamicGPU).
             // 1 MB for CPU heap.
             // 1 MB for RTV CPU heap.
-            static constexpr size_t MEMORY_BUDGET[DescriptorsCategory::COUNT] = {
+            static constexpr std::array<size_t, DescriptorsCategory::COUNT>MEMORY_BUDGET = {
                 memory::MB(1), // DescriptorsCategory::StaticGPU
                 memory::MB(1), // DescriptorsCategory::DynamicCPU
                 memory::MB(1), // DescriptorsCategory::DynamicGPU
@@ -147,7 +147,7 @@ namespace graphics
 
             memory::RingAllocator mRenderTargetDescriptors;
 
-            std::mutex mMutex[DescriptorsCategory::COUNT];
+            std::array<std::mutex, DescriptorsCategory::COUNT> mMutex;
         };
 
         DescriptorAllocator mAllocator;

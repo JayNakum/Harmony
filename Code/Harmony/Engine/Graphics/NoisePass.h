@@ -9,14 +9,14 @@ namespace engine
     public:
         NoisePassData();
 
-        virtual void renderDebugUI() {}
+        virtual void renderDebugUI();
         void reset();
 
         inline const float getWaterNoiseTextureWidth() const { return mWaterNoiseTextureWidth; }
         inline const float getWaterNoiseTextureHeight() const { return mWaterNoiseTextureHeight; }
         inline const float getWaterNoiseScale() const { return mWaterNoiseScale; }
 
-        ~NoisePassData() = default;
+        ~NoisePassData() override = default;
 
     private:
         const float mWaterNoiseTextureWidth;

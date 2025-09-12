@@ -1,5 +1,5 @@
 project "Windows"
-  location ".%{wks.location}/Platform/Windows"
+  location "%{wks.location}/Platform/Windows"
   kind "StaticLib"
   systemversion "latest"
 

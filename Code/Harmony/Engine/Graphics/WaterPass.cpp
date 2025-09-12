@@ -191,6 +191,74 @@ namespace engine
     WaterPassData::WaterPassData()
     {
         reset();
+        DebugUI::Register([this] { renderDebugUI(); });
+    }
+
+    void WaterPassData::renderDebugUI()
+    {
+        ImGui::Begin("Water Pass Data");
+
+        commonParamsDebugUI();
+        if (ImGui::CollapsingHeader("Water Pass Params"))
+        {
+            WaterPassParams& wp = mWaterPassParams;
+
+            // Gerstner Waves
+            if (ImGui::TreeNode("Gerstner Waves"))
+            {
+                for (unsigned int i = 0; i < WaterPassParams::NUM_WAVES; ++i)
+                {
+                    std::string waveName = "Wave " + std::to_string(i);
+                    if (ImGui::TreeNode(waveName.c_str()))
+                    {
+                        auto& wave = wp.gerstnerWaveParams[i];
+                        ImGui::InputFloat2("Direction", (float*)&wave.direction);
+                        ImGui::InputFloat("Amplitude", &wave.amplitude);
+                        ImGui::InputFloat("Steepness", &wave.steepness);
+                        ImGui::InputFloat("Wavelength", &wave.wavelength);
+                        ImGui::TreePop();
+                    }
+                }
+                ImGui::TreePop();
+            }
+
+            // FBM Params
+            if (ImGui::TreeNode("FBM Params"))
+            {
+                ImGui::InputInt("Octaves", (int*)&wp.fbmParams.octaves);
+                ImGui::InputFloat("Lacunarity", &wp.fbmParams.lacunarity);
+                ImGui::InputFloat("Gain", &wp.fbmParams.gain);
+                ImGui::InputFloat("Noise Scale", &wp.fbmParams.noiseScale);
+
+                ImGui::InputFloat("Noise Speed", &wp.fbmParams.noiseSpeed);
+                ImGui::InputFloat("Ripple Amplitude", &wp.fbmParams.rippleAmp);
+
+                ImGui::InputFloat("Low Frequency", &wp.fbmParams.lowFreq);
+                ImGui::InputFloat("High Frequency", &wp.fbmParams.highFreq);
+                ImGui::TreePop();
+            }
+
+            // Colors
+            if (ImGui::TreeNode("Colors"))
+            {
+                ImGui::ColorEdit4("Deep Color", (float*)&wp.deepColor);
+                ImGui::ColorEdit4("Shallow Color", (float*)&wp.shallowColor);
+                ImGui::InputFloat("Shallow Fade", &wp.shallowFade);
+                ImGui::TreePop();
+            }
+
+            // Derived params
+            ImGui::InputFloat("Waves Total Amplitude", &wp.wavesTotalAmplitude);
+        }
+
+        // Water Mesh Info
+        if (ImGui::CollapsingHeader("Water Mesh"))
+        {
+            ImGui::Text("Vertices: %zu", mWaterMesh.vertices.size());
+            ImGui::Text("Indices: %zu", mWaterMesh.indices32.size());
+        }
+
+        ImGui::End();
     }
 
     void WaterPassData::reset()

@@ -347,6 +347,15 @@ namespace engine
         : mWaterNoiseTextureWidth(256.0f), mWaterNoiseTextureHeight(256.0f)
     {
         reset();
+
+        DebugUI::Register([this] { renderDebugUI(); });
+    }
+
+    void NoisePassData::renderDebugUI()
+    {
+        ImGui::Begin("Noise Pass Data");
+        ImGui::SliderFloat("Noise Scale", &mWaterNoiseScale, 1.0f, 100.0f);
+        ImGui::End();
     }
 
     void NoisePassData::reset()
@@ -373,6 +382,7 @@ namespace engine
         mNoisePSO(createPSO(device)),
         mNoisePassData()
     {
+
         graphics::HeapWithAllocator::ResourceDescription waterNoiseTexture{
             graphics::HeapWithAllocator::ResourceCategory::PersistentData,
             {

@@ -41,6 +41,8 @@ workspace "Harmony"
 
 group "Platform"
   include "Platform/Windows"
+group "Vendors"
+  include "Vendors/ImGUI"
 group "Harmony"
   include "Harmony/Core"
   include "Harmony/Maths"

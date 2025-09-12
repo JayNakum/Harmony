@@ -48,6 +48,7 @@ namespace graphics
         // Returns the raw pointer of D3D12Device.
         inline const ID3D12Device* operator->() const { return mDevice.Get(); }
         inline ID3D12Device* operator->() { return mDevice.Get(); }
+        inline ID3D12Device* get() { return mDevice.Get(); }
 
     private:
         void checkFeaturesSupport();

@@ -11,6 +11,8 @@
 
 #include "CommandContext.h"
 
+#include "imgui.h"
+
 namespace engine
 {
     class DebugUI
@@ -24,10 +26,27 @@ namespace engine
 
         ~DebugUI();
 
-    private:
-		graphics::DescriptorHeap mShaderViewsDescriptorHeapGPU;
-		memory::RingAllocator mDescriptorsAllocator;
+        class DescriptorHeapWithAllocator
+        {
+            static constexpr size_t MEMORY_BUDGET = memory::KB(2);
 
+        public:
+            DescriptorHeapWithAllocator(graphics::Device& device);
+
+            inline graphics::DescriptorHeap& getHeap() { return mDescriptorHeap; }
+
+            graphics::DescriptorHandle allocate();
+
+            ~DescriptorHeapWithAllocator() = default;
+
+        private:
+            const size_t mAllocationSize;
+            memory::RingAllocator mAllocator;
+            graphics::DescriptorHeap mDescriptorHeap;
+        };
+
+    private:
+        DescriptorHeapWithAllocator mShaderViewsDescriptorHeapGPU;
         static std::vector<std::function<void()>> msRenderCallbacks;
     };
 }

@@ -30,11 +30,12 @@ project "Engine"
     includedirs
     {
       "%{prj_src.Platform.Windows}/",
-      "%{include_dirs.DirectX}/",
-      "%{include_dirs.DirectX12}/"
+      "%{include_dirs.DirectX12}/",
+      "%{include_dirs.imgui}/"
     }
 
     links
     {
-      "Windows"
+      "Windows",
+      "ImGUI"
     }

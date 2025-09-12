@@ -30,32 +30,32 @@
 
 // DEBUGLOG ONCE
 #define DEBUGLOG_ONCE(category, message, ...) \
-{ \
+do{ \
 static bool sTriggeredLog = false; \
 if (!sTriggeredLog) \
 { \
     sTriggeredLog = true; \
     DEBUGLOG(category, message, ##__VA_ARGS__); \
 } \
-}
+}while(false)
 
 // DEBUGLOG IF condition is TRUE
 #define DEBUGLOG_IF(condition, category, message, ...) \
-{ \
+do{ \
 if ((bool)(condition)) \
 { \
     DEBUGLOG(category, message, ##__VA_ARGS__); \
 } \
-}
+}while(false)
 
 // DEBUGLOG ONCE IF condition is TRUE
 #define DEBUGLOG_ONCE_IF(condition, category, message, ...) \
-{ \
+do{ \
 if ((bool)(condition)) \
 { \
     DEBUGLOG_ONCE(category, message, ##__VA_ARGS__); \
 } \
-}
+}while(false)
 
 
 // triggers a breakpoint that stops execution and enter the debugger
@@ -67,17 +67,17 @@ if ((bool)(condition)) \
 
 // BREAK and DEBUGLOG IF condition is FALSE
 #define HASSERT_SOFT(condition, message, ...) \
-{ \
+do{ \
 if (!(bool)(condition)) \
 { \
     DEBUGLOG("SOFT ASSERT", message, ##__VA_ARGS__); \
     BREAK; \
 } \
-}
+}while(false)
 
 // BREAK and DEBUGLOG ONCE IF condition is FALSE
 #define HASSERT_SOFT_ONCE(condition, message, ...) \
-{ \
+do{ \
 static bool sTriggeredLog = false; \
 if (!(bool)(condition) && !sTriggeredLog) \
 { \
@@ -85,18 +85,18 @@ if (!(bool)(condition) && !sTriggeredLog) \
     DEBUGLOG("SOFT ASSERT", message, ##__VA_ARGS__); \
     BREAK; \
 } \
-}
+}while(false)
 
 // BREAK, DEBUGLOG and ABORT IF condition is FALSE
 #define HASSERT(condition, message, ...) \
-{ \
+do{ \
 if (!(bool)(condition)) \
 { \
     DEBUGLOG("ASSERT", message, ##__VA_ARGS__); \
     BREAK; \
     std::abort(); \
 } \
-}
+}while(false)
 
 // Single line ifdef for debug mode only code.
 #define DEBUG_ONLY(...) __VA_ARGS__

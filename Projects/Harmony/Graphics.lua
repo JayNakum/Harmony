@@ -34,10 +34,12 @@ project "Graphics"
       "$(WindowsSDK_IncludePath)/winrt",
       "$(WindowsSDK_IncludePath)/cppwinrt",
 
-      "%{include_dirs.DirectX12}/"
+      "%{include_dirs.DirectX12}/",
+      "%{include_dirs.imgui}/"
     }
 
     links
     {
-      "Windows"
+      "Windows",
+      "ImGUI"
     }

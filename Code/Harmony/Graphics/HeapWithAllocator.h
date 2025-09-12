@@ -76,7 +76,7 @@ namespace graphics
             // 128 MB for upload heap.
             // 1664 MB for default heap.
             // 256 MB extra.
-            static constexpr size_t MEMORY_BUDGET[ResourceCategory::COUNT] = {
+            static constexpr std::array<size_t, ResourceCategory::COUNT> MEMORY_BUDGET = {
                 memory::MB(64), // Category::Upload
                 memory::MB(64), // Category::UploadPersistent
                 memory::MB(64), // Category::Constants
@@ -208,7 +208,7 @@ namespace graphics
             memory::SuballocationAllocator mTexture;
             memory::LinearAllocator mPersistentData;
 
-            std::mutex mMutex[ResourceCategory::COUNT];
+            std::array<std::mutex, ResourceCategory::COUNT> mMutex;
         };
 
         ResourceAllocator mAllocator;

@@ -1,5 +1,8 @@
 #pragma once
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Weverything"
+
 #include "win.h"
 
 #include <directx/d3d12.h>
@@ -10,6 +13,8 @@
 #endif
 
 #include <D3Dcompiler.h>
+
+#pragma clang diagnostic pop
 
 inline static void setD3DName(ID3D12Object* object, const wchar_t* name)
 {

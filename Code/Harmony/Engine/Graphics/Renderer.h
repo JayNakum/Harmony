@@ -11,6 +11,7 @@
 #include "CommandContextPool.h"
 #include "ResourceManager.h"
 
+#include "DebugUI.h"
 
 #include "PassCore.h"
 // Render Passes
@@ -76,6 +77,8 @@ namespace engine
 
         graphics::Swapchain mSwapchain;
         unsigned int mClientWidth, mClientHeight;
+
+        DebugUI mDebugUI;
 
     private:
         WaterPass mWaterPass;

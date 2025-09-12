@@ -12,6 +12,8 @@
 #include "ShaderInput.h"
 #include "RenderItem.h"
 
+#include "DebugUI.h"
+
 namespace engine
 {
     /*
@@ -119,6 +121,32 @@ namespace engine
         virtual void renderDebugUI() = 0;
         virtual void reset() = 0;
         virtual ~PassData() = default;
+
+        void commonParamsDebugUI()
+        {
+            if (ImGui::CollapsingHeader("Pass Constants"))
+            {
+                if (ImGui::TreeNode("Eye Position"))
+                {
+                    ImGui::InputFloat3("Eye Position", (float*)&mPassConstants.eyePosition);
+                    ImGui::TreePop();
+                }
+
+                if (ImGui::TreeNode("Projection Info"))
+                {
+                    ImGui::InputFloat("Near Z", &mPassConstants.nearZ);
+                    ImGui::InputFloat("Far Z", &mPassConstants.farZ);
+                    ImGui::TreePop();
+                }
+
+                if (ImGui::TreeNode("Render Target Size"))
+                {
+                    ImGui::InputInt2("RT Size", (int*)&mPassConstants.renderTargetSize);
+                    ImGui::InputFloat2("Inv RT Size", (float*)&mPassConstants.invRenderTargetSize);
+                    ImGui::TreePop();
+                }
+            }
+        }
 
     private:
         FrameConstants mFrameConstants;

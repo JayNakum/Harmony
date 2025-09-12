@@ -23,6 +23,7 @@ namespace engine
             }
         ),
         mClientWidth(0), mClientHeight(0),
+        mDebugUI(windowHandle, mDevice, mGraphicsQueue),
         mWaterPass(mDevice, mResourceManager),
         mPresentPass(mDevice, mResourceManager),
         mNoisePass(mDevice, mResourceManager)
@@ -116,6 +117,13 @@ namespace engine
 
         contextWater.finish(mGraphicsQueue.incrementFence());
 
+        // DEBUG UI
+        graphics::GraphicContext& contextDebugUI = aquireGraphicContext("DebugUI_Graphic_Context");
+
+        mDebugUI.render(contextDebugUI);
+
+        contextDebugUI.finish(mGraphicsQueue.incrementFence());
+
         // PRESENT PASS
         graphics::GraphicContext& contextPresent = aquireGraphicContext("Present_Graphic_Context");
 
@@ -138,6 +146,7 @@ namespace engine
         discardContext(contextWater);
         discardContext(contextPresent);
         discardContext(contextNoise);
+        discardContext(contextDebugUI);
     }
 
     Renderer::~Renderer()
