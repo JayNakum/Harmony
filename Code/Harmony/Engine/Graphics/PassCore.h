@@ -4,7 +4,6 @@
 #include "Log.h"
 #include "Maths.h"
 
-#include "Data.h"
 #include "GeometryGenerator.h"
 
 #include "ResourceManager.h"
@@ -53,7 +52,7 @@ namespace engine
 
 namespace engine
 {
-    class PassData : Data
+    class PassData
     {
     public:
         inline void setFrameConstants(const float totalTime = 0.0f, const float deltaTime = 0.0f)

@@ -18,11 +18,12 @@
 #include <filesystem>
 #include <fstream>
 
-#include <algorithm>
 #include <array>
 #include <vector>
 #include <queue>
 #include <unordered_map>
+#include <algorithm>
+#include <functional>
 
 #include <memory>
 #include <type_traits>

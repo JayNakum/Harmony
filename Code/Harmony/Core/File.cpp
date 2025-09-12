@@ -2,7 +2,6 @@
 
 namespace utility
 {
-
     std::string File::getBasePath(const std::string& filePath)
     {
         size_t lastSlash;

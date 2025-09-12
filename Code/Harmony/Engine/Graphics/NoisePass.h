@@ -12,10 +12,6 @@ namespace engine
         virtual void renderDebugUI() {}
         void reset();
 
-        inline const float getTerrainNoiseTextureWidth() const { return mTerrainNoiseTextureWidth; }
-        inline const float getTerrainNoiseTextureHeight() const { return mTerrainNoiseTextureHeight; }
-        inline const float getTerrainNoiseScale() const { return mTerrainNoiseScale; }
-
         inline const float getWaterNoiseTextureWidth() const { return mWaterNoiseTextureWidth; }
         inline const float getWaterNoiseTextureHeight() const { return mWaterNoiseTextureHeight; }
         inline const float getWaterNoiseScale() const { return mWaterNoiseScale; }
@@ -23,10 +19,6 @@ namespace engine
         ~NoisePassData() = default;
 
     private:
-        const float mTerrainNoiseTextureWidth;
-        const float mTerrainNoiseTextureHeight;
-        float mTerrainNoiseScale;
-
         const float mWaterNoiseTextureWidth;
         const float mWaterNoiseTextureHeight;
         float mWaterNoiseScale;

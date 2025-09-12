@@ -153,11 +153,11 @@ VSOutput vsMain(VSInput input)
 
     float3 waveOffset = float3(0.0f, 0.0f, 0.0f);
 
-    [unroll]
+    /*[unroll]
     for(uint i = 0; i < NUM_WAVES; ++i)
     {
         waveOffset += calculateWaveOffsets(input.position, gGerstnerWaveParams[i], gTotalTime);
-    }
+    }*/
 
     float2 swell = fbm2D(input.textureCoord, gFBMParams, gNoiseTexture, gTotalTime);
     waveOffset.y += swell.x;

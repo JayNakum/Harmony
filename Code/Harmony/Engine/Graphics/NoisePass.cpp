@@ -18,15 +18,7 @@ cbuffer cbNoiseParams : register(b1)
     uint _noiseParamsPadding0;
 }
 
-cbuffer cbNoiseParams : register(b2)
-{
-    float2 gResolution1;
-    float gNoiseScale1;
-    uint _noiseParamsPadding1;
-}
-
 RWTexture2D<float> outputTexture0 : register(u0);
-RWTexture2D<float> outputTexture1 : register(u1);
 
 static const float PI = 3.14159265358979323826264f;
 static const float TWO_PI = 2.0f * PI;
@@ -337,21 +329,13 @@ void csMain(
     uint idx : SV_GroupIndex
 )
 {
-    {// Terrain Noise Texture
+    {// Water Noise Texture
         float2 uv = dtid.xy / gResolution0;
 
-        float raw = noise2D(uv * gNoiseScale0);
+        float raw = noise3DAnimated(uv * gNoiseScale0);
         float mapped = raw * 0.5f + 0.5f;
 
         outputTexture0[dtid.xy] = mapped;
-    }
-    {// Water Noise Texture
-        float2 uv = dtid.xy / gResolution1;
-
-        float raw = noise3DAnimated(uv * gNoiseScale1);
-        float mapped = raw * 0.5f + 0.5f;
-
-        outputTexture1[dtid.xy] = mapped;
     }
 }
 )###";
@@ -360,15 +344,13 @@ void csMain(
 namespace engine
 {
     NoisePassData::NoisePassData()
-        : mTerrainNoiseTextureWidth(512.0f), mTerrainNoiseTextureHeight(512.0f),
-        mWaterNoiseTextureWidth(256.0f), mWaterNoiseTextureHeight(256.0f)
+        : mWaterNoiseTextureWidth(256.0f), mWaterNoiseTextureHeight(256.0f)
     {
         reset();
     }
 
     void NoisePassData::reset()
     {
-        mTerrainNoiseScale = 32.0f;
         mWaterNoiseScale = 16.0f;
     }
 
@@ -377,13 +359,12 @@ namespace engine
         mStaticShaderResourceTableLayout{
             graphics::ShaderVisibility::All,
             {
-                {graphics::DescriptorRangeType::UAV, 2}
+                {graphics::DescriptorRangeType::UAV, 1}
             }
         },
         mShaderResources(resourceManager.createResourceTable("SimplexNoiseShader_ResourceTable", mStaticShaderResourceTableLayout, graphics::DescriptorHeapWithAllocator::DescriptorsCategory::StaticGPU)),
         mNoiseSI(
             {
-                {graphics::ShaderVisibility::Vertex, 4},
                 {graphics::ShaderVisibility::Vertex, 4},
                 {graphics::ShaderVisibility::Vertex, 4}
             },
@@ -392,21 +373,6 @@ namespace engine
         mNoisePSO(createPSO(device)),
         mNoisePassData()
     {
-        graphics::HeapWithAllocator::ResourceDescription terrainNoiseTexture{
-            graphics::HeapWithAllocator::ResourceCategory::PersistentData,
-            {
-                "UA_Terrain_Noise_Texture",
-                (size_t)mNoisePassData.getTerrainNoiseTextureWidth(), (size_t)mNoisePassData.getTerrainNoiseTextureHeight(),
-                1, 1,
-                graphics::GPUResourceDimension::Texture2D,
-                graphics::DefaultFormats::getUAVFormat(graphics::DefaultFormats::R32_FLOAT),
-                graphics::GPUResourceFlags::AllowUnorderedAccess
-            }
-        };
-        resourceManager.createTexture(terrainNoiseTexture);
-
-        mShaderResources.setResource(device, resourceManager.getTextureUAV("UA_Terrain_Noise_Texture"), 0, 0);
-
         graphics::HeapWithAllocator::ResourceDescription waterNoiseTexture{
             graphics::HeapWithAllocator::ResourceCategory::PersistentData,
             {
@@ -420,7 +386,7 @@ namespace engine
         };
         resourceManager.createTexture(waterNoiseTexture);
 
-        mShaderResources.setResource(device, resourceManager.getTextureUAV("UA_Water_Noise_Texture"), 0, 1);
+        mShaderResources.setResource(device, resourceManager.getTextureUAV("UA_Water_Noise_Texture"));
     }
 
     void NoisePass::copyDataToGPU(graphics::ComputeContext& context, ResourceManager& resourceManager)
@@ -442,13 +408,9 @@ namespace engine
 
     void NoisePass::getInputOutputs(graphics::ComputeContext& context, ResourceManager& resourceManager)
     {
-        graphics::Texture& noise0 = resourceManager.getTexture("UA_Terrain_Noise_Texture");
+        graphics::Texture& noise0 = resourceManager.getTexture("UA_Water_Noise_Texture");
         context.transitionBarrier(noise0, graphics::GPUResourceStates::UnorderedAccess);
         context.uavBarrier(noise0);
-
-        graphics::Texture& noise1 = resourceManager.getTexture("UA_Water_Noise_Texture");
-        context.transitionBarrier(noise1, graphics::GPUResourceStates::UnorderedAccess);
-        context.uavBarrier(noise1);
 
         context.flushResourceBarriers();
     }
@@ -459,11 +421,10 @@ namespace engine
         context.setRootSignature(mNoiseSI.getRootSignature(context.getDevice()));
 
         mNoiseSI.setConstants({ frameConstants.totalTime, frameConstants.deltaTime, 0x1deadb0b, 0x1deadb0b }, 0);
-        mNoiseSI.setConstants({ mNoisePassData.getTerrainNoiseTextureWidth(), mNoisePassData.getTerrainNoiseTextureHeight(), mNoisePassData.getTerrainNoiseScale(), 0x1deadb0b }, 1);
-        mNoiseSI.setConstants({ mNoisePassData.getWaterNoiseTextureWidth(), mNoisePassData.getWaterNoiseTextureHeight(), mNoisePassData.getWaterNoiseScale(), 0x1deadb0b }, 2);
+        mNoiseSI.setConstants({ mNoisePassData.getWaterNoiseTextureWidth(), mNoisePassData.getWaterNoiseTextureHeight(), mNoisePassData.getWaterNoiseScale(), 0x1deadb0b }, 1);
         mNoiseSI.finalize(context);
 
-        context.dispatch2D(512, 512);
+        context.dispatch2D(256, 256);
     }
 
     graphics::ComputePipelineState NoisePass::createPSO(graphics::Device& device)
