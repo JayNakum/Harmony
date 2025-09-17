@@ -25,28 +25,29 @@ namespace engine
 
             mInputs.update(frame.deltaTime);
 
-            if (mWindow.didResize())
+            if (mWindow.didResize() && (mWindow.getDescription().width != 0 && mWindow.getDescription().height != 0))
             {
                 mRenderer->resize(mWindow.getDescription().width, mWindow.getDescription().height);
             }
-
-            static double accumulator = 0.0f;
-            constexpr double fixedTimeStep = 1.0f / 60.0f;
-            accumulator += static_cast<double>(frame.deltaTime);
-
-            while (accumulator >= fixedTimeStep)
+            else
             {
-                accumulator -= fixedTimeStep;
-                // fixedUpdates(fixedTimeStep)
-                mRenderer->update(fixedTimeStep);
+                static double accumulator = 0.0f;
+                constexpr double fixedTimeStep = 1.0f / 60.0f;
+                accumulator += static_cast<double>(frame.deltaTime);
+
+                while (accumulator >= fixedTimeStep)
+                {
+                    accumulator -= fixedTimeStep;
+                    // fixedUpdates(fixedTimeStep)
+                    mRenderer->update(fixedTimeStep);
+                }
+
+                mRenderer->render(frame);
+
+                ++msFrameIndex;
+
+                calculateFPS(frame.deltaTime);
             }
-
-
-            mRenderer->render(frame);
-
-            ++msFrameIndex;
-
-            calculateFPS(frame.deltaTime);
         }
     }
 

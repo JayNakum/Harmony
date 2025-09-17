@@ -75,7 +75,7 @@ namespace graphics
         inline const uint64_t getHeapOffset() const { return mHeapOffset; }
 
         // Maps the ID3D12Resource and returns the memory pointer.
-        void* map();
+        void* map(Device& device);
 
         // Unmaps the resource from begin to end/mBufferSize
         void unmap(const size_t begin = 0, size_t end = -1);

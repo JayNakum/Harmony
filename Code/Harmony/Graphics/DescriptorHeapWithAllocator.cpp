@@ -32,6 +32,15 @@ namespace graphics
                 DescriptorAllocator::MEMORY_BUDGET[DescriptorsCategory::RenderTargetCPU] / mDevice.getDescriptorHandleIncrementSize(DescriptorHeapType::RenderTarget),
                 DescriptorHeapFlags::CPUVisible
             }
+        ),
+        mDepthStencilViewsDescriptorHeap(
+            mDevice,
+            {
+                "DynamicDescriptorHeap_DepthStencilViewsCPU",
+                DescriptorHeapType::DepthStencil,
+                DescriptorAllocator::MEMORY_BUDGET[DescriptorsCategory::DepthStencilCPU] / mDevice.getDescriptorHandleIncrementSize(DescriptorHeapType::DepthStencil),
+                DescriptorHeapFlags::CPUVisible
+            }
         )
     {}
 

@@ -83,6 +83,7 @@ namespace engine
         graphics::GraphicsPipelineState createPSO(graphics::Device& device);
 
     private:
+        WaterPassData mWaterPassData;
         const graphics::ResourceTable::Layout mStaticShaderResourceTableLayout;
         graphics::ResourceTable mShaderResources;
         graphics::ShaderInput mWaterPassSI;
@@ -95,7 +96,6 @@ namespace engine
         graphics::Buffer* mCommonPassConstantsBuffer;
 
     private:
-        WaterPassData mWaterPassData;
         RenderItem mWaterRI;
     };
 }

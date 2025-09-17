@@ -94,7 +94,6 @@ if (!(bool)(condition)) \
 { \
     DEBUGLOG("ASSERT", message, ##__VA_ARGS__); \
     BREAK; \
-    std::abort(); \
 } \
 }while(false)
 

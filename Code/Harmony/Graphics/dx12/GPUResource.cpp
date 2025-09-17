@@ -59,12 +59,14 @@ namespace graphics
         setD3DName(mResource.Get(), utility::toWideString(mDescription.name).c_str());
     }
 
-    void* GPUResource::map()
+    void* GPUResource::map(Device& device)
     {
         void* memory = nullptr;
         CD3DX12_RANGE range = CD3DX12_RANGE(0, mDescription.width);
         HRESULT hResult = mResource->Map(0, &range, &memory);
         HASSERT(SUCCEEDED(hResult), "Failed to map upload buffer resource.\n%s", utility::translateErrorCode(hResult).c_str());
+        device.getDeviceRemovedReason();
+
         return memory;
     }
 

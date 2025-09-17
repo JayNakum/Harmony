@@ -347,8 +347,6 @@ namespace engine
         : mWaterNoiseTextureWidth(256.0f), mWaterNoiseTextureHeight(256.0f)
     {
         reset();
-
-        DebugUI::Register([this] { renderDebugUI(); });
     }
 
     void NoisePassData::renderDebugUI()
@@ -397,11 +395,11 @@ namespace engine
         resourceManager.createTexture(waterNoiseTexture);
 
         mShaderResources.setResource(device, resourceManager.getTextureUAV("UA_Water_Noise_Texture"));
+        mNoiseSI.setResourceTable(mShaderResources);
     }
 
     void NoisePass::copyDataToGPU(graphics::ComputeContext& context, ResourceManager& resourceManager)
     {
-        mNoiseSI.setResourceTable(mShaderResources);
     }
 
     void NoisePass::freeGPUUploadData(ResourceManager& resourceManager)

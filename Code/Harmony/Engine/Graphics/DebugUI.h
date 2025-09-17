@@ -2,6 +2,7 @@
 
 #include "common.h"
 #include "Log.h"
+#include "Maths.h"
 
 #include "memory/RingAllocator.h"
 
@@ -19,6 +20,9 @@ namespace engine
     {
     public:
         static inline void Register(std::function<void()> callback) { msRenderCallbacks.push_back(std::move(callback)); }
+
+        static void matrix(const char* label, mat4f& matrix);
+        static void matrixInput(const char* label, mat4f& matrix);
 
         DebugUI(const HWND windowHandle, graphics::Device& device, graphics::CommandQueue& graphicsQueue);
 

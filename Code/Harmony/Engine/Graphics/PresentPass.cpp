@@ -48,11 +48,12 @@ namespace engine
         ),
         mPresentPSO(createPSO(device)),
         mSwapchainWidth(0), mSwapchainHeight(0)
-    {}
+    {
+        mPresentSI.setResourceTable(mShaderResources);
+    }
 
     void PresentPass::copyDataToGPU(graphics::GraphicContext& context, ResourceManager& resourceManager)
     {
-        mPresentSI.setResourceTable(mShaderResources);
     }
 
     void PresentPass::resize(const unsigned int width, const unsigned int height, graphics::Device& device, ResourceManager& resourceManager, const bool isHDRSupported)
@@ -60,7 +61,8 @@ namespace engine
         mSwapchainWidth = width;
         mSwapchainHeight = height;
 
-        mShaderResources.setResource(device, resourceManager.getTextureSRV("RT_Water_RenderPass"));
+        resourceManager.destroyDescriptor("SR_Water_RenderPass");
+        mShaderResources.setResource(device, resourceManager.getTextureSRV("RT_Water_RenderPass", "SR_Water_RenderPass"));
     }
 
     void PresentPass::getInputOutputs(graphics::GraphicContext& context, ResourceManager& resourceManager)

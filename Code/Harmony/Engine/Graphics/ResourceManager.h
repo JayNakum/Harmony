@@ -69,6 +69,10 @@ namespace engine
         // Alias can be used to create a new view with different parameters.
         const graphics::DescriptorHandle& getTextureUAV(const std::string id, std::string alias = "NONE");
         const graphics::DescriptorHandle& getTextureUAV(const std::string id, const graphics::Texture::UnorderedAccessViewInfo& viewInfo, std::string alias = "NONE");
+        // Creates or gets a resource view from the mDescriptors hash map.
+        // Alias can be used to create a new view with different parameters.
+        const graphics::DescriptorHandle& getRenderTargetRTV(const std::string id, std::string alias = "NONE", const uint32_t mipSlice = 0, const uint32_t arraySlice = 0);
+        const graphics::DescriptorHandle& getRenderTargetDSV(const std::string id, std::string alias = "NONE", const uint32_t mipSlice = 0, const uint32_t arraySlice = 0, const bool readOnlyDepth = false, const bool readOnlyStencil = false);
 
         // Destroy a resource view.
         inline void destroyDescriptor(const std::string id) { mDescriptors.erase(id); }

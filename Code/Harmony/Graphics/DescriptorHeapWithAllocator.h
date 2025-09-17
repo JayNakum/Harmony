@@ -27,6 +27,7 @@ namespace graphics
             DynamicCPU,
             DynamicGPU,
             RenderTargetCPU,
+            DepthStencilCPU,
 
             COUNT
         };
@@ -57,6 +58,8 @@ namespace graphics
                 return mShaderViewsDescriptorHeapGPU;
             case DescriptorsCategory::RenderTargetCPU:
                 return mRenderTargetViewsDescriptorHeap;
+            case DescriptorsCategory::DepthStencilCPU:
+                return mDepthStencilViewsDescriptorHeap;
             }
         }
 
@@ -73,15 +76,17 @@ namespace graphics
         public:
             // Total memory budget of GPU memory.
             // This includes the budget of Upload heap and Readback heap as well.
-            // 4 MB TOTAL.
+            // 5 MB TOTAL.
             // 2 MB for GPU heap (StaticGPU + DynamicGPU).
             // 1 MB for CPU heap.
             // 1 MB for RTV CPU heap.
+            // 1 MB for DSV CPU heap.
             static constexpr std::array<size_t, DescriptorsCategory::COUNT>MEMORY_BUDGET = {
                 memory::MB(1), // DescriptorsCategory::StaticGPU
                 memory::MB(1), // DescriptorsCategory::DynamicCPU
                 memory::MB(1), // DescriptorsCategory::DynamicGPU
-                memory::MB(1) // DescriptorsCategory::RenderTargets
+                memory::MB(1), // DescriptorsCategory::RenderTargetCPU
+                memory::MB(1) // DescriptorsCategory::DepthStencilCPU
             };
 
             DescriptorAllocator()
@@ -89,7 +94,8 @@ namespace graphics
                 mStaticDescriptors(MEMORY_BUDGET[DescriptorsCategory::StaticGPU], mSections.allocate(MEMORY_BUDGET[DescriptorsCategory::StaticGPU])),
                 mDynamicDescriptorsGPU(MEMORY_BUDGET[DescriptorsCategory::DynamicGPU], mSections.allocate(MEMORY_BUDGET[DescriptorsCategory::DynamicGPU])),
                 mDynamicDescriptorsCPU(MEMORY_BUDGET[DescriptorsCategory::DynamicCPU]),
-                mRenderTargetDescriptors(MEMORY_BUDGET[DescriptorsCategory::RenderTargetCPU])
+                mRenderTargetDescriptors(MEMORY_BUDGET[DescriptorsCategory::RenderTargetCPU]),
+                mDepthStencilDescriptors(MEMORY_BUDGET[DescriptorsCategory::DepthStencilCPU])
             {}
 
             // Allocates the sizeInBytes and returns an allocation offset for the specified category.
@@ -109,6 +115,8 @@ namespace graphics
                     return mDynamicDescriptorsGPU.allocate(sizeInBytes);
                 case DescriptorsCategory::RenderTargetCPU:
                     return mRenderTargetDescriptors.allocate(sizeInBytes);
+                case DescriptorsCategory::DepthStencilCPU:
+                    return mDepthStencilDescriptors.allocate(sizeInBytes);
                 }
             }
 
@@ -133,6 +141,9 @@ namespace graphics
                 case DescriptorsCategory::RenderTargetCPU:
                     mRenderTargetDescriptors.reset();
                     break;
+                case DescriptorsCategory::DepthStencilCPU:
+                    mDepthStencilDescriptors.reset();
+                    break;
                 }
             }
 
@@ -146,6 +157,7 @@ namespace graphics
             memory::RingAllocator mDynamicDescriptorsCPU;
 
             memory::RingAllocator mRenderTargetDescriptors;
+            memory::RingAllocator mDepthStencilDescriptors;
 
             std::array<std::mutex, DescriptorsCategory::COUNT> mMutex;
         };
@@ -156,5 +168,6 @@ namespace graphics
         DescriptorHeap mShaderViewsDescriptorHeapCPU;
         DescriptorHeap mShaderViewsDescriptorHeapGPU;
         DescriptorHeap mRenderTargetViewsDescriptorHeap;
+        DescriptorHeap mDepthStencilViewsDescriptorHeap;
     };
 }

@@ -218,6 +218,7 @@ namespace graphics
 #endif
 
         checkFeaturesSupport();
+        setupDRED();
     }
 
     Device::~Device()
@@ -263,6 +264,310 @@ namespace graphics
         return mDevice->GetDescriptorHandleIncrementSize(dx12::toD3DDescriptorHeapType(type));
     }
 
+    static const std::string toString(const D3D12_AUTO_BREADCRUMB_OP operation)
+    {
+        switch (operation)
+        {
+        default:
+            return "";
+        case D3D12_AUTO_BREADCRUMB_OP::D3D12_AUTO_BREADCRUMB_OP_SETMARKER :
+            return "SETMARKER";
+        case D3D12_AUTO_BREADCRUMB_OP::D3D12_AUTO_BREADCRUMB_OP_BEGINEVENT:
+            return "BEGINEVENT";
+        case D3D12_AUTO_BREADCRUMB_OP::D3D12_AUTO_BREADCRUMB_OP_ENDEVENT:
+            return "ENDEVENT";
+        case D3D12_AUTO_BREADCRUMB_OP::D3D12_AUTO_BREADCRUMB_OP_DRAWINSTANCED:
+            return "DRAWINSTANCED";
+        case D3D12_AUTO_BREADCRUMB_OP::D3D12_AUTO_BREADCRUMB_OP_DRAWINDEXEDINSTANCED:
+            return "DRAWINDEXEDINSTANCED";
+        case D3D12_AUTO_BREADCRUMB_OP::D3D12_AUTO_BREADCRUMB_OP_EXECUTEINDIRECT:
+            return "EXECUTEINDIRECT";
+        case D3D12_AUTO_BREADCRUMB_OP::D3D12_AUTO_BREADCRUMB_OP_DISPATCH:
+            return "DISPATCH";
+        case D3D12_AUTO_BREADCRUMB_OP::D3D12_AUTO_BREADCRUMB_OP_COPYBUFFERREGION:
+            return "COPYBUFFERREGION";
+        case D3D12_AUTO_BREADCRUMB_OP::D3D12_AUTO_BREADCRUMB_OP_COPYTEXTUREREGION:
+            return "COPYTEXTUREREGION";
+        case D3D12_AUTO_BREADCRUMB_OP::D3D12_AUTO_BREADCRUMB_OP_COPYRESOURCE:
+            return "COPYRESOURCE";
+        case D3D12_AUTO_BREADCRUMB_OP::D3D12_AUTO_BREADCRUMB_OP_COPYTILES:
+            return "COPYTILES";
+        case D3D12_AUTO_BREADCRUMB_OP::D3D12_AUTO_BREADCRUMB_OP_RESOLVESUBRESOURCE:
+            return "RESOLVESUBRESOURCE";
+        case D3D12_AUTO_BREADCRUMB_OP::D3D12_AUTO_BREADCRUMB_OP_CLEARRENDERTARGETVIEW:
+            return "CLEARRENDERTARGETVIEW";
+        case D3D12_AUTO_BREADCRUMB_OP::D3D12_AUTO_BREADCRUMB_OP_CLEARUNORDEREDACCESSVIEW:
+            return "CLEARUNORDEREDACCESSVIEW";
+        case D3D12_AUTO_BREADCRUMB_OP::D3D12_AUTO_BREADCRUMB_OP_CLEARDEPTHSTENCILVIEW:
+            return "CLEARDEPTHSTENCILVIEW";
+        case D3D12_AUTO_BREADCRUMB_OP::D3D12_AUTO_BREADCRUMB_OP_RESOURCEBARRIER:
+            return "RESOURCEBARRIER";
+        case D3D12_AUTO_BREADCRUMB_OP::D3D12_AUTO_BREADCRUMB_OP_EXECUTEBUNDLE:
+            return "EXECUTEBUNDLE";
+        case D3D12_AUTO_BREADCRUMB_OP::D3D12_AUTO_BREADCRUMB_OP_PRESENT:
+            return "PRESENT";
+        case D3D12_AUTO_BREADCRUMB_OP::D3D12_AUTO_BREADCRUMB_OP_RESOLVEQUERYDATA:
+            return "RESOLVEQUERYDATA";
+        case D3D12_AUTO_BREADCRUMB_OP::D3D12_AUTO_BREADCRUMB_OP_BEGINSUBMISSION:
+            return "BEGINSUBMISSION";
+        case D3D12_AUTO_BREADCRUMB_OP::D3D12_AUTO_BREADCRUMB_OP_ENDSUBMISSION:
+            return "ENDSUBMISSION";
+        case D3D12_AUTO_BREADCRUMB_OP::D3D12_AUTO_BREADCRUMB_OP_DECODEFRAME:
+            return "DECODEFRAME";
+        case D3D12_AUTO_BREADCRUMB_OP::D3D12_AUTO_BREADCRUMB_OP_PROCESSFRAMES:
+            return "PROCESSFRAMES";
+        case D3D12_AUTO_BREADCRUMB_OP::D3D12_AUTO_BREADCRUMB_OP_ATOMICCOPYBUFFERUINT:
+            return "ATOMICCOPYBUFFERUINT";
+        case D3D12_AUTO_BREADCRUMB_OP::D3D12_AUTO_BREADCRUMB_OP_ATOMICCOPYBUFFERUINT64:
+            return "ATOMICCOPYBUFFERUINT64";
+        case D3D12_AUTO_BREADCRUMB_OP::D3D12_AUTO_BREADCRUMB_OP_RESOLVESUBRESOURCEREGION:
+            return "RESOLVESUBRESOURCEREGION";
+        case D3D12_AUTO_BREADCRUMB_OP::D3D12_AUTO_BREADCRUMB_OP_WRITEBUFFERIMMEDIATE:
+            return "WRITEBUFFERIMMEDIATE";
+        case D3D12_AUTO_BREADCRUMB_OP::D3D12_AUTO_BREADCRUMB_OP_DECODEFRAME1:
+            return "DECODEFRAME1";
+        case D3D12_AUTO_BREADCRUMB_OP::D3D12_AUTO_BREADCRUMB_OP_SETPROTECTEDRESOURCESESSION:
+            return "SETPROTECTEDRESOURCESESSION";
+        case D3D12_AUTO_BREADCRUMB_OP::D3D12_AUTO_BREADCRUMB_OP_DECODEFRAME2:
+            return "DECODEFRAME2";
+        case D3D12_AUTO_BREADCRUMB_OP::D3D12_AUTO_BREADCRUMB_OP_PROCESSFRAMES1:
+            return "PROCESSFRAMES1";
+        case D3D12_AUTO_BREADCRUMB_OP::D3D12_AUTO_BREADCRUMB_OP_BUILDRAYTRACINGACCELERATIONSTRUCTURE:
+            return "BUILDRAYTRACINGACCELERATIONSTRUCTURE";
+        case D3D12_AUTO_BREADCRUMB_OP::D3D12_AUTO_BREADCRUMB_OP_EMITRAYTRACINGACCELERATIONSTRUCTUREPOSTBUILDINFO:
+            return "EMITRAYTRACINGACCELERATIONSTRUCTUREPOSTBUILDINFO";
+        case D3D12_AUTO_BREADCRUMB_OP::D3D12_AUTO_BREADCRUMB_OP_COPYRAYTRACINGACCELERATIONSTRUCTURE:
+            return "COPYRAYTRACINGACCELERATIONSTRUCTURE";
+        case D3D12_AUTO_BREADCRUMB_OP::D3D12_AUTO_BREADCRUMB_OP_DISPATCHRAYS:
+            return "DISPATCHRAYS";
+        case D3D12_AUTO_BREADCRUMB_OP::D3D12_AUTO_BREADCRUMB_OP_INITIALIZEMETACOMMAND:
+            return "INITIALIZEMETACOMMAND";
+        case D3D12_AUTO_BREADCRUMB_OP::D3D12_AUTO_BREADCRUMB_OP_EXECUTEMETACOMMAND:
+            return "EXECUTEMETACOMMAND";
+        case D3D12_AUTO_BREADCRUMB_OP::D3D12_AUTO_BREADCRUMB_OP_ESTIMATEMOTION:
+            return "ESTIMATEMOTION";
+        case D3D12_AUTO_BREADCRUMB_OP::D3D12_AUTO_BREADCRUMB_OP_RESOLVEMOTIONVECTORHEAP:
+            return "RESOLVEMOTIONVECTORHEAP";
+        case D3D12_AUTO_BREADCRUMB_OP::D3D12_AUTO_BREADCRUMB_OP_SETPIPELINESTATE1:
+            return "SETPIPELINESTATE1";
+        case D3D12_AUTO_BREADCRUMB_OP::D3D12_AUTO_BREADCRUMB_OP_INITIALIZEEXTENSIONCOMMAND:
+            return "INITIALIZEEXTENSIONCOMMAND";
+        case D3D12_AUTO_BREADCRUMB_OP::D3D12_AUTO_BREADCRUMB_OP_EXECUTEEXTENSIONCOMMAND:
+            return "EXECUTEEXTENSIONCOMMAND";
+        case D3D12_AUTO_BREADCRUMB_OP::D3D12_AUTO_BREADCRUMB_OP_DISPATCHMESH:
+            return "DISPATCHMESH";
+        case D3D12_AUTO_BREADCRUMB_OP::D3D12_AUTO_BREADCRUMB_OP_ENCODEFRAME:
+            return "ENCODEFRAME";
+        case D3D12_AUTO_BREADCRUMB_OP::D3D12_AUTO_BREADCRUMB_OP_RESOLVEENCODEROUTPUTMETADATA:
+            return "RESOLVEENCODEROUTPUTMETADATA";
+        case D3D12_AUTO_BREADCRUMB_OP::D3D12_AUTO_BREADCRUMB_OP_BARRIER:
+            return "BARRIER";
+        case D3D12_AUTO_BREADCRUMB_OP::D3D12_AUTO_BREADCRUMB_OP_BEGIN_COMMAND_LIST:
+            return "BEGIN_COMMAND_LIST";
+        case D3D12_AUTO_BREADCRUMB_OP::D3D12_AUTO_BREADCRUMB_OP_DISPATCHGRAPH:
+            return "DISPATCHGRAPH";
+        case D3D12_AUTO_BREADCRUMB_OP::D3D12_AUTO_BREADCRUMB_OP_SETPROGRAM:
+            return "SETPROGRAM";
+        case D3D12_AUTO_BREADCRUMB_OP::D3D12_AUTO_BREADCRUMB_OP_PROCESSFRAMES2:
+            return "PROCESSFRAMES2";
+        }
+    }
+
+    static const std::string toString(const D3D12_DRED_ALLOCATION_TYPE allocationType)
+    {
+        switch (allocationType)
+        {
+        default:
+            return "";
+        case D3D12_DRED_ALLOCATION_TYPE::D3D12_DRED_ALLOCATION_TYPE_COMMAND_QUEUE:
+            return "COMMAND_QUEUE";
+        case D3D12_DRED_ALLOCATION_TYPE::D3D12_DRED_ALLOCATION_TYPE_COMMAND_ALLOCATOR:
+            return "COMMAND_ALLOCATOR";
+        case D3D12_DRED_ALLOCATION_TYPE::D3D12_DRED_ALLOCATION_TYPE_PIPELINE_STATE:
+            return "PIPELINE_STATE";
+        case D3D12_DRED_ALLOCATION_TYPE::D3D12_DRED_ALLOCATION_TYPE_COMMAND_LIST:
+            return "COMMAND_LIST";
+        case D3D12_DRED_ALLOCATION_TYPE::D3D12_DRED_ALLOCATION_TYPE_FENCE:
+            return "FENCE";
+        case D3D12_DRED_ALLOCATION_TYPE::D3D12_DRED_ALLOCATION_TYPE_DESCRIPTOR_HEAP:
+            return "DESCRIPTOR_HEAP";
+        case D3D12_DRED_ALLOCATION_TYPE::D3D12_DRED_ALLOCATION_TYPE_HEAP:
+            return "HEAP";
+        case D3D12_DRED_ALLOCATION_TYPE::D3D12_DRED_ALLOCATION_TYPE_QUERY_HEAP:
+            return "QUERY_HEAP";
+        case D3D12_DRED_ALLOCATION_TYPE::D3D12_DRED_ALLOCATION_TYPE_COMMAND_SIGNATURE:
+            return "COMMAND_SIGNATURE";
+        case D3D12_DRED_ALLOCATION_TYPE::D3D12_DRED_ALLOCATION_TYPE_PIPELINE_LIBRARY:
+            return "PIPELINE_LIBRARY";
+        case D3D12_DRED_ALLOCATION_TYPE::D3D12_DRED_ALLOCATION_TYPE_VIDEO_DECODER:
+            return "VIDEO_DECODER";
+        case D3D12_DRED_ALLOCATION_TYPE::D3D12_DRED_ALLOCATION_TYPE_VIDEO_PROCESSOR:
+            return "VIDEO_PROCESSOR";
+        case D3D12_DRED_ALLOCATION_TYPE::D3D12_DRED_ALLOCATION_TYPE_RESOURCE:
+            return "RESOURCE";
+        case D3D12_DRED_ALLOCATION_TYPE::D3D12_DRED_ALLOCATION_TYPE_PASS:
+            return "PASS";
+        case D3D12_DRED_ALLOCATION_TYPE::D3D12_DRED_ALLOCATION_TYPE_CRYPTOSESSION:
+            return "CRYPTOSESSION";
+        case D3D12_DRED_ALLOCATION_TYPE::D3D12_DRED_ALLOCATION_TYPE_CRYPTOSESSIONPOLICY:
+            return "CRYPTOSESSIONPOLICY";
+        case D3D12_DRED_ALLOCATION_TYPE::D3D12_DRED_ALLOCATION_TYPE_PROTECTEDRESOURCESESSION:
+            return "PROTECTEDRESOURCESESSION";
+        case D3D12_DRED_ALLOCATION_TYPE::D3D12_DRED_ALLOCATION_TYPE_VIDEO_DECODER_HEAP:
+            return "VIDEO_DECODER_HEAP";
+        case D3D12_DRED_ALLOCATION_TYPE::D3D12_DRED_ALLOCATION_TYPE_COMMAND_POOL:
+            return "COMMAND_POOL";
+        case D3D12_DRED_ALLOCATION_TYPE::D3D12_DRED_ALLOCATION_TYPE_COMMAND_RECORDER:
+            return "COMMAND_RECORDER";
+        case D3D12_DRED_ALLOCATION_TYPE::D3D12_DRED_ALLOCATION_TYPE_STATE_OBJECT:
+            return "STATE_OBJECT";
+        case D3D12_DRED_ALLOCATION_TYPE::D3D12_DRED_ALLOCATION_TYPE_METACOMMAND:
+            return "METACOMMAND";
+        case D3D12_DRED_ALLOCATION_TYPE::D3D12_DRED_ALLOCATION_TYPE_SCHEDULINGGROUP:
+            return "SCHEDULINGGROUP";
+        case D3D12_DRED_ALLOCATION_TYPE::D3D12_DRED_ALLOCATION_TYPE_VIDEO_MOTION_ESTIMATOR:
+            return "VIDEO_MOTION_ESTIMATOR";
+        case D3D12_DRED_ALLOCATION_TYPE::D3D12_DRED_ALLOCATION_TYPE_VIDEO_MOTION_VECTOR_HEAP:
+            return "VIDEO_MOTION_VECTOR_HEAP";
+        case D3D12_DRED_ALLOCATION_TYPE::D3D12_DRED_ALLOCATION_TYPE_VIDEO_EXTENSION_COMMAND:
+            return "VIDEO_EXTENSION_COMMAND";
+        case D3D12_DRED_ALLOCATION_TYPE::D3D12_DRED_ALLOCATION_TYPE_VIDEO_ENCODER:
+            return "VIDEO_ENCODER";
+        case D3D12_DRED_ALLOCATION_TYPE::D3D12_DRED_ALLOCATION_TYPE_VIDEO_ENCODER_HEAP:
+            return "VIDEO_ENCODER_HEAP";
+        case D3D12_DRED_ALLOCATION_TYPE::D3D12_DRED_ALLOCATION_TYPE_INVALID:
+            return "INVALID";
+        }
+    }
+
+    void Device::getDeviceRemovedReason() const
+    {
+        HRESULT hResult = mDevice->GetDeviceRemovedReason();
+        if (hResult == S_OK)
+        {
+            return;
+        }
+        DEBUGLOG("ERROR", "Device Removed.\n%d", utility::translateErrorCode(hResult).c_str());
+
+        Microsoft::WRL::ComPtr<ID3D12DeviceRemovedExtendedData> dred;
+        hResult = mDevice->QueryInterface(IID_PPV_ARGS(&dred));
+        HASSERT(SUCCEEDED(hResult), "Failed to query DRED.\n%s", utility::translateErrorCode(hResult).c_str());
+
+        Microsoft::WRL::ComPtr<ID3D12DeviceRemovedExtendedData1> dred1;
+        dred.As(&dred1);
+        D3D12_DRED_AUTO_BREADCRUMBS_OUTPUT1 dredAutoBreadcrumbsOutput;
+        hResult = dred1->GetAutoBreadcrumbsOutput1(&dredAutoBreadcrumbsOutput);
+
+        if (SUCCEEDED(hResult))
+        {
+            const D3D12_AUTO_BREADCRUMB_NODE1* pNode = dredAutoBreadcrumbsOutput.pHeadAutoBreadcrumbNode;
+            while (pNode)
+            {
+                if (pNode->pCommandQueueDebugNameA)
+                {
+                    DEBUGLOG("DRED", "Command Queue: %s", pNode->pCommandQueueDebugNameA);
+                }
+                else if (pNode->pCommandQueueDebugNameW)
+                {
+                    DEBUGLOG("DRED", "Command Queue: %ls", pNode->pCommandQueueDebugNameW);
+                }
+                else
+                {
+                    DEBUGLOG("DRED", "Command Queue: <unnamed>");
+                }
+                
+
+                if (pNode->pCommandListDebugNameA)
+                {
+                    DEBUGLOG("DRED", "Command List: %s", pNode->pCommandListDebugNameA);
+                }
+                else if (pNode->pCommandListDebugNameW)
+                {
+                    DEBUGLOG("DRED", "Command List: %ls", pNode->pCommandListDebugNameW);
+                }
+                else
+                {
+                    DEBUGLOG("DRED", "Command List: <unnamed>");
+                }
+
+                UINT lastBreadcrumb = *(pNode->pLastBreadcrumbValue);
+                UINT breadcrumbCount = pNode->BreadcrumbCount;
+
+                HASSERT(pNode->pCommandHistory != nullptr, "[DRED] Command list history not found.");
+
+                for (UINT i = 0; i < lastBreadcrumb; ++i)
+                {
+                    DEBUGLOG("DRED", "Breadcrumb Operation(%u/%u): %s", i, breadcrumbCount, toString(pNode->pCommandHistory[i]).c_str());
+                }
+
+                if (lastBreadcrumb < breadcrumbCount)
+                {
+                    DEBUGLOG("DRED", "UNFINISHED COMMAND LIST AT %u: %s", lastBreadcrumb, toString(pNode->pCommandHistory[lastBreadcrumb]).c_str());
+                }
+                else
+                {
+                    DEBUGLOG("DRED", "Command list finished successfully.");
+                }
+
+                pNode = pNode->pNext;
+            }
+        }
+        else
+        {
+            DEBUGLOG("DRED", "Failed to get breadcrumbs output.\n%s", utility::translateErrorCode(hResult).c_str());
+        }
+
+        Microsoft::WRL::ComPtr<ID3D12DeviceRemovedExtendedData2> dred2;
+        dred.As(&dred2);
+        D3D12_DRED_PAGE_FAULT_OUTPUT2 dredPageFaultOutput;
+        hResult = dred2->GetPageFaultAllocationOutput2(&dredPageFaultOutput);
+        
+        if (SUCCEEDED(hResult))
+        {
+            if (dredPageFaultOutput.PageFaultVA == 0)
+            {
+                DEBUGLOG("DRED", "No page fault occurred.");
+                return;
+            }
+
+            DEBUGLOG("DRED", "Page Fault at GPU Address: %p", dredPageFaultOutput.PageFaultVA);
+
+            {
+                const D3D12_DRED_ALLOCATION_NODE1* pExistingNode = dredPageFaultOutput.pHeadExistingAllocationNode;
+
+                while (pExistingNode)
+                {
+                    const char* nameA = pExistingNode->ObjectNameA ? pExistingNode->ObjectNameA : "<unnamed>";
+                    const wchar_t* nameW = pExistingNode->ObjectNameW ? pExistingNode->ObjectNameW : L"<unnamed>";
+
+                    DEBUGLOG("DRED", "Existing Allocation %s: %s %ls (%p)",
+                        toString(pExistingNode->AllocationType).c_str(),
+                        nameA,
+                        nameW,
+                        pExistingNode->pObject);
+
+                    pExistingNode = pExistingNode->pNext;
+                }
+            }
+
+            {
+                const D3D12_DRED_ALLOCATION_NODE1* pFreeNode = dredPageFaultOutput.pHeadRecentFreedAllocationNode;
+
+                while (pFreeNode)
+                {
+                    DEBUGLOG("DRED", "Recently Freed Allocation %s: %s (%p)", toString(pFreeNode->AllocationType).c_str(), pFreeNode->ObjectNameA, pFreeNode->pObject);
+                    DEBUGLOG("DRED", "Recently Freed Allocation %s: %ls (%p)", toString(pFreeNode->AllocationType).c_str(), pFreeNode->ObjectNameW, pFreeNode->pObject);
+
+                    pFreeNode = pFreeNode->pNext;
+                }
+            }
+        }
+        else
+        {
+            DEBUGLOG("DRED", "Failed to get pagefault output.\n%s", utility::translateErrorCode(hResult).c_str());
+        }
+    }
+
     void Device::checkFeaturesSupport()
     {
         {// D3D12_FEATURE_D3D12_OPTIONS
@@ -304,6 +609,17 @@ namespace graphics
                 mSupportsGPUUploadHeap = featureData.GPUUploadHeapSupported;
             }
         }
+    }
+
+    void Device::setupDRED()
+    {
+        Microsoft::WRL::ComPtr<ID3D12DeviceRemovedExtendedDataSettings> dredSettings;
+        HRESULT hResult = D3D12GetDebugInterface(IID_PPV_ARGS(&dredSettings));
+        HASSERT(SUCCEEDED(hResult), "Failed to setup Device Removed Extended Data.\n%s", utility::translateErrorCode(hResult).c_str());
+
+        // Turn on auto-breadcrumbs and page fault reporting.
+        dredSettings->SetAutoBreadcrumbsEnablement(D3D12_DRED_ENABLEMENT_FORCED_ON);
+        dredSettings->SetPageFaultEnablement(D3D12_DRED_ENABLEMENT_FORCED_ON);
     }
 
     const bool Device::isRaytracingSupported(ID3D12Device* device)

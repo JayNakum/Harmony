@@ -45,6 +45,8 @@ namespace graphics
 
         const size_t getDescriptorHandleIncrementSize(const DescriptorHeapType type) const;
 
+        void getDeviceRemovedReason() const;
+
         // Returns the raw pointer of D3D12Device.
         inline const ID3D12Device* operator->() const { return mDevice.Get(); }
         inline ID3D12Device* operator->() { return mDevice.Get(); }
@@ -52,6 +54,8 @@ namespace graphics
 
     private:
         void checkFeaturesSupport();
+
+        void setupDRED();
 
         static const bool isRaytracingSupported(ID3D12Device* device);
 

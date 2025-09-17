@@ -69,6 +69,12 @@ namespace engine
 
         mComputeQueue.waitForFence(mComputeQueue.incrementFence());
         mGraphicsQueue.waitForFence(mGraphicsQueue.incrementFence());
+
+        mNoisePass.resize(width, height, mDevice, mResourceManager);
+
+        mWaterPass.resize(width, height, mDevice, mResourceManager);
+        mPresentPass.resize(width, height, mDevice, mResourceManager, mSwapchain.isHDRSupported());
+
         mSwapchain.resize(
             mDevice, width, height,
             {
@@ -77,11 +83,6 @@ namespace engine
                 mResourceManager.allocateDescriptors(1, graphics::DescriptorHeapWithAllocator::DescriptorsCategory::RenderTargetCPU)
             }
         );
-
-        mWaterPass.resize(width, height, mDevice, mResourceManager);
-        mPresentPass.resize(width, height, mDevice, mResourceManager, mSwapchain.isHDRSupported());
-
-        mNoisePass.resize(width, height, mDevice, mResourceManager);
     }
 
     void Renderer::update(const double timeStep)
@@ -126,7 +127,6 @@ namespace engine
 
         // PRESENT PASS
         graphics::GraphicContext& contextPresent = aquireGraphicContext("Present_Graphic_Context");
-
         contextPresent.transitionBarrier(mSwapchain.getBackBufferAt(frameI), graphics::GPUResourceStates::RenderTarget);
 
         mPresentPass.getInputOutputs(contextPresent, mResourceManager);
@@ -136,12 +136,13 @@ namespace engine
         contextPresent.finish(mGraphicsQueue.incrementFence());
 
         // EXECUTE COMMAND LISTS
-        graphics::CommandList batchedGraphicsCommandLists[2] = { contextWater.commandList(), contextPresent.commandList() };
-        uint64_t graphicsFence = mGraphicsQueue.executeCommandLists(batchedGraphicsCommandLists, 2);
+        graphics::CommandList batchedGraphicsCommandLists[3] = { contextWater.commandList(), contextDebugUI.commandList(), contextPresent.commandList() };
+        uint64_t graphicsFence = mGraphicsQueue.executeCommandLists(batchedGraphicsCommandLists, 3);
         mGraphicsQueue.waitForFence(graphicsFence);
 
         // PRESENT
         mSwapchain.present(1);
+        mDevice.getDeviceRemovedReason();
 
         discardContext(contextWater);
         discardContext(contextPresent);

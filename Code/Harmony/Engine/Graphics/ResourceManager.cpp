@@ -222,6 +222,40 @@ namespace engine
         return mDescriptors.at(alias);
     }
 
+    const graphics::DescriptorHandle& ResourceManager::getRenderTargetRTV(const std::string id, std::string alias, const uint32_t mipSlice, const uint32_t arraySlice)
+    {
+        if (alias == "NONE")
+        {
+            alias = id;
+        }
+
+        if (mDescriptors.find(alias) != mDescriptors.end())
+        {
+            return mDescriptors[alias];
+        }
+
+        mDescriptors.emplace(alias, mDescriptorHeap.allocate(graphics::DescriptorHeapWithAllocator::DescriptorsCategory::RenderTargetCPU));
+        getRenderTarget(id).createRenderTargetView(mDevice, mDescriptors.at(alias), mipSlice, arraySlice);
+        return mDescriptors.at(alias);
+    }
+
+    const graphics::DescriptorHandle& ResourceManager::getRenderTargetDSV(const std::string id, std::string alias, const uint32_t mipSlice, const uint32_t arraySlice, const bool readOnlyDepth, const bool readOnlyStencil)
+    {
+        if (alias == "NONE")
+        {
+            alias = id;
+        }
+
+        if (mDescriptors.find(alias) != mDescriptors.end())
+        {
+            return mDescriptors[alias];
+        }
+
+        mDescriptors.emplace(alias, mDescriptorHeap.allocate(graphics::DescriptorHeapWithAllocator::DescriptorsCategory::DepthStencilCPU));
+        getRenderTarget(id).createDepthStencilView(mDevice, mDescriptors.at(alias), mipSlice, arraySlice, readOnlyDepth, readOnlyStencil);
+        return mDescriptors.at(alias);
+    }
+
     graphics::ResourceTable& ResourceManager::createResourceTable(const std::string tableID, const graphics::ResourceTable::Layout layout, const graphics::DescriptorHeapWithAllocator::DescriptorsCategory category)
     {
         if (mResourceTables.find(tableID) != mResourceTables.end())

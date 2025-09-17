@@ -28,6 +28,46 @@ namespace engine
         return mDescriptorHeap.getHeapStart() + (INT)allocationOffset;
     }
 
+    void DebugUI::matrix(const char* label, mat4f& matrix)
+    {
+        if (ImGui::TreeNode(label))
+        {
+            ImGui::BeginTable(label, 4, ImGuiTableFlags_Borders | ImGuiTableFlags_SizingFixedSame | ImGuiTableFlags_NoHostExtendX);
+            for (int i = 0; i < 4; ++i)
+            {
+                ImGui::TableNextRow();
+                for (int j = 0; j < 4; ++j)
+                {
+                    ImGui::TableNextColumn();
+                    ImGui::Text("%.3f", matrix[i][j]);
+                }
+            }
+            ImGui::EndTable();
+            ImGui::TreePop();
+        }
+    }
+
+    void DebugUI::matrixInput(const char* label, mat4f& matrix)
+    {
+        if (ImGui::TreeNode(label))
+        {
+            ImGui::BeginTable(label, 4, ImGuiTableFlags_Borders);
+            for (int i = 0; i < 4; ++i)
+            {
+                ImGui::TableNextRow();
+                for (int j = 0; j < 4; ++j)
+                {
+                    ImGui::TableNextColumn();
+                    ImGui::PushID(i * 4 + j);
+                    ImGui::InputFloat("##val", &matrix[i][j]);
+                    ImGui::PopID();
+                }
+            }
+            ImGui::EndTable();
+            ImGui::TreePop();
+        }
+    }
+
     DebugUI::DebugUI(const HWND windowHandle, graphics::Device& device, graphics::CommandQueue& graphicsQueue)
         : mShaderViewsDescriptorHeapGPU(device)
     {
@@ -92,6 +132,8 @@ namespace engine
 
     void DebugUI::render(graphics::GraphicContext& context)
     {
+        context.bindDescriptorHeap(mShaderViewsDescriptorHeapGPU.getHeap());
+
         ImGui_ImplDX12_NewFrame();
         ImGui_ImplWin32_NewFrame();
         ImGui::NewFrame();
@@ -120,7 +162,6 @@ namespace engine
         // Rendering
         ImGui::Render();
 
-        context.bindDescriptorHeap(mShaderViewsDescriptorHeapGPU.getHeap());
         ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), context.commandList().operator->());
 
         ImGuiIO& io = ImGui::GetIO();

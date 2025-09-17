@@ -100,6 +100,7 @@ namespace graphics
 
         HRESULT hResult = mCommandList->Close();
         HASSERT(SUCCEEDED(hResult), "Failed to close command list.\n%s", utility::translateErrorCode(hResult).c_str());
+        mDevice.getDeviceRemovedReason();
 
         mCommandAllocatorPool.discardCommandAllocator(completedFenceValue, *mCurrentCommandAllocator);
         mCurrentCommandAllocator = nullptr;

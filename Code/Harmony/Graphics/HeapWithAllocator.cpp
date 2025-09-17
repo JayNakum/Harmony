@@ -8,7 +8,8 @@ namespace graphics
             mDevice,
             {
                 "HeapWithAllocator_UploadHeap",
-                ResourceAllocator::MEMORY_BUDGET[ResourceCategory::UploadData],
+                ResourceAllocator::MEMORY_BUDGET[ResourceCategory::UploadData] +
+                ResourceAllocator::MEMORY_BUDGET[ResourceCategory::UploadPersistentData],
                 HeapType::Upload
             }),
         mDefaultHeap(

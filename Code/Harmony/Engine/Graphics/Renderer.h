@@ -11,10 +11,10 @@
 #include "CommandContextPool.h"
 #include "ResourceManager.h"
 
-#include "DebugUI.h"
 
 #include "PassCore.h"
 // Render Passes
+#include "DebugUI.h"
 #include "WaterPass.h"
 #include "PresentPass.h"
 // Dispatch Passes
@@ -78,11 +78,10 @@ namespace engine
         graphics::Swapchain mSwapchain;
         unsigned int mClientWidth, mClientHeight;
 
-        DebugUI mDebugUI;
-
     private:
-        WaterPass mWaterPass;
+        DebugUI mDebugUI;
         PresentPass mPresentPass;
+        WaterPass mWaterPass;
 
     private:
         NoisePass mNoisePass;

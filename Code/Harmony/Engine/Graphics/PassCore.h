@@ -46,7 +46,7 @@ namespace engine
         mat4f viewProjection;
         mat4f invViewProjection;
 
-        vec2ui renderTargetSize;
+        vec2f renderTargetSize;
         vec2f invRenderTargetSize;
         const uint32_t _passPadding[5] = { 0x1deadb0b, 0x1deadb0b, 0x1deadb0b, 0x1deadb0b, 0x1deadb0b };
     };
@@ -57,6 +57,8 @@ namespace engine
     class PassData
     {
     public:
+        PassData() { DebugUI::Register([this] { renderDebugUI(); }); }
+
         inline void setFrameConstants(const float totalTime = 0.0f, const float deltaTime = 0.0f)
         {
             mFrameConstants.totalTime = totalTime;
@@ -100,8 +102,8 @@ namespace engine
 
         inline void setRenderTargetSize(const unsigned int width = 0, const unsigned int height = 0)
         {
-            mPassConstants.renderTargetSize.x = width;
-            mPassConstants.renderTargetSize.y = height;
+            mPassConstants.renderTargetSize.x = (float)width;
+            mPassConstants.renderTargetSize.y = (float)height;
             mPassConstants.invRenderTargetSize = 1 / mPassConstants.renderTargetSize;
         }
 
@@ -118,7 +120,13 @@ namespace engine
             return mPassConstants;
         }
 
-        virtual void renderDebugUI() = 0;
+        virtual void renderDebugUI()
+        {
+            ImGui::Begin("Default Pass");
+            commonParamsDebugUI();
+            ImGui::End();
+        }
+
         virtual void reset() = 0;
         virtual ~PassData() = default;
 
@@ -126,25 +134,22 @@ namespace engine
         {
             if (ImGui::CollapsingHeader("Pass Constants"))
             {
-                if (ImGui::TreeNode("Eye Position"))
-                {
-                    ImGui::DragFloat3("Eye Position", (float*)&mPassConstants.eyePosition);
-                    ImGui::TreePop();
-                }
+                ImGui::DragFloat3("Eye Position", (float*)&mPassConstants.eyePosition);
 
-                if (ImGui::TreeNode("Projection Info"))
-                {
-                    ImGui::InputFloat("Near Z", &mPassConstants.nearZ);
-                    ImGui::InputFloat("Far Z", &mPassConstants.farZ);
-                    ImGui::TreePop();
-                }
+                DebugUI::matrix("View Matrix", mPassConstants.view);
+                DebugUI::matrix("Inverse View Matrix", mPassConstants.invView);
 
-                if (ImGui::TreeNode("Render Target Size"))
-                {
-                    ImGui::InputInt2("RT Size", (int*)&mPassConstants.renderTargetSize);
-                    ImGui::InputFloat2("Inv RT Size", (float*)&mPassConstants.invRenderTargetSize);
-                    ImGui::TreePop();
-                }
+                DebugUI::matrix("Projection Matrix", mPassConstants.projection);
+                DebugUI::matrix("Inverse Projection Matrix", mPassConstants.invProjection);
+                
+                DebugUI::matrix("ViewProj Matrix", mPassConstants.viewProjection);
+                DebugUI::matrix("Inverse ViewProj Matrix", mPassConstants.invViewProjection);
+
+                ImGui::Text("Near Z: %.3f", &mPassConstants.nearZ);
+                ImGui::Text("Far Z: %.3f", &mPassConstants.farZ);
+
+                ImGui::Text("RT Size: %.3f, %.3f", mPassConstants.renderTargetSize.x, mPassConstants.renderTargetSize.y);
+                ImGui::Text("Inv RT Size: %f, %f", mPassConstants.invRenderTargetSize.x, mPassConstants.invRenderTargetSize.y);
             }
         }
 
