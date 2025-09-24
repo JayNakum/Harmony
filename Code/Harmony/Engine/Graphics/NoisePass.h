@@ -4,7 +4,7 @@
 
 namespace engine
 {
-    class NoisePassData : PassData
+    class NoisePassData : public PassData
     {
     public:
         NoisePassData();
@@ -29,11 +29,11 @@ namespace engine
     public:
         NoisePass(graphics::Device& device, ResourceManager& resourceManager);
 
-        void copyDataToGPU(graphics::ComputeContext& context, ResourceManager& resourceManager) override;
-        void freeGPUUploadData(ResourceManager& resourceManager) override;
+        void copyDataToGPU(graphics::CopyContext& context, ResourceManager& resourceManager) override {}
+        void freeGPUUploadData(ResourceManager& resourceManager) override {}
 
-        void resize(const unsigned int width, const unsigned int height, graphics::Device& device, ResourceManager& resourceManager) override;
-        void update(const double timeStep) override;
+        void resize(const unsigned int width, const unsigned int height, graphics::Device& device, ResourceManager& resourceManager) override {}
+        void update(const double timeStep) override {}
 
         void getInputOutputs(graphics::ComputeContext& context, ResourceManager& resourceManager) override;
         void dispatch(graphics::ComputeContext& context, const FrameConstants& frameConstants) override;

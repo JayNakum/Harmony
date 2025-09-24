@@ -20,13 +20,15 @@ namespace graphics
     public:
         CommandContextPool() = default;
 
-        GraphicContext& requestGraphicContext(Device& device);
+        CopyContext& requestCopyContext(Device& device);
         ComputeContext& requestComputeContext(Device& device);
+        GraphicContext& requestGraphicContext(Device& device);
 
         // Puts the context in available queue for future use.
         // This doesn't delete or reset the context. The context is reset first when requested via allocateContext().
-        void discardContext(GraphicContext& context);
+        void discardContext(CopyContext& context);
         void discardContext(ComputeContext& context);
+        void discardContext(GraphicContext& context);
 
         // Empties out the queue and destroys the entire pool.
         void destroyPool();
@@ -34,12 +36,12 @@ namespace graphics
         ~CommandContextPool() { destroyPool(); }
 
     private:
-        // The main graphics context pool containing all the contexts of each type.
-        std::vector<GraphicContext*> mGraphicContextPool;
-        // A queue of graphics contexts of each type that are available for reuse.
-        std::queue<GraphicContext*> mGraphicAvailableQueue;
-        // Prevents incorrect reading and writing of graphics context pool and available queue.
-        std::mutex mGraphicPoolMutex;
+        // The main copy context pool containing all the contexts of each type.
+        std::vector<CopyContext*> mCopyContextPool;
+        // A queue of copy contexts of each type that are available for reuse.
+        std::queue<CopyContext*> mCopyAvailableQueue;
+        // Prevents incorrect reading and writing of copy context pool and available queue.
+        std::mutex mCopyPoolMutex;
 
         // The main compute context pool containing all the contexts of each type.
         std::vector<ComputeContext*> mComputeContextPool;
@@ -47,5 +49,12 @@ namespace graphics
         std::queue<ComputeContext*> mComputeAvailableQueue;
         // Prevents incorrect reading and writing of compute context pool and available queue.
         std::mutex mComputePoolMutex;
+
+        // The main graphics context pool containing all the contexts of each type.
+        std::vector<GraphicContext*> mGraphicContextPool;
+        // A queue of graphics contexts of each type that are available for reuse.
+        std::queue<GraphicContext*> mGraphicAvailableQueue;
+        // Prevents incorrect reading and writing of graphics context pool and available queue.
+        std::mutex mGraphicPoolMutex;
     };
 }

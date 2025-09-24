@@ -322,3 +322,9 @@ namespace graphics
         dispatch(maths::divideByMultiple(threadCountX, groupSizeX), maths::divideByMultiple(threadCountY, groupSizeY), maths::divideByMultiple(threadCountZ, groupSizeZ));
     }
 }
+
+namespace graphics
+{
+    CopyContext::CopyContext(Device& device)
+        : CommandContext(CommandListType::Copy, device) {}
+}

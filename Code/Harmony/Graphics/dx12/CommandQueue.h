@@ -28,18 +28,19 @@ namespace graphics
         // Creates an ID3D12CommandQueue of createDescription.type.
         CommandQueue(Device& device, const Description& createDescription);
 
+        inline Fence& getFence() { return mFence; }
+
         // Signals the command queue and returns the incremented fence value.
         const uint64_t incrementFence();
 
         // Checks if the fenceValue is reached or not.
         bool isFenceComplete(const uint64_t fenceValue);
 
-        // CPU Waits for the passed fence value.
+        // CPU-GPU sync. CPU Waits for the passed fence value.
         void waitForFence(const uint64_t fenceValue);
 
-        // GPU Waits for the passed fence value.
-        void stallForFence(Fence fence);
-        void stallForQueue(const CommandQueue& queue);
+        // GPU-GPU sync. GPU Waits for the passed fence value.
+        void stallForFence(Fence& fence, const uint64_t fenceValue);
 
         // Flushes the entire command queue.
         inline void waitForIdle() { waitForFence(incrementFence()); }

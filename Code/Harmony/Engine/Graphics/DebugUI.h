@@ -19,11 +19,16 @@ namespace engine
     class DebugUI
     {
     public:
-        static inline void Register(std::function<void()> callback) { msRenderCallbacks.push_back(std::move(callback)); }
+        static inline void Register(std::function<void()> callback)
+        {
+            std::lock_guard<std::mutex> scopedLockGuard(msCallbackMutex);
+            msRenderCallbacks.push_back(std::move(callback));
+        }
 
         static void matrix(const char* label, mat4f& matrix);
         static void matrixInput(const char* label, mat4f& matrix);
 
+#if !defined(RELEASE)
         DebugUI(const HWND windowHandle, graphics::Device& device, graphics::CommandQueue& graphicsQueue);
 
         void render(graphics::GraphicContext& context);
@@ -48,9 +53,18 @@ namespace engine
             memory::RingAllocator mAllocator;
             graphics::DescriptorHeap mDescriptorHeap;
         };
-
     private:
         DescriptorHeapWithAllocator mShaderViewsDescriptorHeapGPU;
+#else
+    public:
+        DebugUI(const HWND windowHandle, graphics::Device& device, graphics::CommandQueue& graphicsQueue) {}
+
+        void render(graphics::GraphicContext& context) {}
+
+        ~DebugUI() { msRenderCallbacks.clear(); }
+#endif
+    private:
+        static std::mutex msCallbackMutex;
         static std::vector<std::function<void()>> msRenderCallbacks;
     };
 }

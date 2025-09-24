@@ -59,6 +59,9 @@ namespace engine
     public:
         PassData() { DebugUI::Register([this] { renderDebugUI(); }); }
 
+        inline bool getIsDirty() const { return mIsDirty; }
+        inline void setIsDirty(const bool value) { mIsDirty = value; }
+
         inline void setFrameConstants(const float totalTime = 0.0f, const float deltaTime = 0.0f)
         {
             mFrameConstants.totalTime = totalTime;
@@ -141,7 +144,7 @@ namespace engine
 
                 DebugUI::matrix("Projection Matrix", mPassConstants.projection);
                 DebugUI::matrix("Inverse Projection Matrix", mPassConstants.invProjection);
-                
+
                 DebugUI::matrix("ViewProj Matrix", mPassConstants.viewProjection);
                 DebugUI::matrix("Inverse ViewProj Matrix", mPassConstants.invViewProjection);
 
@@ -156,6 +159,7 @@ namespace engine
     private:
         FrameConstants mFrameConstants;
         PassConstants mPassConstants;
+        bool mIsDirty = true;
     };
 }
 
@@ -166,8 +170,9 @@ namespace engine
     */
     class RenderPass
     {
-    public:
-        virtual void copyDataToGPU(graphics::GraphicContext& context, ResourceManager& resourceManager) = 0;
+    protected:
+        virtual void copyDataToGPU(graphics::CopyContext& context, ResourceManager& resourceManager) = 0;
+
         virtual void freeGPUUploadData(ResourceManager& resourceManager) = 0;
 
         virtual void resize(const unsigned int width, const unsigned int height, graphics::Device& device, ResourceManager& resourceManager) = 0;
@@ -187,8 +192,9 @@ namespace engine
     */
     class DispatchPass
     {
-    public:
-        virtual void copyDataToGPU(graphics::ComputeContext& context, ResourceManager& resourceManager) = 0;
+    protected:
+        virtual void copyDataToGPU(graphics::CopyContext& context, ResourceManager& resourceManager) = 0;
+
         virtual void freeGPUUploadData(ResourceManager& resourceManager) = 0;
 
         virtual void resize(const unsigned int width, const unsigned int height, graphics::Device& device, ResourceManager& resourceManager) = 0;

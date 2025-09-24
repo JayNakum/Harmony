@@ -7,26 +7,8 @@
 
 namespace engine
 {
+    std::mutex DebugUI::msCallbackMutex;
     std::vector<std::function<void()>> DebugUI::msRenderCallbacks;
-
-    DebugUI::DescriptorHeapWithAllocator::DescriptorHeapWithAllocator(graphics::Device& device)
-        : mAllocationSize(device.getDescriptorHandleIncrementSize(graphics::DescriptorHeapType::ShaderViews)),
-        mAllocator(MEMORY_BUDGET),
-        mDescriptorHeap(
-            device,
-            {
-                "DebugUIDescriptorHeap_ShaderViewsGPU",
-                graphics::DescriptorHeapType::ShaderViews,
-                MEMORY_BUDGET / mAllocationSize,
-                graphics::DescriptorHeapFlags::GPUVisible
-            }
-        ) {}
-
-    graphics::DescriptorHandle DebugUI::DescriptorHeapWithAllocator::allocate()
-    {
-        const size_t allocationOffset = mAllocator.allocate(mAllocationSize);
-        return mDescriptorHeap.getHeapStart() + (INT)allocationOffset;
-    }
 
     void DebugUI::matrix(const char* label, mat4f& matrix)
     {
@@ -66,6 +48,26 @@ namespace engine
             ImGui::EndTable();
             ImGui::TreePop();
         }
+    }
+
+#if !defined(RELEASE)
+    DebugUI::DescriptorHeapWithAllocator::DescriptorHeapWithAllocator(graphics::Device& device)
+        : mAllocationSize(device.getDescriptorHandleIncrementSize(graphics::DescriptorHeapType::ShaderViews)),
+        mAllocator(MEMORY_BUDGET),
+        mDescriptorHeap(
+            device,
+            {
+                "DebugUIDescriptorHeap_ShaderViewsGPU",
+                graphics::DescriptorHeapType::ShaderViews,
+                MEMORY_BUDGET / mAllocationSize,
+                graphics::DescriptorHeapFlags::GPUVisible
+            }
+        ) {}
+
+    graphics::DescriptorHandle DebugUI::DescriptorHeapWithAllocator::allocate()
+    {
+        const size_t allocationOffset = mAllocator.allocate(mAllocationSize);
+        return mDescriptorHeap.getHeapStart() + (INT)allocationOffset;
     }
 
     DebugUI::DebugUI(const HWND windowHandle, graphics::Device& device, graphics::CommandQueue& graphicsQueue)
@@ -143,7 +145,7 @@ namespace engine
 
         const ImGuiViewport* main_viewport = ImGui::GetMainViewport();
         ImGui::SetNextWindowPos(ImVec2(main_viewport->WorkPos.x + 100, main_viewport->WorkPos.y + 100), ImGuiCond_FirstUseEver);
-        ImGui::SetNextWindowSize(ImVec2(1280, 800), ImGuiCond_FirstUseEver);
+        ImGui::SetNextWindowSize(ImVec2(1280, 720), ImGuiCond_FirstUseEver);
 
         ImGuiWindowFlags host_flags = ImGuiWindowFlags_None;
         ImGui::Begin("Harmony", nullptr, host_flags);
@@ -181,4 +183,5 @@ namespace engine
 
         msRenderCallbacks.clear();
     }
+#endif
 }

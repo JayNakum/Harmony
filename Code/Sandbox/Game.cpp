@@ -11,7 +11,7 @@ namespace sandbox
     {
     public:
         Application()
-            : mWindow({L"Sandbox", 1280, 800}),
+            : mWindow({L"Sandbox", 1280, 720}),
             mEngine(mWindow)
         {
         }

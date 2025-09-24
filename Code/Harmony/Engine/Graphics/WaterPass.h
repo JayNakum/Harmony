@@ -65,7 +65,8 @@ namespace engine
     {
     public:
         WaterPass(graphics::Device& device, ResourceManager& resourceManager);
-        void copyDataToGPU(graphics::GraphicContext& context, ResourceManager& resourceManager) override;
+
+        void copyDataToGPU(graphics::CopyContext& context, ResourceManager& resourceManager) override;
         void freeGPUUploadData(ResourceManager& resourceManager) override;
 
         void resize(const unsigned int width, const unsigned int height, graphics::Device& device, ResourceManager& resourceManager) override;
@@ -84,6 +85,7 @@ namespace engine
 
     private:
         WaterPassData mWaterPassData;
+
         const graphics::ResourceTable::Layout mStaticShaderResourceTableLayout;
         graphics::ResourceTable mShaderResources;
         graphics::ShaderInput mWaterPassSI;

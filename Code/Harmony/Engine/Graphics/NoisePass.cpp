@@ -398,22 +398,6 @@ namespace engine
         mNoiseSI.setResourceTable(mShaderResources);
     }
 
-    void NoisePass::copyDataToGPU(graphics::ComputeContext& context, ResourceManager& resourceManager)
-    {
-    }
-
-    void NoisePass::freeGPUUploadData(ResourceManager& resourceManager)
-    {
-    }
-
-    void NoisePass::resize(const unsigned int width, const unsigned int height, graphics::Device& device, ResourceManager& resourceManager)
-    {
-    }
-
-    void NoisePass::update(const double timeStep)
-    {
-    }
-
     void NoisePass::getInputOutputs(graphics::ComputeContext& context, ResourceManager& resourceManager)
     {
         graphics::Texture& noise0 = resourceManager.getTexture("UA_Water_Noise_Texture");

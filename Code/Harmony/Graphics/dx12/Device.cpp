@@ -218,7 +218,7 @@ namespace graphics
 #endif
 
         checkFeaturesSupport();
-        setupDRED();
+        DEBUG_ONLY(setupDRED();)
     }
 
     Device::~Device()
@@ -264,13 +264,68 @@ namespace graphics
         return mDevice->GetDescriptorHandleIncrementSize(dx12::toD3DDescriptorHeapType(type));
     }
 
+    void Device::checkFeaturesSupport()
+    {
+        {// D3D12_FEATURE_D3D12_OPTIONS
+            // To support read-modify-write operations on UAVs during post processing,
+            // need to either have the hardware do typed UAV loads of R11G11B10_FLOAT
+            // or we need to manually decode an R32_UINT representation of the same buffer.
+            // This code determines if we get the hardware load support.
+            D3D12_FEATURE_DATA_D3D12_OPTIONS featureData = {};
+            if (SUCCEEDED(mDevice->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS, &featureData, sizeof(featureData))))
+            {
+                if (featureData.TypedUAVLoadAdditionalFormats)
+                {
+                    D3D12_FEATURE_DATA_FORMAT_SUPPORT support =
+                    {
+                        DXGI_FORMAT_R11G11B10_FLOAT, D3D12_FORMAT_SUPPORT1_NONE, D3D12_FORMAT_SUPPORT2_NONE
+                    };
+
+                    if (SUCCEEDED(mDevice->CheckFeatureSupport(D3D12_FEATURE_FORMAT_SUPPORT, &support, sizeof(support))) &&
+                        (support.Support2 & D3D12_FORMAT_SUPPORT2_UAV_TYPED_LOAD) != 0)
+                    {
+                        mTypedUAVLoadSupport_R11G11B10_FLOAT = true;
+                    }
+
+                    support.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+
+                    if (SUCCEEDED(mDevice->CheckFeatureSupport(D3D12_FEATURE_FORMAT_SUPPORT, &support, sizeof(support))) &&
+                        (support.Support2 & D3D12_FORMAT_SUPPORT2_UAV_TYPED_LOAD) != 0)
+                    {
+                        mTypedUAVLoadSupport_R16G16B16A16_FLOAT = true;
+                    }
+                }
+            }
+        }
+
+        {// D3D12_FEATURE_D3D12_OPTIONS16
+            D3D12_FEATURE_DATA_D3D12_OPTIONS16 featureData = {};
+            if (SUCCEEDED(mDevice->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS16, &featureData, sizeof(featureData))))
+            {
+                mSupportsGPUUploadHeap = featureData.GPUUploadHeapSupported;
+            }
+        }
+    }
+
+    const bool Device::isRaytracingSupported(ID3D12Device* device)
+    {
+        D3D12_FEATURE_DATA_D3D12_OPTIONS5 featureSupport = {};
+
+        HRESULT hResult = device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS5, &featureSupport, sizeof(featureSupport));
+        if (FAILED(hResult))
+            return false;
+
+        return featureSupport.RaytracingTier != D3D12_RAYTRACING_TIER_NOT_SUPPORTED;
+    }
+
+#if defined(DEBUG)
     static const std::string toString(const D3D12_AUTO_BREADCRUMB_OP operation)
     {
         switch (operation)
         {
         default:
             return "";
-        case D3D12_AUTO_BREADCRUMB_OP::D3D12_AUTO_BREADCRUMB_OP_SETMARKER :
+        case D3D12_AUTO_BREADCRUMB_OP::D3D12_AUTO_BREADCRUMB_OP_SETMARKER:
             return "SETMARKER";
         case D3D12_AUTO_BREADCRUMB_OP::D3D12_AUTO_BREADCRUMB_OP_BEGINEVENT:
             return "BEGINEVENT";
@@ -440,13 +495,22 @@ namespace graphics
         }
     }
 
+    void Device::setupDRED()
+    {
+        Microsoft::WRL::ComPtr<ID3D12DeviceRemovedExtendedDataSettings> dredSettings;
+        HRESULT hResult = D3D12GetDebugInterface(IID_PPV_ARGS(&dredSettings));
+        HASSERT(SUCCEEDED(hResult), "Failed to setup Device Removed Extended Data.\n%s", utility::translateErrorCode(hResult).c_str());
+
+        // Turn on auto-breadcrumbs and page fault reporting.
+        dredSettings->SetAutoBreadcrumbsEnablement(D3D12_DRED_ENABLEMENT_FORCED_ON);
+        dredSettings->SetPageFaultEnablement(D3D12_DRED_ENABLEMENT_FORCED_ON);
+    }
+#endif
+
     void Device::getDeviceRemovedReason() const
     {
+#if defined(DEBUG)
         HRESULT hResult = mDevice->GetDeviceRemovedReason();
-        if (hResult == S_OK)
-        {
-            return;
-        }
         DEBUGLOG("ERROR", "Device Removed.\n%d", utility::translateErrorCode(hResult).c_str());
 
         Microsoft::WRL::ComPtr<ID3D12DeviceRemovedExtendedData> dred;
@@ -475,7 +539,7 @@ namespace graphics
                 {
                     DEBUGLOG("DRED", "Command Queue: <unnamed>");
                 }
-                
+
 
                 if (pNode->pCommandListDebugNameA)
                 {
@@ -521,7 +585,7 @@ namespace graphics
         dred.As(&dred2);
         D3D12_DRED_PAGE_FAULT_OUTPUT2 dredPageFaultOutput;
         hResult = dred2->GetPageFaultAllocationOutput2(&dredPageFaultOutput);
-        
+
         if (SUCCEEDED(hResult))
         {
             if (dredPageFaultOutput.PageFaultVA == 0)
@@ -566,70 +630,6 @@ namespace graphics
         {
             DEBUGLOG("DRED", "Failed to get pagefault output.\n%s", utility::translateErrorCode(hResult).c_str());
         }
-    }
-
-    void Device::checkFeaturesSupport()
-    {
-        {// D3D12_FEATURE_D3D12_OPTIONS
-            // To support read-modify-write operations on UAVs during post processing,
-            // need to either have the hardware do typed UAV loads of R11G11B10_FLOAT
-            // or we need to manually decode an R32_UINT representation of the same buffer.
-            // This code determines if we get the hardware load support.
-            D3D12_FEATURE_DATA_D3D12_OPTIONS featureData = {};
-            if (SUCCEEDED(mDevice->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS, &featureData, sizeof(featureData))))
-            {
-                if (featureData.TypedUAVLoadAdditionalFormats)
-                {
-                    D3D12_FEATURE_DATA_FORMAT_SUPPORT support =
-                    {
-                        DXGI_FORMAT_R11G11B10_FLOAT, D3D12_FORMAT_SUPPORT1_NONE, D3D12_FORMAT_SUPPORT2_NONE
-                    };
-
-                    if (SUCCEEDED(mDevice->CheckFeatureSupport(D3D12_FEATURE_FORMAT_SUPPORT, &support, sizeof(support))) &&
-                        (support.Support2 & D3D12_FORMAT_SUPPORT2_UAV_TYPED_LOAD) != 0)
-                    {
-                        mTypedUAVLoadSupport_R11G11B10_FLOAT = true;
-                    }
-
-                    support.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-
-                    if (SUCCEEDED(mDevice->CheckFeatureSupport(D3D12_FEATURE_FORMAT_SUPPORT, &support, sizeof(support))) &&
-                        (support.Support2 & D3D12_FORMAT_SUPPORT2_UAV_TYPED_LOAD) != 0)
-                    {
-                        mTypedUAVLoadSupport_R16G16B16A16_FLOAT = true;
-                    }
-                }
-            }
-        }
-
-        {// D3D12_FEATURE_D3D12_OPTIONS16
-            D3D12_FEATURE_DATA_D3D12_OPTIONS16 featureData = {};
-            if (SUCCEEDED(mDevice->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS16, &featureData, sizeof(featureData))))
-            {
-                mSupportsGPUUploadHeap = featureData.GPUUploadHeapSupported;
-            }
-        }
-    }
-
-    void Device::setupDRED()
-    {
-        Microsoft::WRL::ComPtr<ID3D12DeviceRemovedExtendedDataSettings> dredSettings;
-        HRESULT hResult = D3D12GetDebugInterface(IID_PPV_ARGS(&dredSettings));
-        HASSERT(SUCCEEDED(hResult), "Failed to setup Device Removed Extended Data.\n%s", utility::translateErrorCode(hResult).c_str());
-
-        // Turn on auto-breadcrumbs and page fault reporting.
-        dredSettings->SetAutoBreadcrumbsEnablement(D3D12_DRED_ENABLEMENT_FORCED_ON);
-        dredSettings->SetPageFaultEnablement(D3D12_DRED_ENABLEMENT_FORCED_ON);
-    }
-
-    const bool Device::isRaytracingSupported(ID3D12Device* device)
-    {
-        D3D12_FEATURE_DATA_D3D12_OPTIONS5 featureSupport = {};
-
-        HRESULT hResult = device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS5, &featureSupport, sizeof(featureSupport));
-        if (FAILED(hResult))
-            return false;
-
-        return featureSupport.RaytracingTier != D3D12_RAYTRACING_TIER_NOT_SUPPORTED;
+#endif
     }
 }

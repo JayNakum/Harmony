@@ -33,14 +33,6 @@ namespace engine
     public:
         Renderer(const HWND windowHandle);
 
-        inline graphics::GraphicContext& aquireGraphicContext(const std::string& name)
-        {
-            graphics::GraphicContext& context = mCommandContextPool.requestGraphicContext(mDevice);
-            context.setName(name);
-            context.reset(mGraphicsQueue.incrementFence());
-            context.bindDescriptorHeap(mResourceManager.getDescriptorHeap(graphics::DescriptorHeapWithAllocator::DescriptorsCategory::StaticGPU));
-            return context;
-        }
         inline graphics::ComputeContext& aquireComputeContext(const std::string& name)
         {
             graphics::ComputeContext& context = mCommandContextPool.requestComputeContext(mDevice);
@@ -49,12 +41,31 @@ namespace engine
             context.bindDescriptorHeap(mResourceManager.getDescriptorHeap(graphics::DescriptorHeapWithAllocator::DescriptorsCategory::StaticGPU));
             return context;
         }
+        inline graphics::GraphicContext& aquireGraphicContext(const std::string& name)
+        {
+            graphics::GraphicContext& context = mCommandContextPool.requestGraphicContext(mDevice);
+            context.setName(name);
+            context.reset(mGraphicsQueue.incrementFence());
+            context.bindDescriptorHeap(mResourceManager.getDescriptorHeap(graphics::DescriptorHeapWithAllocator::DescriptorsCategory::StaticGPU));
+            return context;
+        }
+        inline graphics::CopyContext& aquireCopyContext(const std::string& name)
+        {
+            graphics::CopyContext& context = mCommandContextPool.requestCopyContext(mDevice);
+            context.setName(name);
+            context.reset(mCopyQueue.incrementFence());
+            return context;
+        }
 
-        inline void discardContext(graphics::GraphicContext& usedContext)
+        inline void discardContext(graphics::CopyContext& usedContext)
         {
             mCommandContextPool.discardContext(usedContext);
         }
         inline void discardContext(graphics::ComputeContext& usedContext)
+        {
+            mCommandContextPool.discardContext(usedContext);
+        }
+        inline void discardContext(graphics::GraphicContext& usedContext)
         {
             mCommandContextPool.discardContext(usedContext);
         }
@@ -69,8 +80,9 @@ namespace engine
 
     private:
         graphics::Device mDevice;
-        graphics::CommandQueue mGraphicsQueue;
+        graphics::CommandQueue mCopyQueue;
         graphics::CommandQueue mComputeQueue;
+        graphics::CommandQueue mGraphicsQueue;
         ResourceManager mResourceManager;
 
         graphics::CommandContextPool mCommandContextPool;

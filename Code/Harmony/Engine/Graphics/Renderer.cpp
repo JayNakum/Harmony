@@ -6,8 +6,9 @@ namespace engine
 {
     Renderer::Renderer(const HWND windowHandle)
         : mDevice(),
-        mGraphicsQueue(mDevice, {"Renderer_Graphics_Queue", graphics::CommandListType::Direct}),
+        mCopyQueue(mDevice, {"Renderer_Copy_Queue", graphics::CommandListType::Copy}),
         mComputeQueue(mDevice, {"Renderer_Compute_Queue", graphics::CommandListType::Compute}),
+        mGraphicsQueue(mDevice, {"Renderer_Graphics_Queue", graphics::CommandListType::Direct}),
         mResourceManager(mDevice),
         mCommandContextPool(),
         mSwapchain(
@@ -24,40 +25,27 @@ namespace engine
         ),
         mClientWidth(0), mClientHeight(0),
         mDebugUI(windowHandle, mDevice, mGraphicsQueue),
-        mWaterPass(mDevice, mResourceManager),
         mPresentPass(mDevice, mResourceManager),
+        mWaterPass(mDevice, mResourceManager),
         mNoisePass(mDevice, mResourceManager)
     {
-        {
-            graphics::GraphicContext& initGraphicsContext = aquireGraphicContext("Init_Graphics_Context");
+        graphics::CopyContext& copyContext = aquireCopyContext("Initial_Copy_Context");
 
-            mWaterPass.copyDataToGPU(initGraphicsContext, mResourceManager);
-            mPresentPass.copyDataToGPU(initGraphicsContext, mResourceManager);
+        mNoisePass.copyDataToGPU(copyContext, mResourceManager);
+        mWaterPass.copyDataToGPU(copyContext, mResourceManager);
+        mPresentPass.copyDataToGPU(copyContext, mResourceManager);
 
-            initGraphicsContext.finish(mGraphicsQueue.incrementFence());
+        copyContext.finish(mCopyQueue.incrementFence());
 
-            graphics::CommandList batchedGraphicsCommandLists[1] = { initGraphicsContext.commandList() };
-            uint64_t graphicsFence = mGraphicsQueue.executeCommandLists(batchedGraphicsCommandLists);
-            mGraphicsQueue.waitForFence(graphicsFence);
+        graphics::CommandList batchedComputeCommandLists[1] = { copyContext.commandList() };
+        mCopyQueue.executeCommandLists(batchedComputeCommandLists);
+        mCopyQueue.waitForIdle();
 
-            discardContext(initGraphicsContext);
-            mWaterPass.freeGPUUploadData(mResourceManager);
-            mPresentPass.freeGPUUploadData(mResourceManager);
-        }
-        {
-            graphics::ComputeContext& initComputeContext = aquireComputeContext("Init_Compute_Context");
+        discardContext(copyContext);
 
-            mNoisePass.copyDataToGPU(initComputeContext, mResourceManager);
-
-            initComputeContext.finish(mComputeQueue.incrementFence());
-
-            graphics::CommandList batchedComputeCommandLists[1] = { initComputeContext.commandList() };
-            uint64_t computeFence = mComputeQueue.executeCommandLists(batchedComputeCommandLists);
-            mComputeQueue.waitForFence(computeFence);
-
-            discardContext(initComputeContext);
-            mNoisePass.freeGPUUploadData(mResourceManager);
-        }
+        mNoisePass.freeGPUUploadData(mResourceManager);
+        mWaterPass.freeGPUUploadData(mResourceManager);
+        mPresentPass.freeGPUUploadData(mResourceManager);
 
         mResourceManager.reset(graphics::HeapWithAllocator::ResourceCategory::UploadData);
     }
@@ -103,42 +91,46 @@ namespace engine
         mNoisePass.getInputOutputs(contextNoise, mResourceManager);
         mNoisePass.dispatch(contextNoise, frame);
 
-        contextNoise.finish(mComputeQueue.incrementFence());
-
-        graphics::CommandList batchedComputeCommandLists[1] = { contextNoise.commandList() };
-        uint64_t computeFence = mComputeQueue.executeCommandLists(batchedComputeCommandLists);
-        mComputeQueue.waitForFence(computeFence);
-        mGraphicsQueue.stallForQueue(mComputeQueue);
+        const uint64_t noiseFence = mComputeQueue.incrementFence();
+        contextNoise.finish(noiseFence);
 
         // WATER PASS
+        mGraphicsQueue.stallForFence(mComputeQueue.getFence(), noiseFence);
         graphics::GraphicContext& contextWater = aquireGraphicContext("Water_Graphic_Context");
 
         mWaterPass.getInputOutputs(contextWater, mResourceManager);
         mWaterPass.render(contextWater, frame);
 
-        contextWater.finish(mGraphicsQueue.incrementFence());
+        const uint64_t waterFence = mGraphicsQueue.incrementFence();
+        contextWater.finish(waterFence);
 
         // DEBUG UI
         graphics::GraphicContext& contextDebugUI = aquireGraphicContext("DebugUI_Graphic_Context");
 
         mDebugUI.render(contextDebugUI);
 
-        contextDebugUI.finish(mGraphicsQueue.incrementFence());
+        const uint64_t debugUIFence = mGraphicsQueue.incrementFence();
+        contextDebugUI.finish(debugUIFence);
 
         // PRESENT PASS
         graphics::GraphicContext& contextPresent = aquireGraphicContext("Present_Graphic_Context");
+
         contextPresent.transitionBarrier(mSwapchain.getBackBufferAt(frameI), graphics::GPUResourceStates::RenderTarget);
 
         mPresentPass.getInputOutputs(contextPresent, mResourceManager);
         mPresentPass.render(contextPresent, frame, mSwapchain.getBackBufferViewAt(frameI));
 
         contextPresent.transitionBarrier(mSwapchain.getBackBufferAt(frameI), graphics::GPUResourceStates::Present);
-        contextPresent.finish(mGraphicsQueue.incrementFence());
+
+        const uint64_t presentFence = mGraphicsQueue.incrementFence();
+        contextPresent.finish(presentFence);
 
         // EXECUTE COMMAND LISTS
+        graphics::CommandList batchedComputeCommandLists[1] = { contextNoise.commandList() };
+        const uint64_t computeFence = mComputeQueue.executeCommandLists(batchedComputeCommandLists);
+
         graphics::CommandList batchedGraphicsCommandLists[3] = { contextWater.commandList(), contextDebugUI.commandList(), contextPresent.commandList() };
-        uint64_t graphicsFence = mGraphicsQueue.executeCommandLists(batchedGraphicsCommandLists, 3);
-        mGraphicsQueue.waitForFence(graphicsFence);
+        const uint64_t graphicsFence = mGraphicsQueue.executeCommandLists(batchedGraphicsCommandLists, 3);
 
         // PRESENT
         mSwapchain.present(1);

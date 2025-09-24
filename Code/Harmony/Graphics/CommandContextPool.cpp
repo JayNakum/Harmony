@@ -2,21 +2,21 @@
 
 namespace graphics
 {
-    GraphicContext& CommandContextPool::requestGraphicContext(Device& device)
+    CopyContext& CommandContextPool::requestCopyContext(Device& device)
     {
-        std::lock_guard<std::mutex> scopedLockGuard(mGraphicPoolMutex);
+        std::lock_guard<std::mutex> scopedLockGuard(mCopyPoolMutex);
 
-        HASSERT(mGraphicContextPool.size() <= MAX_CONTEXTS, "Graphic Context Pool Budget exceeded.");
+        HASSERT(mCopyContextPool.size() <= MAX_CONTEXTS, "Copy Context Pool Budget exceeded.");
 
-        if (!mGraphicAvailableQueue.empty())
+        if (!mCopyAvailableQueue.empty())
         {
-            GraphicContext* context = mGraphicAvailableQueue.front();
-            mGraphicAvailableQueue.pop();
+            CopyContext* context = mCopyAvailableQueue.front();
+            mCopyAvailableQueue.pop();
             return *context;
         }
 
-        mGraphicContextPool.emplace_back(new GraphicContext(device));
-        return *(mGraphicContextPool.back());
+        mCopyContextPool.emplace_back(new CopyContext(device));
+        return *(mCopyContextPool.back());
     }
 
     ComputeContext& CommandContextPool::requestComputeContext(Device& device)
@@ -36,11 +36,28 @@ namespace graphics
         return *(mComputeContextPool.back());
     }
 
-    void CommandContextPool::discardContext(GraphicContext& context)
+    GraphicContext& CommandContextPool::requestGraphicContext(Device& device)
     {
         std::lock_guard<std::mutex> scopedLockGuard(mGraphicPoolMutex);
 
-        mGraphicAvailableQueue.push(&context);
+        HASSERT(mGraphicContextPool.size() <= MAX_CONTEXTS, "Graphic Context Pool Budget exceeded.");
+
+        if (!mGraphicAvailableQueue.empty())
+        {
+            GraphicContext* context = mGraphicAvailableQueue.front();
+            mGraphicAvailableQueue.pop();
+            return *context;
+        }
+
+        mGraphicContextPool.emplace_back(new GraphicContext(device));
+        return *(mGraphicContextPool.back());
+    }
+
+    void CommandContextPool::discardContext(CopyContext& context)
+    {
+        std::lock_guard<std::mutex> scopedLockGuard(mCopyPoolMutex);
+
+        mCopyAvailableQueue.push(&context);
     }
 
     void CommandContextPool::discardContext(ComputeContext& context)
@@ -50,22 +67,29 @@ namespace graphics
         mComputeAvailableQueue.push(&context);
     }
 
+    void CommandContextPool::discardContext(GraphicContext& context)
+    {
+        std::lock_guard<std::mutex> scopedLockGuard(mGraphicPoolMutex);
+
+        mGraphicAvailableQueue.push(&context);
+    }
+
     void CommandContextPool::destroyPool()
     {
         {
-            std::lock_guard<std::mutex> scopedLockGuard(mGraphicPoolMutex);
+            std::lock_guard<std::mutex> scopedLockGuard(mCopyPoolMutex);
 
             // clear the queue to prevent dangling pointers
-            while (!mGraphicAvailableQueue.empty())
+            while (!mCopyAvailableQueue.empty())
             {
-                mGraphicAvailableQueue.pop();
+                mCopyAvailableQueue.pop();
             }
 
-            for (const GraphicContext* context : mGraphicContextPool)
+            for (const CopyContext* context : mCopyContextPool)
             {
                 delete context;
             }
-            CommandContextPool::mGraphicContextPool.clear();
+            CommandContextPool::mCopyContextPool.clear();
         }
         {
             std::lock_guard<std::mutex> scopedLockGuard(mComputePoolMutex);
@@ -81,6 +105,21 @@ namespace graphics
                 delete context;
             }
             CommandContextPool::mComputeContextPool.clear();
+        }
+        {
+            std::lock_guard<std::mutex> scopedLockGuard(mGraphicPoolMutex);
+
+            // clear the queue to prevent dangling pointers
+            while (!mGraphicAvailableQueue.empty())
+            {
+                mGraphicAvailableQueue.pop();
+            }
+
+            for (const GraphicContext* context : mGraphicContextPool)
+            {
+                delete context;
+            }
+            CommandContextPool::mGraphicContextPool.clear();
         }
     }
 }

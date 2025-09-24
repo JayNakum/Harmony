@@ -8,7 +8,8 @@ namespace engine
     {
     public:
         PresentPass(graphics::Device& device, ResourceManager& resourceManager);
-        void copyDataToGPU(graphics::GraphicContext& context, ResourceManager& resourceManager) override;
+
+        void copyDataToGPU(graphics::CopyContext& context, ResourceManager& resourceManager) override {}
         void freeGPUUploadData(ResourceManager& resourceManager) override {}
 
         void resize(const unsigned int width, const unsigned int height, graphics::Device& device, ResourceManager& resourceManager) override

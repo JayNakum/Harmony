@@ -53,14 +53,9 @@ namespace graphics
         mLastCompletedFenceValue = fenceValue;
     }
 
-    void CommandQueue::stallForFence(Fence fence)
+    void CommandQueue::stallForFence(Fence& fence, const uint64_t fenceValue)
     {
-        mCommandQueue->Wait(fence.get(), fence->GetCompletedValue());
-    }
-
-    void CommandQueue::stallForQueue(const CommandQueue& queue)
-    {
-        stallForFence(queue.mFence);
+        mCommandQueue->Wait(fence.get(), fenceValue);
     }
 
     const uint64_t CommandQueue::executeCommandLists(CommandList commandLists[], const unsigned int count)

@@ -30,7 +30,7 @@ namespace graphics
     /*
     * This is the classes that connects graphics classes with DX12.
     * Contains the state and resources needed to record and execute commands on the GPU.
-    * This parent class is inherited by GraphicsContext and // TODO: ComputeContext.
+    * This parent class is inherited by GraphicsContext and ComputeContext.
     */
     class CommandContext : public CommandObject, NonCopyable
     {
@@ -176,5 +176,14 @@ namespace graphics
         void executeIndirect(CommandSignature& commandSig, Buffer& argumentBuffer, uint64_t argumentStartOffset = 0,
                              uint32_t maxCommands = 1, Buffer* commandCounterBuffer = nullptr, uint64_t counterOffset = 0);
         */
+    };
+}
+
+namespace graphics
+{
+    class CopyContext : public CommandContext
+    {
+    public:
+        CopyContext(Device& device);
     };
 }

@@ -83,7 +83,7 @@ namespace graphics
         HRESULT hResult = mSwapChain->ResizeBuffers(
             BACK_BUFFER_COUNT,
             width, height,
-            dx12::toDXGIFormat(DefaultFormats::R8G8B8A8_UNORM), //toDXGIFormat(mHDRSupport ? DefaultFormats::R10G10B10A2_UNORM : DefaultFormats::R8G8B8A8_UNORM),
+            dx12::toDXGIFormat(mHDRSupport ? DefaultFormats::R10G10B10A2_UNORM : DefaultFormats::R8G8B8A8_UNORM),
             DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH | (mTearingSupport ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0)
         );
         HASSERT(SUCCEEDED(hResult), "Failed to resize swapchain.\n%s", utility::translateErrorCode(hResult).c_str());

@@ -52,10 +52,6 @@ namespace engine
         mPresentSI.setResourceTable(mShaderResources);
     }
 
-    void PresentPass::copyDataToGPU(graphics::GraphicContext& context, ResourceManager& resourceManager)
-    {
-    }
-
     void PresentPass::resize(const unsigned int width, const unsigned int height, graphics::Device& device, ResourceManager& resourceManager, const bool isHDRSupported)
     {
         mSwapchainWidth = width;

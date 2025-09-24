@@ -55,7 +55,7 @@ namespace graphics
     private:
         void checkFeaturesSupport();
 
-        void setupDRED();
+        DEBUG_ONLY(void setupDRED();)
 
         static const bool isRaytracingSupported(ID3D12Device* device);
 
