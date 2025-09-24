@@ -349,7 +349,7 @@ namespace engine
         reset();
     }
 
-    void NoisePassData::renderDebugUI()
+    void NoisePassData::debugUIRender()
     {
         ImGui::Begin("Noise Pass Data");
         ImGui::SliderFloat("Noise Scale", &mWaterNoiseScale, 1.0f, 100.0f);

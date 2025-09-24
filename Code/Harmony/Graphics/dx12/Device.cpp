@@ -511,6 +511,10 @@ namespace graphics
     {
 #if defined(DEBUG)
         HRESULT hResult = mDevice->GetDeviceRemovedReason();
+        if (hResult == S_OK)
+        {
+            return;
+        }
         DEBUGLOG("ERROR", "Device Removed.\n%d", utility::translateErrorCode(hResult).c_str());
 
         Microsoft::WRL::ComPtr<ID3D12DeviceRemovedExtendedData> dred;

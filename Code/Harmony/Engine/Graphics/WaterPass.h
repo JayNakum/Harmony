@@ -50,7 +50,7 @@ namespace engine
         inline const GeometryGenerator::MeshData& getWaterMesh() const { return mWaterMesh; }
         inline GeometryGenerator::MeshData& getWaterMesh() { return mWaterMesh; }
 
-        void renderDebugUI() override;
+        void debugUIRender() override;
         void reset() override;
 
         ~WaterPassData() override = default;
@@ -66,6 +66,7 @@ namespace engine
     public:
         WaterPass(graphics::Device& device, ResourceManager& resourceManager);
 
+        bool needsCopyDataToGPU() const override { return mWaterPassData.getIsDirty(); }
         void copyDataToGPU(graphics::CopyContext& context, ResourceManager& resourceManager) override;
         void freeGPUUploadData(ResourceManager& resourceManager) override;
 

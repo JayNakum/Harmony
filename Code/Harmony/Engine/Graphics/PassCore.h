@@ -57,7 +57,7 @@ namespace engine
     class PassData
     {
     public:
-        PassData() { DebugUI::Register([this] { renderDebugUI(); }); }
+        PassData() { DebugUI::Register([this] { debugUIRender(); }); }
 
         inline bool getIsDirty() const { return mIsDirty; }
         inline void setIsDirty(const bool value) { mIsDirty = value; }
@@ -123,17 +123,17 @@ namespace engine
             return mPassConstants;
         }
 
-        virtual void renderDebugUI()
+        virtual void debugUIRender()
         {
             ImGui::Begin("Default Pass");
-            commonParamsDebugUI();
+            debugUICommonParams();
             ImGui::End();
         }
 
         virtual void reset() = 0;
         virtual ~PassData() = default;
 
-        void commonParamsDebugUI()
+        void debugUICommonParams()
         {
             if (ImGui::CollapsingHeader("Pass Constants"))
             {
@@ -156,6 +156,14 @@ namespace engine
             }
         }
 
+        void debugUISave()
+        {
+            if (ImGui::Button("SAVE"))
+            {
+                mIsDirty = true;
+            }
+        }
+
     private:
         FrameConstants mFrameConstants;
         PassConstants mPassConstants;
@@ -171,6 +179,7 @@ namespace engine
     class RenderPass
     {
     protected:
+        virtual bool needsCopyDataToGPU() const { return false; }
         virtual void copyDataToGPU(graphics::CopyContext& context, ResourceManager& resourceManager) = 0;
 
         virtual void freeGPUUploadData(ResourceManager& resourceManager) = 0;
@@ -193,6 +202,7 @@ namespace engine
     class DispatchPass
     {
     protected:
+        virtual bool needsCopyDataToGPU() const { return false; }
         virtual void copyDataToGPU(graphics::CopyContext& context, ResourceManager& resourceManager) = 0;
 
         virtual void freeGPUUploadData(ResourceManager& resourceManager) = 0;

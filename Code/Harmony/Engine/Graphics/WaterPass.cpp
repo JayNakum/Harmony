@@ -193,11 +193,11 @@ namespace engine
         reset();
     }
 
-    void WaterPassData::renderDebugUI()
+    void WaterPassData::debugUIRender()
     {
         ImGui::Begin("Water Pass Data");
 
-        commonParamsDebugUI();
+        debugUICommonParams();
         if (ImGui::CollapsingHeader("Water Pass Params"))
         {
             WaterPassParams& wp = mWaterPassParams;
@@ -255,6 +255,7 @@ namespace engine
             ImGui::Text("Vertices: %zu", mWaterMesh.vertices.size());
             ImGui::Text("Indices: %zu", mWaterMesh.indices32.size());
         }
+        debugUISave();
 
         ImGui::End();
     }
@@ -433,6 +434,8 @@ namespace engine
         }
         graphics::Buffer& waterMeshIndexBuffer = resourceManager.getBuffer("IB_WaterMesh_Water_RenderPass");
         context.copyBuffer(waterMeshIndexBuffer, waterMeshIndexBufferUploader);
+
+        mWaterPassData.setIsDirty(false);
     }
 
     void WaterPass::freeGPUUploadData(ResourceManager& resourceManager)
