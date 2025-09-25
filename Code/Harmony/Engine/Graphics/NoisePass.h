@@ -29,7 +29,7 @@ namespace engine
     public:
         NoisePass(graphics::Device& device, ResourceManager& resourceManager);
 
-        void copyDataToGPU(graphics::CopyContext& context, ResourceManager& resourceManager) override {}
+        void copyDataToGPU(graphics::CopyContext& context, ResourceManager& resourceManager) override { mNoisePassData.setIsDirty(false); }
         void freeGPUUploadData(ResourceManager& resourceManager) override {}
 
         void resize(const unsigned int width, const unsigned int height, graphics::Device& device, ResourceManager& resourceManager) override {}
@@ -44,13 +44,12 @@ namespace engine
         graphics::ComputePipelineState createPSO(graphics::Device& device);
 
     private:
+        NoisePassData mNoisePassData;
+
         const graphics::ResourceTable::Layout mStaticShaderResourceTableLayout;
         graphics::ResourceTable mShaderResources;
         graphics::ShaderInput mNoiseSI;
 
         graphics::ComputePipelineState mNoisePSO;
-
-    private:
-        NoisePassData mNoisePassData;
     };
 }

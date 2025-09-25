@@ -117,8 +117,8 @@ float2 fbm2D(float2 uv, FBMParams params, Texture2D<float> noiseTex, float t)
     float frequency = params.noiseScale;
     float2 offset = float2(params.noiseSpeed * t, 0.0f);
 
-    [unroll]
-    for (uint i = 0; i < 6; ++i)
+    [loop]
+    for (uint i = 0; i < params.octaves; ++i)
     {
         float noise = noiseTex.SampleLevel(gsamLinearWrap, uv * frequency + offset, 0).r;
         sum += amplitude * noise;
@@ -153,11 +153,11 @@ VSOutput vsMain(VSInput input)
 
     float3 waveOffset = float3(0.0f, 0.0f, 0.0f);
 
-    /*[unroll]
+    [unroll]
     for(uint i = 0; i < NUM_WAVES; ++i)
     {
         waveOffset += calculateWaveOffsets(input.position, gGerstnerWaveParams[i], gTotalTime);
-    }*/
+    }
 
     float2 swell = fbm2D(input.textureCoord, gFBMParams, gNoiseTexture, gTotalTime);
     waveOffset.y += swell.x;

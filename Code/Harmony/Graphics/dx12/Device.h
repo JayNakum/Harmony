@@ -42,6 +42,7 @@ namespace graphics
         inline const bool isDeviceIntel() { return Device::getVendorIdFromDevice(*this) == vendorID_Intel; }
 
         inline const bool isGPUUploadHeapSupported() const { return mSupportsGPUUploadHeap; }
+        inline const bool isCopyQueueTimestampQueriesSupported() const { return mSupportsCopyQueueTimestampQueries; }
 
         const size_t getDescriptorHandleIncrementSize(const DescriptorHeapType type) const;
 
@@ -70,5 +71,6 @@ namespace graphics
         unsigned int m4xMSAAQuality = 0;
 
         bool mSupportsGPUUploadHeap = false;
+        bool mSupportsCopyQueueTimestampQueries = false;
     };
 }

@@ -298,6 +298,14 @@ namespace graphics
             }
         }
 
+        {// D3D12_FEATURE_DATA_D3D12_OPTIONS3
+            D3D12_FEATURE_DATA_D3D12_OPTIONS3 featureData = {};
+            if (SUCCEEDED(mDevice->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS3, &featureData, sizeof(featureData))))
+            {
+                mSupportsCopyQueueTimestampQueries = featureData.CopyQueueTimestampQueriesSupported;
+            }
+        }
+
         {// D3D12_FEATURE_D3D12_OPTIONS16
             D3D12_FEATURE_DATA_D3D12_OPTIONS16 featureData = {};
             if (SUCCEEDED(mDevice->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS16, &featureData, sizeof(featureData))))

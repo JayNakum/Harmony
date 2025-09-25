@@ -140,14 +140,17 @@ namespace engine
         contextCopy.finish(mCopyQueue.incrementFence());
 
         // EXECUTE COMMAND LISTS
-        graphics::CommandList batchedCopyCommandLists[1] = { contextCopy.commandList() };
-        const uint64_t copyFence = mCopyQueue.executeCommandLists(batchedCopyCommandLists);
+        graphics::CommandList batchedCopyCommandLists0[1] = { contextCopy.commandList() };
+        const uint64_t copyFence0 = mCopyQueue.executeCommandLists(batchedCopyCommandLists0);
 
-        graphics::CommandList batchedComputeCommandLists[1] = { contextNoise.commandList() };
-        const uint64_t computeFence = mComputeQueue.executeCommandLists(batchedComputeCommandLists);
+        graphics::CommandList batchedComputeCommandLists0[1] = { contextNoise.commandList() };
+        const uint64_t computeFence0 = mComputeQueue.executeCommandLists(batchedComputeCommandLists0);
 
-        graphics::CommandList batchedGraphicsCommandLists[3] = { contextWater.commandList(), contextDebugUI.commandList(), contextPresent.commandList() };
-        const uint64_t graphicsFence = mGraphicsQueue.executeCommandLists(batchedGraphicsCommandLists, 3);
+        graphics::CommandList batchedGraphicsCommandLists0[1] = { contextWater.commandList() };
+        const uint64_t graphicsFence0 = mGraphicsQueue.executeCommandLists(batchedGraphicsCommandLists0);
+
+        graphics::CommandList batchedGraphicsCommandLists1[2] = { contextDebugUI.commandList(), contextPresent.commandList() };
+        const uint64_t graphicsFence1 = mGraphicsQueue.executeCommandLists(batchedGraphicsCommandLists1, 2);
 
         // PRESENT
         mSwapchain.present(1);
