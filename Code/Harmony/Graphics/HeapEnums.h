@@ -32,4 +32,38 @@ namespace graphics
             return "Custom";
         }
     }
+
+    enum class QueryHeapType
+    {
+        Occlusion,
+        CopyTimestamp,
+        ComputeTimestamp,
+        GraphicsTimestamp,
+        PipelineStats,
+        StreamOutputStats,
+        VideoDecodeStats,
+    };
+
+    inline static const std::string toString(const QueryHeapType e)
+    {
+        switch (e)
+        {
+        default:
+            return "";
+        case QueryHeapType::Occlusion:
+            return "Occlusion";
+        case QueryHeapType::CopyTimestamp:
+            return "CopyTimestamp";
+        case QueryHeapType::ComputeTimestamp:
+            return "ComputeTimestamp";
+        case QueryHeapType::GraphicsTimestamp:
+            return "GraphicsTimestamp";
+        case QueryHeapType::PipelineStats:
+            return "PipelineStats";
+        case QueryHeapType::StreamOutputStats:
+            return "StreamOutputStats";
+        case QueryHeapType::VideoDecodeStats:
+            return "VideoDecodeStats";
+        }
+    }
 }

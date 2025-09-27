@@ -28,4 +28,30 @@ namespace graphics
             }
         }
     }
+
+    namespace dx12
+    {
+        // Maps graphics::QueryHeapType with D3D12_QUERY_HEAP_TYPE
+        inline static const D3D12_QUERY_HEAP_TYPE toD3DQueryHeapType(const QueryHeapType e)
+        {
+            switch (e)
+            {
+            default:
+                return (D3D12_QUERY_HEAP_TYPE)(-1);
+            case QueryHeapType::Occlusion:
+                return D3D12_QUERY_HEAP_TYPE::D3D12_QUERY_HEAP_TYPE_OCCLUSION;
+            case QueryHeapType::CopyTimestamp:
+                return D3D12_QUERY_HEAP_TYPE::D3D12_QUERY_HEAP_TYPE_COPY_QUEUE_TIMESTAMP;
+            case QueryHeapType::ComputeTimestamp:
+            case QueryHeapType::GraphicsTimestamp:
+                return D3D12_QUERY_HEAP_TYPE::D3D12_QUERY_HEAP_TYPE_TIMESTAMP;
+            case QueryHeapType::PipelineStats:
+                return D3D12_QUERY_HEAP_TYPE::D3D12_QUERY_HEAP_TYPE_PIPELINE_STATISTICS1;
+            case QueryHeapType::StreamOutputStats:
+                return D3D12_QUERY_HEAP_TYPE::D3D12_QUERY_HEAP_TYPE_SO_STATISTICS;
+            case QueryHeapType::VideoDecodeStats:
+                return D3D12_QUERY_HEAP_TYPE::D3D12_QUERY_HEAP_TYPE_VIDEO_DECODE_STATISTICS;
+            }
+        }
+    }
 }
