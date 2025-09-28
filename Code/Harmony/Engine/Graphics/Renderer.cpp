@@ -26,13 +26,15 @@ namespace engine
         mClientWidth(0), mClientHeight(0),
         mDebugUI(windowHandle, mDevice, mGraphicsQueue),
         mPresentPass(mDevice, mResourceManager),
-        mWaterPass(mDevice, mResourceManager),
-        mNoisePass(mDevice, mResourceManager)
+        mRenderParticlesPass(mDevice, mResourceManager)
+        // mWaterPass(mDevice, mResourceManager),
+        // mNoisePass(mDevice, mResourceManager)
     {
         graphics::CopyContext& contextCopy = aquireCopyContext("Initial_Copy_Context");
 
-        mNoisePass.copyDataToGPU(contextCopy, mResourceManager);
-        mWaterPass.copyDataToGPU(contextCopy, mResourceManager);
+        // mNoisePass.copyDataToGPU(contextCopy, mResourceManager);
+        // mWaterPass.copyDataToGPU(contextCopy, mResourceManager);
+        mRenderParticlesPass.copyDataToGPU(contextCopy, mResourceManager);
         mPresentPass.copyDataToGPU(contextCopy, mResourceManager);
 
         contextCopy.finish(mCopyQueue.incrementFence());
@@ -44,8 +46,9 @@ namespace engine
         discardContext(contextCopy);
 
 #if !defined(DEBUG)
-        mNoisePass.freeGPUUploadData(mResourceManager);
-        mWaterPass.freeGPUUploadData(mResourceManager);
+        // mNoisePass.freeGPUUploadData(mResourceManager);
+        // mWaterPass.freeGPUUploadData(mResourceManager);
+        mRenderParticlesPass.freeGPUUploadData(mResourceManager);
         mPresentPass.freeGPUUploadData(mResourceManager);
 #endif
 
@@ -60,9 +63,10 @@ namespace engine
         mComputeQueue.waitForFence(mComputeQueue.incrementFence());
         mGraphicsQueue.waitForFence(mGraphicsQueue.incrementFence());
 
-        mNoisePass.resize(width, height, mDevice, mResourceManager);
+        // mNoisePass.resize(width, height, mDevice, mResourceManager);
 
-        mWaterPass.resize(width, height, mDevice, mResourceManager);
+        // mWaterPass.resize(width, height, mDevice, mResourceManager);
+        mRenderParticlesPass.resize(width, height, mDevice, mResourceManager);
         mPresentPass.resize(width, height, mDevice, mResourceManager, mSwapchain.isHDRSupported());
 
         mSwapchain.resize(
@@ -77,44 +81,54 @@ namespace engine
 
     void Renderer::update(const double timeStep)
     {
-        mWaterPass.update(timeStep);
+        // mWaterPass.update(timeStep);
+        mRenderParticlesPass.update(timeStep);
         mPresentPass.update(timeStep);
 
-        mNoisePass.update(timeStep);
+        // mNoisePass.update(timeStep);
     }
 
     void Renderer::render(const FrameConstants frame)
     {
         const unsigned int frameI = mSwapchain.getCurrentBackBufferIndex();
 
-        graphics::CopyContext& contextCopy = aquireCopyContext("Default_Copy_Context");
+        // graphics::CopyContext& contextCopy = aquireCopyContext("Default_Copy_Context");
 
         // NOISE PASS
-        graphics::ComputeContext& contextNoise = aquireComputeContext("Noise_Compute_Context");
-
-        mNoisePass.getInputOutputs(contextNoise, mResourceManager);
-        mNoisePass.dispatch(contextNoise, frame);
-
-        const uint64_t noiseFence = mComputeQueue.incrementFence();
-        contextNoise.finish(noiseFence);
+        // graphics::ComputeContext& contextNoise = aquireComputeContext("Noise_Compute_Context");
+        //
+        // mNoisePass.getInputOutputs(contextNoise, mResourceManager);
+        // mNoisePass.dispatch(contextNoise, frame);
+        //
+        // const uint64_t noiseFence = mComputeQueue.incrementFence();
+        // contextNoise.finish(noiseFence);
 
         // WATER PASS
-        mGraphicsQueue.stallForFence(mComputeQueue.getFence(), noiseFence);
-        graphics::GraphicContext& contextWater = aquireGraphicContext("Water_Graphic_Context");
+        // mGraphicsQueue.stallForFence(mComputeQueue.getFence(), noiseFence);
+        // graphics::GraphicContext& contextWater = aquireGraphicContext("Water_Graphic_Context");
+        //
+        // if (mWaterPass.needsCopyDataToGPU())
+        // {
+        //     mWaterPass.copyDataToGPU(contextCopy, mResourceManager);
+        //
+        //     const uint64_t copyFence = mCopyQueue.incrementFence();
+        //     mGraphicsQueue.stallForFence(mCopyQueue.getFence(), copyFence);
+        // }
+        //
+        // mWaterPass.getInputOutputs(contextWater, mResourceManager);
+        // mWaterPass.render(contextWater, frame);
+        //
+        // const uint64_t waterFence = mGraphicsQueue.incrementFence();
+        // contextWater.finish(waterFence);
 
-        if (mWaterPass.needsCopyDataToGPU())
-        {
-            mWaterPass.copyDataToGPU(contextCopy, mResourceManager);
+        // RENDER PARTICLES PASS
+        graphics::GraphicContext& contextParticles = aquireGraphicContext("Particles_Graphic_Context");
 
-            const uint64_t copyFence = mCopyQueue.incrementFence();
-            mGraphicsQueue.stallForFence(mCopyQueue.getFence(), copyFence);
-        }
-
-        mWaterPass.getInputOutputs(contextWater, mResourceManager);
-        mWaterPass.render(contextWater, frame);
+        mRenderParticlesPass.getInputOutputs(contextParticles, mResourceManager);
+        mRenderParticlesPass.render(contextParticles, frame);
 
         const uint64_t waterFence = mGraphicsQueue.incrementFence();
-        contextWater.finish(waterFence);
+        contextParticles.finish(waterFence);
 
         // DEBUG UI
         graphics::GraphicContext& contextDebugUI = aquireGraphicContext("DebugUI_Graphic_Context");
@@ -137,28 +151,22 @@ namespace engine
         const uint64_t presentFence = mGraphicsQueue.incrementFence();
         contextPresent.finish(presentFence);
 
-        contextCopy.finish(mCopyQueue.incrementFence());
-
         // EXECUTE COMMAND LISTS
-        graphics::CommandList batchedCopyCommandLists0[1] = { contextCopy.commandList() };
-        const uint64_t copyFence0 = mCopyQueue.executeCommandLists(batchedCopyCommandLists0);
+        // graphics::CommandList batchedComputeCommandLists0[1] = { contextNoise.commandList() };
+        // const uint64_t computeFence0 = mComputeQueue.executeCommandLists(batchedComputeCommandLists0);
 
-        graphics::CommandList batchedComputeCommandLists0[1] = { contextNoise.commandList() };
-        const uint64_t computeFence0 = mComputeQueue.executeCommandLists(batchedComputeCommandLists0);
-
-        graphics::CommandList batchedGraphicsCommandLists0[1] = { contextWater.commandList() };
-        const uint64_t graphicsFence0 = mGraphicsQueue.executeCommandLists(batchedGraphicsCommandLists0);
-
-        graphics::CommandList batchedGraphicsCommandLists1[2] = { contextDebugUI.commandList(), contextPresent.commandList() };
-        const uint64_t graphicsFence1 = mGraphicsQueue.executeCommandLists(batchedGraphicsCommandLists1, 2);
+        graphics::CommandList batchedGraphicsCommandLists1[3] = { contextParticles.commandList(), contextDebugUI.commandList(), contextPresent.commandList() };
+        const uint64_t graphicsFence1 = mGraphicsQueue.executeCommandLists(batchedGraphicsCommandLists1, 3);
 
         // PRESENT
         mSwapchain.present(1);
         mDevice.getDeviceRemovedReason();
 
-        discardContext(contextCopy);
-        discardContext(contextNoise);
-        discardContext(contextWater);
+        mGraphicsQueue.waitForIdle();
+
+        // discardContext(contextNoise);
+        // discardContext(contextWater);
+        discardContext(contextParticles);
         discardContext(contextPresent);
         discardContext(contextDebugUI);
     }
@@ -168,8 +176,8 @@ namespace engine
         mGraphicsQueue.waitForFence(mGraphicsQueue.incrementFence());
 
 #if defined(DEBUG)
-        mNoisePass.freeGPUUploadData(mResourceManager);
-        mWaterPass.freeGPUUploadData(mResourceManager);
+        // mNoisePass.freeGPUUploadData(mResourceManager);
+        // mWaterPass.freeGPUUploadData(mResourceManager);
         mPresentPass.freeGPUUploadData(mResourceManager);
 #endif
 

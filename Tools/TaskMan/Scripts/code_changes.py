@@ -20,6 +20,7 @@ def sync(commit:str, working_dir: str) -> bool:
         print("[INFO] Pulling latest changes.")
         okay &= run_command("git pull", working_dir=working_dir)
     
+    okay &= run_command("git submodule update --init --recursive", working_dir=working_dir)
     okay &= status(working_dir)
 
     if okay:

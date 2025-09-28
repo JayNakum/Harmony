@@ -16,6 +16,7 @@
 // Render Passes
 #include "DebugUI.h"
 #include "WaterPass.h"
+#include "RenderParticlesPass.h"
 #include "PresentPass.h"
 // Dispatch Passes
 #include "NoisePass.h"
@@ -93,9 +94,11 @@ namespace engine
     private:
         DebugUI mDebugUI;
         PresentPass mPresentPass;
-        WaterPass mWaterPass;
+        RenderParticlesPass mRenderParticlesPass;
+        // WaterPass mWaterPass;
+
 
     private:
-        NoisePass mNoisePass;
+        // NoisePass mNoisePass;
     };
 }

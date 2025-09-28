@@ -83,7 +83,7 @@ namespace engine
 
         MeshData createGrid(float width, float depth, uint32_t m, uint32_t n);
 
-        MeshData createQuad(float x, float y, float w, float h, float depth);
+        MeshData createQuad(float x = -0.5f, float y = 0.5f, float w = 1.0f, float h = 1.0f, float depth = 0.0f);
 
     private:
         void subdivide(MeshData& meshData);

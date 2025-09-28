@@ -57,13 +57,13 @@ namespace engine
         mSwapchainWidth = width;
         mSwapchainHeight = height;
 
-        resourceManager.destroyDescriptor("SR_Water_RenderPass");
-        mShaderResources.setResource(device, resourceManager.getTextureSRV("RT_Water_RenderPass", "SR_Water_RenderPass"));
+        resourceManager.destroyDescriptor("SR_Particles_RenderPass");
+        mShaderResources.setResource(device, resourceManager.getTextureSRV("RT_Particles_RenderPass", "SR_Particles_RenderPass"));
     }
 
     void PresentPass::getInputOutputs(graphics::GraphicContext& context, ResourceManager& resourceManager)
     {
-        context.transitionBarrier(resourceManager.getRenderTarget("RT_Water_RenderPass").getTexture(), graphics::GPUResourceStates::PixelShaderResource);
+        context.transitionBarrier(resourceManager.getRenderTarget("RT_Particles_RenderPass").getTexture(), graphics::GPUResourceStates::PixelShaderResource);
 
         context.flushResourceBarriers();
     }

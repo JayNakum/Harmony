@@ -82,7 +82,7 @@ namespace engine
             mPassConstants.view = viewMatrix;
             mPassConstants.invView = inverse(mPassConstants.view);
 
-            mPassConstants.viewProjection = mPassConstants.view * mPassConstants.projection;
+            mPassConstants.viewProjection = mPassConstants.projection * mPassConstants.view;
             mPassConstants.invViewProjection = inverse(mPassConstants.viewProjection);
         }
 
@@ -99,7 +99,7 @@ namespace engine
             mPassConstants.nearZ = nearZ;
             mPassConstants.farZ = farZ;
 
-            mPassConstants.viewProjection = mPassConstants.view * mPassConstants.projection;
+            mPassConstants.viewProjection = mPassConstants.projection * mPassConstants.view;
             mPassConstants.invViewProjection = inverse(mPassConstants.viewProjection);
         }
 

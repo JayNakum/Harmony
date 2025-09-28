@@ -79,9 +79,6 @@ namespace engine
         ~WaterPass() = default;
 
     private:
-        void updateCamera();
-
-    private:
         graphics::GraphicsPipelineState createPSO(graphics::Device& device);
 
     private:

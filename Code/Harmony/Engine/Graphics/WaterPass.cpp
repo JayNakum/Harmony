@@ -304,10 +304,12 @@ namespace engine
 
         mWaterMesh = mGeoGen.createGrid(120.0f, 120.0f, 64, 64);
     }
+}
 
+namespace engine
+{
     WaterPass::WaterPass(graphics::Device& device, ResourceManager& resourceManager)
-        :
-        mWaterPassData(),
+        : mWaterPassData(),
         mStaticShaderResourceTableLayout{
             graphics::ShaderVisibility::Vertex | graphics::ShaderVisibility::Pixel,
             {
@@ -341,7 +343,6 @@ namespace engine
         mRTV = resourceManager.getRenderTargetRTV("RT_Water_RenderPass");
 
         // ConstantBuffers
-
         graphics::HeapWithAllocator::ResourceDescription commonPassConstantsBuffer{
             graphics::HeapWithAllocator::ResourceCategory::UploadPersistentData,
             { "CB_CommonPassParams_Water_RenderPass", maths::alignUp(sizeof(PassConstants), 256) }
@@ -470,7 +471,11 @@ namespace engine
 
     void WaterPass::update(const double timeStep)
     {
-        updateCamera();
+        const vec3f pos = mWaterPassData.getPassConstants().eyePosition;
+        const vec3f target(0.0f);
+        const vec3f up(0.0f, 1.0f, 0.0f);
+
+        mWaterPassData.setViewMatrix(lookAtLH<float>(pos, target, up));
     }
 
     void WaterPass::getInputOutputs(graphics::GraphicContext& context, ResourceManager& resourceManager)
@@ -537,15 +542,6 @@ namespace engine
 
         const SubmeshGeometry drawData = mWaterRI.geometry.drawArgs.at("RI_Submesh_Geometry_Water_Mesh");
         context.drawIndexedInstanced(drawData.indexCount, 1, 0, 0, 0);
-    }
-
-    void WaterPass::updateCamera()
-    {
-        const vec3f pos = mWaterPassData.getPassConstants().eyePosition;
-        const vec3f target(0.0f);
-        const vec3f up(0.0f, 1.0f, 0.0f);
-
-        mWaterPassData.setViewMatrix(lookAtLH<float>(pos, target, up));
     }
 
     graphics::GraphicsPipelineState WaterPass::createPSO(graphics::Device& device)
