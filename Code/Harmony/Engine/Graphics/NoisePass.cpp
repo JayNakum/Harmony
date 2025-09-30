@@ -360,9 +360,12 @@ namespace engine
     {
         mWaterNoiseScale = 16.0f;
     }
+}
 
+namespace engine
+{
     NoisePass::NoisePass(graphics::Device& device, ResourceManager& resourceManager)
-        :
+        : mNoiseData(),
         mStaticShaderResourceTableLayout{
             graphics::ShaderVisibility::All,
             {
@@ -377,15 +380,14 @@ namespace engine
             },
             { mStaticShaderResourceTableLayout }
         ),
-        mNoisePSO(createPSO(device)),
-        mNoisePassData()
+        mNoisePSO(createPSO(device))
     {
 
         graphics::HeapWithAllocator::ResourceDescription waterNoiseTexture{
             graphics::HeapWithAllocator::ResourceCategory::PersistentData,
             {
                 "UA_Water_Noise_Texture",
-                (size_t)mNoisePassData.getWaterNoiseTextureWidth(), (size_t)mNoisePassData.getWaterNoiseTextureHeight(),
+                (size_t)mNoiseData.getWaterNoiseTextureWidth(), (size_t)mNoiseData.getWaterNoiseTextureHeight(),
                 1, 1,
                 graphics::GPUResourceDimension::Texture2D,
                 graphics::DefaultFormats::getUAVFormat(graphics::DefaultFormats::R32_FLOAT),
@@ -413,7 +415,7 @@ namespace engine
         context.setRootSignature(mNoiseSI.getRootSignature(context.getDevice()));
 
         mNoiseSI.setConstants({ frameConstants.totalTime, frameConstants.deltaTime, 0x1deadb0b, 0x1deadb0b }, 0);
-        mNoiseSI.setConstants({ mNoisePassData.getWaterNoiseTextureWidth(), mNoisePassData.getWaterNoiseTextureHeight(), mNoisePassData.getWaterNoiseScale(), 0x1deadb0b }, 1);
+        mNoiseSI.setConstants({ mNoiseData.getWaterNoiseTextureWidth(), mNoiseData.getWaterNoiseTextureHeight(), mNoiseData.getWaterNoiseScale(), 0x1deadb0b }, 1);
         mNoiseSI.finalize(context);
 
         context.dispatch2D(256, 256);

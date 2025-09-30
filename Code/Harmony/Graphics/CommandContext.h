@@ -86,7 +86,7 @@ namespace graphics
 
         virtual ~CommandContext() = default;
 
-        static const Blob compileShader(const char* shaderName, const char* shaderCode, const char* targetProfile, const char* entryPoint = "main");
+        static const Blob compileShader(const char* shaderName, const char* shaderCode, const char* targetProfile, const char* entryPoint);
 
     private:
         std::string mName;

@@ -66,7 +66,7 @@ namespace engine
     public:
         WaterPass(graphics::Device& device, ResourceManager& resourceManager);
 
-        bool needsCopyDataToGPU() const override { return mWaterPassData.getIsDirty(); }
+        bool needsCopyDataToGPU() const override { return mWaterData.getIsDirty(); }
         void copyDataToGPU(graphics::CopyContext& context, ResourceManager& resourceManager) override;
         void freeGPUUploadData(ResourceManager& resourceManager) override;
 
@@ -82,7 +82,7 @@ namespace engine
         graphics::GraphicsPipelineState createPSO(graphics::Device& device);
 
     private:
-        WaterPassData mWaterPassData;
+        WaterPassData mWaterData;
 
         const graphics::ResourceTable::Layout mStaticShaderResourceTableLayout;
         graphics::ResourceTable mShaderResources;

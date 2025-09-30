@@ -64,7 +64,7 @@ VSOutput vsMain(
         y_bit ? 0.5f : -0.5f
     );
 
-    const float particleSize = 0.5f; // TODO: Add scale param
+    const float particleSize = 0.1f;
     float2 scaledQuadPos = quadPos * particleSize;
 
     float3 cameraRight = gView._11_21_31;

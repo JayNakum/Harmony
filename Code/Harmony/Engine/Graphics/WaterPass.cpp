@@ -309,7 +309,7 @@ namespace engine
 namespace engine
 {
     WaterPass::WaterPass(graphics::Device& device, ResourceManager& resourceManager)
-        : mWaterPassData(),
+        : mWaterData(),
         mStaticShaderResourceTableLayout{
             graphics::ShaderVisibility::Vertex | graphics::ShaderVisibility::Pixel,
             {
@@ -328,8 +328,8 @@ namespace engine
             graphics::HeapWithAllocator::ResourceCategory::RenderTargetData,
             {
                 "RT_Water_RenderPass",
-                (size_t)mWaterPassData.getPassConstants().renderTargetSize.x,
-                (size_t)mWaterPassData.getPassConstants().renderTargetSize.y,
+                (size_t)mWaterData.getPassConstants().renderTargetSize.x,
+                (size_t)mWaterData.getPassConstants().renderTargetSize.y,
                 1, 1,
                 graphics::GPUResourceDimension::Texture2D,
                 graphics::DefaultFormats::R16G16B16A16_UNORM,
@@ -363,8 +363,8 @@ namespace engine
         resourceManager.createBuffer(waterPassConstantsBuffer);
 
         // MeshBuffers
-        const size_t vbByteSize = mWaterPassData.getWaterMesh().getVBByteSize();
-        const size_t ibByteSize = mWaterPassData.getWaterMesh().getIB16ByteSize();
+        const size_t vbByteSize = mWaterData.getWaterMesh().getVBByteSize();
+        const size_t ibByteSize = mWaterData.getWaterMesh().getIB16ByteSize();
 
         graphics::HeapWithAllocator::ResourceDescription waterMeshVertexBufferUploader{
             graphics::HeapWithAllocator::ResourceCategory::UploadData,
@@ -392,7 +392,7 @@ namespace engine
 
         MeshGeometry geo;
         SubmeshGeometry waterSubmesh;
-        waterSubmesh.indexCount = (unsigned int)mWaterPassData.getWaterMesh().getIndices16().size();
+        waterSubmesh.indexCount = (unsigned int)mWaterData.getWaterMesh().getIndices16().size();
 
         geo.name = "RI_Geometry_Water_Mesh";
         geo.vertexBuffer = &resourceManager.getBuffer("VB_WaterMesh_Water_RenderPass");
@@ -410,7 +410,7 @@ namespace engine
         graphics::Buffer& waterPassConstantsBufferUploader = resourceManager.getBuffer("Uploader_CB_WaterPassParams_Water_RenderPass");
         {
             void* waterPassConstants = waterPassConstantsBufferUploader.map(context.getDevice());
-            memcpy(waterPassConstants, &mWaterPassData.getWaterParams(), maths::alignUp(sizeof(WaterPassData::WaterPassParams), 256));
+            memcpy(waterPassConstants, &mWaterData.getWaterParams(), maths::alignUp(sizeof(WaterPassData::WaterPassParams), 256));
             waterPassConstantsBufferUploader.unmap();
         }
         graphics::Buffer& waterPassConstantsBuffer = resourceManager.getBuffer("CB_WaterPassParams_Water_RenderPass");
@@ -420,7 +420,7 @@ namespace engine
         graphics::Buffer& waterMeshVertexBufferUploader = resourceManager.getBuffer("Uploader_VB_WaterMesh_Water_RenderPass");
         {
             void* destination = waterMeshVertexBufferUploader.map(context.getDevice());
-            memcpy(destination, mWaterPassData.getWaterMesh().vertices.data(), mWaterPassData.getWaterMesh().getVBByteSize());
+            memcpy(destination, mWaterData.getWaterMesh().vertices.data(), mWaterData.getWaterMesh().getVBByteSize());
             waterMeshVertexBufferUploader.unmap();
         }
         graphics::Buffer& waterMeshVertexBuffer = resourceManager.getBuffer("VB_WaterMesh_Water_RenderPass");
@@ -430,13 +430,13 @@ namespace engine
         graphics::Buffer& waterMeshIndexBufferUploader = resourceManager.getBuffer("Uploader_IB_WaterMesh_Water_RenderPass");
         {
             void* destination = waterMeshIndexBufferUploader.map(context.getDevice());
-            memcpy(destination, mWaterPassData.getWaterMesh().getIndices16().data(), mWaterPassData.getWaterMesh().getIB16ByteSize());
+            memcpy(destination, mWaterData.getWaterMesh().getIndices16().data(), mWaterData.getWaterMesh().getIB16ByteSize());
             waterMeshIndexBufferUploader.unmap();
         }
         graphics::Buffer& waterMeshIndexBuffer = resourceManager.getBuffer("IB_WaterMesh_Water_RenderPass");
         context.copyBuffer(waterMeshIndexBuffer, waterMeshIndexBufferUploader);
 
-        mWaterPassData.setIsDirty(false);
+        mWaterData.setIsDirty(false);
     }
 
     void WaterPass::freeGPUUploadData(ResourceManager& resourceManager)
@@ -448,7 +448,7 @@ namespace engine
 
     void WaterPass::resize(const unsigned int width, const unsigned int height, graphics::Device& device, ResourceManager& resourceManager)
     {
-        mWaterPassData.setRenderTargetSize(width, height);
+        mWaterData.setRenderTargetSize(width, height);
         mRenderTargetDescription.resource.width = width;
         mRenderTargetDescription.resource.height = height;
 
@@ -459,10 +459,10 @@ namespace engine
 
         const float fov = 0.25f * (float)M_PI;
         const float aspectRatio = (float)width / (float)height;
-        const float nearZ = mWaterPassData.getPassConstants().nearZ;
-        const float farZ = mWaterPassData.getPassConstants().farZ;
+        const float nearZ = mWaterData.getPassConstants().nearZ;
+        const float farZ = mWaterData.getPassConstants().farZ;
         const mat4f newProjectionMatrix = perspectiveProjection(fov, aspectRatio, nearZ, farZ);
-        mWaterPassData.setProjectionMatrix(newProjectionMatrix, nearZ, farZ);
+        mWaterData.setProjectionMatrix(newProjectionMatrix, nearZ, farZ);
 
         mShaderResources.setResource(device, resourceManager.getBufferCBV("CB_CommonPassParams_Water_RenderPass"), 0, 0);
         mShaderResources.setResource(device, resourceManager.getBufferCBV("CB_WaterPassParams_Water_RenderPass"), 0, 1);
@@ -471,11 +471,11 @@ namespace engine
 
     void WaterPass::update(const double timeStep)
     {
-        const vec3f pos = mWaterPassData.getPassConstants().eyePosition;
+        const vec3f pos = mWaterData.getPassConstants().eyePosition;
         const vec3f target(0.0f);
         const vec3f up(0.0f, 1.0f, 0.0f);
 
-        mWaterPassData.setViewMatrix(lookAtLH<float>(pos, target, up));
+        mWaterData.setViewMatrix(lookAtLH<float>(pos, target, up));
     }
 
     void WaterPass::getInputOutputs(graphics::GraphicContext& context, ResourceManager& resourceManager)
@@ -508,7 +508,7 @@ namespace engine
 
         mWaterPassSI.setConstants({ frameConstants.totalTime, frameConstants.deltaTime, 0x1deadb0b, 0x1deadb0b }, 0);
         void* commonPassConstants = mCommonPassConstantsBuffer->map(context.getDevice());
-        const PassConstants& passConstants = mWaterPassData.getPassConstants();
+        const PassConstants& passConstants = mWaterData.getPassConstants();
         memcpy(commonPassConstants, &passConstants, sizeof(PassConstants));
         mCommonPassConstantsBuffer->unmap();
 

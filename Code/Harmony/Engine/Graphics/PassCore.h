@@ -162,6 +162,11 @@ namespace engine
             {
                 mIsDirty = true;
             }
+
+            if (ImGui::Button("RESET"))
+            {
+                reset();
+            }
         }
 
     private:
