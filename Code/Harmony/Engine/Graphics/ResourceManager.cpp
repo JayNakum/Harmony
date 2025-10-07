@@ -3,13 +3,24 @@
 namespace engine
 {
     ResourceManager::ResourceManager(graphics::Device& device)
-        : mDevice(device), mResourceHeap(device), mDescriptorHeap(device)
-    {}
+        : mDevice(device), mResourceHeap(device), mDescriptorHeap(device) {}
 
-    void ResourceManager::createBuffer(const graphics::HeapWithAllocator::ResourceDescription& createDescription)
+    void ResourceManager::createByteAddressBuffer(const graphics::HeapWithAllocator::ResourceDescription& createDescription)
     {
-        HASSERT(mBuffers.find(createDescription.resource.name) == mBuffers.end(), "Buffer resource with ID %s already exists.", createDescription.resource.name.c_str());
-        mBuffers.emplace(createDescription.resource.name, mResourceHeap.createBuffer(createDescription));
+        HASSERT(mByteAddressBuffers.find(createDescription.resource.name) == mByteAddressBuffers.end(), "ByteAddressBuffer resource with ID %s already exists.", createDescription.resource.name.c_str());
+        mByteAddressBuffers.emplace(createDescription.resource.name, mResourceHeap.createByteAddressBuffer(createDescription));
+    }
+
+    void ResourceManager::createStructuredBuffer(const graphics::HeapWithAllocator::ResourceDescription& createDescription, const unsigned int elementCount, const unsigned int strideInBytes)
+    {
+        HASSERT(mStructuredBuffers.find(createDescription.resource.name) == mStructuredBuffers.end(), "StructuredBuffers resource with ID %s already exists.", createDescription.resource.name.c_str());
+        mStructuredBuffers.emplace(createDescription.resource.name, mResourceHeap.createStructuredBuffer(createDescription, elementCount, strideInBytes));
+    }
+
+    void ResourceManager::createTypedBuffer(const graphics::HeapWithAllocator::ResourceDescription& createDescription, const unsigned int elementCount, const unsigned int strideInBytes)
+    {
+        HASSERT(mTypedBuffers.find(createDescription.resource.name) == mTypedBuffers.end(), "TypedBuffer resource with ID %s already exists.", createDescription.resource.name.c_str());
+        mTypedBuffers.emplace(createDescription.resource.name, mResourceHeap.createTypedBuffer(createDescription, elementCount, strideInBytes));
     }
 
     void ResourceManager::createTexture(const graphics::HeapWithAllocator::ResourceDescription& createDescription)
@@ -32,10 +43,22 @@ namespace engine
         mRenderTargets.emplace(createDescription.resource.name, mResourceHeap.createRenderTarget(getTexture(createDescription.resource.name), type));
     }
 
-    void ResourceManager::releaseBuffer(const std::string bufferID, const graphics::HeapWithAllocator::ResourceCategory category)
+    void ResourceManager::releaseByteAddressBuffer(const std::string bufferID, const graphics::HeapWithAllocator::ResourceCategory category)
     {
-        mResourceHeap.deallocateBuffer(getBuffer(bufferID), category);
-        mBuffers.erase(bufferID);
+        mResourceHeap.deallocateBuffer(getByteAddressBuffer(bufferID), category);
+        mByteAddressBuffers.erase(bufferID);
+    }
+
+    void ResourceManager::releaseStructuredBuffer(const std::string bufferID, const graphics::HeapWithAllocator::ResourceCategory category)
+    {
+        mResourceHeap.deallocateBuffer(getStructuredBuffer(bufferID), category);
+        mStructuredBuffers.erase(bufferID);
+    }
+
+    void ResourceManager::releaseTypedBuffer(const std::string bufferID, const graphics::HeapWithAllocator::ResourceCategory category)
+    {
+        mResourceHeap.deallocateBuffer(getTypedBuffer(bufferID), category);
+        mTypedBuffers.erase(bufferID);
     }
 
     void ResourceManager::releaseTexture(const std::string textureID, const graphics::HeapWithAllocator::ResourceCategory category)
@@ -50,7 +73,7 @@ namespace engine
         mRenderTargets.erase(textureID);
     }
 
-    const graphics::DescriptorHandle& ResourceManager::getBufferCBV(const std::string id, std::string alias)
+    const graphics::DescriptorHandle& ResourceManager::getByteAddressBufferCBV(const std::string id, std::string alias)
     {
         if (alias == "NONE")
         {
@@ -63,11 +86,11 @@ namespace engine
         }
 
         mDescriptors.emplace(alias, mDescriptorHeap.allocate());
-        getBuffer(id).createConstantBufferView(mDevice, mDescriptors.at(alias));
+        getByteAddressBuffer(id).createConstantBufferView(mDevice, mDescriptors.at(alias));
         return mDescriptors.at(alias);
     }
 
-    const graphics::DescriptorHandle& ResourceManager::getBufferCBV(const std::string id, const uint64_t sizeInBytes, const unsigned int offsetInBytes, std::string alias)
+    const graphics::DescriptorHandle& ResourceManager::getByteAddressBufferCBV(const std::string id, const uint64_t sizeInBytes, const unsigned int offsetInBytes, std::string alias)
     {
         if (alias == "NONE")
         {
@@ -80,11 +103,11 @@ namespace engine
         }
 
         mDescriptors.emplace(alias, mDescriptorHeap.allocate());
-        getBuffer(id).createConstantBufferView(mDevice, mDescriptors.at(alias), sizeInBytes, offsetInBytes);
+        getByteAddressBuffer(id).createConstantBufferView(mDevice, mDescriptors.at(alias), sizeInBytes, offsetInBytes);
         return mDescriptors.at(alias);
     }
 
-    const graphics::DescriptorHandle& ResourceManager::getBufferSRV(const std::string id, std::string alias)
+    const graphics::DescriptorHandle& ResourceManager::getByteAddressBufferSRV(const std::string id, std::string alias)
     {
         if (alias == "NONE")
         {
@@ -97,11 +120,11 @@ namespace engine
         }
 
         mDescriptors.emplace(alias, mDescriptorHeap.allocate());
-        getBuffer(id).createShaderResourceView(mDevice, mDescriptors.at(alias));
+        getByteAddressBuffer(id).createShaderResourceView(mDevice, mDescriptors.at(alias));
         return mDescriptors.at(alias);
     }
 
-    const graphics::DescriptorHandle& ResourceManager::getBufferSRV(const std::string id, const uint64_t sizeInBytes, const unsigned int offsetInBytes, std::string alias)
+    const graphics::DescriptorHandle& ResourceManager::getByteAddressBufferSRV(const std::string id, const uint64_t sizeInBytes, const unsigned int offsetInBytes, std::string alias)
     {
         if (alias == "NONE")
         {
@@ -114,11 +137,11 @@ namespace engine
         }
 
         mDescriptors.emplace(alias, mDescriptorHeap.allocate());
-        getBuffer(id).createShaderResourceView(mDevice, mDescriptors.at(alias), sizeInBytes, offsetInBytes);
+        getByteAddressBuffer(id).createShaderResourceView(mDevice, mDescriptors.at(alias), sizeInBytes, offsetInBytes);
         return mDescriptors.at(alias);
     }
 
-    const graphics::DescriptorHandle& ResourceManager::getBufferUAV(const std::string id, std::string alias)
+    const graphics::DescriptorHandle& ResourceManager::getByteAddressBufferUAV(const std::string id, std::string alias)
     {
         if (alias == "NONE")
         {
@@ -131,11 +154,11 @@ namespace engine
         }
 
         mDescriptors.emplace(alias, mDescriptorHeap.allocate());
-        getBuffer(id).createUnorderedAccessView(mDevice, mDescriptors.at(alias));
+        getByteAddressBuffer(id).createUnorderedAccessView(mDevice, mDescriptors.at(alias));
         return mDescriptors.at(alias);
     }
 
-    const graphics::DescriptorHandle& ResourceManager::getBufferUAV(const std::string id, const uint64_t sizeInBytes, const unsigned int offsetInBytes, std::string alias)
+    const graphics::DescriptorHandle& ResourceManager::getByteAddressBufferUAV(const std::string id, const uint64_t sizeInBytes, const unsigned int offsetInBytes, std::string alias)
     {
         if (alias == "NONE")
         {
@@ -148,7 +171,331 @@ namespace engine
         }
 
         mDescriptors.emplace(alias, mDescriptorHeap.allocate());
-        getBuffer(id).createUnorderedAccessView(mDevice, mDescriptors.at(alias), sizeInBytes, offsetInBytes);
+        getByteAddressBuffer(id).createUnorderedAccessView(mDevice, mDescriptors.at(alias), sizeInBytes, offsetInBytes);
+        return mDescriptors.at(alias);
+    }
+
+    const graphics::DescriptorHandle& ResourceManager::getStructuredBufferCBV(const std::string id, std::string alias)
+    {
+        if (alias == "NONE")
+        {
+            alias = id;
+        }
+
+        if (mDescriptors.find(alias) != mDescriptors.end())
+        {
+            return mDescriptors[alias];
+        }
+
+        mDescriptors.emplace(alias, mDescriptorHeap.allocate());
+        getStructuredBuffer(id).createConstantBufferView(mDevice, mDescriptors.at(alias));
+        return mDescriptors.at(alias);
+    }
+
+    const graphics::DescriptorHandle& ResourceManager::getStructuredBufferCBV(const std::string id, const unsigned int elementCount, const unsigned int elementOffset, std::string alias)
+    {
+        if (alias == "NONE")
+        {
+            alias = id;
+        }
+
+        if (mDescriptors.find(alias) != mDescriptors.end())
+        {
+            return mDescriptors[alias];
+        }
+
+        graphics::StructuredBuffer& structuredBuffer = getStructuredBuffer(id);
+        const unsigned int strideInBytes = structuredBuffer.getStrideInBytes();
+
+        mDescriptors.emplace(alias, mDescriptorHeap.allocate());
+        structuredBuffer.createConstantBufferView(mDevice, mDescriptors.at(alias), elementCount * strideInBytes, elementOffset * strideInBytes);
+        return mDescriptors.at(alias);
+    }
+
+    const graphics::DescriptorHandle& ResourceManager::getStructuredBufferCBV(const std::string id, const unsigned int elementCount, const unsigned int strideInBytes, const unsigned int elementOffset, std::string alias)
+    {
+        if (alias == "NONE")
+        {
+            alias = id;
+        }
+
+        if (mDescriptors.find(alias) != mDescriptors.end())
+        {
+            return mDescriptors[alias];
+        }
+
+        mDescriptors.emplace(alias, mDescriptorHeap.allocate());
+        getStructuredBuffer(id).createConstantBufferView(mDevice, mDescriptors.at(alias), elementCount * strideInBytes, elementOffset * strideInBytes);
+        return mDescriptors.at(alias);
+    }
+
+    const graphics::DescriptorHandle& ResourceManager::getStructuredBufferSRV(const std::string id, std::string alias)
+    {
+        if (alias == "NONE")
+        {
+            alias = id;
+        }
+
+        if (mDescriptors.find(alias) != mDescriptors.end())
+        {
+            return mDescriptors[alias];
+        }
+
+        mDescriptors.emplace(alias, mDescriptorHeap.allocate());
+        getStructuredBuffer(id).createShaderResourceView(mDevice, mDescriptors.at(alias));
+        return mDescriptors.at(alias);
+    }
+
+    const graphics::DescriptorHandle& ResourceManager::getStructuredBufferSRV(const std::string id, const unsigned int elementCount, const unsigned int elementOffset, std::string alias)
+    {
+        if (alias == "NONE")
+        {
+            alias = id;
+        }
+
+        if (mDescriptors.find(alias) != mDescriptors.end())
+        {
+            return mDescriptors[alias];
+        }
+
+        graphics::StructuredBuffer& structuredBuffer = getStructuredBuffer(id);
+        const unsigned int strideInBytes = structuredBuffer.getStrideInBytes();
+
+        mDescriptors.emplace(alias, mDescriptorHeap.allocate());
+        structuredBuffer.createShaderResourceView(mDevice, mDescriptors.at(alias), elementCount, strideInBytes, elementOffset);
+        return mDescriptors.at(alias);
+    }
+
+    const graphics::DescriptorHandle& ResourceManager::getStructuredBufferSRV(const std::string id, const unsigned int elementCount, const unsigned int strideInBytes, const unsigned int elementOffset, std::string alias)
+    {
+        if (alias == "NONE")
+        {
+            alias = id;
+        }
+
+        if (mDescriptors.find(alias) != mDescriptors.end())
+        {
+            return mDescriptors[alias];
+        }
+
+        mDescriptors.emplace(alias, mDescriptorHeap.allocate());
+        getStructuredBuffer(id).createShaderResourceView(mDevice, mDescriptors.at(alias), elementCount, strideInBytes, elementOffset);
+        return mDescriptors.at(alias);
+    }
+
+    const graphics::DescriptorHandle& ResourceManager::getStructuredBufferUAV(const std::string id, std::string alias)
+    {
+        if (alias == "NONE")
+        {
+            alias = id;
+        }
+
+        if (mDescriptors.find(alias) != mDescriptors.end())
+        {
+            return mDescriptors[alias];
+        }
+
+        mDescriptors.emplace(alias, mDescriptorHeap.allocate());
+        getStructuredBuffer(id).createUnorderedAccessView(mDevice, mDescriptors.at(alias));
+        return mDescriptors.at(alias);
+    }
+
+    const graphics::DescriptorHandle& ResourceManager::getStructuredBufferUAV(const std::string id, const unsigned int elementCount, const unsigned int elementOffset, std::string alias)
+    {
+        if (alias == "NONE")
+        {
+            alias = id;
+        }
+
+        if (mDescriptors.find(alias) != mDescriptors.end())
+        {
+            return mDescriptors[alias];
+        }
+
+        graphics::StructuredBuffer& structuredBuffer = getStructuredBuffer(id);
+        const unsigned int strideInBytes = structuredBuffer.getStrideInBytes();
+
+        mDescriptors.emplace(alias, mDescriptorHeap.allocate());
+        structuredBuffer.createUnorderedAccessView(mDevice, mDescriptors.at(alias), elementCount, strideInBytes, elementOffset);
+        return mDescriptors.at(alias);
+    }
+
+    const graphics::DescriptorHandle& ResourceManager::getStructuredBufferUAV(const std::string id, const unsigned int elementCount, const unsigned int strideInBytes, const unsigned int elementOffset, std::string alias)
+    {
+        if (alias == "NONE")
+        {
+            alias = id;
+        }
+
+        if (mDescriptors.find(alias) != mDescriptors.end())
+        {
+            return mDescriptors[alias];
+        }
+
+        mDescriptors.emplace(alias, mDescriptorHeap.allocate());
+        getStructuredBuffer(id).createUnorderedAccessView(mDevice, mDescriptors.at(alias), elementCount, strideInBytes, elementOffset);
+        return mDescriptors.at(alias);
+    }
+
+    const graphics::DescriptorHandle& ResourceManager::getTypedBufferCBV(const std::string id, std::string alias)
+    {
+        if (alias == "NONE")
+        {
+            alias = id;
+        }
+
+        if (mDescriptors.find(alias) != mDescriptors.end())
+        {
+            return mDescriptors[alias];
+        }
+
+        mDescriptors.emplace(alias, mDescriptorHeap.allocate());
+        getTypedBuffer(id).createConstantBufferView(mDevice, mDescriptors.at(alias));
+        return mDescriptors.at(alias);
+    }
+
+    const graphics::DescriptorHandle& ResourceManager::getTypedBufferCBV(const std::string id, const unsigned int elementCount, const unsigned int elementOffset, std::string alias)
+    {
+        if (alias == "NONE")
+        {
+            alias = id;
+        }
+
+        if (mDescriptors.find(alias) != mDescriptors.end())
+        {
+            return mDescriptors[alias];
+        }
+
+        graphics::TypedBuffer& typedBuffer = getTypedBuffer(id);
+        const unsigned int strideInBytes = typedBuffer.getStrideInBytes();
+
+        mDescriptors.emplace(alias, mDescriptorHeap.allocate());
+        typedBuffer.createConstantBufferView(mDevice, mDescriptors.at(alias), elementCount * strideInBytes, elementOffset * strideInBytes);
+        return mDescriptors.at(alias);
+    }
+
+    const graphics::DescriptorHandle& ResourceManager::getTypedBufferCBV(const std::string id, const unsigned int elementCount, const unsigned int strideInBytes, const unsigned int elementOffset, std::string alias)
+    {
+        if (alias == "NONE")
+        {
+            alias = id;
+        }
+
+        if (mDescriptors.find(alias) != mDescriptors.end())
+        {
+            return mDescriptors[alias];
+        }
+
+        mDescriptors.emplace(alias, mDescriptorHeap.allocate());
+        getTypedBuffer(id).createConstantBufferView(mDevice, mDescriptors.at(alias), elementCount * strideInBytes, elementOffset * strideInBytes);
+        return mDescriptors.at(alias);
+    }
+
+    const graphics::DescriptorHandle& ResourceManager::getTypedBufferSRV(const std::string id, std::string alias)
+    {
+        if (alias == "NONE")
+        {
+            alias = id;
+        }
+
+        if (mDescriptors.find(alias) != mDescriptors.end())
+        {
+            return mDescriptors[alias];
+        }
+
+        mDescriptors.emplace(alias, mDescriptorHeap.allocate());
+        getTypedBuffer(id).createShaderResourceView(mDevice, mDescriptors.at(alias));
+        return mDescriptors.at(alias);
+    }
+
+    const graphics::DescriptorHandle& ResourceManager::getTypedBufferSRV(const std::string id, const unsigned int elementCount, const unsigned int elementOffset, std::string alias)
+    {
+        if (alias == "NONE")
+        {
+            alias = id;
+        }
+
+        if (mDescriptors.find(alias) != mDescriptors.end())
+        {
+            return mDescriptors[alias];
+        }
+
+        graphics::TypedBuffer& typedBuffer = getTypedBuffer(id);
+        const unsigned int strideInBytes = typedBuffer.getStrideInBytes();
+
+        mDescriptors.emplace(alias, mDescriptorHeap.allocate());
+        typedBuffer.createShaderResourceView(mDevice, mDescriptors.at(alias), elementCount, strideInBytes, elementOffset);
+        return mDescriptors.at(alias);
+    }
+
+    const graphics::DescriptorHandle& ResourceManager::getTypedBufferSRV(const std::string id, const unsigned int elementCount, const unsigned int strideInBytes, const unsigned int elementOffset, std::string alias)
+    {
+        if (alias == "NONE")
+        {
+            alias = id;
+        }
+
+        if (mDescriptors.find(alias) != mDescriptors.end())
+        {
+            return mDescriptors[alias];
+        }
+
+        mDescriptors.emplace(alias, mDescriptorHeap.allocate());
+        getTypedBuffer(id).createShaderResourceView(mDevice, mDescriptors.at(alias), elementCount, strideInBytes, elementOffset);
+        return mDescriptors.at(alias);
+    }
+
+    const graphics::DescriptorHandle& ResourceManager::getTypedBufferUAV(const std::string id, std::string alias)
+    {
+        if (alias == "NONE")
+        {
+            alias = id;
+        }
+
+        if (mDescriptors.find(alias) != mDescriptors.end())
+        {
+            return mDescriptors[alias];
+        }
+
+        mDescriptors.emplace(alias, mDescriptorHeap.allocate());
+        getTypedBuffer(id).createUnorderedAccessView(mDevice, mDescriptors.at(alias));
+        return mDescriptors.at(alias);
+    }
+
+    const graphics::DescriptorHandle& ResourceManager::getTypedBufferUAV(const std::string id, const unsigned int elementCount, const unsigned int elementOffset, std::string alias)
+    {
+        if (alias == "NONE")
+        {
+            alias = id;
+        }
+
+        if (mDescriptors.find(alias) != mDescriptors.end())
+        {
+            return mDescriptors[alias];
+        }
+
+        graphics::TypedBuffer& typedBuffer = getTypedBuffer(id);
+        const unsigned int strideInBytes = typedBuffer.getStrideInBytes();
+
+        mDescriptors.emplace(alias, mDescriptorHeap.allocate());
+        typedBuffer.createUnorderedAccessView(mDevice, mDescriptors.at(alias), elementCount, strideInBytes, elementOffset);
+        return mDescriptors.at(alias);
+    }
+
+    const graphics::DescriptorHandle& ResourceManager::getTypedBufferUAV(const std::string id, const unsigned int elementCount, const unsigned int strideInBytes, const unsigned int elementOffset, std::string alias)
+    {
+        if (alias == "NONE")
+        {
+            alias = id;
+        }
+
+        if (mDescriptors.find(alias) != mDescriptors.end())
+        {
+            return mDescriptors[alias];
+        }
+
+        mDescriptors.emplace(alias, mDescriptorHeap.allocate());
+        getTypedBuffer(id).createUnorderedAccessView(mDevice, mDescriptors.at(alias), elementCount, strideInBytes, elementOffset);
         return mDescriptors.at(alias);
     }
 

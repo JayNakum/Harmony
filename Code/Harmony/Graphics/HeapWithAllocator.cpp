@@ -25,11 +25,37 @@ namespace graphics
             })
     {}
 
-    ByteAddressBuffer HeapWithAllocator::createBuffer(const ResourceDescription& createDescription)
+    ByteAddressBuffer HeapWithAllocator::createByteAddressBuffer(const ResourceDescription& createDescription)
     {
         Buffer::Description description = createDescription.resource;
         description.dimension = GPUResourceDimension::Buffer;
         ByteAddressBuffer buffer(description);
+        buffer.createPlaced(
+            mDevice,
+            getBackingHeap(createDescription.category),
+            mAllocator.allocate(createDescription.category, buffer.getAllocationInfo(mDevice).sizeInBytes)
+        );
+        return buffer;
+    }
+
+    StructuredBuffer HeapWithAllocator::createStructuredBuffer(const ResourceDescription& createDescription, const unsigned int elementCount, const unsigned int strideInBytes)
+    {
+        Buffer::Description description = createDescription.resource;
+        description.dimension = GPUResourceDimension::Buffer;
+        StructuredBuffer buffer(description, elementCount, strideInBytes);
+        buffer.createPlaced(
+            mDevice,
+            getBackingHeap(createDescription.category),
+            mAllocator.allocate(createDescription.category, buffer.getAllocationInfo(mDevice).sizeInBytes)
+        );
+        return buffer;
+    }
+
+    TypedBuffer HeapWithAllocator::createTypedBuffer(const ResourceDescription& createDescription, const unsigned int elementCount, const unsigned int strideInBytes)
+    {
+        Buffer::Description description = createDescription.resource;
+        description.dimension = GPUResourceDimension::Buffer;
+        TypedBuffer buffer(description, elementCount, strideInBytes);
         buffer.createPlaced(
             mDevice,
             getBackingHeap(createDescription.category),
@@ -55,6 +81,16 @@ namespace graphics
     }
 
     void HeapWithAllocator::deallocateBuffer(const ByteAddressBuffer& buffer, const ResourceCategory category)
+    {
+        mAllocator.deallocate(category, buffer.getHeapOffset(), buffer.getAllocationInfo(mDevice).sizeInBytes);
+    }
+
+    void HeapWithAllocator::deallocateBuffer(const StructuredBuffer& buffer, const ResourceCategory category)
+    {
+        mAllocator.deallocate(category, buffer.getHeapOffset(), buffer.getAllocationInfo(mDevice).sizeInBytes);
+    }
+
+    void HeapWithAllocator::deallocateBuffer(const TypedBuffer& buffer, const ResourceCategory category)
     {
         mAllocator.deallocate(category, buffer.getHeapOffset(), buffer.getAllocationInfo(mDevice).sizeInBytes);
     }

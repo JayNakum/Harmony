@@ -95,3 +95,65 @@ namespace graphics
         virtual ~ByteAddressBuffer() = default;
     };
 }
+
+namespace graphics
+{
+    /*
+    * A StructuredBuffer is accessed per stride.
+    */
+    class StructuredBuffer : public Buffer
+    {
+    public:
+        StructuredBuffer(const Description& createDescription, const unsigned int elementCount, const unsigned int strideInBytes);
+
+        inline const unsigned int getElementCount() const { return mElementCount; }
+        inline const unsigned int getStrideInBytes() const { return mStrideInBytes; }
+
+        void createShaderResourceView(Device& device, DescriptorHandle& srvHandle) const;
+        // Creates an SRV with custom size and offset.
+        // Requires a pre-allocated descriptorHandle& from a descriptor heap.
+        void createShaderResourceView(Device& device, DescriptorHandle& srvHandle, const unsigned int elementCount, const unsigned int strideInBytes, const unsigned int elementOffset = 0) const;
+
+        void createUnorderedAccessView(Device& device, DescriptorHandle& uavHandle) const;
+        // Creates an UAV with custom size and offset.
+        // Requires a pre-allocated descriptorHandle& from a descriptor heap.
+        void createUnorderedAccessView(Device& device, DescriptorHandle& uavHandle, const unsigned int elementCount, const unsigned int strideInBytes, const unsigned int elementOffset = 0) const;
+
+        virtual ~StructuredBuffer() = default;
+
+    private:
+        const unsigned int mElementCount;
+        const unsigned int mStrideInBytes;
+    };
+}
+
+namespace graphics
+{
+    /*
+    * A TypedBuffer is accessed per stride.
+    */
+    class TypedBuffer : public Buffer
+    {
+    public:
+        TypedBuffer(const Description& createDescription, const unsigned int elementCount, const unsigned int strideInBytes);
+
+        inline const unsigned int getElementCount() const { return mElementCount; }
+        inline const unsigned int getStrideInBytes() const { return mStrideInBytes; }
+
+        void createShaderResourceView(Device& device, DescriptorHandle& srvHandle) const;
+        // Creates an SRV with custom size and offset.
+        // Requires a pre-allocated descriptorHandle& from a descriptor heap.
+        void createShaderResourceView(Device& device, DescriptorHandle& srvHandle, const unsigned int elementCount, const unsigned int strideInBytes, const unsigned int elementOffset = 0) const;
+
+        void createUnorderedAccessView(Device& device, DescriptorHandle& uavHandle) const;
+        // Creates an UAV with custom size and offset.
+        // Requires a pre-allocated descriptorHandle& from a descriptor heap.
+        void createUnorderedAccessView(Device& device, DescriptorHandle& uavHandle, const unsigned int elementCount, const unsigned int strideInBytes, const unsigned int elementOffset = 0) const;
+
+        virtual ~TypedBuffer() = default;
+
+    private:
+        const unsigned int mElementCount;
+        const unsigned int mStrideInBytes;
+    };
+}

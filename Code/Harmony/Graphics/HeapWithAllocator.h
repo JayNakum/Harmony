@@ -48,11 +48,15 @@ namespace graphics
     public:
         HeapWithAllocator(Device& device);
 
-        ByteAddressBuffer createBuffer(const ResourceDescription& createDescription);
+        ByteAddressBuffer createByteAddressBuffer(const ResourceDescription& createDescription);
+        StructuredBuffer createStructuredBuffer(const ResourceDescription& createDescription, const unsigned int elementCount, const unsigned int strideInBytes);
+        TypedBuffer createTypedBuffer(const ResourceDescription& createDescription, const unsigned int elementCount, const unsigned int strideInBytes);
         Texture createTexture(const ResourceDescription& createDescription);
         RenderTarget createRenderTarget(Texture& texture, const RenderTarget::Type type = RenderTarget::Type::Color);
 
         void deallocateBuffer(const ByteAddressBuffer& buffer, const ResourceCategory category);
+        void deallocateBuffer(const StructuredBuffer& buffer, const ResourceCategory category);
+        void deallocateBuffer(const TypedBuffer& buffer, const ResourceCategory category);
         void deallocateTexture(const Texture& texture, const ResourceCategory category);
 
         inline void reset(const ResourceCategory category) { mAllocator.reset(category); }
