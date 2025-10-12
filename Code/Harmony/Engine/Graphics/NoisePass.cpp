@@ -382,7 +382,6 @@ namespace engine
         ),
         mNoisePSO(createPSO(device))
     {
-
         graphics::HeapWithAllocator::ResourceDescription waterNoiseTexture{
             graphics::HeapWithAllocator::ResourceCategory::PersistentData,
             {

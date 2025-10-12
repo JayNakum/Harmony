@@ -60,7 +60,7 @@ namespace engine
         void getInputOutputs(graphics::ComputeContext& context, ResourceManager& resourceManager) override;
         void dispatch(graphics::ComputeContext& context, const FrameConstants& frameConstants) override;
 
-        ~SimulateParticlesPass();
+        ~SimulateParticlesPass() = default;
 
     private:
         graphics::ComputePipelineState createPSO(graphics::Device& device);

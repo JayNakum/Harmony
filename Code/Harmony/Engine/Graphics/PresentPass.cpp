@@ -105,12 +105,14 @@ namespace engine
         psoDesc.vertexShader = graphics::CommandContext::compileShader(
             "ScreenQuadVS",
             shaders::ScreenQuadVS,
-            "vs_5_0"
+            "vs_5_0",
+            "main"
         );
         psoDesc.pixelShader = graphics::CommandContext::compileShader(
             "BufferCopyPS",
             shaders::BufferCopyPS,
-            "ps_5_0"
+            "ps_5_0",
+            "main"
         );
         psoDesc.numRenderTargets = 1;
         psoDesc.rtvFormats[0] = graphics::DefaultFormats::R8G8B8A8_UNORM;

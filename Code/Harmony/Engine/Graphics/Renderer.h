@@ -15,11 +15,12 @@
 #include "PassCore.h"
 // Render Passes
 #include "DebugUI.h"
-#include "WaterPass.h"
+// #include "WaterPass.h"
 #include "RenderParticlesPass.h"
 #include "PresentPass.h"
 // Dispatch Passes
-#include "NoisePass.h"
+// #include "NoisePass.h"
+#include "SimulateParticlesPass.h"
 
 #include "Maths.h"
 
@@ -97,8 +98,8 @@ namespace engine
         RenderParticlesPass mRenderParticlesPass;
         // WaterPass mWaterPass;
 
-
     private:
         // NoisePass mNoisePass;
+        SimulateParticlesPass mSimulateParticlesPass;
     };
 }

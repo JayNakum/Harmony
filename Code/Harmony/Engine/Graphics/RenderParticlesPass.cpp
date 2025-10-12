@@ -45,10 +45,22 @@ SamplerState gsamAnisotropicClamp : register(s5);
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
+struct Particle
+{
+    float4 color;
+
+    float3 position;
+    float duration;
+    float3 velocity;
+    float scale;
+};
+StructuredBuffer<Particle> gParticles : register(t0);
+
 struct VSOutput
 {
     float4 position : SV_POSITION;
     float2 textureCoord : TEXCOORD0;
+    float4 color : COLOR0;
 };
 
 VSOutput vsMain(
@@ -56,46 +68,46 @@ VSOutput vsMain(
     uint instanceID : SV_InstanceID
 )
 {
-    uint x_bit = (vertexID >> 1) & 1;
-    uint y_bit = vertexID & 1;
+    const float4 particleColor = gParticles[instanceID].color;
+    const float3 particlePos = gParticles[instanceID].position;
+    const float particleSize = gParticles[instanceID].scale;
 
-    float2 quadPos = float2(
+    // Billboarding
+    const uint x_bit = (vertexID >> 1) & 1;
+    const uint y_bit = vertexID & 1;
+
+    const float2 quadPos = float2(
         x_bit ? 0.5f : -0.5f,
         y_bit ? 0.5f : -0.5f
     );
+    const float3 cameraRight = gView._11_21_31;
+    const float3 cameraUp = gView._12_22_32;
 
-    const float particleSize = 0.1f;
-    float2 scaledQuadPos = quadPos * particleSize;
-
-    float3 cameraRight = gView._11_21_31;
-    float3 cameraUp = gView._12_22_32;
-
-    uint gridSize = 100;
-    uint gridX = instanceID % gridSize;
-    uint gridY = instanceID / gridSize;
-
-    // Position particles in a grid with spacing
-    const float spacing = 2.0f; // Adjust this to change grid density
-    float3 particlePos = float3(
-        (gridX - gridSize * 0.5f + 0.5f) * spacing,
-        0.0f,
-        (gridY - gridSize * 0.5f + 0.5f) * spacing
-    );
-
-    // Billboarding
-    float3 worldPos = particlePos + scaledQuadPos.x * cameraRight + scaledQuadPos.y * cameraUp;
+    const float2 scaledQuadPos = quadPos * particleSize;
+    const float3 worldPos = particlePos + scaledQuadPos.x * cameraRight + scaledQuadPos.y * cameraUp;
 
     VSOutput output;
 
     output.position = mul(float4(worldPos, 1.0f), gViewProj);
     output.textureCoord = float2(x_bit, 1.0f - y_bit);
+    output.color = particleColor;
 
     return output;
 }
 
 float4 psMain(VSOutput input) : SV_TARGET
 {
-    return float4(1.0f, 0.0f, 0.0f, 1.0f);
+    const float CIRCLE_RADIUS = 0.5f;
+
+    float2 center = float2(0.5f, 0.5f);
+    float dist = length(input.textureCoord - center);
+
+    if (dist > CIRCLE_RADIUS)
+    {
+        discard;
+    }
+
+    return input.color;
 }
 
 )###";
@@ -119,7 +131,7 @@ namespace engine
 
     void RenderParticlesPassData::reset()
     {
-        setEyePosition({ 5.0f, 10.0f, -25.0f });
+        setEyePosition({ 0.0f, 0.0f, -5.0f });
 
         setProjectionMatrix(mat4f(), 0.01f, 1000.0f);
 
@@ -135,7 +147,7 @@ namespace engine
             graphics::ShaderVisibility::Vertex,
             {
                 {graphics::DescriptorRangeType::CBV, 1}, // Pass Params Buffer
-                // {graphics::DescriptorRangeType::SRV, 1}, // Instance Data Buffer
+                {graphics::DescriptorRangeType::SRV, 1}, // Particles Buffer
             }
         },
         mShaderResources(resourceManager.createResourceTable("RenderParticlesShader_ResourceTable", mStaticShaderResourceTableLayout, graphics::DescriptorHeapWithAllocator::DescriptorsCategory::StaticGPU)),
@@ -168,8 +180,8 @@ namespace engine
             graphics::HeapWithAllocator::ResourceCategory::UploadPersistentData,
             { "CB_CommonPassParams_Particles_RenderPass", maths::alignUp(sizeof(PassConstants), 256) }
         };
-        resourceManager.createBuffer(commonPassConstantsBuffer);
-        mCommonPassConstantsBuffer = &resourceManager.getBuffer("CB_CommonPassParams_Particles_RenderPass");
+        resourceManager.createByteAddressBuffer(commonPassConstantsBuffer);
+        mCommonPassConstantsBuffer = &resourceManager.getByteAddressBuffer("CB_CommonPassParams_Particles_RenderPass");
 
         mRenderParticlesPassSI.setResourceTable(mShaderResources);
     }
@@ -192,7 +204,8 @@ namespace engine
         const mat4f newProjectionMatrix = perspectiveProjection(fov, aspectRatio, nearZ, farZ);
         mRenderParticlesPassData.setProjectionMatrix(newProjectionMatrix, nearZ, farZ);
 
-        mShaderResources.setResource(device, resourceManager.getBufferCBV("CB_CommonPassParams_Particles_RenderPass"));
+        mShaderResources.setResource(device, resourceManager.getByteAddressBufferCBV("CB_CommonPassParams_Particles_RenderPass"), 0);
+        mShaderResources.setResource(device, resourceManager.getStructuredBufferSRV("UA_Particles_Buffer", "SR_Particles_Buffer"), 1);
     }
 
     void RenderParticlesPass::update(const double timeStep)
@@ -209,8 +222,13 @@ namespace engine
         graphics::RenderTarget& renderTarget = resourceManager.getRenderTarget("RT_Particles_RenderPass");
         context.transitionBarrier(renderTarget.getTexture(), graphics::GPUResourceStates::RenderTarget);
 
-        graphics::Buffer& commonPassConstantsBuffer = resourceManager.getBuffer("CB_CommonPassParams_Particles_RenderPass");
+        graphics::Buffer& commonPassConstantsBuffer = resourceManager.getByteAddressBuffer("CB_CommonPassParams_Particles_RenderPass");
         context.transitionBarrier(commonPassConstantsBuffer, graphics::GPUResourceStates::VertexAndConstantBuffer);
+
+        graphics::Buffer& particlesBuffer = resourceManager.getStructuredBuffer("UA_Particles_Buffer");
+        context.transitionBarrier(commonPassConstantsBuffer, graphics::GPUResourceStates::Common);
+
+        context.flushResourceBarriers();
     }
 
     void RenderParticlesPass::render(graphics::GraphicContext& context, const FrameConstants& frameConstants)

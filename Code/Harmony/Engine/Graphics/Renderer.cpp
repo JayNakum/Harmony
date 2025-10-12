@@ -26,14 +26,16 @@ namespace engine
         mClientWidth(0), mClientHeight(0),
         mDebugUI(windowHandle, mDevice, mGraphicsQueue),
         mPresentPass(mDevice, mResourceManager),
-        mRenderParticlesPass(mDevice, mResourceManager)
+        mRenderParticlesPass(mDevice, mResourceManager),
         // mWaterPass(mDevice, mResourceManager),
-        // mNoisePass(mDevice, mResourceManager)
+        // mNoisePass(mDevice, mResourceManager),
+        mSimulateParticlesPass(mDevice, mResourceManager)
     {
         graphics::CopyContext& contextCopy = aquireCopyContext("Initial_Copy_Context");
 
         // mNoisePass.copyDataToGPU(contextCopy, mResourceManager);
         // mWaterPass.copyDataToGPU(contextCopy, mResourceManager);
+        mSimulateParticlesPass.copyDataToGPU(contextCopy, mResourceManager);
         mRenderParticlesPass.copyDataToGPU(contextCopy, mResourceManager);
         mPresentPass.copyDataToGPU(contextCopy, mResourceManager);
 
@@ -48,6 +50,7 @@ namespace engine
 #if !defined(DEBUG)
         // mNoisePass.freeGPUUploadData(mResourceManager);
         // mWaterPass.freeGPUUploadData(mResourceManager);
+        mSimulateParticlesPass.freeGPUUploadData(mResourceManager);
         mRenderParticlesPass.freeGPUUploadData(mResourceManager);
         mPresentPass.freeGPUUploadData(mResourceManager);
 #endif
@@ -66,6 +69,7 @@ namespace engine
         // mNoisePass.resize(width, height, mDevice, mResourceManager);
 
         // mWaterPass.resize(width, height, mDevice, mResourceManager);
+        mSimulateParticlesPass.resize(width, height, mDevice, mResourceManager);
         mRenderParticlesPass.resize(width, height, mDevice, mResourceManager);
         mPresentPass.resize(width, height, mDevice, mResourceManager, mSwapchain.isHDRSupported());
 
@@ -86,6 +90,7 @@ namespace engine
         mPresentPass.update(timeStep);
 
         // mNoisePass.update(timeStep);
+        mSimulateParticlesPass.update(timeStep);
     }
 
     void Renderer::render(const FrameConstants frame)
@@ -121,7 +126,17 @@ namespace engine
         // const uint64_t waterFence = mGraphicsQueue.incrementFence();
         // contextWater.finish(waterFence);
 
+        // SIMULATE PARTICLES PASS
+        graphics::ComputeContext& contextSimulateParticles = aquireComputeContext("SimulateParticles_Compute_Context");
+
+        mSimulateParticlesPass.getInputOutputs(contextSimulateParticles, mResourceManager);
+        mSimulateParticlesPass.dispatch(contextSimulateParticles, frame);
+
+        const uint64_t simulateParticlesFence = mComputeQueue.incrementFence();
+        contextSimulateParticles.finish(simulateParticlesFence);
+
         // RENDER PARTICLES PASS
+        mGraphicsQueue.stallForFence(mComputeQueue.getFence(), simulateParticlesFence);
         graphics::GraphicContext& contextParticles = aquireGraphicContext("Particles_Graphic_Context");
 
         mRenderParticlesPass.getInputOutputs(contextParticles, mResourceManager);
@@ -152,8 +167,8 @@ namespace engine
         contextPresent.finish(presentFence);
 
         // EXECUTE COMMAND LISTS
-        // graphics::CommandList batchedComputeCommandLists0[1] = { contextNoise.commandList() };
-        // const uint64_t computeFence0 = mComputeQueue.executeCommandLists(batchedComputeCommandLists0);
+        graphics::CommandList batchedComputeCommandLists0[1] = { contextSimulateParticles.commandList() };
+        const uint64_t computeFence0 = mComputeQueue.executeCommandLists(batchedComputeCommandLists0);
 
         graphics::CommandList batchedGraphicsCommandLists1[3] = { contextParticles.commandList(), contextDebugUI.commandList(), contextPresent.commandList() };
         const uint64_t graphicsFence1 = mGraphicsQueue.executeCommandLists(batchedGraphicsCommandLists1, 3);
@@ -166,6 +181,7 @@ namespace engine
 
         // discardContext(contextNoise);
         // discardContext(contextWater);
+        discardContext(contextSimulateParticles);
         discardContext(contextParticles);
         discardContext(contextPresent);
         discardContext(contextDebugUI);
@@ -178,6 +194,8 @@ namespace engine
 #if defined(DEBUG)
         // mNoisePass.freeGPUUploadData(mResourceManager);
         // mWaterPass.freeGPUUploadData(mResourceManager);
+        mSimulateParticlesPass.freeGPUUploadData(mResourceManager);
+        mRenderParticlesPass.freeGPUUploadData(mResourceManager);
         mPresentPass.freeGPUUploadData(mResourceManager);
 #endif
 
