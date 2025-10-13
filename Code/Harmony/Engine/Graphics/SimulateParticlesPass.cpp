@@ -5,7 +5,6 @@ namespace shaders
     static const char* SimulateParticles = R"###(
 static const float PI = 3.14159265358979323846264f;
 static const float TWO_PI = 2.0f * PI;
-static const float PHI = 1.618033988749895; // Golden Ratio
 
 cbuffer cbFrame : register(b0)
 {
@@ -37,49 +36,27 @@ struct Particle
 
 RWStructuredBuffer<Particle> gParticles : register(u0);
 
-float3 CalculateParticleVelocitySpiral(float3 emitterDir, float spread, float speed, uint particleIndex)
+float3 CalculateParticleVelocity(float3 emitterDir, float spread, float speed, uint particleIndex)
 {
-    float i = float(particleIndex);
-
-    float goldenAngle = PI * (3.0f - sqrt(5.0f)); // ~137.5 degrees
-
-    // Spiral angle - this creates the rotation around the cone
-    float spiralAngle = goldenAngle * i;
-
-    // Distance from center axis (0 to 1)
-    // Using square root for better distribution from center to edge
-    float normalizedRadius = sqrt(i / gParticlesCount);
-
-    // Convert spread (degrees) to radians
+    float spiralAngle = particleIndex;
     float spreadRadians = spread * (PI / 180.0f);
 
-    // Cone angle for this particle (0 at center, spreadRadians at max radius)
-    float coneAngle = normalizedRadius * spreadRadians;
+    float radiusInCone = sin(spreadRadians);
+    float forwardInCone = cos(spreadRadians);
 
-    // Create direction vector in cone space
-    // The cone axis is along the Z direction
-    float radiusInCone = sin(coneAngle);
-    float forwardInCone = cos(coneAngle);
-
-    // Apply spiral rotation around the cone
     float x = radiusInCone * cos(spiralAngle);
     float y = radiusInCone * sin(spiralAngle);
     float z = forwardInCone;
 
     float3 localDir = float3(x, y, z);
 
-    // Transform from local cone space to world space
     float3 up = abs(emitterDir.y) < 0.999f ? float3(0.0f, 1.0f, 0.0f) : float3(1.0f, 0.0f, 0.0f);
     float3 right = normalize(cross(up, emitterDir));
     up = normalize(cross(emitterDir, right));
 
-    // Transform: right is X, up is Y, emitterDir is Z
     float3 worldDir = localDir.x * right + localDir.y * up + localDir.z * emitterDir;
 
-    // Add speed variation based on particle index to prevent clumping
-    float speedVariation = 0.8f + 0.4f * frac(i * PHI); // Range: 0.8 to 1.2
-
-    return normalize(worldDir) * speed * speedVariation;
+    return normalize(worldDir) * speed;
 }
 
 [numthreads(64, 1, 1)]
@@ -100,7 +77,7 @@ void csMain(
     if (particle.duration < 0)
     {
         particle.duration = gInitialDuration * (1.0f - (float(dtid.x) / gParticlesCount));
-        particle.velocity = CalculateParticleVelocitySpiral(gEmitterDirection, gEmitterSpread, gInitialSpeed, dtid.x);
+        particle.velocity = CalculateParticleVelocity(gEmitterDirection, gEmitterSpread, gInitialSpeed, dtid.x);
         particle.position = gEmitterPosition;
         particle.scale = 0.01f;
     }
