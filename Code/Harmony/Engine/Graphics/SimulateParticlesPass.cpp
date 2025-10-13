@@ -85,6 +85,7 @@ void csMain(
     particle.duration -= gDeltaTime;
 
     particle.position += particle.velocity * gDeltaTime;
+    particle.velocity *= gSpeedRamp;
     particle.color = float4(particle.position, 1.0f);
     particle.scale = 0.05f;
 

@@ -259,7 +259,7 @@ namespace engine
         scissor.bottom = (unsigned int)viewport.y + (unsigned int)viewport.height;
         context.setScissor(scissor);
 
-        const float color[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+        const float color[4] = { 0.2f, 0.2f, 0.2f, 1.0f };
         context.clearColor(mRTV, color);
 
         context.setPrimitiveTopology(graphics::PrimitiveTopology::TriangleStrip);
