@@ -6,6 +6,13 @@ project "ImGUI"
   targetdir ("%{target_dir}/%{prj.name}")
   objdir ("%{obj_dir}/%{prj.name}")
   
+  warnings "Off"
+  buildoptions
+  {
+    "-Wno-everything",
+    "-Wno-error"
+  }
+
   files
   {
     "%{prj_src.Vendors.imgui}/imconfig.h",
@@ -21,7 +28,7 @@ project "ImGUI"
     "%{prj_src.Vendors.imgui}/imstb_truetype.h",
   }
 
-  externalincludedirs
+  includedirs
   {
   	"%{prj_src.Vendors.imgui}/",
   	"%{prj_src.Vendors.imgui}/backends",
