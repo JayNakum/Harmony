@@ -1,5 +1,11 @@
 #include "Window.h"
 
+namespace windows
+{
+#if defined(HDEBUG)
+
+#define REGISTER_MESSAGE(msg){msg,#msg}
+
 // secret messages
 #define WM_UAHDESTROYWINDOW 0x0090
 #define WM_UAHDRAWMENU 0x0091
@@ -8,11 +14,6 @@
 #define WM_UAHMEASUREMENUITEM 0x0094
 #define WM_UAHNCPAINTMENUPOPUP 0x0095
 
-#define REGISTER_MESSAGE(msg){msg,#msg}
-
-namespace windows
-{
-#if defined(HDEBUG)
     WindowsMessageMap::WindowsMessageMap()
         :
         map({

@@ -55,7 +55,7 @@ namespace graphics
     private:
         void checkFeaturesSupport();
 
-        HDEBUG_ONLY(void setupDRED());
+        HDEBUG_ONLY(void setupDRED();)
 
         static bool isRaytracingSupported(ID3D12Device* device);
 

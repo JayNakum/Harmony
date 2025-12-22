@@ -15,6 +15,7 @@ inline static void setD3DName(ID3D12Object* object, const wchar_t* name)
 {
 #if defined(HRELEASE)
     (void)name;
+    (void)object;
 #else
     object->SetName(name);
 #endif

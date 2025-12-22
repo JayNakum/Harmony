@@ -57,9 +57,9 @@ namespace engine
         DescriptorHeapWithAllocator mShaderViewsDescriptorHeapGPU;
 #else
     public:
-        DebugUI(const HWND windowHandle, graphics::Device& device, graphics::CommandQueue& graphicsQueue) {}
+        DebugUI(const HWND, graphics::Device&, graphics::CommandQueue&) {}
 
-        void render(graphics::GraphicContext& context) {}
+        void render(graphics::GraphicContext&) {}
 
         ~DebugUI() { msRenderCallbacks.clear(); }
 #endif
