@@ -15,6 +15,7 @@ project "Sandbox"
   {
     "%{prj_src.Sandbox}/",
     "%{prj_src.Harmony.Core}/",
+    "%{prj_src.Harmony.Maths}/",
     "%{prj_src.Harmony.Engine}/",
     "%{prj_src.Harmony.Graphics}/"
   }

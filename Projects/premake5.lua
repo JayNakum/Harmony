@@ -14,7 +14,9 @@ workspace "Harmony"
     "-Wextra",
     "-Wpedantic",
     "-Wno-c++98-compat-pedantic",
-    "-Werror"
+    "-Werror",
+    "-Wno-gnu-anonymous-struct",
+    "-Wno-nested-anon-types"
   }
 
   configurations { "Debug", "Profile", "Release" }

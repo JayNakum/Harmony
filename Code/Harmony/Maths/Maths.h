@@ -1,11 +1,10 @@
 #pragma once
 
+#pragma warning(disable : 4201)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
+#pragma clang diagnostic ignored "-Wunused-parameter"
 
-#pragma warning(disable : 4201)
-
-#define _USE_MATH_DEFINES
 #include <cmath>
 #ifndef M_E
 #define M_E 2.71828182845904523536

@@ -630,8 +630,8 @@ inline mat4x4<T> rotate(const vec3<T>& axis, const T theta)
 {
     const vec3<T> n = axis / magnitude(axis);
 
-    const float sin_theta = (float)std::sin(theta);
-    const float cos_theta = (float)std::cos(theta);
+    const float sin_theta = static_cast<float>(std::sin(theta));
+    const float cos_theta = static_cast<float>(std::cos(theta));
 
     vec4<T> p(
         (n.x * n.x) * (1 - cos_theta) + (cos_theta),

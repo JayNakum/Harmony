@@ -3,6 +3,7 @@
 #include "Entrypoint.h"
 #include "Window.h"
 #include "Inputs.h"
+#include "Maths.h"
 
 namespace sandbox
 {
