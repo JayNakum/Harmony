@@ -76,7 +76,7 @@ namespace graphics
         {
             return DefaultFormats::R32_FLOAT;
         }
-#if !defined(RELEASE)
+#if !defined(HRELEASE)
         else if (format == DefaultFormats::R32G8X24_TYPELESS ||
             format == DefaultFormats::D32_FLOAT_S8X24_UINT ||
             format == DefaultFormats::R32_FLOAT_X8X24_TYPELESS ||

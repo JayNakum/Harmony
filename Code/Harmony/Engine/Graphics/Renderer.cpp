@@ -47,7 +47,7 @@ namespace engine
 
         discardContext(contextCopy);
 
-#if !defined(DEBUG)
+#if !defined(HDEBUG)
         // mNoisePass.freeGPUUploadData(mResourceManager);
         // mWaterPass.freeGPUUploadData(mResourceManager);
         mSimulateParticlesPass.freeGPUUploadData(mResourceManager);
@@ -191,7 +191,7 @@ namespace engine
     {
         mGraphicsQueue.waitForFence(mGraphicsQueue.incrementFence());
 
-#if defined(DEBUG)
+#if defined(HDEBUG)
         // mNoisePass.freeGPUUploadData(mResourceManager);
         // mWaterPass.freeGPUUploadData(mResourceManager);
         mSimulateParticlesPass.freeGPUUploadData(mResourceManager);

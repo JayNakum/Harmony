@@ -137,7 +137,7 @@ namespace graphics
             HASSERT(SUCCEEDED(hResult), "Failed to create warp device.\n%s", utility::translateErrorCode(hResult).c_str());
             mDevice = pDevice.Detach();
         }
-#if !defined(RELEASE)
+#if !defined(HRELEASE)
         else
         {
             bool sysDeveloperModeEnabled = false;

@@ -113,7 +113,7 @@ namespace graphics
         Blob errorBlob;
 
         static UINT compileFlags = 0;
-#if defined(DEBUG)
+#if defined(HDEBUG)
         compileFlags = D3DCOMPILE_ENABLE_STRICTNESS | D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
 #endif
 
