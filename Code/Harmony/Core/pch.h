@@ -15,6 +15,7 @@
 #include <fstream>
 
 #include <array>
+#include <span>
 #include <vector>
 #include <queue>
 #include <unordered_map>

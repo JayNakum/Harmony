@@ -1,14 +1,8 @@
 #include "common.h"
-
-#include "File.h"
-#include "memory/BlockAllocator.h"
-#include "memory/LinearAllocator.h"
-#include "memory/RingAllocator.h"
-#include "memory/SuballocationAllocator.h"
-
+#include "directx.h"
 #include "Entrypoint.h"
 #include "Window.h"
-#include "Engine.h"
+#include "Inputs.h"
 
 namespace sandbox
 {
@@ -16,6 +10,7 @@ namespace sandbox
     {
     public:
         Application()
+            : mWindow({ L"Sandbox", 1280, 720 })
         {
         }
 
@@ -37,6 +32,7 @@ namespace sandbox
         }
 
     private:
+        windows::Window mWindow;
     };
 }
 
