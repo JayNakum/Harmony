@@ -50,7 +50,7 @@ namespace graphics
             {
             default:
             case DescriptorsCategory::COUNT:
-                HASSERT_SOFT(false, "Invalid category(%d) for descriptor heap. Using ShaderViewsDescriptorHeap.", category);
+                HASSERT_SOFT(false, "Invalid category(", category, ") for descriptor heap. Using ShaderViewsDescriptorHeap.");
                 _FALLTHROUGH;
             case DescriptorsCategory::DynamicCPU:
                 return mShaderViewsDescriptorHeapCPU;
@@ -109,7 +109,7 @@ namespace graphics
                 {
                 default:
                 case DescriptorsCategory::COUNT:
-                    HASSERT_SOFT(false, "Invalid section(%d) for descriptor allocation. Using DynamicCPU section.", section);
+                    HASSERT_SOFT(false, "Invalid section(", section, ") for descriptor allocation. Using DynamicCPU section.");
                     _FALLTHROUGH;
                 case DescriptorsCategory::DynamicCPU:
                     return mDynamicDescriptorsCPU.allocate(sizeInBytes);
@@ -133,7 +133,7 @@ namespace graphics
                 {
                 default:
                 case DescriptorsCategory::COUNT:
-                    HASSERT(false, "Invalid section(%d) for descriptor allocation.", section);
+                    HASSERT(false, "Invalid section(", section, ") for descriptor allocation.");
                 case DescriptorsCategory::DynamicCPU:
                     mDynamicDescriptorsCPU.reset();
                     break;

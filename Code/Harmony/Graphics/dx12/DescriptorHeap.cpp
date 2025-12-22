@@ -15,7 +15,7 @@ namespace graphics
         heapDesc.NodeMask = 1;
 
         HRESULT hResult = device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(mHeap.ReleaseAndGetAddressOf()));
-        HASSERT(SUCCEEDED(hResult), "Failed to create descriptor heap.\n%s", utility::translateErrorCode(hResult).c_str());
+        HASSERT(SUCCEEDED(hResult), "Failed to create descriptor heap.\n", utility::translateErrorCode(hResult).c_str());
 
         setD3DName(mHeap.Get(), utility::toWideString(createDescription.name).c_str());
 

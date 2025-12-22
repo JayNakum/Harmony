@@ -34,8 +34,8 @@ namespace memory
 
         inline uint64_t allocate(const size_t sizeInBytes)
         {
-            HASSERT(canAllocate(sizeInBytes), "Allocator out of memory(%d). Trying to allocate %d. Remaining size = %d",
-                mTotalSizeInBytes, sizeInBytes, getRemainingSize());
+            HASSERT(canAllocate(sizeInBytes), "Allocator out of memory(", mTotalSizeInBytes, "). ",
+                "Trying to allocate ", sizeInBytes, ". Remaining size = ", getRemainingSize());
 
             uint64_t allocationOffset = mNextAllocationOffset;
             mNextAllocationOffset += sizeInBytes;

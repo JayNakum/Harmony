@@ -24,8 +24,8 @@ namespace memory
             mOffset(offset),
             mNextAllocationOffset(mOffset)
         {
-            HASSERT_SOFT((totalSizeInBytes % blockSize) == 0, "Invalid total size %d and block size %d. Aligning up the total size to match block size. New Size = %d.",
-                totalSizeInBytes, blockSize, mTotalSizeInBytes);
+            HASSERT_SOFT((totalSizeInBytes % blockSize) == 0, "Invalid total size ", totalSizeInBytes, " and block size ", blockSize,
+                ". Aligning up the total size to match block size. New Size = ", mTotalSizeInBytes);
         }
 
         inline size_t getTotalSize() const { return mTotalSizeInBytes; }
@@ -48,7 +48,7 @@ namespace memory
         // Allocate using first fit strategy.
         inline uint64_t allocate(const size_t sizeInBytes)
         {
-            HASSERT_SOFT((sizeInBytes % mBlockSize) == 0, "Invalid allocation size %d. Aligning up the size to match block size.", sizeInBytes);
+            HASSERT_SOFT((sizeInBytes % mBlockSize) == 0, "Invalid allocation size ", sizeInBytes, ". Aligning up the size to match block size.");
 
             uint64_t allocationOffset = 0x1deadb0b;
 
@@ -75,12 +75,18 @@ namespace memory
 
             // New allocation
             HASSERT_SOFT(getFragmentedSize() < sizeInBytes,
-                "There is %d bytes space available but the memory is fragmented. Total size = %d. Fragmented size = %d. Unallocated Size = %d.",
-                sizeInBytes, mTotalSizeInBytes, getFragmentedSize(), getUnallocatedSize());
+                "There is ", sizeInBytes, " bytes space available but the memory is fragmented",
+                ". Total size = ", mTotalSizeInBytes,
+                ". Fragmented size = ", getFragmentedSize(),
+                ". Unallocated Size = ", getUnallocatedSize(),
+                ".");
 
             HASSERT(getUnallocatedSize() >= sizeInBytes,
-                "Allocator out of memory trying to allocate %d bytes. Total size = %d. Fragmented size = %d. Unallocated Size = %d.",
-                sizeInBytes, mTotalSizeInBytes, getFragmentedSize(), getUnallocatedSize());
+                "Allocator out of memory trying to allocate ", sizeInBytes, " bytes",
+                ". Total size = %d", mTotalSizeInBytes,
+                ". Fragmented size = %d", getFragmentedSize(),
+                ". Unallocated Size = %d", getUnallocatedSize(),
+                ".");
 
             allocationOffset = mNextAllocationOffset;
             mNextAllocationOffset += (blocksToAllocate * mBlockSize);

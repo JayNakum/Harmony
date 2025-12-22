@@ -12,7 +12,7 @@ namespace graphics
             1, dx12::toD3DCommandListType(createDescription.type),
             (createDescription.allocator).get(), nullptr, IID_PPV_ARGS(&mCommandList));
 
-        HASSERT(SUCCEEDED(hResult), "Failed to create command list %s.\n%s", createDescription.name.c_str(), utility::translateErrorCode(hResult).c_str());
+        HASSERT(SUCCEEDED(hResult), "Failed to create command list ", createDescription.name.c_str(), ".\n", utility::translateErrorCode(hResult).c_str());
 
         setName(createDescription.name);
     }

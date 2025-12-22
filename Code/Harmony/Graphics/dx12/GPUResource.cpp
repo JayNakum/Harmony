@@ -29,7 +29,7 @@ namespace graphics
             nullptr,
             IID_PPV_ARGS(getAddressOf())
         );
-        HASSERT(SUCCEEDED(hResult), "Failed to create committed resource %s.\n%s", mDescription.name.c_str(), utility::translateErrorCode(hResult).c_str());
+        HASSERT(SUCCEEDED(hResult), "Failed to create committed resource ", mDescription.name.c_str(), ".\n", utility::translateErrorCode(hResult).c_str());
 
         setD3DName(mResource.Get(), utility::toWideString(mDescription.name).c_str());
     }
@@ -55,7 +55,7 @@ namespace graphics
             nullptr,
             IID_PPV_ARGS(getAddressOf())
         );
-        HASSERT(SUCCEEDED(hResult), "Failed to create placed resource %s.\n%s", mDescription.name.c_str(), utility::translateErrorCode(hResult).c_str());
+        HASSERT(SUCCEEDED(hResult), "Failed to create placed resource ", mDescription.name.c_str(), ".\n", utility::translateErrorCode(hResult).c_str());
         setD3DName(mResource.Get(), utility::toWideString(mDescription.name).c_str());
     }
 
@@ -64,7 +64,7 @@ namespace graphics
         void* memory = nullptr;
         CD3DX12_RANGE range = CD3DX12_RANGE(0, mDescription.width);
         HRESULT hResult = mResource->Map(0, &range, &memory);
-        HASSERT(SUCCEEDED(hResult), "Failed to map upload buffer resource.\n%s", utility::translateErrorCode(hResult).c_str());
+        HASSERT(SUCCEEDED(hResult), "Failed to map upload buffer resource.\n", utility::translateErrorCode(hResult).c_str());
         device.getDeviceRemovedReason();
 
         return memory;

@@ -126,7 +126,7 @@ namespace graphics
         bool isValidColorFlag = hasFlag(textureDescription.resourceFlags, GPUResourceFlags::AllowRenderTarget) && (mType == Type::Color);
         bool isValidDepthFlag = hasFlag(textureDescription.resourceFlags, GPUResourceFlags::AllowDepthStencil) && (mType == Type::Depth);
 
-        HASSERT(isValidColorFlag || isValidDepthFlag, "Invalid GPUResourceFlag %s for render target.", toString(textureDescription.resourceFlags).c_str());
+        HASSERT(isValidColorFlag || isValidDepthFlag, "Invalid GPUResourceFlag ", toString(textureDescription.resourceFlags).c_str(), " for render target.");
     }
 
     /*RenderTarget::RenderTarget(const Type type, const Texture::Description& createDescription)
@@ -163,7 +163,7 @@ namespace graphics
         case GPUResourceDimension::Texture1DArray:
         case GPUResourceDimension::Texture3D:
         default:
-            HASSERT(false, "Unsupported resource dimension %s for RTV creation.", toString(mTexture.getDescription().dimension).c_str());
+            HASSERT(false, "Unsupported resource dimension ", toString(mTexture.getDescription().dimension).c_str(), " for RTV creation.");
             return;
 
         case GPUResourceDimension::Texture2D:
@@ -207,7 +207,7 @@ namespace graphics
         case GPUResourceDimension::Texture1DArray:
         case GPUResourceDimension::Texture3D:
         default:
-            HASSERT(false, "Unsupported resource dimension %s for DSV creation.", toString(mTexture.getDescription().dimension).c_str());
+            HASSERT(false, "Unsupported resource dimension ", toString(mTexture.getDescription().dimension).c_str(), " for DSV creation.");
             return;
 
         case GPUResourceDimension::Texture2D:

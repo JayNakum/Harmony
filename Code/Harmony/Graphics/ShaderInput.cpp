@@ -76,7 +76,7 @@ namespace graphics
 
     void ResourceTable::copyDescriptorsFrom(Device& device, const ResourceTable& table)
     {
-        HASSERT(mDescriptorsCount == table.getHandlesCount(), "Total descriptor count doesn't match. %d != %d", mDescriptorsCount, table.getHandlesCount());
+        HASSERT(mDescriptorsCount == table.getHandlesCount(), "Total descriptor count doesn't match ", mDescriptorsCount);
         device->CopyDescriptorsSimple(mDescriptorsCount, mDescriptors, table.getHandleStart(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
     }
 
@@ -91,7 +91,7 @@ namespace graphics
 
         descriptorOffset += column;
 
-        HASSERT(descriptorOffset <= mDescriptorsCount, "Row(%d), Column(%d) out of range.", row, column);
+        HASSERT(descriptorOffset <= mDescriptorsCount, "Row(", row, "), Column(", column, ") out of range.");
 
         return descriptorOffset;
     }
@@ -193,7 +193,7 @@ namespace graphics
         unsigned int rootIndex = 0;
 
         // Finalize root constants
-        HASSERT(mConstantsLayout.size() == mRootConstants.size(), "Mismatch in layout size (%d) and root constants size (%s).", mConstantsLayout.size(), mRootConstants.size());
+        HASSERT(mConstantsLayout.size() == mRootConstants.size(), "Mismatch in layout size and root constants size.");
 
         while (rootIndex < mRootConstants.size())
         {
@@ -202,7 +202,7 @@ namespace graphics
         }
 
         // Finalize descriptor tables
-        HASSERT(mGPUResourceTablesLayout.size() == mGPUResourceTables.size(), "Mismatch in layout size (%d) and root parameters size (%s).", mGPUResourceTablesLayout.size(), mGPUResourceTables.size());
+        HASSERT(mGPUResourceTablesLayout.size() == mGPUResourceTables.size(), "Mismatch in layout size and root parameters size.");
         for (const ResourceTable& table : mGPUResourceTables)
         {
             context.setDescriptorTable(rootIndex++, table.getHandleStart());
@@ -214,7 +214,7 @@ namespace graphics
         unsigned int rootIndex = 0;
 
         // Finalize root constants
-        HASSERT(mConstantsLayout.size() == mRootConstants.size(), "Mismatch in layout size (%d) and root constants size (%s).", mConstantsLayout.size(), mRootConstants.size());
+        HASSERT(mConstantsLayout.size() == mRootConstants.size(), "Mismatch in layout size and root constants size.");
 
         while (rootIndex < mRootConstants.size())
         {
@@ -223,7 +223,7 @@ namespace graphics
         }
 
         // Finalize descriptor tables
-        HASSERT(mGPUResourceTablesLayout.size() == mGPUResourceTables.size(), "Mismatch in layout size (%d) and root parameters size (%s).", mGPUResourceTablesLayout.size(), mGPUResourceTables.size());
+        HASSERT(mGPUResourceTablesLayout.size() == mGPUResourceTables.size(), "Mismatch in layout size and root parameters size.");
         for (const ResourceTable& table : mGPUResourceTables)
         {
             context.setDescriptorTable(rootIndex++, table.getHandleStart());

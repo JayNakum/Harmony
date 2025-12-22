@@ -84,7 +84,7 @@ namespace graphics
         // TODO: Pipeline State Flags
 
         HRESULT hResult = device->CreateGraphicsPipelineState(&d3dDescription, IID_PPV_ARGS(&mPipelineState));
-        HASSERT(SUCCEEDED(hResult), "Failed to create Graphics PSO %s.\n%s", createDescription.name.c_str(), utility::translateErrorCode(hResult).c_str());
+        HASSERT(SUCCEEDED(hResult), "Failed to create Graphics PSO ", createDescription.name.c_str(), ".\n", utility::translateErrorCode(hResult).c_str());
         setD3DName(mPipelineState.Get(), utility::toWideString(createDescription.name).c_str());
     }
 
@@ -155,7 +155,7 @@ namespace graphics
         d3dDescription.CS = createDescription.computeShader;
 
         HRESULT hResult = device->CreateComputePipelineState(&d3dDescription, IID_PPV_ARGS(&mPipelineState));
-        HASSERT(SUCCEEDED(hResult), "Failed to create Compute PSO %s.\n%s", createDescription.name.c_str(), utility::translateErrorCode(hResult).c_str());
+        HASSERT(SUCCEEDED(hResult), "Failed to create Compute PSO ", createDescription.name.c_str(), ".\n", utility::translateErrorCode(hResult).c_str());
         setD3DName(mPipelineState.Get(), utility::toWideString(createDescription.name).c_str());
     }
 }

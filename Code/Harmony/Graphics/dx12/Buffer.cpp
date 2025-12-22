@@ -17,7 +17,7 @@ namespace graphics
 
     void Buffer::createConstantBufferView(Device& device, DescriptorHandle& cbvHandle, size_t size, const uint32_t offset) const
     {
-        HASSERT(offset + size <= mDescription.width, "offset(%d) + size(%d) is more than total buffer size(%d).", offset, size, mDescription.width);
+        HASSERT(offset + size <= mDescription.width, "offset(", offset, ") + size(", size, ") is more than total buffer size ", mDescription.width);
 
         size = memory::alignUp(size, 16);
 
@@ -74,15 +74,15 @@ namespace graphics
 {
     void ByteAddressBuffer::createShaderResourceView(Device& device, DescriptorHandle& srvHandle) const
     {
-        HASSERT(memory::isAligned(mDescription.width, ByteAddressBuffer::DEFAULT_ALIGNMENT), "ByteAddressBuffer size must be %d-byte aligned.", ByteAddressBuffer::DEFAULT_ALIGNMENT);
+        HASSERT(memory::isAligned(mDescription.width, ByteAddressBuffer::DEFAULT_ALIGNMENT), "ByteAddressBuffer size must be byte aligned to ", ByteAddressBuffer::DEFAULT_ALIGNMENT);
         createShaderResourceView(device, srvHandle, mDescription.width);
     }
 
     void ByteAddressBuffer::createShaderResourceView(Device& device, DescriptorHandle& srvHandle, const uint64_t sizeInBytes, const unsigned int offsetInBytes) const
     {
-        HASSERT(offsetInBytes + sizeInBytes <= mDescription.width, "offset(%d) + size(%d) is more than total buffer size(%d).", offsetInBytes, sizeInBytes, mDescription.width);
-        HASSERT(memory::isAligned(offsetInBytes, ByteAddressBuffer::DEFAULT_ALIGNMENT), "Byte offset must be %d-byte aligned.", ByteAddressBuffer::DEFAULT_ALIGNMENT);
-        HASSERT(memory::isAligned(sizeInBytes, ByteAddressBuffer::DEFAULT_ALIGNMENT), "Byte size must be %d-byte aligned.", ByteAddressBuffer::DEFAULT_ALIGNMENT);
+        HASSERT(offsetInBytes + sizeInBytes <= mDescription.width, "offset(", offsetInBytes, ") + size(", sizeInBytes, ") is more than total buffer size ", mDescription.width);
+        HASSERT(memory::isAligned(offsetInBytes, ByteAddressBuffer::DEFAULT_ALIGNMENT), "Byte offset must be byte aligned to", ByteAddressBuffer::DEFAULT_ALIGNMENT);
+        HASSERT(memory::isAligned(sizeInBytes, ByteAddressBuffer::DEFAULT_ALIGNMENT), "Byte size must be byte aligned to", ByteAddressBuffer::DEFAULT_ALIGNMENT);
 
         D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
         srvDesc.Format = DXGI_FORMAT_R32_TYPELESS;
@@ -100,15 +100,15 @@ namespace graphics
 
     void ByteAddressBuffer::createUnorderedAccessView(Device& device, DescriptorHandle& uavHandle) const
     {
-        HASSERT(memory::isAligned(mDescription.width, ByteAddressBuffer::DEFAULT_ALIGNMENT), "ByteAddressBuffer size must be %d-byte aligned.", ByteAddressBuffer::DEFAULT_ALIGNMENT);
+        HASSERT(memory::isAligned(mDescription.width, ByteAddressBuffer::DEFAULT_ALIGNMENT), "ByteAddressBuffer size must be byte aligned to ", ByteAddressBuffer::DEFAULT_ALIGNMENT);
         createUnorderedAccessView(device, uavHandle, mDescription.width);
     }
 
     void ByteAddressBuffer::createUnorderedAccessView(Device& device, DescriptorHandle& uavHandle, const uint64_t sizeInBytes, const unsigned int offsetInBytes) const
     {
-        HASSERT(offsetInBytes + sizeInBytes <= mDescription.width, "offset(%d) + size(%d) is more than total buffer size(%d).", offsetInBytes, sizeInBytes, mDescription.width);
-        HASSERT(memory::isAligned(offsetInBytes, ByteAddressBuffer::DEFAULT_ALIGNMENT), "Byte offset must be %d-byte aligned.", ByteAddressBuffer::DEFAULT_ALIGNMENT);
-        HASSERT(memory::isAligned(sizeInBytes, ByteAddressBuffer::DEFAULT_ALIGNMENT), "Byte size must be %d-byte aligned.", ByteAddressBuffer::DEFAULT_ALIGNMENT);
+        HASSERT(offsetInBytes + sizeInBytes <= mDescription.width, "offset(", offsetInBytes, ") + size(", sizeInBytes, ") is more than total buffer size ", mDescription.width);
+        HASSERT(memory::isAligned(offsetInBytes, ByteAddressBuffer::DEFAULT_ALIGNMENT), "Byte offset must be byte aligned to", ByteAddressBuffer::DEFAULT_ALIGNMENT);
+        HASSERT(memory::isAligned(sizeInBytes, ByteAddressBuffer::DEFAULT_ALIGNMENT), "Byte size must be byte aligned to", ByteAddressBuffer::DEFAULT_ALIGNMENT);
 
         D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
         uavDesc.Format = DXGI_FORMAT_R32_TYPELESS;
@@ -139,8 +139,8 @@ namespace graphics
 
     void StructuredBuffer::createShaderResourceView(Device& device, DescriptorHandle& srvHandle, const unsigned int elementCount, const unsigned int strideInBytes, const unsigned int elementOffset) const
     {
-        HASSERT((elementCount + elementOffset) * strideInBytes <= mDescription.width, "offset(%d) + elementCount(%d) is more than total buffer size(%d).", elementOffset, elementCount, mDescription.width);
-        HASSERT_SOFT(strideInBytes == mStrideInBytes, "Provided stride doesn't match with creation stride", strideInBytes, mStrideInBytes);
+        HASSERT((elementCount + elementOffset) * strideInBytes <= mDescription.width, "offset(", elementOffset, ") + elementCount(", elementCount, ") is more than total buffer size ", mDescription.width);
+        HASSERT_SOFT(strideInBytes == mStrideInBytes, "Provided stride(", strideInBytes, ") doesn't match with creation stride", mStrideInBytes);
 
         D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
         srvDesc.Format = DXGI_FORMAT_UNKNOWN;
@@ -163,8 +163,8 @@ namespace graphics
 
     void StructuredBuffer::createUnorderedAccessView(Device& device, DescriptorHandle& uavHandle, const unsigned int elementCount, const unsigned int strideInBytes, const unsigned int elementOffset) const
     {
-        HASSERT((elementCount + elementOffset) * strideInBytes <= mDescription.width, "offset(%d) + elementCount(%d) is more than total buffer size(%d).", elementOffset, elementCount, mDescription.width);
-        HASSERT_SOFT(strideInBytes == mStrideInBytes, "Provided stride(%d) doesn't match with creation stride(%d)", strideInBytes, mStrideInBytes);
+        HASSERT((elementCount + elementOffset) * strideInBytes <= mDescription.width, "offset(", elementOffset, ") + elementCount(", elementCount, ") is more than total buffer size ", mDescription.width);
+        HASSERT_SOFT(strideInBytes == mStrideInBytes, "Provided stride(", strideInBytes, ") doesn't match with creation stride", mStrideInBytes);
 
         D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
         uavDesc.Format = DXGI_FORMAT_UNKNOWN;
@@ -195,8 +195,8 @@ namespace graphics
 
     void TypedBuffer::createShaderResourceView(Device& device, DescriptorHandle& srvHandle, const unsigned int elementCount, const unsigned int strideInBytes, const unsigned int elementOffset) const
     {
-        HASSERT((elementCount + elementOffset) * strideInBytes <= mDescription.width, "offset(%d) + elementCount(%d) is more than total buffer size(%d).", elementOffset, elementCount, mDescription.width);
-        HASSERT_SOFT(strideInBytes == mStrideInBytes, "Provided stride(%d) doesn't match with creation stride(%d)", strideInBytes, mStrideInBytes);
+        HASSERT((elementCount + elementOffset) * strideInBytes <= mDescription.width, "offset(", elementOffset, ") + elementCount(", elementCount, ") is more than total buffer size ", mDescription.width);
+        HASSERT_SOFT(strideInBytes == mStrideInBytes, "Provided stride(", strideInBytes, ") doesn't match with creation stride", mStrideInBytes);
 
         D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
         srvDesc.Format = DXGI_FORMAT_R32_FLOAT;
@@ -219,8 +219,8 @@ namespace graphics
 
     void TypedBuffer::createUnorderedAccessView(Device& device, DescriptorHandle& uavHandle, const unsigned int elementCount, const unsigned int strideInBytes, const unsigned int elementOffset) const
     {
-        HASSERT((elementCount + elementOffset) * strideInBytes <= mDescription.width, "offset(%d) + elementCount(%d) is more than total buffer size(%d).", elementOffset, elementCount, mDescription.width);
-        HASSERT_SOFT(strideInBytes == mStrideInBytes, "Provided stride(%d) doesn't match with creation stride(%d)", strideInBytes, mStrideInBytes);
+        HASSERT((elementCount + elementOffset) * strideInBytes <= mDescription.width, "offset(", elementOffset, ") + elementCount(", elementCount, ") is more than total buffer size ", mDescription.width);
+        HASSERT_SOFT(strideInBytes == mStrideInBytes, "Provided stride(", strideInBytes, ") doesn't match with creation stride", mStrideInBytes);
 
         D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
         uavDesc.Format = DXGI_FORMAT_R32_FLOAT;

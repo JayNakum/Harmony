@@ -218,17 +218,17 @@ namespace windows
             IID_IDirectInput8A,
             reinterpret_cast<void**>(&mDInput), nullptr);
 
-        HASSERT(SUCCEEDED(hResult), "DirectInput8 initialization failed.\n%s", utility::translateErrorCode(hResult).c_str());
+        HASSERT(SUCCEEDED(hResult), "DirectInput8 initialization failed.\n", utility::translateErrorCode(hResult).c_str());
 
         // Keyboard
         hResult = mDInput->CreateDevice(GUID_SysKeyboard, &mKeyboard, nullptr);
-        HASSERT(SUCCEEDED(hResult), "Keyboard CreateDevice failed.\n%s", utility::translateErrorCode(hResult).c_str());
+        HASSERT(SUCCEEDED(hResult), "Keyboard CreateDevice failed.\n", utility::translateErrorCode(hResult).c_str());
 
         hResult = mKeyboard->SetDataFormat(&c_dfDIKeyboard);
-        HASSERT(SUCCEEDED(hResult), "Keyboard SetDataFormat failed.\n%s", utility::translateErrorCode(hResult).c_str());
+        HASSERT(SUCCEEDED(hResult), "Keyboard SetDataFormat failed.\n", utility::translateErrorCode(hResult).c_str());
 
         hResult = mKeyboard->SetCooperativeLevel(mWindowHandle, DISCL_FOREGROUND | DISCL_NONEXCLUSIVE);
-        HASSERT(SUCCEEDED(hResult), "Keyboard SetCooperativeLevel failed.\n%s", utility::translateErrorCode(hResult).c_str());
+        HASSERT(SUCCEEDED(hResult), "Keyboard SetCooperativeLevel failed.\n", utility::translateErrorCode(hResult).c_str());
 
         DIPROPDWORD dipdw{};
         dipdw.diph.dwSize = sizeof(dipdw);
@@ -240,13 +240,13 @@ namespace windows
 
         // Mouse
         hResult = mDInput->CreateDevice(GUID_SysMouse, &mMouse, nullptr);
-        HASSERT(SUCCEEDED(hResult), "Mouse CreateDevice failed.\n%s", utility::translateErrorCode(hResult).c_str());
+        HASSERT(SUCCEEDED(hResult), "Mouse CreateDevice failed.\n", utility::translateErrorCode(hResult).c_str());
 
         hResult = mMouse->SetDataFormat(&c_dfDIMouse2);
-        HASSERT(SUCCEEDED(hResult), "Mouse SetDataFormat failed.\n%s", utility::translateErrorCode(hResult).c_str());
+        HASSERT(SUCCEEDED(hResult), "Mouse SetDataFormat failed.\n", utility::translateErrorCode(hResult).c_str());
 
         hResult = mMouse->SetCooperativeLevel(mWindowHandle, DISCL_FOREGROUND | DISCL_NONEXCLUSIVE);
-        HASSERT(SUCCEEDED(hResult), "Mouse SetCooperativeLevel failed.\n%s", utility::translateErrorCode(hResult).c_str());
+        HASSERT(SUCCEEDED(hResult), "Mouse SetCooperativeLevel failed.\n", utility::translateErrorCode(hResult).c_str());
 
         zeroInputs();
     }

@@ -15,7 +15,7 @@ namespace graphics
         heapDesc.Type = dx12::toD3DQueryHeapType(createDescription.type);
 
         HRESULT hResult = device->CreateQueryHeap(&heapDesc, IID_PPV_ARGS(&mQueryHeap));
-        HASSERT(SUCCEEDED(hResult), "Failed to create heap for opaque render items.\n%s", utility::translateErrorCode(hResult).c_str());
+        HASSERT(SUCCEEDED(hResult), "Failed to create heap for opaque render items.\n", utility::translateErrorCode(hResult).c_str());
 
         setD3DName(mQueryHeap.Get(), utility::toWideString(createDescription.name).c_str());
     }

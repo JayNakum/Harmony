@@ -14,7 +14,7 @@ namespace graphics
         mCommandList(mDevice, mCmdListDesc)
     {
         HRESULT hResult = mCommandList->Close();
-        HASSERT(SUCCEEDED(hResult), "Failed to close command list.\n%s", utility::translateErrorCode(hResult).c_str());
+        HASSERT(SUCCEEDED(hResult), "Failed to close command list.\n", utility::translateErrorCode(hResult).c_str());
     }
 
     void CommandContext::setName(const std::string& name)
@@ -99,7 +99,7 @@ namespace graphics
         flushResourceBarriers();
 
         HRESULT hResult = mCommandList->Close();
-        HASSERT(SUCCEEDED(hResult), "Failed to close command list.\n%s", utility::translateErrorCode(hResult).c_str());
+        HASSERT(SUCCEEDED(hResult), "Failed to close command list.\n", utility::translateErrorCode(hResult).c_str());
         mDevice.getDeviceRemovedReason();
 
         mCommandAllocatorPool.discardCommandAllocator(completedFenceValue, *mCurrentCommandAllocator);
@@ -131,7 +131,7 @@ namespace graphics
             &errorBlob
         );
 
-        HASSERT(SUCCEEDED(hResult), "Failed to compile %s shader.\n%s", shaderName,
+        HASSERT(SUCCEEDED(hResult), "Failed to compile ", shaderName, " shader.\n",
             errorBlob->GetBufferPointer() ? reinterpret_cast<char*>(errorBlob->GetBufferPointer()) : "Invalid Error");
 
         return shaderBlob;

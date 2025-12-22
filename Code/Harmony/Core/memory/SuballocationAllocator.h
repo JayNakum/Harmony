@@ -70,12 +70,18 @@ namespace memory
 
             // New allocation
             HASSERT_SOFT(getFragmentedSize() < sizeInBytes,
-                "There is %d bytes space available but the memory is fragmented. Total size = %d. Fragmented size = %d. Unallocated Size = %d.",
-                sizeInBytes, mTotalSizeInBytes, getFragmentedSize(), getUnallocatedSize());
+                "There is ", sizeInBytes, " bytes space available but the memory is fragmented",
+                ". Total size = ", mTotalSizeInBytes,
+                ". Fragmented size = ", getFragmentedSize(),
+                ". Unallocated Size = ", getUnallocatedSize(),
+                ".");
 
             HASSERT(getUnallocatedSize() >= sizeInBytes,
-                "Allocator out of memory trying to allocate %d bytes. Total size = %d. Fragmented size = %d. Unallocated Size = %d.",
-                sizeInBytes, mTotalSizeInBytes, getFragmentedSize(), getUnallocatedSize());
+                "Allocator out of memory trying to allocate ", sizeInBytes, " bytes",
+                ". Total size = %d", mTotalSizeInBytes,
+                ". Fragmented size = %d", getFragmentedSize(),
+                ". Unallocated Size = %d", getUnallocatedSize(),
+                ".");
 
             allocationOffset = mNextAllocationOffset;
             mNextAllocationOffset += sizeInBytes;

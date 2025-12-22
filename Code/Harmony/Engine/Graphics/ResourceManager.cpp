@@ -8,31 +8,31 @@ namespace engine
 
     void ResourceManager::createByteAddressBuffer(const graphics::HeapWithAllocator::ResourceDescription& createDescription)
     {
-        HASSERT(mByteAddressBuffers.find(createDescription.resource.name) == mByteAddressBuffers.end(), "ByteAddressBuffer resource with ID %s already exists.", createDescription.resource.name.c_str());
+        HASSERT(mByteAddressBuffers.find(createDescription.resource.name) == mByteAddressBuffers.end(), "ByteAddressBuffer resource with ID ", createDescription.resource.name.c_str(), " already exists.");
         mByteAddressBuffers.emplace(createDescription.resource.name, mResourceHeap.createByteAddressBuffer(createDescription));
     }
 
     void ResourceManager::createStructuredBuffer(const graphics::HeapWithAllocator::ResourceDescription& createDescription, const unsigned int elementCount, const unsigned int strideInBytes)
     {
-        HASSERT(mStructuredBuffers.find(createDescription.resource.name) == mStructuredBuffers.end(), "StructuredBuffers resource with ID %s already exists.", createDescription.resource.name.c_str());
+        HASSERT(mStructuredBuffers.find(createDescription.resource.name) == mStructuredBuffers.end(), "StructuredBuffers resource with ID ", createDescription.resource.name.c_str(), " already exists.");
         mStructuredBuffers.emplace(createDescription.resource.name, mResourceHeap.createStructuredBuffer(createDescription, elementCount, strideInBytes));
     }
 
     void ResourceManager::createTypedBuffer(const graphics::HeapWithAllocator::ResourceDescription& createDescription, const unsigned int elementCount, const unsigned int strideInBytes)
     {
-        HASSERT(mTypedBuffers.find(createDescription.resource.name) == mTypedBuffers.end(), "TypedBuffer resource with ID %s already exists.", createDescription.resource.name.c_str());
+        HASSERT(mTypedBuffers.find(createDescription.resource.name) == mTypedBuffers.end(), "TypedBuffer resource with ID ", createDescription.resource.name.c_str(), " already exists.");
         mTypedBuffers.emplace(createDescription.resource.name, mResourceHeap.createTypedBuffer(createDescription, elementCount, strideInBytes));
     }
 
     void ResourceManager::createTexture(const graphics::HeapWithAllocator::ResourceDescription& createDescription)
     {
-        HASSERT(mTextures.find(createDescription.resource.name) == mTextures.end(), "Texture resource with ID %s already exists.", createDescription.resource.name.c_str());
+        HASSERT(mTextures.find(createDescription.resource.name) == mTextures.end(), "Texture resource with ID ", createDescription.resource.name.c_str(), " already exists.");
         mTextures.emplace(createDescription.resource.name, mResourceHeap.createTexture(createDescription));
     }
 
     void ResourceManager::createRenderTarget(const std::string textureID, const graphics::RenderTarget::Type type)
     {
-        HASSERT(mRenderTargets.find(textureID) == mRenderTargets.end(), "RenderTarget resource with ID = %s already exists.", textureID.c_str());
+        HASSERT(mRenderTargets.find(textureID) == mRenderTargets.end(), "RenderTarget resource with ID ", textureID.c_str(), " already exists.");
         mRenderTargets.emplace(textureID, mResourceHeap.createRenderTarget(getTexture(textureID), type));
     }
 

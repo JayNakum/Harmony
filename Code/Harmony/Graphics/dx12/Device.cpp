@@ -68,7 +68,7 @@ namespace graphics
         // Obtain the DXGI factory
         ComPtr<IDXGIFactory6> dxgiFactory;
         hResult = CreateDXGIFactory2(dxgiFactoryFlags, IID_PPV_ARGS(&dxgiFactory));
-        HASSERT(SUCCEEDED(hResult), "Failed to create DXGI Factory.\n%s", utility::translateErrorCode(hResult).c_str());
+        HASSERT(SUCCEEDED(hResult), "Failed to create DXGI Factory.\n", utility::translateErrorCode(hResult).c_str());
 
         // Create the D3D graphics device
         ComPtr<IDXGIAdapter1> pAdapter;
@@ -131,10 +131,10 @@ namespace graphics
             }
 
             hResult = dxgiFactory->EnumWarpAdapter(IID_PPV_ARGS(&pAdapter));
-            HASSERT(SUCCEEDED(hResult), "Failed to find warp adapter.\n%s", utility::translateErrorCode(hResult).c_str());
+            HASSERT(SUCCEEDED(hResult), "Failed to find warp adapter.\n", utility::translateErrorCode(hResult).c_str());
 
             hResult = D3D12CreateDevice(pAdapter.Get(), D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&pDevice));
-            HASSERT(SUCCEEDED(hResult), "Failed to create warp device.\n%s", utility::translateErrorCode(hResult).c_str());
+            HASSERT(SUCCEEDED(hResult), "Failed to create warp device.\n", utility::translateErrorCode(hResult).c_str());
             mDevice = pDevice.Detach();
         }
 #if !defined(HRELEASE)
@@ -245,7 +245,7 @@ namespace graphics
         // Obtain the DXGI factory
         Microsoft::WRL::ComPtr<IDXGIFactory4> dxgiFactory;
         hResult = CreateDXGIFactory2(0, IID_PPV_ARGS(&dxgiFactory));
-        HASSERT(SUCCEEDED(hResult), "Failed to create DXGI Factory.\n%s", utility::translateErrorCode(hResult).c_str());
+        HASSERT(SUCCEEDED(hResult), "Failed to create DXGI Factory.\n", utility::translateErrorCode(hResult).c_str());
 
         Microsoft::WRL::ComPtr<IDXGIAdapter1> pAdapter;
 
@@ -510,7 +510,7 @@ namespace graphics
     {
         Microsoft::WRL::ComPtr<ID3D12DeviceRemovedExtendedDataSettings> dredSettings;
         HRESULT hResult = D3D12GetDebugInterface(IID_PPV_ARGS(&dredSettings));
-        HASSERT(SUCCEEDED(hResult), "Failed to setup Device Removed Extended Data.\n%s", utility::translateErrorCode(hResult).c_str());
+        HASSERT(SUCCEEDED(hResult), "Failed to setup Device Removed Extended Data.\n", utility::translateErrorCode(hResult).c_str());
 
         // Turn on auto-breadcrumbs and page fault reporting.
         dredSettings->SetAutoBreadcrumbsEnablement(D3D12_DRED_ENABLEMENT_FORCED_ON);
@@ -530,7 +530,7 @@ namespace graphics
 
         Microsoft::WRL::ComPtr<ID3D12DeviceRemovedExtendedData> dred;
         hResult = mDevice->QueryInterface(IID_PPV_ARGS(&dred));
-        HASSERT(SUCCEEDED(hResult), "Failed to query DRED.\n%s", utility::translateErrorCode(hResult).c_str());
+        HASSERT(SUCCEEDED(hResult), "Failed to query DRED.\n", utility::translateErrorCode(hResult).c_str());
 
         Microsoft::WRL::ComPtr<ID3D12DeviceRemovedExtendedData1> dred1;
         dred.As(&dred1);

@@ -115,7 +115,7 @@ namespace graphics
                 {
                 default:
                 case ResourceCategory::COUNT:
-                    HASSERT(false, "Invalid resource category %d.", category);
+                    HASSERT(false, "Invalid resource category ", category);
                     break;
                 case ResourceCategory::UploadData:
                     return mUploadData.allocate(sizeInBytes);
@@ -175,7 +175,7 @@ namespace graphics
                 {
                 default:
                 case ResourceCategory::COUNT:
-                    HASSERT(false, "Invalid resource category %d.", category);
+                    HASSERT(false, "Invalid resource category ", category);
                     break;
                 case ResourceCategory::UploadData:
                     mUploadData.reset();
