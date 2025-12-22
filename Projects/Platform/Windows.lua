@@ -15,14 +15,17 @@ project "Windows"
   includedirs
   {
     "%{prj_src.Platform.Windows}/",
-    "%{prj_src.Harmony.Core}/",
-
+    "%{prj_src.Harmony.Core}/"
+  }
+  
+  externalincludedirs
+  {
     "$(WindowsSDK_IncludePath)/",
     "$(WindowsSDK_IncludePath)/um",
     "$(WindowsSDK_IncludePath)/shared",
     "$(WindowsSDK_IncludePath)/winrt",
     "$(WindowsSDK_IncludePath)/cppwinrt",
-
+  
     "%{include_dirs.DirectX12}/"
   }
 

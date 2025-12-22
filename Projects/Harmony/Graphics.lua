@@ -23,17 +23,20 @@ project "Graphics"
     "Core" 
   }
 
-  filter "platforms:Windows"
+  filter "system:Windows"
     includedirs
     {
-      "%{prj_src.Platform.Windows}/",
-
+      "%{prj_src.Platform.Windows}/"
+    }
+    
+    externalincludedirs
+    {
       "$(WindowsSDK_IncludePath)/",
       "$(WindowsSDK_IncludePath)/um",
       "$(WindowsSDK_IncludePath)/shared",
       "$(WindowsSDK_IncludePath)/winrt",
       "$(WindowsSDK_IncludePath)/cppwinrt",
-
+  
       "%{include_dirs.DirectX12}/",
       "%{include_dirs.imgui}/"
     }
@@ -43,3 +46,5 @@ project "Graphics"
       "Windows",
       "ImGUI"
     }
+  
+  filter {}

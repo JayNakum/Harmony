@@ -26,10 +26,14 @@ project "Engine"
     "Graphics"
   }
 
-  filter "platforms:Windows"
+  filter "system:Windows"
     includedirs
     {
-      "%{prj_src.Platform.Windows}/",
+      "%{prj_src.Platform.Windows}/"
+    }
+    
+    externalincludedirs
+    {
       "%{include_dirs.DirectX12}/",
       "%{include_dirs.imgui}/"
     }
@@ -39,3 +43,5 @@ project "Engine"
       "Windows",
       "ImGUI"
     }
+
+  filter {}

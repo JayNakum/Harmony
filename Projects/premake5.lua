@@ -13,31 +13,32 @@ workspace "Harmony"
     "-Wall",
     "-Wextra",
     "-Wpedantic",
-    "-Wno-c++98-compat-pedantic"
+    "-Wno-c++98-compat-pedantic",
+    "-Werror"
   }
 
-  platforms { "Windows" }
-    configurations { "Debug", "Profile", "Release" }
+  configurations { "Debug", "Profile", "Release" }
 
-  filter "platforms:Windows"
+  filter "system:Windows"
     architecture "x64"
-    defines { "WINDOWS" }
+    defines { "HWINDOWS" }
     
   filter "configurations:Debug"
     runtime "Debug"
     symbols "On"
-    defines { "DEBUG" }
-    -- buildoptions { "-Werror" }
+    defines { "HDEBUG" }
 
   filter "configurations:Profile"
     runtime "Release"
     optimize "On"
-    defines { "PROFILE" }
+    defines { "HPROFILE" }
 
   filter "configurations:Release"
     runtime "Release"
     optimize "On"
-    defines { "RELEASE" }
+    defines { "HRELEASE" }
+
+  filter {}
 
 group "Platform"
   include "Platform/Windows"
