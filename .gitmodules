@@ -4,3 +4,6 @@
 [submodule "Vendors/imgui"]
 	path = Vendors/imgui
 	url = https://github.com/ocornut/imgui.git
+[submodule "Tools/TaskMan"]
+	path = Tools/TaskMan
+	url = https://github.com/0x1deadb0b/TaskMan.git
