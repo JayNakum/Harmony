@@ -71,6 +71,15 @@ public:
         return *this;
     }
 
+    inline mat4x4& operator=(const mat4x4& m)
+    {
+        this->value[0] = m[0];
+        this->value[1] = m[1];
+        this->value[2] = m[2];
+        this->value[3] = m[3];
+        return *this;
+    }
+
     template<typename U>
     inline mat4x4<T>& operator+=(U scalar)
     {

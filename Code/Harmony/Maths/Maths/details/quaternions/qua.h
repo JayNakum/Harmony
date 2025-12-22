@@ -32,7 +32,7 @@ public:
 // type cast constructors
     template <typename U>
     qua(const qua<U>& q)
-        : w(static_cast<T>(w)), x(static_cast<T>(x)), y(static_cast<T>(y)), z(static_cast<T>(z)) {}
+        : w(static_cast<T>(q.w)), x(static_cast<T>(q.x)), y(static_cast<T>(q.y)), z(static_cast<T>(q.z)) {}
 
 // build from euler angles
     qua(const vec3<T>& eulerAngles)

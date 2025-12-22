@@ -1,7 +1,6 @@
 #pragma once
 
 #include "common.h"
-#include "Log.h"
 
 #include "dx12/Device.h"
 

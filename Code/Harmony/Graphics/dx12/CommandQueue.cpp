@@ -58,7 +58,7 @@ namespace graphics
         mCommandQueue->Wait(fence.get(), fenceValue);
     }
 
-    uint64_t CommandQueue::executeCommandLists(CommandList commandLists[], const unsigned int count)
+    uint64_t CommandQueue::executeCommandLists(CommandList* commandLists[], const unsigned int count)
     {
         std::lock_guard<std::mutex> scopedLockGuard(mFenceMutex);
 
@@ -66,7 +66,7 @@ namespace graphics
         d3dCommandLists.reserve(count);
         for (unsigned int i = 0; i < count; ++i)
         {
-            d3dCommandLists.push_back(commandLists[i].get());
+            d3dCommandLists.push_back(commandLists[i]->get());
         }
 
         mCommandQueue->ExecuteCommandLists(static_cast<UINT>(d3dCommandLists.size()), d3dCommandLists.data());

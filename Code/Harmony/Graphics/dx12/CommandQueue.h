@@ -45,7 +45,7 @@ namespace graphics
         inline void waitForIdle() { waitForFence(incrementFence()); }
 
         // Executes the commandlist and returns the incremented fence.
-        uint64_t executeCommandLists(CommandList commandList[], const unsigned int count = 1);
+        uint64_t executeCommandLists(CommandList* commandList[], const unsigned int count = 1);
 
         // Executes multiple commandlists and returns the incremented fence.
         // const uint64_t executeCommandLists(CommandList commandList[], const size_t count = 1);

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "common.h"
-#include "Log.h"
 
 #include "CommandObject.h"
 

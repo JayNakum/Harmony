@@ -1,0 +1,122 @@
+#include "PresentPass.h"
+
+namespace shaders
+{
+    static const char* ScreenQuadVS = R"###(
+cbuffer cbFrame : register(b0)
+{
+    float gTotalTime;
+    float gDeltaTime;
+    uint _framePadding0;
+    uint _framePadding1;
+};
+
+void main(
+    in uint vertexID : SV_VertexID,
+    out float4 position : SV_Position,
+    out float2 textureCoord : TexCoord0
+)
+{
+    // Texture coordinates range [0, 2], but only [0, 1] appears on screen.
+    textureCoord = float2(uint2(vertexID, vertexID << 1) & 2);
+    position = float4(lerp(float2(-1, 1), float2(1, -1), textureCoord), 0, 1);
+}
+)###";
+
+    static const char* BufferCopyPS = R"###(
+Texture2D colorTex : register(t0);
+
+float4 main(float4 position : SV_Position) : SV_Target0
+{
+    return colorTex[(int2)position.xy];
+}
+)###";
+}
+
+namespace engine
+{
+    PresentPass::PresentPass(graphics::Device& device, ResourceManager& resourceManager)
+        :
+        mStaticShaderResourceTableLayout{
+            graphics::ShaderVisibility::Pixel,
+            { {graphics::DescriptorRangeType::SRV, 1} }
+        },
+        mShaderResources(resourceManager.createResourceTable("BufferCopyPS_ResourceTable", mStaticShaderResourceTableLayout, graphics::DescriptorHeapWithAllocator::DescriptorsCategory::StaticGPU)),
+        mPresentSI(
+            { {graphics::ShaderVisibility::Vertex, 4} },
+            { mStaticShaderResourceTableLayout }
+        ),
+        mPresentPSO(createPSO(device)),
+        mSwapchainWidth(0), mSwapchainHeight(0)
+    {
+        mPresentSI.setResourceTable(mShaderResources);
+    }
+
+    void PresentPass::resize(const unsigned int width, const unsigned int height, graphics::Device& device, ResourceManager& resourceManager, const bool)
+    {
+        mSwapchainWidth = width;
+        mSwapchainHeight = height;
+
+        resourceManager.destroyDescriptor("SR_Particles_RenderPass");
+        mShaderResources.setResource(device, resourceManager.getTextureSRV("RT_Particles_RenderPass", "SR_Particles_RenderPass"));
+    }
+
+    void PresentPass::getInputOutputs(graphics::GraphicContext& context, ResourceManager& resourceManager)
+    {
+        context.transitionBarrier(resourceManager.getRenderTarget("RT_Particles_RenderPass").getTexture(), graphics::GPUResourceStates::PixelShaderResource);
+
+        context.flushResourceBarriers();
+    }
+
+    void PresentPass::render(graphics::GraphicContext& context, const FrameConstants& frameConstants, graphics::DescriptorHandle swapchainRTV)
+    {
+        context.setPipelineState(mPresentPSO);
+        context.setRootSignature(mPresentSI.getRootSignature(context.getDevice()));
+
+        mPresentSI.setConstants({ frameConstants.totalTime, frameConstants.deltaTime, 0x1deadb0b, 0x1deadb0b }, 0);
+        mPresentSI.finalize(context);
+
+        context.setRenderTargets(swapchainRTV);
+        graphics::ViewPort viewport{};
+        viewport.x = 0;
+        viewport.y = 0;
+        viewport.width = static_cast<float>(mSwapchainWidth);
+        viewport.height = static_cast<float>(mSwapchainHeight);
+        context.setViewport(viewport);
+
+        graphics::Box scissor{};
+        scissor.left = static_cast<unsigned int>(viewport.x);
+        scissor.top = static_cast<unsigned int>(viewport.y);
+        scissor.right = static_cast<unsigned int>(viewport.x + viewport.width);
+        scissor.bottom = static_cast<unsigned int>(viewport.y + viewport.height);
+        context.setScissor(scissor);
+
+        const float clearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+        context.clearColor(swapchainRTV, clearColor);
+        context.setPrimitiveTopology(graphics::PrimitiveTopology::TriangleList);
+        context.draw(3);
+    }
+
+    graphics::GraphicsPipelineState PresentPass::createPSO(graphics::Device& device)
+    {
+        graphics::GraphicsPipelineState::Description psoDesc;
+        psoDesc.name = "Graphics_PSO_Present";
+        psoDesc.rootSignature = &(mPresentSI.getRootSignature(device));
+        psoDesc.vertexShader = graphics::CommandContext::compileShader(
+            "ScreenQuadVS",
+            shaders::ScreenQuadVS,
+            "vs_5_0",
+            "main"
+        );
+        psoDesc.pixelShader = graphics::CommandContext::compileShader(
+            "BufferCopyPS",
+            shaders::BufferCopyPS,
+            "ps_5_0",
+            "main"
+        );
+        psoDesc.numRenderTargets = 1;
+        psoDesc.rtvFormats[0] = graphics::DefaultFormats::R8G8B8A8_UNORM;
+
+        return graphics::GraphicsPipelineState(device, psoDesc);
+    }
+}

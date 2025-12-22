@@ -2,22 +2,7 @@
 
 #include "Entrypoint.h"
 #include "Window.h"
-#include "Inputs.h"
-
-#include "CommandAllocatorPool.h"
-#include "CommandContext.h"
-#include "CommandContextPool.h"
-#include "CommandObject.h"
-#include "CommandObjectEnums.h"
-#include "DescriptorHeapEnums.h"
-#include "DescriptorHeapWithAllocator.h"
-#include "Format.h"
-#include "GPUResourceEnums.h"
-#include "HeapEnums.h"
-#include "HeapWithAllocator.h"
-#include "PipelineStateEnums.h"
-#include "RootSignatureEnums.h"
-#include "ShaderInput.h"
+#include "Engine.h"
 
 namespace sandbox
 {
@@ -25,7 +10,8 @@ namespace sandbox
     {
     public:
         Application()
-            : mWindow({ L"Sandbox", 1280, 720 })
+            : mWindow({ L"Sandbox", 1280, 720 }),
+            mEngine(mWindow)
         {
         }
 
@@ -36,6 +22,7 @@ namespace sandbox
 
         void run() override
         {
+            mEngine.run();
         }
 
         void deinitialize() override
@@ -48,6 +35,7 @@ namespace sandbox
 
     private:
         windows::Window mWindow;
+        engine::Engine mEngine;
     };
 }
 

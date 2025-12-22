@@ -23,6 +23,7 @@ workspace "Harmony"
     "-Wno-missing-field-initializers",
 
     "-Wno-global-constructors",
+    "-Wno-exit-time-destructors",
     "-Wno-unsafe-buffer-usage"
   }
 
