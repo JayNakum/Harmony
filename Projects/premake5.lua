@@ -13,10 +13,17 @@ workspace "Harmony"
     "-Wall",
     "-Wextra",
     "-Wpedantic",
-    "-Wno-c++98-compat-pedantic",
     "-Werror",
+    
+    "-Wno-c++98-compat-pedantic",
     "-Wno-gnu-anonymous-struct",
-    "-Wno-nested-anon-types"
+    "-Wno-nested-anon-types",
+    "-Wno-covered-switch-default",
+    "-Wno-language-extension-token",
+    "-Wno-missing-field-initializers",
+
+    "-Wno-global-constructors",
+    "-Wno-unsafe-buffer-usage"
   }
 
   configurations { "Debug", "Profile", "Release" }
@@ -51,4 +58,5 @@ group "Harmony"
   include "Harmony/Maths"
   include "Harmony/Graphics"
   include "Harmony/Engine"
-include "Sandbox"
+group ""
+  include "Sandbox"

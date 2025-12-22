@@ -109,19 +109,3 @@ constexpr auto enum_cast(Enum e) noexcept -> std::underlying_type_t<Enum>
 {
     return static_cast<std::underlying_type_t<Enum>>(e);
 }
-
-
-/*
-* Deletes the copy constructor and = operator.
-* Used to make the code clean.
-*/
-class NonCopyable
-{
-protected:
-    NonCopyable() = default;
-    NonCopyable(const NonCopyable&) = delete;
-    NonCopyable& operator=(const NonCopyable&) = delete;
-
-    //NonCopyable(NonCopyable&&) = default;
-    //NonCopyable& operator=(NonCopyable&&) = default;
-};

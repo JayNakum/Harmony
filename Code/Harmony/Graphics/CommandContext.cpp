@@ -1,0 +1,332 @@
+#include "CommandContext.h"
+
+#include "dx12/types/PrimitiveTopology.h"
+#include "dx12/types/DescriptorHeapType.h"
+
+namespace graphics
+{
+    CommandContext::CommandContext(const CommandListType type, Device& device)
+        : CommandObject(type),
+        mDevice(device),
+        mCommandAllocatorPool(mType),
+        mCurrentCommandAllocator(&mCommandAllocatorPool.requestCommandAllocator(mDevice, 0)),
+        mCmdListDesc{ toString(mType) + " commandList", mType, *mCurrentCommandAllocator },
+        mCommandList(mDevice, mCmdListDesc)
+    {
+        HRESULT hResult = mCommandList->Close();
+        HASSERT(SUCCEEDED(hResult), "Failed to close command list.\n%s", utility::translateErrorCode(hResult).c_str());
+    }
+
+    void CommandContext::setName(const std::string& name)
+    {
+        mName = name;
+        mCommandList.setName(name);
+    }
+
+    void CommandContext::reset(const uint64_t completedFence)
+    {
+        mCurrentCommandAllocator = &mCommandAllocatorPool.requestCommandAllocator(mDevice, completedFence);
+        mCommandList->Reset(mCurrentCommandAllocator->get(), nullptr);
+    }
+
+    void CommandContext::copyBuffer(GPUResource& destination, GPUResource& source)
+    {
+        flushResourceBarriers();
+        mCommandList->CopyResource(destination.get(), source.get());
+    }
+
+    void CommandContext::copyBufferRegion(GPUResource& destination, const size_t destinationOffset, GPUResource& source, const size_t sourceOffset, const size_t numBytes)
+    {
+        flushResourceBarriers();
+        mCommandList->CopyBufferRegion(destination.get(), destinationOffset, source.get(), sourceOffset, numBytes);
+    }
+
+    void CommandContext::copySubresource(GPUResource& destination, const unsigned int destinationSubIndex, GPUResource& source, const unsigned int sourceSubIndex)
+    {
+        flushResourceBarriers();
+
+        D3D12_TEXTURE_COPY_LOCATION destinationLocation =
+        {
+            destination.get(),
+            D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX,
+            { {static_cast<UINT>(destinationSubIndex)} }
+        };
+
+        D3D12_TEXTURE_COPY_LOCATION sourceLocation =
+        {
+            source.get(),
+            D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX,
+            { {static_cast<UINT>(sourceSubIndex)} }
+        };
+
+        mCommandList->CopyTextureRegion(&destinationLocation, 0, 0, 0, &sourceLocation, nullptr);
+    }
+
+    void CommandContext::copyTextureRegion(GPUResource& destination, const unsigned int destinationX, const unsigned int destinationY, const unsigned int destinationZ, GPUResource& source, Box& sourceRect)
+    {
+        flushResourceBarriers();
+
+        D3D12_TEXTURE_COPY_LOCATION destLoc = CD3DX12_TEXTURE_COPY_LOCATION(destination.get(), 0);
+        D3D12_TEXTURE_COPY_LOCATION srcLoc = CD3DX12_TEXTURE_COPY_LOCATION(source.get(), 0);
+
+        const D3D12_BOX box{
+            sourceRect.left,
+            sourceRect.top,
+            sourceRect.front,
+            sourceRect.right,
+            sourceRect.bottom,
+            1,
+        };
+
+        mCommandList->CopyTextureRegion(&destLoc, destinationX, destinationY, destinationZ, &srcLoc, &box);
+    }
+
+    void CommandContext::setPredication(GPUResource& buffer, const size_t bufferOffset, bool equalZero)
+    {
+        mCommandList->SetPredication(
+            buffer.get(), bufferOffset,
+            equalZero ? D3D12_PREDICATION_OP_EQUAL_ZERO : D3D12_PREDICATION_OP_NOT_EQUAL_ZERO);
+    }
+
+    void CommandContext::bindDescriptorHeap(const DescriptorHeap& heap)
+    {
+        ID3D12DescriptorHeap* d3dHeap = heap.get();
+        mCommandList->SetDescriptorHeaps(1, &d3dHeap);
+    }
+
+    void CommandContext::finish(const uint64_t completedFenceValue)
+    {
+        flushResourceBarriers();
+
+        HRESULT hResult = mCommandList->Close();
+        HASSERT(SUCCEEDED(hResult), "Failed to close command list.\n%s", utility::translateErrorCode(hResult).c_str());
+        mDevice.getDeviceRemovedReason();
+
+        mCommandAllocatorPool.discardCommandAllocator(completedFenceValue, *mCurrentCommandAllocator);
+        mCurrentCommandAllocator = nullptr;
+    }
+
+
+    const Blob CommandContext::compileShader(const char* shaderName, const char* shaderCode, const char* targetProfile, const char* entryPoint)
+    {
+        Blob shaderBlob;
+        Blob errorBlob;
+
+        static UINT compileFlags = 0;
+#if defined(DEBUG)
+        compileFlags = D3DCOMPILE_ENABLE_STRICTNESS | D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
+#endif
+
+        HRESULT hResult = D3DCompile(
+            shaderCode,
+            strlen(shaderCode),
+            shaderName,
+            nullptr,
+            nullptr,
+            entryPoint,
+            targetProfile,
+            compileFlags,
+            0,
+            &shaderBlob,
+            &errorBlob
+        );
+
+        HASSERT(SUCCEEDED(hResult), "Failed to compile %s shader.\n%s", shaderName,
+            errorBlob->GetBufferPointer() ? reinterpret_cast<char*>(errorBlob->GetBufferPointer()) : "Invalid Error");
+
+        return shaderBlob;
+    }
+}
+
+namespace graphics
+{
+    GraphicContext::GraphicContext(Device& device)
+        : CommandContext(CommandListType::Direct, device) {
+    }
+
+    void GraphicContext::clearColor(DescriptorHandle& target, const float color[4])
+    {
+        flushResourceBarriers();
+        mCommandList->ClearRenderTargetView(target, color, 0, nullptr);
+    }
+
+    void GraphicContext::setPipelineState(GraphicsPipelineState& pso)
+    {
+        ID3D12PipelineState* pipelineState = pso.get();
+
+        mCommandList->SetPipelineState(pipelineState);
+    }
+
+    void GraphicContext::setRootSignature(const RootSignature& rootSignature)
+    {
+        mCommandList->SetGraphicsRootSignature(rootSignature.get());
+    }
+
+    void GraphicContext::setRenderTargets(const DescriptorHandle rtv, unsigned int count)
+    {
+        mCommandList->OMSetRenderTargets(count, &rtv, FALSE, nullptr);
+    }
+
+    void GraphicContext::setRenderTargets(unsigned int count, const DescriptorHandle rtv, const DescriptorHandle dsv)
+    {
+        mCommandList->OMSetRenderTargets(count, &rtv, FALSE, &dsv);
+    }
+
+    void GraphicContext::setViewport(const ViewPort& viewport)
+    {
+        const D3D12_VIEWPORT d3dViewPort{
+            static_cast<FLOAT>(viewport.x),
+            static_cast<FLOAT>(viewport.y),
+            static_cast<FLOAT>(viewport.width),
+            static_cast<FLOAT>(viewport.height),
+            static_cast<FLOAT>(viewport.minDepth),
+            static_cast<FLOAT>(viewport.maxDepth)
+        };
+
+        mCommandList->RSSetViewports(1, &d3dViewPort);
+    }
+
+    void GraphicContext::setScissor(const Box& rect)
+    {
+        HASSERT(rect.left < rect.right && rect.top < rect.bottom, "Invalid scissor rect.");
+
+        const D3D12_RECT d3dRect{
+            static_cast<LONG>(rect.left),
+            static_cast<LONG>(rect.top),
+            static_cast<LONG>(rect.right),
+            static_cast<LONG>(rect.bottom)
+        };
+
+        mCommandList->RSSetScissorRects(1, &d3dRect);
+    }
+
+    void GraphicContext::setStencilRef(const unsigned int stencilRef)
+    {
+        mCommandList->OMSetStencilRef(stencilRef);
+    }
+
+    void GraphicContext::setBlendFactor(const float blendFactor[4])
+    {
+        mCommandList->OMSetBlendFactor(blendFactor);
+    }
+
+    void GraphicContext::setPrimitiveTopology(const PrimitiveTopology topology)
+    {
+        mCommandList->IASetPrimitiveTopology(dx12::toD3DPrimitiveTopology(topology));
+    }
+
+    void GraphicContext::setVertexBuffers(unsigned int slot, const BufferView views[], const size_t count)
+    {
+        std::vector<D3D12_VERTEX_BUFFER_VIEW> d3dViews(count);
+
+        for (unsigned int i = 0; i < count; ++i)
+        {
+            d3dViews[i] = BufferView::toD3DVertexBufferView(views[i]);
+        }
+
+        mCommandList->IASetVertexBuffers(static_cast<UINT>(slot), static_cast<UINT>(count), d3dViews.data());
+    }
+
+    void GraphicContext::setIndexBuffer(const BufferView& view)
+    {
+        const D3D12_INDEX_BUFFER_VIEW d3dView = BufferView::toD3DIndexBufferView(view);
+        mCommandList->IASetIndexBuffer(&d3dView);
+    }
+
+    void GraphicContext::setConstant(const unsigned int rootIndex, DWParam value, const unsigned int offset)
+    {
+        mCommandList->SetGraphicsRoot32BitConstant(rootIndex, value.uintValue, offset);
+    }
+
+    void GraphicContext::setConstants(const unsigned int rootIndex, const size_t count, const void* pConstants, const unsigned int offset)
+    {
+        mCommandList->SetGraphicsRoot32BitConstants(rootIndex, static_cast<UINT>(count), pConstants, offset);
+    }
+
+    void GraphicContext::setDescriptorTable(const unsigned int rootIndex, const DescriptorHandle& firstHandle)
+    {
+        mCommandList->SetGraphicsRootDescriptorTable(rootIndex, firstHandle.getGPUHandle());
+    }
+
+    void GraphicContext::draw(const unsigned int vertexCount, const unsigned int vertexStartOffset)
+    {
+        drawInstanced(vertexCount, 1, vertexStartOffset, 0);
+    }
+
+    void GraphicContext::drawIndexed(const unsigned int indexCount, const unsigned int startIndexLocation, const int baseVertexLocation)
+    {
+        drawIndexedInstanced(indexCount, 1, startIndexLocation, baseVertexLocation, 0);
+    }
+
+    void GraphicContext::drawInstanced(const unsigned int vertexCountPerInstance, const unsigned int instanceCount, const unsigned int startVertexLocation, const unsigned int startInstanceLocation)
+    {
+        flushResourceBarriers();
+        mCommandList->DrawInstanced(vertexCountPerInstance, instanceCount, startVertexLocation, startInstanceLocation);
+    }
+
+    void GraphicContext::drawIndexedInstanced(const unsigned int indexCountPerInstance, const unsigned int instanceCount, const unsigned int startIndexLocation, const int baseVertexLocation, const unsigned int startInstanceLocation)
+    {
+        flushResourceBarriers();
+        mCommandList->DrawIndexedInstanced(indexCountPerInstance, instanceCount, startIndexLocation, baseVertexLocation, startInstanceLocation);
+    }
+}
+
+namespace graphics
+{
+    ComputeContext::ComputeContext(Device& device)
+        : CommandContext(CommandListType::Compute, device) {
+    }
+
+    void ComputeContext::setPipelineState(ComputePipelineState& pso)
+    {
+        ID3D12PipelineState* pipelineState = pso.get();
+
+        mCommandList->SetPipelineState(pipelineState);
+    }
+
+    void ComputeContext::setRootSignature(const RootSignature& rootSignature)
+    {
+        mCommandList->SetComputeRootSignature(rootSignature.get());
+    }
+
+    void ComputeContext::setConstant(const unsigned int rootIndex, DWParam value, const unsigned int offset)
+    {
+        mCommandList->SetComputeRoot32BitConstant(rootIndex, value.uintValue, offset);
+    }
+
+    void ComputeContext::setConstants(const unsigned int rootIndex, const size_t count, const void* pConstants, const unsigned int offset)
+    {
+        mCommandList->SetComputeRoot32BitConstants(rootIndex, static_cast<UINT>(count), pConstants, offset);
+    }
+
+    void ComputeContext::setDescriptorTable(const unsigned int rootIndex, const DescriptorHandle& firstHandle)
+    {
+        mCommandList->SetComputeRootDescriptorTable(rootIndex, firstHandle.getGPUHandle());
+    }
+
+    void ComputeContext::dispatch(const unsigned int groupCountX, const unsigned int groupCountY, const unsigned int groupCountZ)
+    {
+        mCommandList->Dispatch(groupCountX, groupCountY, groupCountZ);
+    }
+
+    void ComputeContext::dispatch1D(const unsigned int threadCountX, const unsigned int groupSizeX)
+    {
+        dispatch(maths::divideByMultiple(threadCountX, groupSizeX), 1, 1);
+    }
+
+    void ComputeContext::dispatch2D(const unsigned int threadCountX, const unsigned int threadCountY, const unsigned int groupSizeX, const unsigned int groupSizeY)
+    {
+        dispatch(maths::divideByMultiple(threadCountX, groupSizeX), maths::divideByMultiple(threadCountY, groupSizeY), 1);
+    }
+
+    void ComputeContext::dispatch3D(const unsigned int threadCountX, const unsigned int threadCountY, const unsigned int threadCountZ, const unsigned int groupSizeX, const unsigned int groupSizeY, const unsigned int groupSizeZ)
+    {
+        dispatch(maths::divideByMultiple(threadCountX, groupSizeX), maths::divideByMultiple(threadCountY, groupSizeY), maths::divideByMultiple(threadCountZ, groupSizeZ));
+    }
+}
+
+namespace graphics
+{
+    CopyContext::CopyContext(Device& device)
+        : CommandContext(CommandListType::Copy, device) {}
+}

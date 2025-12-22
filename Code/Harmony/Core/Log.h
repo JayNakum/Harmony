@@ -4,12 +4,11 @@
 
 #include "Utility.h"
 
-template<typename... Args>
 inline void hLog(const char* category,
     const char* file,
     const char* func,
     int line,
-    Args&&... args)
+    const std::string message)
 {
     utility::print(
         utility::stringFormat(
@@ -17,7 +16,7 @@ inline void hLog(const char* category,
             utility::timeNow(), " | ",
             file, " | ",
             func, ":", line, " | ",
-            std::forward<Args>(args)...,
+            message,
             "\n"
         )
     );
@@ -25,16 +24,14 @@ inline void hLog(const char* category,
     std::fflush(stdout);
 }
 
-#define HLOG(category, ...) hLog(#category, __FILE__, __func__, __LINE__, __VA_ARGS__)
+#define HLOG(category, ...) hLog(#category, __FILE__, __func__, __LINE__, utility::stringFormat(__VA_ARGS__))
 
 #define HASSERT(expression, ...) \
     do \
     { \
         if (!(expression)) \
         { \
-            HLOG(ASSERT, \
-                 "Assertion failed: %s" __VA_OPT__(": ") __VA_ARGS__, \
-                 #expression __VA_OPT__(,) __VA_ARGS__); \
+            HLOG(ASSERT, "Assertion failed: ", #expression, __VA_OPT__(": ") __VA_ARGS__); \
             std::abort(); \
         } \
     } while (0)
@@ -44,8 +41,16 @@ inline void hLog(const char* category,
     { \
         if (!(expression)) \
         { \
-            HLOG(ASSERT, \
-                 "Assertion failed: %s" __VA_OPT__(": ") __VA_ARGS__, \
-                 #expression __VA_OPT__(,) __VA_ARGS__); \
+            HLOG(ASSERT, "Assertion failed: ", #expression, __VA_OPT__(": ") __VA_ARGS__); \
         } \
     } while (0)
+
+#if defined(HDEBUG)
+
+#define HDEBUG_ONLY(...) __VA_ARGS__
+
+#else // defined(HDEBUG)
+
+#define HDEBUG_ONLY(...)
+
+#endif // defined(HDEBUG)

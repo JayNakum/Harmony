@@ -1,9 +1,6 @@
 #pragma once
 
 #pragma warning(disable : 4201)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
-#pragma clang diagnostic ignored "-Wunused-parameter"
 
 #include <cmath>
 #ifndef M_E
@@ -49,5 +46,3 @@
 #include "./Maths/Vectors.h"
 #include "./Maths/Matrices.h"
 #include "./Maths/Quaternions.h"
-
-#pragma clang diagnostic pop
